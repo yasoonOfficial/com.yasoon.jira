@@ -1,0 +1,1 @@
+robocopy . %appdata%\yasoon\apps /S /XF copy_to_installdir.bat LICENSE README.md

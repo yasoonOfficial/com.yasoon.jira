@@ -1,0 +1,171 @@
+<link rel="stylesheet" href="Dialogs/style.css">
+<script src="Dialogs/frameworks.js"></script>
+<script src="Dialogs/jiraDialog.js"></script>
+
+<div style="display: block; width: 810px; margin-left: -406px; margin-top: -297px;" class="jira-dialog box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready" id="create-issue-dialog">
+    <div class="jira-dialog-heading">
+        <h2 title="Create Issue">Create Issue</h2>
+    </div>
+    <div class="jira-dialog-content">
+        <div class="qf-container">
+            <div class="qf-unconfigurable-form">
+                <form name="jiraform" action="#" class="aui">
+                    <div style="max-height: 445px;" class="form-body">
+                        <div class="issue-setup-fields">
+                            <div class="qf-field qf-field-project qf-required">
+                                <div class="field-group">
+                                    <label for="project">Project<span class="aui-icon icon-required">Required</span></label>
+                                    <select style="display: none;" data-container-class="project-ss" class="select project-field aui-ss-select" id="project" name="pid">
+                                        <optgroup label="Recent Projects">
+                                            <option style="background-image: url(images/projectavatar.png)" selected="selected" value="10401">
+                                                yasoon Pilotprojekt
+                                            </option>
+                                        </optgroup>
+                                        <optgroup label="All Projects">
+                                            <option style="background-image: url(images/projectavatar.png)" selected="selected" value="10401">
+                                                yasoon Pilotprojekt
+                                            </option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                            </div><div class="qf-field qf-field-issuetype qf-required">
+                                <div class="field-group">
+                                    <label for="issuetype">Issue Type<span class="aui-icon icon-required">Required</span></label>
+                                    <select style="display: none;" data-project="10401" data-container-class="issuetype-ss" class="select imagebacked issuetype-field aui-ss-select" id="issuetype" name="issuetype">
+                                        <option class="10402" id="issuetype104022" data-selected="selected" selected="selected" data-icon="images/newfeature.png" value="2">
+                                            New Feature
+                                        </option>
+                                        <option class="10402" id="issuetype104023" data-icon="images/task.png" value="3">
+                                            Task
+                                        </option>
+                                    </select>
+                                    <fieldset class="project-issue-types hidden">
+                                        <input title="10401" value="10402" type="hidden">
+                                    </fieldset>
+                                    <fieldset class="default-project-issue-type hidden"></fieldset>
+
+                                    <a class="help-lnk" href="/secure/ShowConstantsHelp.jspa?decorator=popup#IssueTypes" title="Get local help about Issue Type" data-helplink="local"><span class="aui-icon aui-icon-small aui-iconfont-help"></span></a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content">
+                            <div class="field-group">
+                                <label for="summary">Summary<span class="aui-icon icon-required">Required</span></label>
+                                <input class="text long-field" id="summary" name="summary" value="" type="text">
+                            </div>
+                            <div class="field-group">
+                                <label for="priority">Priority</label>
+                                <select style="display: none;" class="select aui-ss-select" id="priority" name="priority">
+                                    <option class="imagebacked" data-icon="images/blocker.png" value="1">
+                                        Blocker
+                                    </option>
+                                    <option class="imagebacked" data-icon="images/critical.png" value="2">
+                                        Critical
+                                    </option>
+                                    <option class="imagebacked" selected="selected" data-icon="images/minor.png" value="4">
+                                        Normal
+                                    </option>
+                                    <option class="imagebacked" data-icon="images/trivial.png" value="5">
+                                        Trivial
+                                    </option>
+                                </select>
+                                <a class="help-lnk" href="/secure/ShowConstantsHelp.jspa?decorator=popup#PriorityLevels" title="Get local help about Priority" data-helplink="local"><span class="aui-icon aui-icon-small aui-iconfont-help"></span></a>
+                            </div>
+                            <div class="field-group aui-field-datepicker">
+                                <label for="duedate">Due Date</label>
+                                <input class="text medium-field" id="duedate" name="duedate" value="" type="text">
+                                <a href="#" id="duedate-trigger" title="Select a date" tabindex="-1">
+                                    <span class="aui-icon icon-date">Select a date</span>
+                                </a>
+                            </div>
+                            <div class="field-group aui-field-componentspicker frother-control-renderer">
+                                <label for="components">Component/s</label>
+                                <span class="field-value">None</span>
+                            </div>
+                            <div class="field-group aui-field-versionspicker frother-control-renderer">
+                                <label for="versions">Affects Version/s</label>
+                                <span class="field-value">None</span>
+                            </div>
+                            <div class="field-group aui-field-versionspicker frother-control-renderer">
+                                <label for="fixVersions">Fix Version/s</label>
+                                <span class="field-value">None</span>
+                            </div>
+                            <div class="field-group" id="assignee-container">
+                                <label for="assignee">Assignee</label>
+                                <select style="display: none;" id="assignee" name="assignee" class="single-user-picker js-assignee-picker aui-ss-select" data-show-dropdown-button="true" data-user-type="assignee" data-container-class="long-field">
+                                    <optgroup id="assignee-group-suggested" label="Suggestions">
+                                        data-weight="0"&gt;
+                                        <option value="ext_aschmidt" data-field-text="Andreas Schmidt " data-field-label="Andreas Schmidt  - andreas.schmidt@yasoon.com (ext_aschmidt)" data-icon="images/useravatar.png">Andreas Schmidt </option>
+                                        <option selected="selected" value="-1" data-field-text="Automatic" data-field-label="Automatic" data-icon="images/useravatar.png">Automatic</option>
+                                    </optgroup>
+                                </select>
+                                <a href="#assignee" id="assign-to-me-trigger">Assign to me</a>
+                                <fieldset class="hidden parameters"><input title="projectKeys" value="YSPP" type="hidden"></fieldset>
+                            </div>
+                            <div class="field-group">
+                                <label for="environment">Environment</label>
+
+
+                                <div class="wiki-edit">
+                                    <div id="environment-wiki-edit" class="wiki-edit-content">
+                                        <textarea class="textarea long-field wiki-textfield long-field" id="environment" name="environment" rows="2" wrap="virtual"></textarea>
+                                        <div class="content-inner">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="field-tools">
+
+                                    <a class="fullscreen" href="#" id="environment-preview_link" title="preview"><span class="aui-icon wiki-renderer-icon"></span></a>
+                                    <a class="help-lnk" id="viewHelp" href="/secure/WikiRendererHelpAction.jspa?section=texteffects" title="Get local help about wiki markup help" data-helplink="local"><span class="aui-icon aui-icon-small aui-iconfont-help"></span></a>
+                                </div>
+                                <div class="description">For example operating system, software platform and/or hardware specifications (include as appropriate for the issue).</div>
+                            </div><div class="field-group">
+                                <label for="description">Description</label>
+
+
+                                <div class="wiki-edit">
+                                    <div id="description-wiki-edit" class="wiki-edit-content">
+                                        <textarea class="textarea long-field wiki-textfield long-field" id="description" name="description" rows="12" wrap="virtual"></textarea>
+                                        <div class="content-inner">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="field-tools">
+
+                                    <a class="fullscreen" href="#" id="description-preview_link" title="preview"><span class="aui-icon wiki-renderer-icon"></span></a>
+                                    <a class="help-lnk" id="viewHelp" href="/secure/WikiRendererHelpAction.jspa?section=texteffects" title="Get local help about wiki markup help" data-helplink="local"><span class="aui-icon aui-icon-small aui-iconfont-help"></span></a>
+                                </div>
+                            </div><div class="field-group">
+                                <label for="timetracking_originalestimate">Original Estimate</label>
+                                <input class="text short-field" id="timetracking_originalestimate" name="timetracking_originalestimate" value="" type="text">
+                                <span class="aui-form example">(eg. 3w 4d 12h)</span>
+                                <a class="help-lnk" href="/secure/ShowTimeTrackingHelp.jspa?decorator=popup#TimeTracking" title="Get local help about Time Tracking" data-helplink="local"><span class="aui-icon aui-icon-small aui-iconfont-help"></span></a>
+                                <div class="description">The original estimate of how much work is involved in resolving this issue.</div>
+                            </div>
+
+                            <div class="field-group">
+                                <label for="timetracking_remainingestimate">Remaining Estimate</label>
+                                <input class="text short-field" id="timetracking_remainingestimate" name="timetracking_remainingestimate" value="" type="text">
+                                <span class="aui-form example">(eg. 3w 4d 12h)</span>
+                                <a class="help-lnk" href="/secure/ShowTimeTrackingHelp.jspa?decorator=popup#TimeTracking" title="Get local help about Time Tracking" data-helplink="local"><span class="aui-icon aui-icon-small aui-iconfont-help"></span></a>
+                                <div class="description">An estimate of how much work remains until this issue will be resolved.</div>
+                            </div>
+                            <div class="hidden">
+                                <input name="isCreateIssue" value="true" type="hidden">
+                                <input name="hasWorkStarted" value="" type="hidden">
+                            </div><div class="field-group aui-field-labelpicker">
+                                <label for="labels">Labels</label>
+
+
+
+                                <div class="jira-multi-select long-field" id="labels-multi-select"><textarea style="padding-top: 4px; padding-left: 5px; height: 30px;" autocomplete="off" id="labels-textarea" class="text long-field" wrap="off"></textarea><div class="aui-list" id="labels-suggestions" tabindex="-1"></div><span class="icon noloading drop-menu"><span>More</span></span><div class="representation"><ul class="items"></ul></div></div><select style="display: none;" class="multi-select long-field hidden edit-labels-inline multi-select-select" id="labels" multiple="multiple" name="labels"></select>
+                                <div class="description">Begin typing to find and create labels or press down to select a suggested label.</div>
+
+                            </div>
+                        </div>
+                    </div><div class="buttons-container form-footer"><div class="buttons"><span class="icon throbber"></span><label for="qf-create-another" class="qf-create-another"><input id="qf-create-another" type="checkbox">Create another</label><input accesskey="s" title="Press Alt+Shift+s to submit this form" class="button" id="create-issue-submit" name="Edit" value="Create" type="submit"><a href="#" accesskey="`" title="Press Alt+Shift+` to cancel" class="cancel">Cancel</a></div></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
