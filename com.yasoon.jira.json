@@ -1,0 +1,40 @@
+{
+    "$schema": "http://developer.yasoon.com/yasoon-module.json",
+    "id": 999,
+    "versionId": 999,
+    "version": "1.0",
+    "appNamespace": "com.yasoon.jira",
+    "title": "Jira",
+    "description": "Outlook Integration of Jira",
+    "homepage": "http://www.jira.com",
+    "author": {
+        "name": "Andreas Schmidt",
+        "email": "andreas.schmidt@yasoon.com"
+    },
+    "vendor": {
+        "name": "yasoon UG",
+        "email": "contact@yasoon.de",
+        "url": "http://www.yasoon.com"
+    },
+    "logoImage": "logo.png",
+    "notificationImage": "logo_round.png",
+    "files": [
+        "jira.js"
+    ],
+    "main": "jira.js",
+    "oauth": [
+        {
+            "serviceName": "auth",
+            "oauthVersion": 1,
+            "clientId": "yasoonjira",
+            "clientCertificate": "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",
+            "signatureMethod": "rsaSha1",
+            "requestUrl": "$baseUrl$/plugins/servlet/oauth/request-token",
+            "requestMethod": "post",
+            "authorizationUrl": "$baseUrl$/plugins/servlet/oauth/authorize",
+            "authorizationMethod": "post",
+            "tokenUrl": "$baseUrl$/plugins/servlet/oauth/access-token",
+            "tokenMethod": "post"
+        }
+    ]
+}
