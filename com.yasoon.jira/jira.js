@@ -1,5 +1,5 @@
 var jira = {};
-yasoon.app.load("com.yasoon.jira", new function () {
+yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	var self = this;
 	jira = this;
 	jira.CONST_HEADER = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
@@ -12,6 +12,7 @@ yasoon.app.load("com.yasoon.jira", new function () {
 		jira.ribbons = new JiraRibbonController();
 		jira.contacts = new JiraContactController();
 		jira.issues = new JiraIssueController();
+
 
 
 		yasoon.addHook(yasoon.setting.HookCreateRibbon, jira.ribbons.createRibbon);
@@ -74,7 +75,7 @@ yasoon.app.load("com.yasoon.jira", new function () {
 		console.log('clicked!', event);
 		event.preventDefault();
 	};
-});
+}); //jshint ignore:line
 
 function JiraSettingController() {
 	var self = this;
@@ -84,9 +85,9 @@ function JiraSettingController() {
 
 		//Add Values
 		var elem = $('<div>' + html + '</div>');
-		$.each(github.settings, function (i, val) {
+		$.each(jira.settings, function (i, val) {
 			if (elem.find('#' + i).attr('type') == "checkbox") {
-				if (val == true) {
+				if (val) {
 					elem.find('#' + i).attr('checked', true);
 				}
 			} else {
@@ -150,10 +151,10 @@ function JiraNotificationController() {
 
 	// Custom Debounce 
 	var bounce = debounce(function () {
-		if (notification == null)
+		if (!notification)
 			return;
 
-		if (notificationCounter == 1) {
+		if (notificationCounter === 1) {
 			jiraLog('Single Desktop Notification shown: ', notification);
 			var content = $('<div>' + notification.title + ' </div>').text();
 			yasoon.notification.showPopup({ title: 'News on Jira', text: content, contactId: notification.contactId });
@@ -220,7 +221,7 @@ function JiraNotificationController() {
 
 	self.renderNotification = function (feed) {
 		var event = self.createNotification(JSON.parse(feed.externalData));
-		if (event != null) {
+		if (event) {
 			feed.setContent(event.renderBody());
 			feed.setTitle(event.renderTitle());
 			event.setProperties(feed);
@@ -402,7 +403,7 @@ function JiraIssueNotification(issue) {
 			'   </ul>'+
 			'</span>';
 		feed.properties.customActions.push({ description: changeStatusHtml, eventHandler: $.noop });
-		feed.properties.customActions.push({ description: '<span><i class="fa fa-user"></i> Set assignee</span>', url: jira.settings.baseUrl+'/secure/AssignIssue%21default.jspa?id=' + self.issue.id })
+		feed.properties.customActions.push({ description: '<span><i class="fa fa-user"></i> Set assignee</span>', url: jira.settings.baseUrl + '/secure/AssignIssue%21default.jspa?id=' + self.issue.id });
 		feed.setProperties(feed.properties);
 
 		var icon_url = yasoon.io.getLinkPath('Task-03.png');
@@ -453,7 +454,7 @@ function JiraIssueNotification(issue) {
 			//Save Notification
 			var creation = false;
 			var yEvent = yasoon.notification.getByExternalId(self.issue.id);
-			if (yEvent == null) {
+			if (!yEvent) {
 				//New Notification
 				yEvent = {};
 				creation = true;
@@ -487,7 +488,7 @@ function JiraIssueNotification(issue) {
 			}
 		});
 	};
-}
+} 
 
 JiraIssueActionNotification.prototype = new JiraNotification();
 function JiraIssueActionNotification(event) {
@@ -496,9 +497,9 @@ function JiraIssueActionNotification(event) {
 	self.deferreds = [];
 	self.deferredObject = event;
 
-	self.isSyncNeeded= function() {
-		return true;
-	}
+	self.isSyncNeeded = function () {
+	    return true;
+	};
 
 	self.renderBody = function () {
 		var html;
@@ -563,16 +564,16 @@ function JiraIssueActionNotification(event) {
 				var creation = false;
 				//Update Author
 				jira.contacts.update({
-					displayName: self.event.author.name['#text'],
-					name: self.event.author['usr:username']['#text'],
-					emailAddress: self.event.author.email['#text'],
-					avatarUrls: { '48x48': self.event.author.link[1].href }
-				})
+				    displayName: self.event.author.name['#text'],
+				    name: self.event.author['usr:username']['#text'],
+				    emailAddress: self.event.author.email['#text'],
+				    avatarUrls: { '48x48': self.event.author.link[1].href }
+				});
 				//Save Activity Notification
 				var isComment = (self.event.category && self.event.category['@attributes'].term === 'comment');
 				var comment = null;
 				if (isComment) {
-					var comment = $.grep(self.event.issue.fields.comment.comments, function (c) {
+					comment = $.grep(self.event.issue.fields.comment.comments, function (c) {
 						if (self.event['activity:object'].link['@attributes'].href.indexOf('comment-' + c.id) > -1) {
 							return true;
 						} else {
@@ -730,14 +731,14 @@ function JiraContactController() {
 
 	self.update = function (actor) {
 		var c = yasoon.contact.get(actor.name);
-		if (c == null) {
-			var newContact = {
-				contactId: actor.name,
-				contactLastName: actor.displayName,
-				contactEmailAddress: actor.emailAddress,
-				externalData: JSON.stringify(actor),
-				externalAvatarUrl: actor.avatarUrls['48x48']
-			}
+		if (!c) {
+		    var newContact = {
+		        contactId: actor.name,
+		        contactLastName: actor.displayName,
+		        contactEmailAddress: actor.emailAddress,
+		        externalData: JSON.stringify(actor),
+		        externalAvatarUrl: actor.avatarUrls['48x48']
+		    };
 			jiraLog('New Contact created: ', newContact);
 			yasoon.contact.add(newContact);
 
@@ -752,7 +753,7 @@ function jiraIssueGetter() {
 
 	return $.Deferred(function (dfd) {
 		if (deferredObject && !deferredObject.issue) {
-			var issueKey = (deferredObject['activity:target']) ? deferredObject['activity:target']['title']['#text'] : deferredObject['activity:object']['title']['#text'];
+			var issueKey = (deferredObject['activity:target']) ? deferredObject['activity:target'].title['#text'] : deferredObject['activity:object'].title['#text'];
 			yasoon.oauth({
 			    url: jira.settings.baseUrl+'/rest/api/2/issue/' + issueKey + '?expand=transitions,renderedFields',
 				oauthServiceName: 'auth',
@@ -771,10 +772,10 @@ function jiraIssueGetter() {
 }
 
 function jiraLog(text, obj, stacktrace) {
-	if (yasoon.logLevel == 0) {
+	if (yasoon.logLevel === 0) {
 		var stack = '';
 		var json = '';
-		if (stacktrace !== undefined || stacktrace == true) {
+		if (stacktrace !== undefined || stacktrace) {
 			try {
 				var a = doesNotExit + forceException;
 			} catch (e) {
@@ -784,7 +785,7 @@ function jiraLog(text, obj, stacktrace) {
 
 			}
 		}
-		if (obj != null) {
+		if (obj) {
 			json = '\n' + JSON.stringify(obj);
 		}
 
