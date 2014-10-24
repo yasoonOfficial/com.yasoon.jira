@@ -17,6 +17,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		yasoon.addHook(yasoon.notification.HookRenderNotificationAsync, jira.notifications.renderNotification);
 		yasoon.addHook(yasoon.feed.HookCreateUserComment, jira.notifications.addComment);
 		yasoon.on("sync", jira.sync);
+		yasoon.app.on("oAuthSuccess", jira.sync);
 		yasoon.periodicCallback(300, jira.sync);
 	};
 
