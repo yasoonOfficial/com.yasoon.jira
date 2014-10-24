@@ -56,8 +56,9 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 								//Determine if paging is required
 								var lastObj = obj.feed.entry[obj.feed.entry.length - 1];
 								var lastObjDate = new Date(lastObj.updated['#text']);
-								if (jira.settings.lastSync < lastObjDate && currentPage <= 10) {
-									currentPage++;
+								if (jira.settings.lastSync < lastObjDate && currentPage <= 5) {
+								    currentPage++;
+								    console.log('currentPage:' + currentPage);
 									pull(baseUrl + '&streams=update-date+BEFORE+' + (lastObjDate.getTime() - 1));
 								} else {
 									jira.settings.setLastSync(startSync);
@@ -396,7 +397,7 @@ function JiraIssueNotification(issue) {
 			'               <span style="color: #707070">Autor:</span>' +
 			'           </div>' +
 			'           <div class="col-sm-8">' +
-			'               <span><img src="' + self.issue.fields.creator.avatarUrls['16x16'] + '" style="margin-right: 2px;">' + self.issue.fields.creator.displayName + '</span>' +
+			'               <span><img src="' + ((self.issue.fields.creator) ? self.issue.fields.creator.avatarUrls['16x16'] : '' )+ '" style="margin-right: 2px;">' + ((self.issue.fields.creator) ?self.issue.fields.creator.displayName : 'anonym') + '</span>' +
 			'           </div>' +
 			'       </div>' +
 			'       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top:15px;"> Daten <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span> </div>';
@@ -541,7 +542,7 @@ function JiraIssueNotification(issue) {
 				yEvent.title = self.issue.fields.summary;
 				yEvent.type = 1;
 				yEvent.createdAt = new Date(self.issue.fields.updated);
-				yEvent.contactId = self.issue.fields.creator.name;
+				yEvent.contactId = ((self.issue.fields.creator) ? self.issue.fields.creator.name : ((self.issue.fields.reporter) ? self.issue.fields.reporter.name : '' ));
 				yEvent.externalId = self.issue.id;
 				self.issue.type = 'issue';
 				yEvent.externalData = JSON.stringify(self.issue);
