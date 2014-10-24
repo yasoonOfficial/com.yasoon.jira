@@ -152,6 +152,7 @@ function JiraNotificationController() {
 	var self = this;
 	var notificationCounter = 0;
 	var notification = null;
+	var notificationEvent = null;
 
 	// Custom Debounce 
 	var bounce = debounce(function () {
@@ -162,7 +163,14 @@ function JiraNotificationController() {
 			jiraLog('Single Desktop Notification shown: ', notification);
 			var content = $('<div>' + notification.title + ' </div>').text();
 			yasoon.notification.showPopup({ title: 'News on Jira', text: content, contactId: notification.contactId });
-		} else {
+		}
+		else if (notificationCounter === 2 && notificationEvent && notificationEvent.category['@attributes'].term === 'created') {
+		    //Handle the single issue creation case (we want to show a single desktop nofif
+			jiraLog('Single Desktop Notification shown: ', notification);
+			var content = $('<div>' + notification.title + ' </div>').text();
+			yasoon.notification.showPopup({ title: 'News on Jira', text: content, contactId: notification.contactId });
+		}
+		else {
 			jiraLog('Multiple Desktop Notification shown!');
 			yasoon.notification.showPopup({ title: "News on Jira", text: 'multiple new notifications' });
 		}
@@ -217,9 +225,10 @@ function JiraNotificationController() {
 		return result;
 	};
 
-	self.addDesktopNotification = function (event) {
+	self.addDesktopNotification = function (notif, event) {
 		notificationCounter++;
-		notification = event;
+		notification = notif;
+		notificationEvent = event;
 		bounce();
 	};
 
@@ -675,12 +684,15 @@ function JiraIssueActionNotification(event) {
 						if (renderedComment)
 							self.event.content['#text'] = renderedComment.body;
 
+						//"Render" title for desktop notification
+						yEvent.title = $(self.event.title['#text']).text();					
 						yEvent.content = self.event.content['#text'];
 						yEvent.content = $(yEvent.content).html();
 						yEvent.contactId = self.event.author['usr:username']['#text'];
 						yEvent.createdAt = new Date(comment.updated);
 						yEvent.type = 1;
 					} else {
+					    yEvent.title = $(self.event.title['#text']).text();	
 						yEvent.content = (self.event.title['#text']) ? self.event.title['#text'] : 'no content';
 						yEvent.createdAt = new Date(self.event.updated['#text']);
 						yEvent.type = 2;
@@ -689,7 +701,7 @@ function JiraIssueActionNotification(event) {
 					yEvent.externalData = JSON.stringify(self.event);
 					if (creation) {
 						yasoon.notification.add1(yEvent, function (newNotif) {
-							jira.notifications.addDesktopNotification(newNotif);
+							jira.notifications.addDesktopNotification(newNotif, self.event);
 							cbk();
 						});
 					} else {
