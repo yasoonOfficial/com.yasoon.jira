@@ -13,8 +13,6 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		jira.contacts = new JiraContactController();
 		jira.issues = new JiraIssueController();
 
-
-
 		yasoon.addHook(yasoon.setting.HookCreateRibbon, jira.ribbons.createRibbon);
 		yasoon.addHook(yasoon.notification.HookRenderNotificationAsync, jira.notifications.renderNotification);
 		yasoon.addHook(yasoon.feed.HookCreateUserComment, jira.notifications.addComment);
@@ -24,8 +22,8 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 
 	this.sync = function () {
 		var startSync = new Date();
-
-		var baseUrl = jira.settings.baseUrl+'/activity';
+		var currentPage = 1;
+		var baseUrl = jira.settings.baseUrl + '/activity?maxResults=100';
 		var pull = function (url) {
 			yasoon.oauth({
 				url: url,
@@ -35,29 +33,40 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				error: jira.handleError,
 				success: function (data) {
 					var obj = jiraXmlToJson(new DOMParser().parseFromString(data, "text/xml"));
-					console.log(obj);
 					if (obj.feed.entry) {
-						//Adjust Data
+						//Adjust Data. If it's only 1 entry it's an object instead of array
 						if (!$.isArray(obj.feed.entry)) {
 							obj.feed.entry = [obj.feed.entry];
 						}
-						$.each(obj.feed.entry, function (i, feed) {
-							console.log(feed);
-							//Only for jira!
-							if (feed['atlassian:application'] && feed['atlassian:application']['#text'] === 'com.atlassian.jira') {
-								var notif = jira.notifications.createNotification(feed);
-								notif.save();
+						
+						var counter = 0;
+						var processEntry = function () {
+							var feed = obj.feed.entry[counter];
+							if (feed) {
+								console.log('Counter: ' + counter, feed);
+								//Only for jira!
+								if (feed['atlassian:application'] && feed['atlassian:application']['#text'] === 'com.atlassian.jira') {
+									var notif = jira.notifications.createNotification(feed);
+									notif.save(function () {
+										counter++;
+										processEntry();
+									});
+								}
+							} else {
+								//Determine if paging is required
+								var lastObj = obj.feed.entry[obj.feed.entry.length - 1];
+								var lastObjDate = new Date(lastObj.updated['#text']);
+								if (jira.settings.lastSync < lastObjDate && currentPage <= 5) {
+									currentPage++;
+									pull(baseUrl + '&streams=update-date+BEFORE+' + (lastObjDate.getTime() - 1));
+								} else {
+									jira.settings.setLastSync(startSync);
+								}
 							}
-						});
+						};
 
-						//Determine if paging is required
-						var lastObj = obj.feed.entry[obj.feed.entry.length - 1];
-						var lastObjDate = new Date(lastObj.published['#text']);
-						if (jira.settings.lastSync < lastObjDate) {
-							pull(baseUrl + '?streams=update-date+BEFORE+' + (lastObjDate.getTime() - 1));
-						} else {
-							jira.settings.setLastSync(startSync);
-						}
+						processEntry();
+
 					} else {
 						jira.settings.setLastSync(startSync);
 					}
@@ -67,13 +76,8 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		pull(baseUrl);
 	};
 
-	this.errorHandler = function (data, statusCode, result, errorText, cbkParam) {
+	this.handleErrpr = function (data, statusCode, result, errorText, cbkParam) {
 		console.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data);
-	};
-
-	this.clickDropdown = function (event) {
-		console.log('clicked!', event);
-		event.preventDefault();
 	};
 }); //jshint ignore:line
 
@@ -114,8 +118,8 @@ function JiraSettingController() {
 	};
 
 	self.setLastSync = function (date) {
-	    self.lastSync = date;
-	    //yasoon.setting.setAppParameter('lastSync', JSON.stringify(date));
+		self.lastSync = date;
+		//yasoon.setting.setAppParameter('lastSync', JSON.stringify(date));
 	};
 
 	/****** Initial Load of settings */
@@ -262,14 +266,31 @@ function JiraIssueNotification(issue) {
 	}
 
 	self.renderTitle = function () {
-		return '<span>' + self.issue.fields.summary + '<img style="margin-left: 5px;" src="' + self.issue.fields.priority.iconUrl + '" /> </span>';
+		return '<span> <img style="margin-right: 5px;" src="' + self.issue.fields.priority.iconUrl + '" /> ' + self.issue.fields.summary + '</span>';
 	};
 
 	self.renderBody = function () {
-		var html = '' +
-			'<div class="row" style="line-height: 1.42857">' +
+		var html = '<div style="position:relative; line-height: 1.42857;" class="jiraContainer">' +
+			'<div class="row body-collapsed" style="padding-top:10px;">' +
+			'   <div class="col-sm-2" style="padding-left: 20px;">' +
+			'       <div class="jiraFeedExpand" style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; cursor:pointer;"><i class="fa fa-caret-right"></i> Summary: </div>' +
+			'   </div>'+
+			'   <div class="col-sm-2">' +
+			'       <span title="' + self.issue.fields.issuetype.description + '"><img src="' + self.issue.fields.issuetype.iconUrl + '" style="margin-right: 2px;">' + self.issue.fields.issuetype.name + '</span>' +
+			'   </div>' +
+			'   <div class="col-sm-2">' +
+			'       <span title="' + self.issue.fields.status.description + '" ><img src="' + self.issue.fields.status.iconUrl + '" style="margin-right: 2px;">' + self.issue.fields.status.name + '</span>' +
+			'   </div>' +
+			'   <div class="col-sm-2">' +
+			'       <span> F&auml;llig: ' + ((self.issue.renderedFields.duedate) ? self.issue.renderedFields.duedate : ' - ') + '</span>' +
+			'   </div>' +
+			'   <div class="col-sm-3">' +
+			'       <span><img src="' + ((self.issue.fields.assignee) ? self.issue.fields.assignee.avatarUrls['16x16'] : '') + '" style="margin-right: 2px;">' + ((self.issue.fields.assignee) ? self.issue.fields.assignee.displayName : 'niemand') + '</span>' +
+			'   </div>' +
+			'</div>'+
+			'<div class="row body-open" style="display:none;">' +
 			'   <div class="col-sm-8" style="padding: 10px 20px;">' +
-			'       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden;"> Details <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span> </div>' +
+			'       <div class="jiraFeedClose" style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; cursor:pointer;"><i class="fa fa-caret-down"></i> Details <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span> </div>' +
 			'       <div class="row" >' +
 			'           <div class="col-sm-6">' +
 			'               <div class="row" style="margin-top: 5px;">' +
@@ -332,23 +353,23 @@ function JiraIssueNotification(issue) {
 			'               </div>';
 			if (self.issue.fields.fixVersions && self.issue.fields.fixVersions.length > 0) {
 			   html += '        <div class="row" style="margin-top: 5px;">' +
-			    '                   <div class="col-sm-4">' +
-			    '                       <span style="color: #707070">L&ouml;sungs- version(en):</span>' +
-			    '                   </div>' +
-			    '                   <div class="col-sm-8">' +
-			    '                       <span>';
-			    $.each(self.issue.fields.fixVersions, function (i, version) {
-			        html +=                 ((i > 0) ? ',' : '')+' <a href="'+ jira.settings.baseUrl+'/browse/' + self.issue.fields.project.key + '/fixforversion/' + version.id + '" title="' + version.description + '">' + version.name + '</a>';
-			    });
-			    html += '               </span>' +
-			    '                   </div>' +
-			    '               </div>';
+				'                   <div class="col-sm-4">' +
+				'                       <span style="color: #707070">L&ouml;sungs- version(en):</span>' +
+				'                   </div>' +
+				'                   <div class="col-sm-8">' +
+				'                       <span>';
+				$.each(self.issue.fields.fixVersions, function (i, version) {
+					html +=                 ((i > 0) ? ',' : '')+' <a href="'+ jira.settings.baseUrl+'/browse/' + self.issue.fields.project.key + '/fixforversion/' + version.id + '" title="' + version.description + '">' + version.name + '</a>';
+				});
+				html += '               </span>' +
+				'                   </div>' +
+				'               </div>';
 			}
 			html += '     </div>' +
 			'       </div>' +
 			'       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top: 15px;"> Beschreibung <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span> </div>' +
 			'       <div class="row" style="margin-top: 5px;">' +
-			'           <div class="col-sm-12">' + self.issue.renderedFields.description + '</div>'+
+			'           <div class="col-sm-12">' + self.issue.renderedFields.description + '</div>' +
 			'       </div>' +
 			'   </div>' +
 			'   <div class="col-sm-4" style="padding: 10px 20px;">' +
@@ -369,7 +390,29 @@ function JiraIssueNotification(issue) {
 			'               <span><img src="' + self.issue.fields.creator.avatarUrls['16x16'] + '" style="margin-right: 2px;">' + self.issue.fields.creator.displayName + '</span>' +
 			'           </div>' +
 			'       </div>' +
+			'       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top:15px;"> Daten <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span> </div>';
+			if (self.issue.fields.duedate) {
+			html += '   <div class="row" style="margin-top: 5px;">' +
+				'           <div class="col-sm-4">' +
+				'               <span style="color: #707070">F&auml;llig:</span>' +
+				'           </div>' +
+				'           <div class="col-sm-8">' +
+				'               <span>' + self.issue.renderedFields.duedate + '</span>' +
+				'           </div>' +
+				'       </div>';
+			}
+			if (self.issue.fields.resolutiondate) {
+				html += '   <div class="row" style="margin-top: 5px;">' +
+					'           <div class="col-sm-4">' +
+					'               <span style="color: #707070">Erledigt:</span>' +
+					'           </div>' +
+					'           <div class="col-sm-8">' +
+					'               <span>' + self.issue.renderedFields.resolutiondate + '</span>' +
+					'           </div>' +
+					'       </div>';
+			}
 			'   </div>' +
+			'</div>'+
 			'</div>';
 
 			return html;
@@ -378,6 +421,13 @@ function JiraIssueNotification(issue) {
 	self.setProperties = function (feed) {
 		feed.properties.customActions = [];
 		feed.properties.customLabels = [{ description: self.issue.fields.project.name, labelColor: '#D87F47', url: jira.settings.baseUrl+'/browse/'+ self.issue.fields.project.key }];
+
+		//Add Components
+		if (self.issue.fields.components) {
+			$.each(self.issue.fields.components, function (i, label) {
+				feed.properties.customLabels.push({ description: label.name, labelColor: '#0B96AA', url: jira.settings.baseUrl + '/browse/' + self.issue.fields.project.key + '/component/'+ label.id });
+			});
+		}
 
 		//Add Labels
 		if (self.issue.fields.labels) {
@@ -419,7 +469,7 @@ function JiraIssueNotification(issue) {
 				var key = $(this).data('key');
 				var body = JSON.stringify(bodyObj);
 				yasoon.oauth({
-				    url: jira.settings.baseUrl+'/rest/api/2/issue/' + key + '/transitions',
+					url: jira.settings.baseUrl+'/rest/api/2/issue/' + key + '/transitions',
 					oauthServiceName: 'auth',
 					headers: jira.CONST_HEADER,
 					data: body,
@@ -432,6 +482,19 @@ function JiraIssueNotification(issue) {
 					}
 				});
 
+			});
+
+			console.log('After Render called');
+			$('.jiraFeedExpand').unbind().click(function () {
+				console.log('Expand clicked');
+				$(this).parents('.body-collapsed').hide();
+				$(this).parents('.jiraContainer').find('.body-open').show();
+			});
+
+			$('.jiraFeedClose').unbind().click(function () {
+				console.log('Close clicked');
+				$(this).parents('.body-open').hide();
+				$(this).parents('.jiraContainer').find('.body-collapsed').show();
 			});
 		});
 	};
@@ -453,39 +516,41 @@ function JiraIssueNotification(issue) {
 
 			//Save Notification
 			var creation = false;
-			var yEvent = yasoon.notification.getByExternalId(self.issue.id);
-			if (!yEvent) {
-				//New Notification
-				yEvent = {};
-				creation = true;
-			} else if (yEvent.createdAt.getTime() >= new Date(self.issue.fields.updated).getTime()) {
-				//not new and no update needed
-				if (cbk)
-					cbk(yEvent);
-				return;
-			}
-
-			yEvent.content = self.issue.fields.description;
-			yEvent.title = self.issue.fields.summary;
-			yEvent.type = 1;
-			yEvent.createdAt = new Date(self.issue.fields.updated);
-			yEvent.contactId = self.issue.fields.creator.name;
-			yEvent.externalId = self.issue.id;
-			self.issue.type = 'issue';
-			yEvent.externalData = JSON.stringify(self.issue);
-
-			if (creation) {
-				yasoon.notification.add1(yEvent, function (newNotif) {
-					jira.notifications.addDesktopNotification(newNotif);
+			yasoon.notification.getByExternalId1(self.issue.id, function (yEvent) {
+				if (!yEvent) {
+					//New Notification
+					yEvent = {};
+					creation = true;
+				} else if (yEvent.createdAt.getTime() >= new Date(self.issue.fields.updated).getTime()) {
+					//not new and no update needed
 					if (cbk)
-						cbk(newNotif);
-				});
-			} else {
-				yasoon.notification.save1(yEvent, function (notif) {
-					if (cbk)
-						cbk(notif);
-				});
-			}
+						cbk(yEvent);
+					return;
+				}
+
+				yEvent.content = (self.issue.fields.description) ? self.issue.fields.description : 'no content';
+				yEvent.title = self.issue.fields.summary;
+				yEvent.type = 1;
+				yEvent.createdAt = new Date(self.issue.fields.updated);
+				yEvent.contactId = self.issue.fields.creator.name;
+				yEvent.externalId = self.issue.id;
+				self.issue.type = 'issue';
+				yEvent.externalData = JSON.stringify(self.issue);
+
+				if (creation) {
+					yasoon.notification.add1(yEvent, function (newNotif) {
+						jira.notifications.addDesktopNotification(newNotif);
+						if (cbk)
+							cbk(newNotif);
+					});
+				} else {
+					yasoon.notification.save1(yEvent, function (notif) {
+						if (cbk)
+							cbk(notif);
+					});
+				}
+			});
+			
 		});
 	};
 } 
@@ -498,7 +563,7 @@ function JiraIssueActionNotification(event) {
 	self.deferredObject = event;
 
 	self.isSyncNeeded = function () {
-	    return true;
+		return true;
 	};
 
 	self.renderBody = function () {
@@ -555,7 +620,7 @@ function JiraIssueActionNotification(event) {
 
 	self.renderTitle = function () { };
 
-	self.save = function () {
+	self.save = function (cbk) {
 		if (!self.isSyncNeeded()) {
 			return;
 		}
@@ -564,10 +629,10 @@ function JiraIssueActionNotification(event) {
 				var creation = false;
 				//Update Author
 				jira.contacts.update({
-				    displayName: self.event.author.name['#text'],
-				    name: self.event.author['usr:username']['#text'],
-				    emailAddress: self.event.author.email['#text'],
-				    avatarUrls: { '48x48': self.event.author.link[1].href }
+					displayName: self.event.author.name['#text'],
+					name: self.event.author['usr:username']['#text'],
+					emailAddress: self.event.author.email['#text'],
+					avatarUrls: { '48x48': self.event.author.link[1].href }
 				});
 				//Save Activity Notification
 				var isComment = (self.event.category && self.event.category['@attributes'].term === 'comment');
@@ -581,54 +646,60 @@ function JiraIssueActionNotification(event) {
 						}
 					})[0];
 				}
-				var yEvent = yasoon.notification.getByExternalId(self.event.id['#text']);
-				if (!yEvent && notif) {
-					//New Notification
-					yEvent = {};
-					creation = true;
-				} else {
-					//not new - update needed?
-					//Comments can be edited. But they do not change the updated flag in the feed (damn bug!).
-					//Lookup changed date in comment object
-					if (isComment) {
-						if (!comment || yEvent.createdAt >= new Date(comment.updated)) {
+				yasoon.notification.getByExternalId1(self.event.id['#text'], function (yEvent) {
+					if (!yEvent && notif) {
+						//New Notification
+						yEvent = {};
+						creation = true;
+					} else {
+						//not new - update needed?
+						//Comments can be edited. But they do not change the updated flag in the feed (damn bug!).
+						//Lookup changed date in comment object
+						if (isComment) {
+							if (!comment || yEvent.createdAt >= new Date(comment.updated)) {
+								cbk();
+								return;
+							}
+						} else if (yEvent.createdAt >= new Date(self.event.updated['#text'])) {
+							cbk();
 							return;
 						}
-					} else if (yEvent.createdAt >= new Date(self.event.updated['#text'])) {
-						return;
 					}
-				}
 
-				yEvent.parentNotificationId = notif.notificationId;
-				yEvent.externalId = self.event.id['#text'];
+					yEvent.parentNotificationId = notif.notificationId;
+					yEvent.externalId = self.event.id['#text'];
 
-				if (isComment) {
-					//Determine Renderd Comment
-					var renderedComment = $.grep(self.event.issue.renderedFields.comment.comments, function (c) { return c.id === comment.id; })[0];
-					if (renderedComment)
-						self.event.content['#text'] = renderedComment.body;
+					if (isComment) {
+						//Determine Renderd Comment
+						var renderedComment = $.grep(self.event.issue.renderedFields.comment.comments, function (c) { return c.id === comment.id; })[0];
+						if (renderedComment)
+							self.event.content['#text'] = renderedComment.body;
 
-					yEvent.content = self.event.content['#text'];
-					yEvent.content = $(yEvent.content).html();
-					yEvent.contactId = self.event.author['usr:username']['#text'];
-					yEvent.createdAt = new Date(comment.updated);
-					yEvent.type = 1;
-				} else {
-					yEvent.content = (self.event.title['#text']) ? self.event.title['#text'] : 'no content';
-					yEvent.createdAt = new Date(self.event.updated['#text']);
-					yEvent.type = 2;
-				}
-				self.event.type = 'IssueAction';
-				yEvent.externalData = JSON.stringify(self.event);
-				if (creation) {
-					yasoon.notification.add1(yEvent, function (newNotif) {
-						jira.notifications.addDesktopNotification(newNotif);
-					});
-				} else {
-					yasoon.notification.save1(yEvent, function (newNotif) {
-						jira.notifications.addDesktopNotification(newNotif);
-					});
-				}
+						yEvent.content = self.event.content['#text'];
+						yEvent.content = $(yEvent.content).html();
+						yEvent.contactId = self.event.author['usr:username']['#text'];
+						yEvent.createdAt = new Date(comment.updated);
+						yEvent.type = 1;
+					} else {
+						yEvent.content = (self.event.title['#text']) ? self.event.title['#text'] : 'no content';
+						yEvent.createdAt = new Date(self.event.updated['#text']);
+						yEvent.type = 2;
+					}
+					self.event.type = 'IssueAction';
+					yEvent.externalData = JSON.stringify(self.event);
+					if (creation) {
+						yasoon.notification.add1(yEvent, function (newNotif) {
+							jira.notifications.addDesktopNotification(newNotif);
+							cbk();
+						});
+					} else {
+						yasoon.notification.save1(yEvent, function (newNotif) {
+							jira.notifications.addDesktopNotification(newNotif);
+							cbk();
+						});
+					}
+				});
+				
 			});
 		});
 	};
@@ -671,7 +742,7 @@ function JiraRibbonController() {
 				}]
 			} ,{
 				type: 'contextMenu',
-				idMso: 'ContextMenuReadOnlyMailList',
+				idMso: 'ContextMenuReadOnlyMailTable',
 				items: [{
 					type: 'button',
 					id: 'newIssueFromText2',
@@ -679,6 +750,76 @@ function JiraRibbonController() {
 					image: 'logo_icon1.png',
 					onAction: self.ribbonOnNewIssue
 				}]
+			}, {
+			    type: 'contextMenu',
+			    idMso: 'ContextMenuReadOnlyMailTableCell',
+			    items: [{
+			        type: 'button',
+			        id: 'newIssueFromText3',
+			        label: 'New Issue',
+			        image: 'logo_icon1.png',
+			        onAction: self.ribbonOnNewIssue
+			    }]
+			}, {
+			    type: 'contextMenu',
+			    idMso: 'ContextMenuReadOnlyMailListTable',
+			    items: [{
+			        type: 'button',
+			        id: 'newIssueFromText4',
+			        label: 'New Issue',
+			        image: 'logo_icon1.png',
+			        onAction: self.ribbonOnNewIssue
+			    }]
+			}, {
+			    type: 'contextMenu',
+			    idMso: 'ContextMenuReadOnlyMailPictureTable',
+			    items: [{
+			        type: 'button',
+			        id: 'newIssueFromText5',
+			        label: 'New Issue',
+			        image: 'logo_icon1.png',
+			        onAction: self.ribbonOnNewIssue
+			    }]
+			}, {
+			    type: 'contextMenu',
+			    idMso: 'ContextMenuReadOnlyMailTextTable',
+			    items: [{
+			        type: 'button',
+			        id: 'newIssueFromText6',
+			        label: 'New Issue',
+			        image: 'logo_icon1.png',
+			        onAction: self.ribbonOnNewIssue
+			    }]
+			}, {
+			    type: 'contextMenu',
+			    idMso: 'ContextMenuReadOnlyMailTableWhole',
+			    items: [{
+			        type: 'button',
+			        id: 'newIssueFromText7',
+			        label: 'New Issue',
+			        image: 'logo_icon1.png',
+			        onAction: self.ribbonOnNewIssue
+			    }]
+			}, {
+			    type: 'contextMenu',
+			    idMso: 'ContextMenuReadOnlyMailList',
+			    items: [{
+			        type: 'button',
+			        id: 'newIssueFromText8',
+			        label: 'New Issue',
+			        image: 'logo_icon1.png',
+			        onAction: self.ribbonOnNewIssue
+			    }]
+			}, {
+			    type: 'contextMenu',
+			    idMso: 'ContextMenuReadOnlyMailHyperlink',
+			    items: [{
+			        type: 'button',
+			        id: 'newIssueFromText9',
+			        label: 'New Issue',
+			        image: 'logo_icon1.png',
+			        onAction: self.ribbonOnNewIssue
+			    }]
 			}]
 		});
 	};
@@ -693,7 +834,7 @@ function JiraRibbonController() {
 					title: 'New Jira Issue',
 					resizable: false,
 					htmlFile: 'Dialogs/newIssueDialog.html',
-					//initParameter: { 'ownUser': jira.settings.ownUser },
+					initParameter: { 'settings': jira.settings},
 					closeCallback: self.ribbonOnCloseNewIssue
 				});
 			//} else {
@@ -715,7 +856,7 @@ function JiraRibbonController() {
 					title: 'New Jira Issue',
 					resizable: false,
 					htmlFile: 'Dialogs/newIssueDialog.html',
-					//initParameter: { ownUser: github.settings.ownUser, text: selection },
+					initParameter: { settings: jira.settings, text: selection },
 					closeCallback: self.ribbonOnCloseNewIssue
 				});
 		}
@@ -732,13 +873,13 @@ function JiraContactController() {
 	self.update = function (actor) {
 		var c = yasoon.contact.get(actor.name);
 		if (!c) {
-		    var newContact = {
-		        contactId: actor.name,
-		        contactLastName: actor.displayName,
-		        contactEmailAddress: actor.emailAddress,
-		        externalData: JSON.stringify(actor),
-		        externalAvatarUrl: actor.avatarUrls['48x48']
-		    };
+			var newContact = {
+				contactId: actor.name,
+				contactLastName: actor.displayName,
+				contactEmailAddress: actor.emailAddress,
+				externalData: JSON.stringify(actor),
+				externalAvatarUrl: actor.avatarUrls['48x48']
+			};
 			jiraLog('New Contact created: ', newContact);
 			yasoon.contact.add(newContact);
 
@@ -755,7 +896,7 @@ function jiraIssueGetter() {
 		if (deferredObject && !deferredObject.issue) {
 			var issueKey = (deferredObject['activity:target']) ? deferredObject['activity:target'].title['#text'] : deferredObject['activity:object'].title['#text'];
 			yasoon.oauth({
-			    url: jira.settings.baseUrl+'/rest/api/2/issue/' + issueKey + '?expand=transitions,renderedFields',
+				url: jira.settings.baseUrl+'/rest/api/2/issue/' + issueKey + '?expand=transitions,renderedFields',
 				oauthServiceName: 'auth',
 				headers: jira.CONST_HEADER,
 				type: yasoon.ajaxMethod.Get,
