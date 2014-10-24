@@ -23,7 +23,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	this.sync = function () {
 		var startSync = new Date();
 		var currentPage = 1;
-		var baseUrl = jira.settings.baseUrl + '/activity?maxResults=100';
+		var baseUrl = jira.settings.baseUrl + '/activity?maxResults=25';
 		var pull = function (url) {
 			yasoon.oauth({
 				url: url,
@@ -56,7 +56,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 								//Determine if paging is required
 								var lastObj = obj.feed.entry[obj.feed.entry.length - 1];
 								var lastObjDate = new Date(lastObj.updated['#text']);
-								if (jira.settings.lastSync < lastObjDate && currentPage <= 5) {
+								if (jira.settings.lastSync < lastObjDate && currentPage <= 10) {
 									currentPage++;
 									pull(baseUrl + '&streams=update-date+BEFORE+' + (lastObjDate.getTime() - 1));
 								} else {
@@ -119,16 +119,16 @@ function JiraSettingController() {
 
 	self.setLastSync = function (date) {
 		self.lastSync = date;
-		//yasoon.setting.setAppParameter('lastSync', JSON.stringify(date));
+		yasoon.setting.setAppParameter('lastSync', JSON.stringify(date));
 	};
 
 	/****** Initial Load of settings */
 	var dateString = yasoon.setting.getAppParameter('lastSync');
-	//if (dateString) {
-	//	self.lastSync = JSON.parse(dateString);
-	//} else {
+	if (dateString) {
+		self.lastSync = JSON.parse(dateString);
+	} else {
 		self.lastSync = new Date(1000);
-	//}
+	}
 	var urlString = yasoon.setting.getAppParameter('baseUrl');
 	if (urlString) {
 		self.baseUrl = urlString;
@@ -825,41 +825,42 @@ function JiraRibbonController() {
 	};
 
 	this.ribbonOnNewIssue = function (ribbonId, ribbonCtx) {
-	
-		if (ribbonId == 'newIssue') {
-			//if (yasoon.app.isOAuthed('auth')) {
-				yasoon.dialog.open({
-					width: 900,
-					height: 650,
-					title: 'New Jira Issue',
-					resizable: false,
-					htmlFile: 'Dialogs/newIssueDialog.html',
-					initParameter: { 'settings': jira.settings},
-					closeCallback: self.ribbonOnCloseNewIssue
-				});
-			//} else {
-			//	yasoon.dialog.showMessageBox('Please login to GitHub in settings menu first!');
-			//	return;
-			//}
-		}
-		else {			
-			var selection = ribbonCtx.items[ribbonCtx.readingPaneItem].getSelection(0);
+	    if (yasoon.app.isOAuthed('auth')) {
+		    if (ribbonId == 'newIssue') {
 			
-			if(!selection || !selection.trim()) {
-				yasoon.dialog.showMessageBox('Please select some text first!');
-				return;
-			}
+				    yasoon.dialog.open({
+					    width: 900,
+					    height: 650,
+					    title: 'New Jira Issue',
+					    resizable: false,
+					    htmlFile: 'Dialogs/newIssueDialog.html',
+					    initParameter: { 'settings': jira.settings},
+					    closeCallback: self.ribbonOnCloseNewIssue
+				    });
+
+		    }
+		    else {			
+			    var selection = ribbonCtx.items[ribbonCtx.readingPaneItem].getSelection(0);
 			
-			yasoon.dialog.open({
-					width: 900,
-					height: 650,
-					title: 'New Jira Issue',
-					resizable: false,
-					htmlFile: 'Dialogs/newIssueDialog.html',
-					initParameter: { settings: jira.settings, text: selection },
-					closeCallback: self.ribbonOnCloseNewIssue
-				});
-		}
+			    if(!selection || !selection.trim()) {
+				    yasoon.dialog.showMessageBox('Please select some text first!');
+				    return;
+			    }
+			
+			    yasoon.dialog.open({
+					    width: 900,
+					    height: 650,
+					    title: 'New Jira Issue',
+					    resizable: false,
+					    htmlFile: 'Dialogs/newIssueDialog.html',
+					    initParameter: { settings: jira.settings, text: selection },
+					    closeCallback: self.ribbonOnCloseNewIssue
+				    });
+		    }
+	    } else {
+	        yasoon.dialog.showMessageBox('Please login to Jira in settings menu first!');
+	        return;
+	    }
 	};
 
 	this.ribbonOnCloseNewIssue = function () {

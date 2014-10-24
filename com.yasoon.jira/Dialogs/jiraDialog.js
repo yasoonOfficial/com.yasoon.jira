@@ -18,6 +18,9 @@ yasoon.dialog.load(new function () {
     self.init = function (initParams) {
         self.settings = initParams.settings;
 
+        if (initParams.text) {
+            $('#description').val(initParams.text);
+        }
         console.log('init');
         //Select all projects
         yasoon.oauth({
