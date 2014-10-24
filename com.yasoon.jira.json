@@ -53,6 +53,6 @@
         }
     ],
 	predeliveredConfiguration: {
-		"baseUrl": "https://jira.sovanta.com"
+		"baseUrl": "http://jira.sovanta.zz"
 	}
 }
