@@ -1,1 +1,1 @@
-robocopy . %appdata%\yasoon\apps /S /XF copy_to_installdir.bat LICENSE README.md /XD .git
+robocopy . %localappdata%\yasoon\apps /S /XF copy_to_installdir.bat LICENSE README.md /XD .git
