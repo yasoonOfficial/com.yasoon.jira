@@ -32,12 +32,21 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		yasoon.periodicCallback(300, jira.sync);
 	};
 
+	//Handle Sync Event
+	var SyncProcessId = null;
 	this.sync = function () {
+		//If SyncInProcess flag will not be cleared due to an error, there is no way to sync again! Schedule a timer that reset the flag.
+		if (SyncProcessId && !jira.SyncInProcess) {
+			clearTimeout(SyncProcessId);
+		}
+		SyncProcessId = setTimeout(function () { jira.SyncInProcess = false; }, 1000*60*10);
 		if (firstTime) {
 			self.initData();
-		} else {
+		} else if (!jira.SyncInProcess) {
+			jira.SyncInProcess = true;
 			startSync = new Date();
-			self.pullData(jira.settings.baseUrl + '/activity',jira.CONST_PULL_RESULTS, function () {
+			self.pullData(jira.settings.baseUrl + '/activity', jira.CONST_PULL_RESULTS, function () {
+				jira.SyncInProcess = false;
 				jira.settings.setLastSync(startSync);
 				jira.notifications.processChildren();
 			});
