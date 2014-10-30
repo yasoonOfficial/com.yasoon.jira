@@ -53,6 +53,6 @@
 		}
 	],
 	predeliveredConfiguration: {
-		"baseUrl": "http://yasoon.atlassian.net"
+		"baseUrl": "https://yasoon.atlassian.net"
 	}
 }
