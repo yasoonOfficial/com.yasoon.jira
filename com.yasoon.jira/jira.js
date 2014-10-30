@@ -807,7 +807,7 @@ function JiraIssueActionNotification(event) {
 			html = '<span>' + self.event.title['#text'] + '</span>';
 		}
 
-		if (self.event.content &&self.event.category && self.event.category['@attributes'].term !== 'comment') {
+		if (self.event.content && (!self.event.category || self.event.category['@attributes'].term !== 'comment')) {
 			html += '<span class="small yasoon-tooltip" data-toggle="tooltip" data-html="true" title="' + $('<div></div>').html(self.event.content['#text']).text().trim() + '">( <i class="fa fa-exclamation-circle"></i> more)</span>';
 		}
 		
