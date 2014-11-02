@@ -500,152 +500,26 @@ function JiraIssueNotification(issue) {
 	};
 
 	self.renderBody = function (feed) {
-		var html = '<div style="position:relative; line-height: 1.42857;" class="jiraContainer">' +
-			'<div class="row body-collapsed" style="padding-top:10px;">' +
-			'   <div class="col-sm-2" style="padding-left: 20px;">' +
-			'       <div class="jiraFeedExpand" style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; cursor:pointer;"><i class="fa fa-caret-right"></i> Summary: </div>' +
-			'   </div>'+
-			'   <div class="col-sm-2">' +
-			'       <span title="' + self.issue.fields.issuetype.description + '"><img src="' + self.issue.fields.issuetype.iconUrl + '" style="margin-right: 2px;">' + self.issue.fields.issuetype.name + '</span>' +
-			'   </div>' +
-			'   <div class="col-sm-2">' +
-			'       <span title="' + self.issue.fields.status.description + '" ><img src="' + self.issue.fields.status.iconUrl + '" style="margin-right: 2px;">' + self.issue.fields.status.name + '</span>' +
-			'   </div>' +
-			'   <div class="col-sm-2">' +
-			'       <span> F&auml;llig: ' + ((self.issue.renderedFields.duedate) ? self.issue.renderedFields.duedate : ' - ') + '</span>' +
-			'   </div>' +
-			'   <div class="col-sm-3">' +
-			'       <span><img src="' + ((self.issue.fields.assignee) ? self.issue.fields.assignee.avatarUrls['16x16'] : '') + '" style="margin-right: 2px;">' + ((self.issue.fields.assignee) ? self.issue.fields.assignee.displayName : 'niemand') + '</span>' +
-			'   </div>' +
-			'</div>'+
-			'<div class="row body-open" style="display:none;">' +
-			'   <div class="col-sm-8" style="padding: 10px 20px;">' +
-			'       <div class="jiraFeedClose" style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; cursor:pointer;"><i class="fa fa-caret-down"></i> Details <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span> </div>' +
-			'       <div class="row" >' +
-			'           <div class="col-sm-6">' +
-			'               <div class="row" style="margin-top: 5px;">' +
-			'                   <div class="col-sm-4">' +
-			'                       <span style="color: #707070">Typ:</span>' +
-			'                   </div>' +
-			'                   <div class="col-sm-8">' +
-			'                       <span title="' + self.issue.fields.issuetype.description + '"><img src="' + self.issue.fields.issuetype.iconUrl + '" style="margin-right: 2px;">' + self.issue.fields.issuetype.name + '</span>' +
-			'                   </div>' +
-			'               </div>' +
-			'               <div class="row" style="margin-top: 5px;">' +
-			'                   <div class="col-sm-4">' +
-			'                       <span style="color: #707070">Priorit&auml;t:</span>' +
-			'                   </div>' +
-			'                   <div class="col-sm-8">' +
-			'                       <span><img src="' + ((self.issue.fields.priority) ? self.issue.fields.priority.iconUrl : '') + '" style="margin-right: 2px;">' + ((self.issue.fields.priority) ? self.issue.fields.priority.name : ' - ') + '</span>' +
-			'                   </div>' +
-			'               </div>';
-			if (self.issue.fields.versions && self.issue.fields.versions.length > 0) {
-				html += '       <div class="row" style="margin-top: 5px;">' +
-				'                   <div class="col-sm-4">' +
-				'                       <span style="color: #707070">betrifft Version(en):</span>' +
-				'                   </div>' +
-				'                   <div class="col-sm-8">' +
-				'                       <span>';
-				$.each(self.issue.fields.versions, function (i, version) {
-					html +=             ((i > 0) ? ',' : '') + ' <span title="' + version.description + '">' + version.name + '</span>';
-				});
-				html += '               </span>' +
-				'                   </div>' +
-				'               </div>';
-			}
-			if (self.issue.renderedFields.environment) {
-				html += '   <div class="row" style="margin-top: 5px;">' +
-				'              <div class="col-sm-4">' +
-				'                    <span style="color: #707070">Umgebung:</span>' +
-				'               </div>' +
-				'               <div class="col-sm-8">' +
-				'                    <div>' + self.issue.renderedFields.environment + '</div>' +
-				'                </div>' +
-				'            </div>';
-			}
-			html += '   </div>' +
-			'           <div class="col-sm-6">' +
-			'               <div class="row" style="margin-top: 5px;">' +
-			'                   <div class="col-sm-4">' +
-			'                       <span style="color: #707070">Status:</span>' +
-			'                   </div>' +
-			'                   <div class="col-sm-8">' +
-			'                       <span title="' + self.issue.fields.status.description + '" ><img src="' + self.issue.fields.status.iconUrl + '" style="margin-right: 2px;">' + self.issue.fields.status.name + '</span>' +
-			'                   </div>' +
-			'               </div>' +
-			'               <div class="row" style="margin-top: 5px;">' +
-			'                   <div class="col-sm-4">' +
-			'                       <span style="color: #707070">L&ouml;sung:</span>' +
-			'                   </div>' +
-			'                   <div class="col-sm-8">' +
-			'                       <span>' + ((self.issue.fields.resolution) ? self.issue.fields.resolution.name : 'nicht erledigt') + '</span>' +
-			'                   </div>' +
-			'               </div>';
-			if (self.issue.fields.fixVersions && self.issue.fields.fixVersions.length > 0) {
-			   html += '        <div class="row" style="margin-top: 5px;">' +
-				'                   <div class="col-sm-4">' +
-				'                       <span style="color: #707070">L&ouml;sungs- version(en):</span>' +
-				'                   </div>' +
-				'                   <div class="col-sm-8">' +
-				'                       <span>';
-				$.each(self.issue.fields.fixVersions, function (i, version) {
-					html +=                 ((i > 0) ? ',' : '')+' <a href="'+ jira.settings.baseUrl+'/browse/' + self.issue.fields.project.key + '/fixforversion/' + version.id + '" title="' + version.description + '">' + version.name + '</a>';
-				});
-				html += '               </span>' +
-				'                   </div>' +
-				'               </div>';
-			}
-			html += '     </div>' +
-			'       </div>' +
-			'       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top: 15px;"> Beschreibung <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span> </div>' +
-			'       <div class="row" style="margin-top: 5px;">' +
-			'           <div class="col-sm-12">' + self.issue.renderedFields.description + '</div>' +
-			'       </div>' +
-			'   </div>' +
-			'   <div class="col-sm-4" style="padding: 10px 20px;">' +
-			'       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden;"> Personen <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span> </div>' +
-			'       <div class="row" style="margin-top: 5px;">' +
-			'           <div class="col-sm-4">' +
-			'               <span style="color: #707070">Bearbeiter:</span>' +
-			'           </div>' +
-			'           <div class="col-sm-8">' +
-			'               <span><img src="' + ((self.issue.fields.assignee) ? self.issue.fields.assignee.avatarUrls['16x16'] : '') + '" style="margin-right: 2px;">' + ((self.issue.fields.assignee) ? self.issue.fields.assignee.displayName : 'niemand') + '</span>' +
-			'           </div>' +
-			'       </div>' +
-			'       <div class="row" style="margin-top: 5px;">' +
-			'           <div class="col-sm-4">' +
-			'               <span style="color: #707070">Autor:</span>' +
-			'           </div>' +
-			'           <div class="col-sm-8">' +
-			'               <span><img src="' + ((self.issue.fields.creator) ? self.issue.fields.creator.avatarUrls['16x16'] : '' )+ '" style="margin-right: 2px;">' + ((self.issue.fields.creator) ?self.issue.fields.creator.displayName : 'anonym') + '</span>' +
-			'           </div>' +
-			'       </div>' +
-			'       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top:15px;"> Daten <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span> </div>';
-			if (self.issue.fields.duedate) {
-			html += '   <div class="row" style="margin-top: 5px;">' +
-				'           <div class="col-sm-4">' +
-				'               <span style="color: #707070">F&auml;llig:</span>' +
-				'           </div>' +
-				'           <div class="col-sm-8">' +
-				'               <span>' + self.issue.renderedFields.duedate + '</span>' +
-				'           </div>' +
-				'       </div>';
-			}
-			if (self.issue.fields.resolutiondate) {
-				html += '   <div class="row" style="margin-top: 5px;">' +
-					'           <div class="col-sm-4">' +
-					'               <span style="color: #707070">Erledigt:</span>' +
-					'           </div>' +
-					'           <div class="col-sm-8">' +
-					'               <span>' + self.issue.renderedFields.resolutiondate + '</span>' +
-					'           </div>' +
-					'       </div>';
-			}
-			'   </div>' +
-			'</div>'+
-			'</div>';
-
-			feed.setContent(html);
+		feed.setTemplate('templates/issueNotification.hbs', {
+			issuetype: self.issue.fields.issuetype,
+			status: self.issue.fields.status,
+			duedate: self.issue.renderedFields.duedate,
+			assignee: {
+				avatarUrl: (self.issue.fields.assignee) ? self.issue.fields.assignee.avatarUrls['16x16'] : '',
+				displayName: (self.issue.fields.assignee) ? self.issue.fields.assignee.displayName : 'niemand'
+			},
+			creator: {
+				avatarUrl: (self.issue.fields.creator) ? self.issue.fields.creator.avatarUrls['16x16'] : '',
+				displayName: (self.issue.fields.creator) ? self.issue.fields.creator.displayName : 'anonym'
+			},
+			priority: self.issue.fields.priority,
+			versions: self.issue.fields.versions,
+			environment: self.issue.renderedFields.environment,
+			resolution: self.issue.fields.resolution,
+			fixVersions: self.issue.fields.fixVersions,
+			description: self.issue.renderedFields.description,
+			resolutiondate: self.issue.fields.resolutiondate
+		});
 	};
 
 	self.setProperties = function (feed) {
