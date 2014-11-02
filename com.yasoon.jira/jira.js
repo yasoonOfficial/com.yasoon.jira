@@ -496,7 +496,12 @@ function JiraIssueNotification(issue) {
 	}
 
 	self.renderTitle = function (feed) {
-		feed.setTitle('<span> <img style="margin-right: 5px;" src="' + self.issue.fields.priority.iconUrl + '" /> ' + self.issue.fields.summary + '</span>');
+		var html = '<span>';
+		if (self.issue.fields.priority)
+			html += '<img style="margin-right: 5px;" src="' + self.issue.fields.priority.iconUrl + '" /> '
+
+		html += self.issue.fields.summary + '</span>';
+		feed.setTitle(html);
 	};
 
 	self.renderBody = function (feed) {
