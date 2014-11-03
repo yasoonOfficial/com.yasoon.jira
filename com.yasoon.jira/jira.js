@@ -276,7 +276,7 @@ function JiraNotificationController() {
 			var content = $('<div>' + notification.title + ' </div>').text();
 			yasoon.notification.showPopup({ title: 'News on Jira', text: content, contactId: notification.contactId });
 		}
-		else if (notificationCounter === 2 && notificationEvent && notificationEvent.category['@attributes'].term === 'created') {
+		else if (notificationCounter === 2 && notificationEvent && notificationEvent.category && notificationEvent.category['@attributes'].term === 'created') {
 			//Handle the single issue creation case (we want to show a single desktop nofif
 			jiraLog('Single Desktop Notification shown: ', notification);
 			var content = $('<div>' + notification.title + ' </div>').text();
@@ -496,7 +496,12 @@ function JiraIssueNotification(issue) {
 	}
 
 	self.renderTitle = function (feed) {
-		feed.setTitle('<span> <img style="margin-right: 5px;" src="' + self.issue.fields.priority.iconUrl + '" /> ' + self.issue.fields.summary + '</span>');
+		var html = '<span>';
+		if (self.issue.fields.priority)
+			html += '<img style="margin-right: 5px;" src="' + self.issue.fields.priority.iconUrl + '" /> '
+
+		html += self.issue.fields.summary + '</span>';
+		feed.setTitle(html);
 	};
 
 	self.renderBody = function (feed) {
@@ -536,7 +541,7 @@ function JiraIssueNotification(issue) {
 			'                       <span style="color: #707070">Priorit&auml;t:</span>' +
 			'                   </div>' +
 			'                   <div class="col-sm-8">' +
-			'                       <span><img src="' + self.issue.fields.priority.iconUrl + '" style="margin-right: 2px;">' + self.issue.fields.priority.name + '</span>' +
+			'                       <span><img src="' + ((self.issue.fields.priority) ? self.issue.fields.priority.iconUrl : '') + '" style="margin-right: 2px;">' + ((self.issue.fields.priority) ? self.issue.fields.priority.name : ' - ') + '</span>' +
 			'                   </div>' +
 			'               </div>';
 			if (self.issue.fields.versions && self.issue.fields.versions.length > 0) {
@@ -785,7 +790,7 @@ function JiraIssueNotification(issue) {
 				} else {
 					yasoon.notification.save1(yEvent, function (notif) {
 						if (!self.issue.childrenLoaded)
-							jira.notification.queueChildren(self.issue); // Trigger Sync of all children. If successfull it will set childrenLoaded!
+							jira.notifications.queueChildren(self.issue); // Trigger Sync of all children. If successfull it will set childrenLoaded!
 
 						if (cbk)
 							cbk(notif);
