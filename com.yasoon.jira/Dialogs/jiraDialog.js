@@ -8,7 +8,9 @@ function formatIcon(element) {
     if (!element.id) return element.text; // optgroup
     return '<img style="margin-right:3px;" src="'+ $(element.element).data('icon')+'"/>' + element.text;
 }
+
 function formatUser(user) { return user.displayName; }
+
 yasoon.dialog.load(new function () {
     var self = this;
     jira = this;
@@ -18,10 +20,18 @@ yasoon.dialog.load(new function () {
     self.init = function (initParams) {
         self.settings = initParams.settings;
 
+        //Load Recent Projects
+        var projectsString = yasoon.setting.getAppParameter('recentProjects');
+        if (projectsString) {
+            self.recentProjects = JSON.parse(projectsString);
+        } else {
+            self.recentProjects = [];
+        }
+
         if (initParams.text) {
             $('#description').val(initParams.text);
         }
-        console.log('init');
+
         //Select all projects
         yasoon.oauth({
             url: self.settings.baseUrl + '/rest/api/2/project',
@@ -31,19 +41,30 @@ yasoon.dialog.load(new function () {
             error: jira.handleError,
             success: function (data) {
                 self.projects = JSON.parse(data);
-                console.log('Return: ', self.projects);
-                var group = $('#project');
-
+                console.log('Projects: ', self.projects);
+                var group = $('#project').find('.all');
                 $.each(self.projects, function (i, project) {
                     group.append('<option style="background-image: url(images/projectavatar.png)" value="' +project.id + '" data-key="' + project.key+'">' + project.name +'</option>');
                 });
+                group = $('#project').find('.recent');
+                $.each(self.recentProjects, function (i, project) {
+                    group.append('<option style="background-image: url(images/projectavatar.png)" value="' + project.id + '" data-key="' + project.key + '">' + project.name + '</option>');
+                });
 
                 $('#project').select2({
-                    placeholder: "Select a Project"
+                    placeholder: "Select a Project",
+                    allowClear: true
                 });
 
                 $('#project').change(function () {
+                    console.log('changed: ' + $('#project').val());
                     if ($('#project').val() !== '0') {
+                        var project = $.grep(self.projects, function (proj) { return proj.id === $('#project').val(); })[0];
+
+                        // Save Project in recently used
+                        self.addRecentProject(project);
+
+                        //Get Values of project
                         yasoon.oauth({
                             url: self.settings.baseUrl + '/rest/api/2/project/' + $('#project').val(),
                             oauthServiceName: 'auth',
@@ -110,7 +131,7 @@ yasoon.dialog.load(new function () {
                             }
                         });
 
-                        var project = $.grep(self.projects, function (proj) { return proj.id === $('#project').val(); })[0];
+                        
                         yasoon.oauth({
                             url: self.settings.baseUrl + '/rest/api/2/user/assignable/search?project=' + project.key,
                             oauthServiceName: 'auth',
@@ -132,7 +153,17 @@ yasoon.dialog.load(new function () {
                             }
                         });
 
-
+                        yasoon.oauth({
+                            url: self.settings.baseUrl + '/rest/api/2/issue/createmeta?projectIds=' + $('#project').val() + '&expand=projects.issuetypes.fields',
+                            oauthServiceName: 'auth',
+                            headers: jira.CONST_HEADER,
+                            type: yasoon.ajaxMethod.Get,
+                            error: jira.handleError,
+                            success: function (data) {
+                                var meta = JSON.parse(data);
+                                console.log(meta);
+                            }
+                        });
                     }
                 });
 
@@ -212,7 +243,7 @@ yasoon.dialog.load(new function () {
                         data: JSON.stringify(result),
                         type: yasoon.ajaxMethod.Post,
                         error: function (data, statusCode, result, errorText, cbkParam) {
-                            alert('Sorry, that did not work. Check your input and try again');
+                            alert('Sorry, that did not work. Check your input and try again. ' + errorText);
                         },
                         success: function (data) {
                             yasoon.dialog.close({ action: 'success' });
@@ -232,6 +263,19 @@ yasoon.dialog.load(new function () {
     this.handleError = function (data, statusCode, result, errorText, cbkParam) {
         console.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data);
     };
+
+    this.addRecentProject = function (project) {
+        var exists = $.grep(self.recentProjects, function (proj) { return proj.id === project.id; });
+        if (exists.length === 0) {
+            //It does not exist, so we'll add it! But make sure there is a maximum of 9 recent Items.
+            if (self.recentProjects.length >= 9) {
+                self.recentProjects = self.recentProjects.slice(1);
+            }
+            self.recentProjects.push(project);
+            yasoon.setting.setAppParameter('recentProjects', JSON.stringify(self.recentProjects));
+        }
+    };
 });
 
 
+ 

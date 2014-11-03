@@ -113,7 +113,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 
 	this.initData = function () {
-		yasoon.oauth({
+	   yasoon.oauth({
 			url: jira.settings.baseUrl + '/rest/api/2/myself',
 			oauthServiceName: 'auth',
 			headers: jira.CONST_HEADER,
@@ -289,7 +289,7 @@ function JiraNotificationController() {
 
 		notificationCounter = 0;
 		notification = null;
-	}, 2000);
+	}, 5000);
 
 	self.addComment = function (parent, comment) {
 		var body = JSON.stringify({
