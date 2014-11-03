@@ -1,0 +1,170 @@
+<div style="position:relative; line-height: 1.42857;" class="jiraContainer">
+  <div class="row body-collapsed" style="padding-top:2px;">
+    <div class="col-sm-2" style="padding-left: 20px;">
+      <div class="jiraFeedExpand" style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; cursor:pointer;">
+        <i class="fa fa-caret-right"></i> Summary:
+      </div>
+    </div>
+    <div class="col-sm-2">
+      <span title="{{issuetype.description}}">
+        <img src="{{issuetype.iconUrl}}" style="margin-right: 2px;" />{{issuetype.name}}
+      </span>
+    </div>
+    <div class="col-sm-2">
+      <span title="{{status.description}}">
+        <img src="{{status.iconUrl}}" style="margin-right: 2px;" /> {{status.name}}
+      </span>
+    </div>
+    <div class="col-sm-2">
+      <span> F&auml;llig: {{#if duedate}} {{duedate}} {{else}} - {{/if}}</span>
+    </div>
+    <div class="col-sm-3">
+      <span>
+        <img src="{{assignee.avatarUrl}}" style="margin-right: 2px;" /> {{assignee.displayName}}
+      </span>
+    </div>
+  </div>
+  <div class="row body-open" style="display:none;">
+    <div class="col-sm-8" style="padding: 2px 20px;">
+      <div class="jiraFeedClose" style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; cursor:pointer;">
+        <i class="fa fa-caret-down"></i> Details <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
+      </div>
+      <div class="row" >
+        <div class="col-sm-6">
+          <div class="row" style="margin-top: 5px;">
+            <div class="col-sm-4">
+              <span style="color: #707070">Typ:</span>
+            </div>
+            <div class="col-sm-8">
+              <span title="{{issuetype.description}}">
+                <img src="{{issuetype.iconUrl}}" style="margin-right: 2px;" />{{issuetype.name}}
+              </span>
+            </div>
+          </div>
+          <div class="row" style="margin-top: 5px;">
+            <div class="col-sm-4">
+              <span style="color: #707070">Priorit&auml;t:</span>
+            </div>
+            <div class="col-sm-8">
+              <span>
+                <img src="{{priority.iconUrl}}" style="margin-right: 2px;" />{{priority.name}}
+              </span>
+            </div>
+          </div>
+          {{#if versions}}
+          <div class="row" style="margin-top: 5px;">
+            <div class="col-sm-4">
+              <span style="color: #707070">betrifft Version(en):</span>
+            </div>
+            <div class="col-sm-8">
+              <span>
+                {{#each versions}}
+                  {{#unless @first}}, {{/unless}}<span title="{{description}}"> {{name}}</span>
+                {{/each}}
+              </span>
+            </div>
+          </div>
+          {{/if}}
+          {{#if environment}}
+          <div class="row" style="margin-top: 5px;">
+            <div class="col-sm-4">
+              <span style="color: #707070">Umgebung:</span>
+            </div>
+            <div class="col-sm-8">
+              <div>{{environment}}</div>
+            </div>
+          </div>
+          {{/if}}
+        </div>
+        <div class="col-sm-6">
+          <div class="row" style="margin-top: 5px;">
+            <div class="col-sm-4">
+              <span style="color: #707070">Status:</span>
+            </div>
+            <div class="col-sm-8">
+              <span title="{{status.description}}" >
+                <img src="{{status.iconUrl}}" style="margin-right: 2px;" /> {{status.name}}
+              </span>
+            </div>
+          </div>
+          <div class="row" style="margin-top: 5px;">
+            <div class="col-sm-4">
+              <span style="color: #707070">L&ouml;sung:</span>
+            </div>
+            <div class="col-sm-8">
+              <span> {{#if resolution}}{{resolution.name}}{{else}}nicht erledigt{{/if}}</span>
+            </div>
+          </div>
+          {{#if fixVersions}}
+          <div class="row" style="margin-top: 5px;">
+            <div class="col-sm-4">
+              <span style="color: #707070">L&ouml;sungs- version(en):</span>
+            </div>
+            <div class="col-sm-8">
+              <span>
+                {{#each fixVersions}}
+                  {{#unless @first}}, {{/unless}}<a href="{{../baseUrl}}/browse/{{../project.key}}/fixforversion/{{id}}" title="{{description}}"> {{name}}</a>
+                {{/each}}
+              </span>
+            </div>
+          </div>
+          {{/if}}
+        </div>
+      </div>
+      <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top: 15px;">
+        Beschreibung <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
+      </div>
+      <div class="row" style="margin-top: 5px;">
+        <div class="col-sm-12"> {{{description}}}</div>
+      </div>
+    </div>
+    <div class="col-sm-4" style="padding: 10px 20px;">
+      <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden;">
+        Personen <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
+      </div>
+      <div class="row" style="margin-top: 5px;">
+        <div class="col-sm-4">
+          <span style="color: #707070">Bearbeiter:</span>
+        </div>
+        <div class="col-sm-8">
+          <span>
+            <img src="{{assignee.avatarUrl}}" style="margin-right: 2px;" /> {{assignee.displayName}}
+          </span>
+        </div>
+      </div>
+      <div class="row" style="margin-top: 5px;">
+        <div class="col-sm-4">
+          <span style="color: #707070">Autor:</span>
+        </div>
+        <div class="col-sm-8">
+          <span>
+            <img src="{{creator.avatarUrl}}" style="margin-right: 2px;" /> {{creator.displayName}}
+          </span>
+        </div>
+      </div>
+      <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top:15px;">
+        Daten <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
+      </div>
+      {{#if duedate}}
+      <div class="row" style="margin-top: 5px;">
+        <div class="col-sm-4">
+          <span style="color: #707070">F&auml;llig:</span>
+        </div>
+        <div class="col-sm-8">
+          <span>{{duedate}}</span>
+        </div>
+      </div>
+      {{/if}}
+      {{#if resolutiondate}}
+      <div class="row" style="margin-top: 5px;">
+        <div class="col-sm-4">
+          <span style="color: #707070">Erledigt:</span>
+        </div>
+        <div class="col-sm-8">
+          <span> {{resolutiondate}}</span>
+        </div>
+      </div>
+      {{/if}}
+    </div>
+  </div>
+</div>
