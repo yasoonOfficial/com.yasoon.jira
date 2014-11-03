@@ -11,7 +11,7 @@
         <div class="qf-container">
             <div class="qf-unconfigurable-form">
                 <form name="jiraform" action="#" class="aui">
-                    <div style="max-height: 445px;" class="form-body">
+                    <div class="form-body">
                         <div class="issue-setup-fields">
                             <div class="qf-field qf-field-project qf-required">
                                 <div class="field-group " >
@@ -27,7 +27,7 @@
                                 <div class="field-group input-field">
                                     <label for="issuetype">Issue Type<span class="aui-icon icon-required">Required</span></label>
                                     <select data-container-class="issuetype-ss" class="select input-field" id="issuetype" name="issuetype"></select>
-                                    <a class="help-lnk" href="/secure/ShowConstantsHelp.jspa?decorator=popup#IssueTypes" title="Get local help about Issue Type" data-helplink="local"><span class="aui-icon aui-icon-small aui-iconfont-help"></span></a>
+                                   <!--<a class="help-lnk" href="/secure/ShowConstantsHelp.jspa?decorator=popup#IssueTypes" title="Get local help about Issue Type" data-helplink="local"><span class="aui-icon aui-icon-small aui-iconfont-help"></span></a>--> 
                                 </div>
                             </div>
                         </div>
@@ -52,11 +52,11 @@
                                         Trivial
                                     </option>
                                 </select>
-                                <a class="help-lnk" href="/secure/ShowConstantsHelp.jspa?decorator=popup#PriorityLevels" title="Get local help about Priority" data-helplink="local"><span class="aui-icon aui-icon-small aui-iconfont-help"></span></a>
+                                <!--<a class="help-lnk" href="/secure/ShowConstantsHelp.jspa?decorator=popup#PriorityLevels" title="Get local help about Priority" data-helplink="local"><span class="aui-icon aui-icon-small aui-iconfont-help"></span></a>-->
                             </div>
                             <div class="field-group aui-field-datepicker">
                                 <label for="duedate">Due Date</label>
-                                <input class="text medium-field" id="duedate" name="duedate" value="" type="text">
+                                <input class="text medium-field" id="duedate" name="duedate" placeholder="yyyy/mm/dd" value="" type="text">
                                 <a href="#" id="duedate-trigger" title="Select a date" tabindex="-1">
                                     <span class="aui-icon icon-date">Select a date</span>
                                 </a>
@@ -84,7 +84,6 @@
                                 <label for="assignee">Assignee</label>
                                 <input type="hidden" id="assignee" name="assignee" class="select input-field"></input>
                                 <a href="#assignee" id="assign-to-me-trigger">Assign to me</a>
-                                <fieldset class="hidden parameters"><input title="projectKeys" value="YSPP" type="hidden"></fieldset>
                             </div>
                             <div class="field-group">
                                 <label for="environment">Environment</label>
@@ -97,11 +96,10 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="field-tools">
-
+                                <!--<div class="field-tools">
                                     <a class="fullscreen" href="#" id="environment-preview_link" title="preview"><span class="aui-icon wiki-renderer-icon"></span></a>
                                     <a class="help-lnk" id="viewHelp" href="/secure/WikiRendererHelpAction.jspa?section=texteffects" title="Get local help about wiki markup help" data-helplink="local"><span class="aui-icon aui-icon-small aui-iconfont-help"></span></a>
-                                </div>
+                                </div>-->
                                 <div class="description">For example operating system, software platform and/or hardware specifications (include as appropriate for the issue).</div>
                             </div>
                             <div class="field-group">
@@ -115,18 +113,24 @@
                                         </div>
                                     </div>
                                 </div>
+                                <!--
                                 <div class="field-tools">
-
                                     <a class="fullscreen" href="#" id="description-preview_link" title="preview"><span class="aui-icon wiki-renderer-icon"></span></a>
                                     <a class="help-lnk" id="viewHelp" href="/secure/WikiRendererHelpAction.jspa?section=texteffects" title="Get local help about wiki markup help" data-helplink="local"><span class="aui-icon aui-icon-small aui-iconfont-help"></span></a>
                                 </div>
+                                -->
                             </div>
                             <div id="ContainerCustomFields">
 
                             </div>
                         </div>
                     </div>
-                    <div class="buttons-container form-footer"><div class="buttons"><input accesskey="s" title="Press Alt+Shift+s to submit this form" class="button" id="create-issue-submit" name="Edit" value="Create" ><a href="#" accesskey="`" title="Press Alt+Shift+` to cancel" id="create-issue-cancel" class="cancel">Cancel</a></div></div>
+                    <div class="buttons-container form-footer">
+                        <div class="buttons">
+                            <a accesskey="s" title="Press Alt+Shift+s to submit this form" class="button" id="create-issue-submit" > Create </a>
+                            <a href="#" accesskey="`" title="Press Alt+Shift+` to cancel" id="create-issue-cancel" class="cancel">Cancel</a>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>

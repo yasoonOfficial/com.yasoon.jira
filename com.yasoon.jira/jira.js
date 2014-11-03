@@ -10,7 +10,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		projects: null
 	};
 
-	var firstTime = true;
+	jira.firstTime = true;
 	var startSync = new Date();
 	var currentPage = 1;
 
@@ -39,8 +39,8 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		if (SyncProcessId && !jira.SyncInProcess) {
 			clearTimeout(SyncProcessId);
 		}
-		SyncProcessId = setTimeout(function () { jira.SyncInProcess = false; }, 1000*60*10);
-		if (firstTime) {
+		SyncProcessId = setTimeout(function () { jira.SyncInProcess = false; }, 1000 * 60 * 10);
+		if (jira.firstTime) {
 			self.initData();
 		} else if (!jira.SyncInProcess) {
 			jira.SyncInProcess = true;
@@ -54,10 +54,10 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 
 	this.pullData = function (url, maxResults, finishCallback) {
-		if(url.indexOf('?') === -1) {
-			url += '?maxResults='+maxResults;
+		if (url.indexOf('?') === -1) {
+			url += '?maxResults=' + maxResults;
 		} else {
-			url += '&maxResults='+maxResults;
+			url += '&maxResults=' + maxResults;
 		}
 		yasoon.oauth({
 			url: url,
@@ -91,10 +91,10 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 							//Determine if paging is required
 							var lastObj = obj.feed.entry[obj.feed.entry.length - 1];
 							var lastObjDate = new Date(lastObj.updated['#text']);
-							if (obj.feed.entry.length === maxResults  && jira.settings.lastSync < lastObjDate && currentPage <= 5) {
+							if (obj.feed.entry.length === maxResults && jira.settings.lastSync < lastObjDate && currentPage <= 5) {
 								currentPage++;
 								console.log('currentPage:' + currentPage);
-								self.pullData(jira.settings.baseUrl + '/activity?streams=update-date+BEFORE+' + (lastObjDate.getTime() - 1), jira.CONST_PULL_RESULTS,finishCallback);
+								self.pullData(jira.settings.baseUrl + '/activity?streams=update-date+BEFORE+' + (lastObjDate.getTime() - 1), jira.CONST_PULL_RESULTS, finishCallback);
 							} else {
 								if (finishCallback)
 									finishCallback();
@@ -113,7 +113,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 
 	this.initData = function () {
-	   yasoon.oauth({
+		yasoon.oauth({
 			url: jira.settings.baseUrl + '/rest/api/2/myself',
 			oauthServiceName: 'auth',
 			headers: jira.CONST_HEADER,
@@ -134,7 +134,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 						var counter = 0;
 						$.each(projects, function (i, proj) {
 							yasoon.oauth({
-								url: jira.settings.baseUrl + '/rest/api/2/project/'+proj.id,
+								url: jira.settings.baseUrl + '/rest/api/2/project/' + proj.id,
 								oauthServiceName: 'auth',
 								headers: jira.CONST_HEADER,
 								type: yasoon.ajaxMethod.Get,
@@ -144,7 +144,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 									jira.data.projects.push(project);
 									counter++;
 									if (counter === projects.length) {
-										firstTime = false;
+										jira.firstTime = false;
 										self.sync();
 									}
 								}
@@ -155,7 +155,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 
 			}
 		});
-		
+
 	};
 
 	this.handleError = function (data, statusCode, result, errorText, cbkParam) {
@@ -293,13 +293,13 @@ function JiraNotificationController() {
 
 	self.addComment = function (parent, comment) {
 		var body = JSON.stringify({
-				"body": comment
+			"body": comment
 		});
 
 		var issue = JSON.parse(parent.externalData);
 
 		yasoon.oauth({
-			url: jira.settings.baseUrl+'/rest/api/2/issue/' + issue.key + '/comment',
+			url: jira.settings.baseUrl + '/rest/api/2/issue/' + issue.key + '/comment',
 			oauthServiceName: 'auth',
 			headers: jira.CONST_HEADER,
 			data: body,
@@ -351,7 +351,7 @@ function JiraNotificationController() {
 
 	self.queueChildren = function (issue) {
 		console.log('Queue Child - Function Call ' + issue.key);
-		var results = $.grep(childQueue, function(i) { return issue.key === i.key; });
+		var results = $.grep(childQueue, function (i) { return issue.key === i.key; });
 		if (results.length === 0) {
 			console.log('Queue Child - Add to Array ' + issue.key);
 			childQueue.push(issue);
@@ -377,7 +377,7 @@ function JiraNotificationController() {
 			counter++;
 			if (childQueue.length > counter) {
 				issue = childQueue[counter];
-				jira.pullData(jira.settings.baseUrl + '/activity?streams=issue-key+IS+' +  childQueue[counter].key, 500, successMethod);
+				jira.pullData(jira.settings.baseUrl + '/activity?streams=issue-key+IS+' + childQueue[counter].key, 500, successMethod);
 			} else {
 				childQueue = [];
 			}
@@ -399,7 +399,7 @@ function JiraNotificationController() {
 
 function JiraNotification() {
 	this.createNotification = function () {
-		
+
 	};
 
 	this.addDeferred = function (def) {
@@ -468,7 +468,7 @@ function JiraIssueNotification(issue) {
 		//Is it my own project? --> find project in buffer
 		if (jira.data.projects) {
 			var proj = $.grep(jira.data.projects, function (project) { return self.issue.fields.project.id === project.id })[0];
-			if (proj.lead.name === jira.data.ownUser.name) {
+			if (proj.lead && proj.lead.name === jira.data.ownUser.name) {
 				console.log('Project Lead equals');
 				return true;
 			}
@@ -509,7 +509,7 @@ function JiraIssueNotification(issue) {
 			'<div class="row body-collapsed" style="padding-top:10px;">' +
 			'   <div class="col-sm-2" style="padding-left: 20px;">' +
 			'       <div class="jiraFeedExpand" style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; cursor:pointer;"><i class="fa fa-caret-right"></i> Summary: </div>' +
-			'   </div>'+
+			'   </div>' +
 			'   <div class="col-sm-2">' +
 			'       <span title="' + self.issue.fields.issuetype.description + '"><img src="' + self.issue.fields.issuetype.iconUrl + '" style="margin-right: 2px;">' + self.issue.fields.issuetype.name + '</span>' +
 			'   </div>' +
@@ -522,7 +522,7 @@ function JiraIssueNotification(issue) {
 			'   <div class="col-sm-3">' +
 			'       <span><img src="' + ((self.issue.fields.assignee) ? self.issue.fields.assignee.avatarUrls['16x16'] : '') + '" style="margin-right: 2px;">' + ((self.issue.fields.assignee) ? self.issue.fields.assignee.displayName : 'niemand') + '</span>' +
 			'   </div>' +
-			'</div>'+
+			'</div>' +
 			'<div class="row body-open" style="display:none;">' +
 			'   <div class="col-sm-8" style="padding: 10px 20px;">' +
 			'       <div class="jiraFeedClose" style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; cursor:pointer;"><i class="fa fa-caret-down"></i> Details <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span> </div>' +
@@ -544,89 +544,89 @@ function JiraIssueNotification(issue) {
 			'                       <span><img src="' + ((self.issue.fields.priority) ? self.issue.fields.priority.iconUrl : '') + '" style="margin-right: 2px;">' + ((self.issue.fields.priority) ? self.issue.fields.priority.name : ' - ') + '</span>' +
 			'                   </div>' +
 			'               </div>';
-			if (self.issue.fields.versions && self.issue.fields.versions.length > 0) {
-				html += '       <div class="row" style="margin-top: 5px;">' +
-				'                   <div class="col-sm-4">' +
-				'                       <span style="color: #707070">betrifft Version(en):</span>' +
-				'                   </div>' +
-				'                   <div class="col-sm-8">' +
-				'                       <span>';
-				$.each(self.issue.fields.versions, function (i, version) {
-					html +=             ((i > 0) ? ',' : '') + ' <span title="' + version.description + '">' + version.name + '</span>';
-				});
-				html += '               </span>' +
-				'                   </div>' +
-				'               </div>';
-			}
-			if (self.issue.renderedFields.environment) {
-				html += '   <div class="row" style="margin-top: 5px;">' +
-				'              <div class="col-sm-4">' +
-				'                    <span style="color: #707070">Umgebung:</span>' +
-				'               </div>' +
-				'               <div class="col-sm-8">' +
-				'                    <div>' + self.issue.renderedFields.environment + '</div>' +
-				'                </div>' +
-				'            </div>';
-			}
-			html += '   </div>' +
-			'           <div class="col-sm-6">' +
-			'               <div class="row" style="margin-top: 5px;">' +
+		if (self.issue.fields.versions && self.issue.fields.versions.length > 0) {
+			html += '       <div class="row" style="margin-top: 5px;">' +
 			'                   <div class="col-sm-4">' +
-			'                       <span style="color: #707070">Status:</span>' +
+			'                       <span style="color: #707070">betrifft Version(en):</span>' +
 			'                   </div>' +
 			'                   <div class="col-sm-8">' +
-			'                       <span title="' + self.issue.fields.status.description + '" ><img src="' + self.issue.fields.status.iconUrl + '" style="margin-right: 2px;">' + self.issue.fields.status.name + '</span>' +
-			'                   </div>' +
-			'               </div>' +
-			'               <div class="row" style="margin-top: 5px;">' +
-			'                   <div class="col-sm-4">' +
-			'                       <span style="color: #707070">L&ouml;sung:</span>' +
-			'                   </div>' +
-			'                   <div class="col-sm-8">' +
-			'                       <span>' + ((self.issue.fields.resolution) ? self.issue.fields.resolution.name : 'nicht erledigt') + '</span>' +
+			'                       <span>';
+			$.each(self.issue.fields.versions, function (i, version) {
+				html += ((i > 0) ? ',' : '') + ' <span title="' + version.description + '">' + version.name + '</span>';
+			});
+			html += '               </span>' +
 			'                   </div>' +
 			'               </div>';
-			if (self.issue.fields.fixVersions && self.issue.fields.fixVersions.length > 0) {
-			   html += '        <div class="row" style="margin-top: 5px;">' +
-				'                   <div class="col-sm-4">' +
-				'                       <span style="color: #707070">L&ouml;sungs- version(en):</span>' +
-				'                   </div>' +
-				'                   <div class="col-sm-8">' +
-				'                       <span>';
-				$.each(self.issue.fields.fixVersions, function (i, version) {
-					html +=                 ((i > 0) ? ',' : '')+' <a href="'+ jira.settings.baseUrl+'/browse/' + self.issue.fields.project.key + '/fixforversion/' + version.id + '" title="' + version.description + '">' + version.name + '</a>';
-				});
-				html += '               </span>' +
-				'                   </div>' +
-				'               </div>';
-			}
-			html += '     </div>' +
-			'       </div>' +
-			'       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top: 15px;"> Beschreibung <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span> </div>' +
-			'       <div class="row" style="margin-top: 5px;">' +
-			'           <div class="col-sm-12">' + self.issue.renderedFields.description + '</div>' +
-			'       </div>' +
-			'   </div>' +
-			'   <div class="col-sm-4" style="padding: 10px 20px;">' +
-			'       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden;"> Personen <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span> </div>' +
-			'       <div class="row" style="margin-top: 5px;">' +
-			'           <div class="col-sm-4">' +
-			'               <span style="color: #707070">Bearbeiter:</span>' +
-			'           </div>' +
-			'           <div class="col-sm-8">' +
-			'               <span><img src="' + ((self.issue.fields.assignee) ? self.issue.fields.assignee.avatarUrls['16x16'] : '') + '" style="margin-right: 2px;">' + ((self.issue.fields.assignee) ? self.issue.fields.assignee.displayName : 'niemand') + '</span>' +
-			'           </div>' +
-			'       </div>' +
-			'       <div class="row" style="margin-top: 5px;">' +
-			'           <div class="col-sm-4">' +
-			'               <span style="color: #707070">Autor:</span>' +
-			'           </div>' +
-			'           <div class="col-sm-8">' +
-			'               <span><img src="' + ((self.issue.fields.creator) ? self.issue.fields.creator.avatarUrls['16x16'] : '' )+ '" style="margin-right: 2px;">' + ((self.issue.fields.creator) ?self.issue.fields.creator.displayName : 'anonym') + '</span>' +
-			'           </div>' +
-			'       </div>' +
-			'       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top:15px;"> Daten <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span> </div>';
-			if (self.issue.fields.duedate) {
+		}
+		if (self.issue.renderedFields.environment) {
+			html += '   <div class="row" style="margin-top: 5px;">' +
+			'              <div class="col-sm-4">' +
+			'                    <span style="color: #707070">Umgebung:</span>' +
+			'               </div>' +
+			'               <div class="col-sm-8">' +
+			'                    <div>' + self.issue.renderedFields.environment + '</div>' +
+			'                </div>' +
+			'            </div>';
+		}
+		html += '   </div>' +
+		'           <div class="col-sm-6">' +
+		'               <div class="row" style="margin-top: 5px;">' +
+		'                   <div class="col-sm-4">' +
+		'                       <span style="color: #707070">Status:</span>' +
+		'                   </div>' +
+		'                   <div class="col-sm-8">' +
+		'                       <span title="' + self.issue.fields.status.description + '" ><img src="' + self.issue.fields.status.iconUrl + '" style="margin-right: 2px;">' + self.issue.fields.status.name + '</span>' +
+		'                   </div>' +
+		'               </div>' +
+		'               <div class="row" style="margin-top: 5px;">' +
+		'                   <div class="col-sm-4">' +
+		'                       <span style="color: #707070">L&ouml;sung:</span>' +
+		'                   </div>' +
+		'                   <div class="col-sm-8">' +
+		'                       <span>' + ((self.issue.fields.resolution) ? self.issue.fields.resolution.name : 'nicht erledigt') + '</span>' +
+		'                   </div>' +
+		'               </div>';
+		if (self.issue.fields.fixVersions && self.issue.fields.fixVersions.length > 0) {
+			html += '        <div class="row" style="margin-top: 5px;">' +
+			 '                   <div class="col-sm-4">' +
+			 '                       <span style="color: #707070">L&ouml;sungs- version(en):</span>' +
+			 '                   </div>' +
+			 '                   <div class="col-sm-8">' +
+			 '                       <span>';
+			$.each(self.issue.fields.fixVersions, function (i, version) {
+				html += ((i > 0) ? ',' : '') + ' <a href="' + jira.settings.baseUrl + '/browse/' + self.issue.fields.project.key + '/fixforversion/' + version.id + '" title="' + version.description + '">' + version.name + '</a>';
+			});
+			html += '               </span>' +
+			'                   </div>' +
+			'               </div>';
+		}
+		html += '     </div>' +
+		'       </div>' +
+		'       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top: 15px;"> Beschreibung <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span> </div>' +
+		'       <div class="row" style="margin-top: 5px;">' +
+		'           <div class="col-sm-12">' + self.issue.renderedFields.description + '</div>' +
+		'       </div>' +
+		'   </div>' +
+		'   <div class="col-sm-4" style="padding: 10px 20px;">' +
+		'       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden;"> Personen <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span> </div>' +
+		'       <div class="row" style="margin-top: 5px;">' +
+		'           <div class="col-sm-4">' +
+		'               <span style="color: #707070">Bearbeiter:</span>' +
+		'           </div>' +
+		'           <div class="col-sm-8">' +
+		'               <span><img src="' + ((self.issue.fields.assignee) ? self.issue.fields.assignee.avatarUrls['16x16'] : '') + '" style="margin-right: 2px;">' + ((self.issue.fields.assignee) ? self.issue.fields.assignee.displayName : 'niemand') + '</span>' +
+		'           </div>' +
+		'       </div>' +
+		'       <div class="row" style="margin-top: 5px;">' +
+		'           <div class="col-sm-4">' +
+		'               <span style="color: #707070">Autor:</span>' +
+		'           </div>' +
+		'           <div class="col-sm-8">' +
+		'               <span><img src="' + ((self.issue.fields.creator) ? self.issue.fields.creator.avatarUrls['16x16'] : '') + '" style="margin-right: 2px;">' + ((self.issue.fields.creator) ? self.issue.fields.creator.displayName : 'anonym') + '</span>' +
+		'           </div>' +
+		'       </div>' +
+		'       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top:15px;"> Daten <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span> </div>';
+		if (self.issue.fields.duedate) {
 			html += '   <div class="row" style="margin-top: 5px;">' +
 				'           <div class="col-sm-4">' +
 				'               <span style="color: #707070">F&auml;llig:</span>' +
@@ -635,32 +635,32 @@ function JiraIssueNotification(issue) {
 				'               <span>' + self.issue.renderedFields.duedate + '</span>' +
 				'           </div>' +
 				'       </div>';
-			}
-			if (self.issue.fields.resolutiondate) {
-				html += '   <div class="row" style="margin-top: 5px;">' +
-					'           <div class="col-sm-4">' +
-					'               <span style="color: #707070">Erledigt:</span>' +
-					'           </div>' +
-					'           <div class="col-sm-8">' +
-					'               <span>' + self.issue.renderedFields.resolutiondate + '</span>' +
-					'           </div>' +
-					'       </div>';
-			}
-			'   </div>' +
-			'</div>'+
-			'</div>';
+		}
+		if (self.issue.fields.resolutiondate) {
+			html += '   <div class="row" style="margin-top: 5px;">' +
+				'           <div class="col-sm-4">' +
+				'               <span style="color: #707070">Erledigt:</span>' +
+				'           </div>' +
+				'           <div class="col-sm-8">' +
+				'               <span>' + self.issue.renderedFields.resolutiondate + '</span>' +
+				'           </div>' +
+				'       </div>';
+		}
+		'   </div>' +
+		'</div>' +
+		'</div>';
 
-			feed.setContent(html);
+		feed.setContent(html);
 	};
 
 	self.setProperties = function (feed) {
 		feed.properties.customActions = [];
-		feed.properties.customLabels = [{ description: self.issue.fields.project.name, labelColor: '#D87F47', url: jira.settings.baseUrl+'/browse/'+ self.issue.fields.project.key }];
+		feed.properties.customLabels = [{ description: self.issue.fields.project.name, labelColor: '#D87F47', url: jira.settings.baseUrl + '/browse/' + self.issue.fields.project.key }];
 
 		//Add Components
 		if (self.issue.fields.components) {
 			$.each(self.issue.fields.components, function (i, label) {
-				feed.properties.customLabels.push({ description: label.name, labelColor: '#0B96AA', url: jira.settings.baseUrl + '/browse/' + self.issue.fields.project.key + '/component/'+ label.id });
+				feed.properties.customLabels.push({ description: label.name, labelColor: '#0B96AA', url: jira.settings.baseUrl + '/browse/' + self.issue.fields.project.key + '/component/' + label.id });
 			});
 		}
 
@@ -672,7 +672,7 @@ function JiraIssueNotification(issue) {
 		}
 
 		//Add Actions
-		feed.properties.customActions.push({ description: '<span><i class="fa fa-external-link"></i> Open </span>', url: jira.settings.baseUrl+'/browse/' + self.issue.key });
+		feed.properties.customActions.push({ description: '<span><i class="fa fa-external-link"></i> Open </span>', url: jira.settings.baseUrl + '/browse/' + self.issue.key });
 
 		var changeStatusHtml = '' +
 			'<span style="position:relative;">' +
@@ -682,10 +682,10 @@ function JiraIssueNotification(issue) {
 			'   </span>' +
 			'   <ul class="dropdown-menu" role="menu">';
 		$.each(self.issue.transitions, function (i, transition) {
-			changeStatusHtml += '<li><a class="jiraStatusChangeLink" data-transition="' + transition.id + '" data-key="'+ self.issue.key +'">' + transition.name + '</a></li>';
+			changeStatusHtml += '<li><a class="jiraStatusChangeLink" data-transition="' + transition.id + '" data-key="' + self.issue.key + '">' + transition.name + '</a></li>';
 		});
 		changeStatusHtml += '' +
-			'   </ul>'+
+			'   </ul>' +
 			'</span>';
 		feed.properties.customActions.push({ description: changeStatusHtml, eventHandler: $.noop });
 		feed.properties.customActions.push({ description: '<span><i class="fa fa-user"></i> Set assignee</span>', url: jira.settings.baseUrl + '/secure/AssignIssue%21default.jspa?id=' + self.issue.id });
@@ -704,7 +704,7 @@ function JiraIssueNotification(issue) {
 				var key = $(this).data('key');
 				var body = JSON.stringify(bodyObj);
 				yasoon.oauth({
-					url: jira.settings.baseUrl+'/rest/api/2/issue/' + key + '/transitions',
+					url: jira.settings.baseUrl + '/rest/api/2/issue/' + key + '/transitions',
 					oauthServiceName: 'auth',
 					headers: jira.CONST_HEADER,
 					data: body,
@@ -713,7 +713,7 @@ function JiraIssueNotification(issue) {
 					success: function (data) {
 						console.log(data);
 						jira.sync();
-						
+
 					}
 				});
 
@@ -730,7 +730,7 @@ function JiraIssueNotification(issue) {
 			});
 		});
 	};
-	
+
 	self.save = function (cbk) {
 		self.executeDeferreds(function () {
 			if (!isSyncNeeded()) {
@@ -767,10 +767,10 @@ function JiraIssueNotification(issue) {
 				yEvent.title = self.issue.fields.summary;
 				yEvent.type = 1;
 				yEvent.createdAt = new Date(self.issue.fields.updated);
-				yEvent.contactId = ((self.issue.fields.creator) ? self.issue.fields.creator.name : ((self.issue.fields.reporter) ? self.issue.fields.reporter.name : '' ));
+				yEvent.contactId = ((self.issue.fields.creator) ? self.issue.fields.creator.name : ((self.issue.fields.reporter) ? self.issue.fields.reporter.name : ''));
 				yEvent.externalId = self.issue.id;
 				self.issue.type = 'issue';
-				
+
 				/* Clean up data to save DB space */
 				var tempIssue = JSON.parse(JSON.stringify(self.issue)); // Performance Intensive but nessecary
 				delete tempIssue.fields.comment;
@@ -797,10 +797,10 @@ function JiraIssueNotification(issue) {
 					});
 				}
 			});
-			
+
 		});
 	};
-} 
+}
 
 JiraIssueActionNotification.prototype = new JiraNotification();
 function JiraIssueActionNotification(event) {
@@ -824,7 +824,7 @@ function JiraIssueActionNotification(event) {
 		if (self.event.content && (!self.event.category || self.event.category['@attributes'].term !== 'comment')) {
 			html += '<span class="small yasoon-tooltip" data-toggle="tooltip" data-html="true" title="' + $('<div></div>').html(self.event.content['#text']).text().trim() + '">( <i class="fa fa-exclamation-circle"></i> more)</span>';
 		}
-		
+
 		feed.setContent(html);
 	};
 
@@ -847,7 +847,7 @@ function JiraIssueActionNotification(event) {
 				for (var i = 0, len = obj['activity:verb'].length; i < len; i++) {
 					activityLookup[obj['activity:verb'][i]['#text']] = obj['activity:verb'][i];
 				}
-			} else if( obj['activity:verb'].length === 1) {
+			} else if (obj['activity:verb'].length === 1) {
 				activityLookup[obj['activity:verb']['#text']] = obj['activity:verb'];
 			}
 
@@ -929,20 +929,20 @@ function JiraIssueActionNotification(event) {
 							self.event.content['#text'] = renderedComment.body;
 
 						//"Render" title for desktop notification
-						yEvent.title = $(self.event.title['#text']).text();					
+						yEvent.title = $(self.event.title['#text']).text();
 						yEvent.content = self.event.content['#text'];
 						yEvent.content = $(yEvent.content).html();
 						yEvent.contactId = self.event.author['usr:username']['#text'];
 						yEvent.createdAt = new Date(comment.updated);
 						yEvent.type = 1;
 					} else {
-						yEvent.title = $(self.event.title['#text']).text();	
+						yEvent.title = $(self.event.title['#text']).text();
 						yEvent.content = (self.event.title['#text']) ? self.event.title['#text'] : 'no content';
 						yEvent.createdAt = new Date(self.event.updated['#text']);
 						yEvent.type = 2;
 					}
 					self.event.type = 'IssueAction';
-					
+
 					/* Clear unused data to save DB space*/
 					delete self.event.issue.fields;
 					delete self.event.issue.renderedFields;
@@ -962,7 +962,7 @@ function JiraIssueActionNotification(event) {
 						});
 					}
 				});
-				
+
 			});
 		});
 	};
@@ -993,7 +993,7 @@ function JiraRibbonController() {
 					image: 'logo_icon1.png',
 					onAction: self.ribbonOnNewIssue
 				}]
-			} ,{
+			}, {
 				type: 'contextMenu',
 				idMso: 'ContextMenuReadOnlyMailText',
 				items: [{
@@ -1003,7 +1003,7 @@ function JiraRibbonController() {
 					image: 'logo_icon1.png',
 					onAction: self.ribbonOnNewIssue
 				}]
-			} ,{
+			}, {
 				type: 'contextMenu',
 				idMso: 'ContextMenuReadOnlyMailTable',
 				items: [{
@@ -1088,46 +1088,49 @@ function JiraRibbonController() {
 	};
 
 	this.ribbonOnNewIssue = function (ribbonId, ribbonCtx) {
-		if (yasoon.app.isOAuthed('auth')) {
-			if (ribbonId == 'newIssue') {
-			
-					yasoon.dialog.open({
-						width: 900,
-						height: 650,
-						title: 'New Jira Issue',
-						resizable: false,
-						htmlFile: 'Dialogs/newIssueDialog.html',
-						initParameter: { 'settings': jira.settings},
-						closeCallback: self.ribbonOnCloseNewIssue
-					});
-
-			}
-			else {			
-				var selection = ribbonCtx.items[ribbonCtx.readingPaneItem].getSelection(0);
-			
-				if(!selection || !selection.trim()) {
-					yasoon.dialog.showMessageBox('Please select some text first!');
-					return;
-				}
-			
-				yasoon.dialog.open({
-						width: 900,
-						height: 650,
-						title: 'New Jira Issue',
-						resizable: false,
-						htmlFile: 'Dialogs/newIssueDialog.html',
-						initParameter: { settings: jira.settings, text: selection },
-						closeCallback: self.ribbonOnCloseNewIssue
-					});
-			}
-		} else {
+		if (!yasoon.app.isOAuthed('auth')) {
 			yasoon.dialog.showMessageBox('Please login to Jira in settings menu first!');
 			return;
+		}
+		if (jira.firstTime) {
+			yasoon.dialog.showMessageBox('Jira is not completely initialized yet. Please wait a few seconds and make sure you are connected to Internet.');
+			return;
+		}
+		if (ribbonId == 'newIssue') {
+
+			yasoon.dialog.open({
+				width: 900,
+				height: 650,
+				title: 'New Jira Issue',
+				resizable: true,
+				htmlFile: 'Dialogs/newIssueDialog.html',
+				initParameter: { 'settings': jira.settings, 'ownUser': jira.data.ownUser },
+				closeCallback: self.ribbonOnCloseNewIssue
+			});
+
+		}
+		else {
+			var selection = ribbonCtx.items[ribbonCtx.readingPaneItem].getSelection(0);
+
+			if (!selection || !selection.trim()) {
+				yasoon.dialog.showMessageBox('Please select some text first!');
+				return;
+			}
+
+			yasoon.dialog.open({
+				width: 900,
+				height: 650,
+				title: 'New Jira Issue',
+				resizable: true,
+				htmlFile: 'Dialogs/newIssueDialog.html',
+				initParameter: { settings: jira.settings, 'ownUser': jira.data.ownUser, text: selection },
+				closeCallback: self.ribbonOnCloseNewIssue
+			});
 		}
 	};
 
 	this.ribbonOnCloseNewIssue = function () {
-
+	    jira.sync();
 	};
 }
 
@@ -1160,7 +1163,7 @@ function jiraIssueGetter() {
 		if (deferredObject && !deferredObject.issue) {
 			var issueKey = (deferredObject['activity:target']) ? deferredObject['activity:target'].title['#text'] : deferredObject['activity:object'].title['#text'];
 			yasoon.oauth({
-				url: jira.settings.baseUrl+'/rest/api/2/issue/' + issueKey + '?expand=transitions,renderedFields',
+				url: jira.settings.baseUrl + '/rest/api/2/issue/' + issueKey + '?expand=transitions,renderedFields',
 				oauthServiceName: 'auth',
 				headers: jira.CONST_HEADER,
 				type: yasoon.ajaxMethod.Get,

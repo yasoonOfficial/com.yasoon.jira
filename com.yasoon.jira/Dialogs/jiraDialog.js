@@ -16,10 +16,11 @@ yasoon.dialog.load(new function () {
     jira = this;
     jira.CONST_HEADER = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
         
+    self.UIFormHandler = UIFormHandler();
 
     self.init = function (initParams) {
         self.settings = initParams.settings;
-
+        self.ownUser = initParams.ownUser;
         //Load Recent Projects
         var projectsString = yasoon.setting.getAppParameter('recentProjects');
         if (projectsString) {
@@ -41,6 +42,7 @@ yasoon.dialog.load(new function () {
             error: jira.handleError,
             success: function (data) {
                 self.projects = JSON.parse(data);
+                var projectMeta = '';
                 console.log('Projects: ', self.projects);
                 var group = $('#project').find('.all');
                 $.each(self.projects, function (i, project) {
@@ -52,14 +54,14 @@ yasoon.dialog.load(new function () {
                 });
 
                 $('#project').select2({
-                    placeholder: "Select a Project",
-                    allowClear: true
+                    placeholder: "Select a Project"
                 });
 
                 $('#project').change(function () {
-                    console.log('changed: ' + $('#project').val());
+                    console.log('selected Project: ' + $('#project').val());
                     if ($('#project').val() !== '0') {
                         var project = $.grep(self.projects, function (proj) { return proj.id === $('#project').val(); })[0];
+                        
 
                         // Save Project in recently used
                         self.addRecentProject(project);
@@ -74,6 +76,12 @@ yasoon.dialog.load(new function () {
                             success: function (data) {
                                 var project = JSON.parse(data);
                                 $('#issuetype').html(' ');
+                                project.issueTypes.sort(function (a, b) {
+                                    if (a.id > b.id)
+                                        return 1;
+                                    else
+                                        return -1;
+                                });
                                 $.each(project.issueTypes, function (i, type) {
                                     $('#issuetype').append('<option data-icon="' + type.iconUrl + '" value="' + type.id + '">' + type.name + '</option>');
                                 });
@@ -83,10 +91,16 @@ yasoon.dialog.load(new function () {
                                     formatSelection: formatIcon,
                                     escapeMarkup: function (m) { return m; }
                                 });
+
+                                $('#issuetype').change(function () {
+                                    self.updateCustomFields(projectMeta);
+                                });
+
                                 $('#IssueArea').show();
                             }
                         });
 
+                        //Get components
                         yasoon.oauth({
                             url: self.settings.baseUrl + '/rest/api/2/project/' + $('#project').val() + '/components',
                             oauthServiceName: 'auth',
@@ -111,6 +125,7 @@ yasoon.dialog.load(new function () {
                             }
                         });
 
+                        //Get Versions
                         yasoon.oauth({
                             url: self.settings.baseUrl + '/rest/api/2/project/' + $('#project').val() + '/versions',
                             oauthServiceName: 'auth',
@@ -131,7 +146,7 @@ yasoon.dialog.load(new function () {
                             }
                         });
 
-                        
+                        //Get Assignable Users
                         yasoon.oauth({
                             url: self.settings.baseUrl + '/rest/api/2/user/assignable/search?project=' + project.key,
                             oauthServiceName: 'auth',
@@ -150,9 +165,16 @@ yasoon.dialog.load(new function () {
                                     formatResult: formatUser,
                                     formatSelection: formatUser,
                                 });
+
+                                $('#assign-to-me-trigger').click(function () {
+                                    if (self.ownUser) {
+                                        $('#assignee').val(self.ownUser.name).trigger("change");
+                                    }
+                                });
                             }
                         });
 
+                        //Meta Data for custom fields
                         yasoon.oauth({
                             url: self.settings.baseUrl + '/rest/api/2/issue/createmeta?projectIds=' + $('#project').val() + '&expand=projects.issuetypes.fields',
                             oauthServiceName: 'auth',
@@ -161,13 +183,16 @@ yasoon.dialog.load(new function () {
                             error: jira.handleError,
                             success: function (data) {
                                 var meta = JSON.parse(data);
-                                console.log(meta);
+                                //Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
+                                projectMeta = $.grep(meta.projects, function (p) { return p.id === project.id; })[0];
+
+                                self.updateCustomFields(projectMeta);
                             }
                         });
                     }
                 });
 
-                $('#create-issue-submit').click(function (e) {
+                $('#create-issue-submit').unbind().click(function (e) {
                     var result = {
                         fields: {}
                     };
@@ -234,6 +259,8 @@ yasoon.dialog.load(new function () {
                         };
                     }
 
+                    //Get Custom Fields
+                    self.UIFormHandler.getFormData(projectMeta, result);
                     console.log(result);
 
                     yasoon.oauth({
@@ -243,17 +270,16 @@ yasoon.dialog.load(new function () {
                         data: JSON.stringify(result),
                         type: yasoon.ajaxMethod.Post,
                         error: function (data, statusCode, result, errorText, cbkParam) {
-                            alert('Sorry, that did not work. Check your input and try again. ' + errorText);
+                            alert('Sorry, that did not work. Check your input and try again. ' + result);
                         },
                         success: function (data) {
                             yasoon.dialog.close({ action: 'success' });
                         }
                     });
-
                     e.preventDefault();
                 });
 
-                $('#create-issue-cancel').click(function () {
+                $('#create-issue-cancel').unbind().click(function () {
                     yasoon.dialog.close({ action: 'cancel' });
                 });
             }
@@ -267,15 +293,81 @@ yasoon.dialog.load(new function () {
     this.addRecentProject = function (project) {
         var exists = $.grep(self.recentProjects, function (proj) { return proj.id === project.id; });
         if (exists.length === 0) {
-            //It does not exist, so we'll add it! But make sure there is a maximum of 9 recent Items.
-            if (self.recentProjects.length >= 9) {
+            //It does not exist, so we'll add it! But make sure there is a maximum of 5 recent Items.
+            if (self.recentProjects.length >= 5) {
                 self.recentProjects = self.recentProjects.slice(1);
             }
             self.recentProjects.push(project);
             yasoon.setting.setAppParameter('recentProjects', JSON.stringify(self.recentProjects));
         }
     };
+
+    this.updateCustomFields = function (meta) {
+        console.log('Update Meta: ', meta);
+        if (!meta)
+            return;
+
+        //Find Meta for current Issue Type
+        var metaIssue = $.grep(meta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
+
+        if (metaIssue) {
+            $('#ContainerCustomFields').html('');
+            $.each(metaIssue.fields, function (key, value) {
+                if (key.indexOf('customfield_') > -1) {
+                    self.UIFormHandler.render(key, value, $('#ContainerCustomFields'));
+                }
+            });
+        }
+
+    };
 });
+
+function UIFormHandler() {
+
+    function renderSingleText(id, field, container) {
+        $(container).append('<div class="field-group">' +
+                            '   <label for="' + field.name + '">' + field.name +
+                            '       '+(( field.required) ? '<span class="aui-icon icon-required">Required</span>' : '' ) + 
+                            '   </label>' +
+                            '    <input class="text long-field" id="' + id + '" name="' + id + '" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:textfield">' +
+                            '</div>');
+    };
+    
+    return { 
+        render : function (id, field, container) {
+            switch (field.schema.custom) {
+                case 'com.atlassian.jira.plugin.system.customfieldtypes:textfield':
+                case 'com.atlassian.jira.plugin.system.customfieldtypes:url':
+                    renderSingleText(id, field, container);
+                    break;
+            }
+        },
+        getFormData : function(meta, result) {
+            result = result || {};
+
+            //Find Meta for current Issue Type
+            var metaIssue = $.grep(meta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
+
+            if (metaIssue) {
+                $.each(metaIssue.fields, function (key, value) {
+                    if (key.indexOf('customfield_') > -1) {
+                        //Try to find the field in form
+                        var elem = $('#' + key);
+                        if (elem.length > 0 && elem.val()) {
+                            console.log('Element found: ', elem);
+                            switch(elem.data('type')) {
+                                case 'com.atlassian.jira.plugin.system.customfieldtypes:textfield':
+                                    result.fields[key] = elem.val();
+                                    break;
+                            }
+                        }
+                    }
+                });
+            }
+
+        }
+    }
+}
 
 
  
