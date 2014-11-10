@@ -117,6 +117,18 @@
       <div class="row" style="margin-top: 5px;">
         <div class="col-sm-12"> {{{description}}}</div>
       </div>
+        {{#if attachments}}
+        <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top: 15px;">
+            Attachments <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
+        </div>
+        <div class="row" style="margin-top: 5px;">
+            <div class="col-sm-12">
+                {{#each attachments}}
+                <span class="jiraFile" style="margin-right:15px; white-space:nowrap;"><a href="{{content}}"><img style="width:16px;" src="{{fileIcon}}" />{{{filename}}}</a></span>
+                {{/each}}
+            </div>
+        </div>
+        {{/if}}
     </div>
     <div class="col-sm-4" style="padding: 10px 20px;">
       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden;">

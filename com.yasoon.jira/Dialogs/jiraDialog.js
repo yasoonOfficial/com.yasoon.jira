@@ -11,7 +11,7 @@ function formatIcon(element) {
 
 function formatUser(user) { return user.displayName; }
 
-yasoon.dialog.load(new function () {
+yasoon.dialog.load(new function () { //jshint ignore:line
     var self = this;
     jira = this;
     jira.CONST_HEADER = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
@@ -21,6 +21,7 @@ yasoon.dialog.load(new function () {
     self.init = function (initParams) {
         self.settings = initParams.settings;
         self.ownUser = initParams.ownUser;
+        self.selectedAttachments = [];
         //Load Recent Projects
         var projectsString = yasoon.setting.getAppParameter('recentProjects');
         if (projectsString) {
@@ -95,7 +96,7 @@ yasoon.dialog.load(new function () {
                                 $('#issuetype').change(function () {
                                     self.updateCustomFields(projectMeta);
                                 });
-
+                                self.updateCustomFields(projectMeta);
                                 $('#IssueArea').show();
                             }
                         });
@@ -192,10 +193,26 @@ yasoon.dialog.load(new function () {
                     }
                 });
 
+                $('#AddAttachmentLink').click(function () {
+                    yasoon.view.fileChooser.open(function (selectedFiles) {
+                        self.selectedAttachments = selectedFiles;
+
+                        $('#AttachmentContainer').html('');
+                        //Render Attachments
+                        $.each(self.selectedAttachments, function (i, fileHandle) {
+                            $('#AttachmentContainer').append('<div><span><img style="width:16px;" src="' + fileHandle.getFileIconPath() + '">' + fileHandle.getFileName() + '</span></div>');
+                        });
+
+                    });
+                });
+
                 $('#create-issue-submit').unbind().click(function (e) {
                     var result = {
                         fields: {}
                     };
+
+                    $('#create-issue-submit').attr('disabled', 'disabled');
+                    $('#JiraSpinner').show();
 
                     //Project ID
                     result.fields.project = {
@@ -261,7 +278,6 @@ yasoon.dialog.load(new function () {
 
                     //Get Custom Fields
                     self.UIFormHandler.getFormData(projectMeta, result);
-                    console.log(result);
 
                     yasoon.oauth({
                         url: self.settings.baseUrl + '/rest/api/2/issue',
@@ -270,10 +286,40 @@ yasoon.dialog.load(new function () {
                         data: JSON.stringify(result),
                         type: yasoon.ajaxMethod.Post,
                         error: function (data, statusCode, result, errorText, cbkParam) {
-                            alert('Sorry, that did not work. Check your input and try again. ' + result);
+                            $('#JiraSpinner').hide();
+                            $('#create-issue-submit').removeAttr("disabled");
+                            alert('Sorry, that did not work. Check your input and try again. ' + JSON.parse(result).errors.summary);
                         },
                         success: function (data) {
-                            yasoon.dialog.close({ action: 'success' });
+                            
+                            if (self.selectedAttachments) {
+                                var issue = JSON.parse(data);
+                                var formData = [];
+                                $.each(self.selectedAttachments, function (i, file) {
+                                    formData.push({
+                                        type: yasoon.formData.File,
+                                        name: 'file',
+                                        value: file
+                                    });
+                                });
+
+                                yasoon.oauth({
+                                    url: jira.settings.baseUrl + '/rest/api/2/issue/' + issue.id + '/attachments',
+                                    oauthServiceName: 'auth',
+                                    type: yasoon.ajaxMethod.Post,
+                                    formData: formData,
+                                    headers: { Accept: 'application/json', 'X-Atlassian-Token': 'nocheck' },
+                                    error: function (data, statusCode, result, errorText, cbkParam) {
+                                        yasoon.dialog.showMessageBox('Issue ' + issue.key + ' created, but uploading the attachments did not work.');
+                                        yasoon.dialog.close({ action: 'success' });
+                                    },
+                                    success: function (data) {
+                                        yasoon.dialog.close({ action: 'success' });
+                                    }
+                                });
+                            } else {
+                                yasoon.dialog.close({ action: 'success' });
+                            }
                         }
                     });
                     e.preventDefault();
@@ -284,7 +330,7 @@ yasoon.dialog.load(new function () {
                 });
             }
         });
-    };
+    }; 
 
     this.handleError = function (data, statusCode, result, errorText, cbkParam) {
         console.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data);
@@ -303,7 +349,6 @@ yasoon.dialog.load(new function () {
     };
 
     this.updateCustomFields = function (meta) {
-        console.log('Update Meta: ', meta);
         if (!meta)
             return;
 
@@ -320,7 +365,7 @@ yasoon.dialog.load(new function () {
         }
 
     };
-});
+}); //jshint ignore:line
 
 function UIFormHandler() {
 
@@ -331,10 +376,10 @@ function UIFormHandler() {
                             '   </label>' +
                             '    <input class="text long-field" id="' + id + '" name="' + id + '" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:textfield">' +
                             '</div>');
-    };
+    }
     
-    return { 
-        render : function (id, field, container) {
+    return {
+        render: function (id, field, container) {
             switch (field.schema.custom) {
                 case 'com.atlassian.jira.plugin.system.customfieldtypes:textfield':
                 case 'com.atlassian.jira.plugin.system.customfieldtypes:url':
@@ -342,7 +387,7 @@ function UIFormHandler() {
                     break;
             }
         },
-        getFormData : function(meta, result) {
+        getFormData: function (meta, result) {
             result = result || {};
 
             //Find Meta for current Issue Type
@@ -355,7 +400,7 @@ function UIFormHandler() {
                         var elem = $('#' + key);
                         if (elem.length > 0 && elem.val()) {
                             console.log('Element found: ', elem);
-                            switch(elem.data('type')) {
+                            switch (elem.data('type')) {
                                 case 'com.atlassian.jira.plugin.system.customfieldtypes:textfield':
                                     result.fields[key] = elem.val();
                                     break;
@@ -366,7 +411,7 @@ function UIFormHandler() {
             }
 
         }
-    }
+    };
 }
 
 
