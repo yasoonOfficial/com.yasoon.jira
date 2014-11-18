@@ -79,10 +79,10 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		if (SyncProcessId && !jira.SyncInProcess) {
 			clearTimeout(SyncProcessId);
 		}
-		SyncProcessId = setTimeout(function () { jira.SyncInProcess = false; }, 1000 * 60 * 10);
 		if (jira.firstTime) {
 			self.initData();
 		} else if (!jira.SyncInProcess) {
+		    SyncProcessId = setTimeout(function () { jira.SyncInProcess = false; }, 1000 * 60 * 10);
 			jira.SyncInProcess = true;
 			startSync = new Date();
 			self.pullData(jira.settings.baseUrl + '/activity', jira.CONST_PULL_RESULTS, function () {
@@ -134,7 +134,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 							if (obj.feed.entry.length === maxResults && jira.settings.lastSync < lastObjDate && currentPage <= 5) {
 								currentPage++;
 								console.log('currentPage:' + currentPage);
-								self.pullData(jira.settings.baseUrl + '/activity?streams=update-date+BEFORE+' + (lastObjDate.getTime() - 1), jira.CONST_PULL_RESULTS, finishCallback);
+								self.pullData(jira.settings.baseUrl + '/activity?streams=update-date+BEFORE+' + (lastObjDate.getTime() - 2000), jira.CONST_PULL_RESULTS, finishCallback);
 							} else {
 								if (finishCallback)
 									finishCallback();
@@ -536,7 +536,7 @@ function JiraIssueNotification(issue) {
 		//Is it my own project? --> find project in buffer
 		if (jira.data.projects) {
 		    var proj = $.grep(jira.data.projects, function (project) { return self.issue.fields.project.id === project.id; })[0];
-			if (proj.lead && proj.lead.name === jira.data.ownUser.name) {
+			if (proj && proj.lead && proj.lead.name === jira.data.ownUser.name) {
 				console.log('Project Lead equals');
 				return true;
 			}

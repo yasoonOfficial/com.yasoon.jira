@@ -8,6 +8,9 @@
         <h2 title="Create Issue">Create Issue</h2>
     </div>
     <div class="jira-dialog-content">
+        <div id="MainAlert" class="alert" style="display:none;">
+            <span>Connection Error. Loading Values from Jira not possible.</span>
+        </div>
         <div class="qf-container">
             <div class="qf-unconfigurable-form">
                 <form name="jiraform" action="#" class="aui">
@@ -128,6 +131,13 @@
 
                                     </div>
                                 </div>
+                            </div>
+                            <div class="field-group aui-field-componentspicker frother-control-renderer">
+                                <label for="labels">Label(s)</label>
+                                <div class="long-field" id="labels-multi-select">
+                                    <input class="select input-field" id="labels" name="labels" ></input>
+                                </div>
+                                <div class="description"></div>
                             </div>
                             <div id="ContainerCustomFields">
 

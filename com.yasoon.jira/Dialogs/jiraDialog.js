@@ -34,6 +34,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
             $('#description').val(initParams.text);
         }
 
+        $('#project').select2({
+            placeholder: "Select a Project"
+        });
+
         //Select all projects
         yasoon.oauth({
             url: self.settings.baseUrl + '/rest/api/2/project',
@@ -54,11 +58,13 @@ yasoon.dialog.load(new function () { //jshint ignore:line
                     group.append('<option style="background-image: url(images/projectavatar.png)" value="' + project.id + '" data-key="' + project.key + '">' + project.name + '</option>');
                 });
 
+                $('#project').select2("destroy");
                 $('#project').select2({
                     placeholder: "Select a Project"
                 });
 
                 $('#project').change(function () {
+                    $('#MainAlert').show();
                     console.log('selected Project: ' + $('#project').val());
                     if ($('#project').val() !== '0') {
                         var project = $.grep(self.projects, function (proj) { return proj.id === $('#project').val(); })[0];
@@ -96,7 +102,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
                                 $('#issuetype').change(function () {
                                     self.updateCustomFields(projectMeta);
                                 });
+
                                 self.updateCustomFields(projectMeta);
+
                                 $('#IssueArea').show();
                             }
                         });
@@ -149,7 +157,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
                         //Get Assignable Users
                         yasoon.oauth({
-                            url: self.settings.baseUrl + '/rest/api/2/user/assignable/search?project=' + project.key,
+                            url: self.settings.baseUrl + '/rest/api/2/user/assignable/search?project=' + project.key+ '&maxResults=1000',
                             oauthServiceName: 'auth',
                             headers: jira.CONST_HEADER,
                             type: yasoon.ajaxMethod.Get,
@@ -190,6 +198,29 @@ yasoon.dialog.load(new function () { //jshint ignore:line
                                 self.updateCustomFields(projectMeta);
                             }
                         });
+
+                        //Label Data
+                        yasoon.oauth({
+                            url: self.settings.baseUrl + '/rest/api/1.0/labels/suggest?query=',
+                            oauthServiceName: 'auth',
+                            headers: jira.CONST_HEADER,
+                            type: yasoon.ajaxMethod.Get,
+                            error: jira.handleError,
+                            success: function (data) {
+                                var labels = JSON.parse(data);
+                                var labelArray = [];
+                                if (labels.suggestions) {
+                                    $.each(labels.suggestions, function (i, label) {
+                                        labelArray.push(label.label);
+                                    });
+                                }
+                                $('#labels').select2({
+                                    tags: labelArray,
+                                    tokenSeparators: [" "]
+                                });
+
+                            }
+                        });
                     }
                 });
 
@@ -207,6 +238,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
                 });
 
                 $('#create-issue-submit').unbind().click(function (e) {
+                    $('#MainAlert').hide();
                     var result = {
                         fields: {}
                     };
@@ -259,8 +291,13 @@ yasoon.dialog.load(new function () { //jshint ignore:line
                         $.each($('#fixVersions').val(), function (i, id) {
                             fixversions.push({ id: id });
                         });
-                        result.fields.fixversions = fixversions;
+                        result.fields.fixVersions = fixversions;
                     }
+                    //Labels
+                    if ($('#labels').val()) {
+                        result.fields.labels = $('#labels').val().split(',');
+                    }
+
                     //Enviroment
                     if ($('#enviroment').val()) {
                         result.fields.enviroment = $('#enviroment').val();
@@ -288,7 +325,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
                         error: function (data, statusCode, result, errorText, cbkParam) {
                             $('#JiraSpinner').hide();
                             $('#create-issue-submit').removeAttr("disabled");
-                            alert('Sorry, that did not work. Check your input and try again. ' + JSON.parse(result).errors.summary);
+                            var error = (JSON.parse(result).errors.summary) ? JSON.parse(result).errors.summary : JSON.stringify(JSON.parse(result).errors);
+                            alert('Sorry, that did not work. Check your input and try again. ' + error);
                         },
                         success: function (data) {
                             
@@ -333,6 +371,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
     }; 
 
     this.handleError = function (data, statusCode, result, errorText, cbkParam) {
+        $('#MainAlert').show();
         console.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data);
     };
 
