@@ -1067,10 +1067,6 @@ function JiraRibbonController() {
 			yasoon.dialog.showMessageBox('Please login to Jira in settings menu first!');
 			return;
 		}
-		if (jira.firstTime) {
-			yasoon.dialog.showMessageBox('Jira just needs a few more seconds. If it still doesn\'t work, please check your internet connection.');
-			return;
-		}
 		if (ribbonId == 'newIssue') {
 
 			yasoon.dialog.open({
