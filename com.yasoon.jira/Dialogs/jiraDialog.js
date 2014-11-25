@@ -64,7 +64,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
                 });
 
                 $('#project').change(function () {
-                    $('#MainAlert').show();
+                    $('#MainAlert').hide();
                     console.log('selected Project: ' + $('#project').val());
                     if ($('#project').val() !== '0') {
                         var project = $.grep(self.projects, function (proj) { return proj.id === $('#project').val(); })[0];
