@@ -82,7 +82,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		if (jira.firstTime) {
 			self.initData();
 		} else if (!jira.SyncInProcess) {
-		    SyncProcessId = setTimeout(function () { jira.SyncInProcess = false; }, 1000 * 60 * 10);
+			SyncProcessId = setTimeout(function () { jira.SyncInProcess = false; }, 1000 * 60 * 10);
 			jira.SyncInProcess = true;
 			startSync = new Date();
 			self.pullData(jira.settings.baseUrl + '/activity', jira.CONST_PULL_RESULTS, function () {
@@ -284,7 +284,7 @@ function JiraSettingController() {
 	};
 
 	self.updateData = function () {
-	    yasoon.setting.setAppParameter('data', JSON.stringify(jira.data));
+		yasoon.setting.setAppParameter('data', JSON.stringify(jira.data));
 	};
 
 	/****** Initial Load of settings */
@@ -535,7 +535,7 @@ function JiraIssueNotification(issue) {
 
 		//Is it my own project? --> find project in buffer
 		if (jira.data.projects) {
-		    var proj = $.grep(jira.data.projects, function (project) { return self.issue.fields.project.id === project.id; })[0];
+			var proj = $.grep(jira.data.projects, function (project) { return self.issue.fields.project.id === project.id; })[0];
 			if (proj && proj.lead && proj.lead.name === jira.data.ownUser.name) {
 				console.log('Project Lead equals');
 				return true;
@@ -566,7 +566,7 @@ function JiraIssueNotification(issue) {
 	self.renderTitle = function (feed) {
 		var html = '<span>';
 		if (self.issue.fields.priority)
-		    html += '<img style="margin-right: 5px;" src="' + self.issue.fields.priority.iconUrl + '" /> ';
+			html += '<img style="margin-right: 5px;" src="' + self.issue.fields.priority.iconUrl + '" /> ';
 
 		html += self.issue.fields.summary + '</span>';
 		feed.setTitle(html);
@@ -590,6 +590,8 @@ function JiraIssueNotification(issue) {
 				avatarUrl: (self.issue.fields.creator) ? self.issue.fields.creator.avatarUrls['16x16'] : '',
 				displayName: (self.issue.fields.creator) ? self.issue.fields.creator.displayName : 'anonym'
 			},
+			baseUrl: jira.settings.baseUrl,
+			project: self.issue.fields.project,
 			priority: self.issue.fields.priority,
 			versions: self.issue.fields.versions,
 			environment: self.issue.renderedFields.environment,
