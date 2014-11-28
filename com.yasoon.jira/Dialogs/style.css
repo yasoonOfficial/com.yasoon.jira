@@ -2785,15 +2785,6 @@ form#issue-filter .multi-select.check-list-select{width:100%;}
 .input-field {
     width: 250px;
 }
-/*.alert {
-  padding: 15px;
-  margin-bottom: 20px;
-  border: 1px solid transparent;
-  border-radius: 4px;
+.select2-container-multi .select2-choices {
+	border: 0px !important;
 }
-
-.alert-danger {
-  background-color: #f2dede;
-  border-color: #ebccd1;
-  color: #a94442;
-}*/

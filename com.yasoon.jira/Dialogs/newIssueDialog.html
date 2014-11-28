@@ -68,20 +68,20 @@
                             <div class="field-group aui-field-componentspicker frother-control-renderer">
                                 <label for="components">Komponente(n)</label>
                                 <div class="long-field" id="components-multi-select">
-                                    <select class="select input-field" id="components" name="components" multiple=""></select>
+                                    <select class="text input-field"  id="components" name="components" multiple=""></select>
                                 </div>
                                 <div class="description">Mit der Eingabe beginnen, um nach Komponenten zu suchen, oder nach unten dr&uuml;cken, um auszuw&auml;hlen.</div>
                             </div>
                             <div class="field-group aui-field-versionspicker frother-control-renderer">
                                 <label for="versions">Affects Version/s</label>
                                 <div class="long-field" id="versions-multi-select">
-                                    <select class="select input-field" id="versions" name="versions" multiple=""></select>
+                                    <select class="text input-field" id="versions" name="versions" multiple=""></select>
                                 </div>
                             </div>
                             <div class="field-group aui-field-versionspicker frother-control-renderer">
                                 <label for="fixVersions">Fix Version/s</label>
                                 <div class="long-field" id="fixVersions-multi-select">
-                                    <select class="select input-field" id="fixVersions" name="fixVersions" multiple=""></select>
+                                    <select class="text input-field" id="fixVersions" name="fixVersions" multiple=""></select>
                                 </div>
                             </div>
                             <div class="field-group" id="assignee-container">
@@ -136,7 +136,7 @@
                             <div class="field-group aui-field-componentspicker frother-control-renderer">
                                 <label for="labels">Label(s)</label>
                                 <div class="long-field" id="labels-multi-select">
-                                    <input class="select input-field" id="labels" name="labels" ></input>
+                                    <input class="text input-field" id="labels" name="labels" ></input>
                                 </div>
                                 <div class="description"></div>
                             </div>
@@ -148,6 +148,7 @@
                     <div class="buttons-container form-footer">
                         <div class="buttons">
                             <img src="Dialogs/ajax-loader.gif" style="display:none;" id="JiraSpinner">
+                            <label for="qf-create-another" class="qf-create-another" style="font-weight:normal;"><input id="qf-create-another" type="checkbox" /> Create another</label>
                             <a accesskey="s" title="" class="button" id="create-issue-submit" > Create </a>
                             <a href="#" accesskey="`" title="" id="create-issue-cancel" class="cancel">Cancel</a>
                         </div>

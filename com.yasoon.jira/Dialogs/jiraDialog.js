@@ -348,15 +348,16 @@ yasoon.dialog.load(new function () { //jshint ignore:line
                                     formData: formData,
                                     headers: { Accept: 'application/json', 'X-Atlassian-Token': 'nocheck' },
                                     error: function (data, statusCode, result, errorText, cbkParam) {
+                                        self.close({ action: 'success' });
                                         yasoon.dialog.showMessageBox('Issue ' + issue.key + ' created, but uploading the attachments did not work.');
-                                        yasoon.dialog.close({ action: 'success' });
+                                        
                                     },
                                     success: function (data) {
-                                        yasoon.dialog.close({ action: 'success' });
+                                        self.close({ action: 'success' });
                                     }
                                 });
                             } else {
-                                yasoon.dialog.close({ action: 'success' });
+                                self.close({ action: 'success' });
                             }
                         }
                     });
@@ -364,11 +365,24 @@ yasoon.dialog.load(new function () { //jshint ignore:line
                 });
 
                 $('#create-issue-cancel').unbind().click(function () {
-                    yasoon.dialog.close({ action: 'cancel' });
+                    self.close({ action: 'cancel' });
                 });
             }
         });
     }; 
+
+    this.close = function (params) {
+        //Check if dialog should be closed or not
+        if (params && params.action === 'success' && $('#qf-create-another').is(':checked')) {
+            $('#JiraSpinner').hide();
+            $('.form-body').scrollTop(0);
+            $('#create-issue-submit').removeAttr("disabled");
+            $('#summary').val('');
+            $('#description').val('');
+        } else {
+            yasoon.dialog.close({ action: 'success' });
+        }
+    };
 
     this.handleError = function (data, statusCode, result, errorText, cbkParam) {
         $('#MainAlert').show();
