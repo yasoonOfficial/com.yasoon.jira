@@ -87,8 +87,10 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			startSync = new Date();
 			self.pullData(jira.settings.baseUrl + '/activity', jira.CONST_PULL_RESULTS, function () {
 				jira.SyncInProcess = false;
+				var oldSyncDateString = moment(jira.settings.lastSync).format('YYYY/MM/DD HH:mm');
 				jira.settings.setLastSync(startSync);
 				jira.notifications.processChildren();
+				jira.notifications.processCommentEdits(oldSyncDateString);
 			});
 		}
 	};
@@ -455,6 +457,31 @@ function JiraNotificationController() {
 		jira.pullData(jira.settings.baseUrl + '/activity?streams=issue-key+IS+' + childQueue[counter].key, 500, successMethod);
 	};
 
+
+	self.processCommentEdits = function (lastSync) {
+		/* Editing a comment does not affect the acitivity stream - JIRA BUG!
+			Issue is open since 2007, so we do not expect a quick fix and we create a workaround.
+			Pull all Issues with a lastchange date since lastSync, check if issue needs to be synced and if it has changed comments
+		*/
+		//var jql = encodeURIComponent('updated > "' + lastSync+'"');
+		//yasoon.oauth({
+		//	url: jira.settings.baseUrl + '/rest/api/2/search?jql='+jql+'&fields=*all&expand=renderedFields',
+		//	oauthServiceName: 'auth',
+		//	headers: jira.CONST_HEADER,
+		//	type: yasoon.ajaxMethod.Get,
+		//	error: jira.handleError,
+		//	success: function (data) {
+		//		var result = JSON.parse(data);
+		//		if (result.issues) {
+		//			$.each(result.issues, function (i, issue) {
+		//				var notif = new JiraIssueNotification(issue);
+		//				notif.processCommentEdits();
+		//			});
+		//		}
+		//	}
+		//});
+	};
+
 	self.renderNotification = function (feed) {
 		var event = self.createNotification(JSON.parse(feed.externalData));
 		if (event) {
@@ -639,7 +666,8 @@ function JiraIssueNotification(issue) {
 			'</span>';
 		feed.properties.customActions.push({ description: changeStatusHtml, eventHandler: $.noop });
 		feed.properties.customActions.push({ description: '<span><i class="fa fa-paperclip"></i> Add file</span>', eventHandler: self.addAttachment });
-		feed.properties.customActions.push({ description: '<span><i class="fa fa-user"></i> Set assignee</span>', url: jira.settings.baseUrl + '/secure/AssignIssue%21default.jspa?id=' + self.issue.id });
+		feed.properties.customActions.push({ description: '<span><i class="fa fa-pencil"></i> edit</span>', eventHandler: self.editIssue });
+		//feed.properties.customActions.push({ description: '<span><i class="fa fa-user"></i> Set assignee</span>', url: jira.settings.baseUrl + '/secure/AssignIssue%21default.jspa?id=' + self.issue.id });
 		feed.setProperties(feed.properties);
 
 		var icon_url = yasoon.io.getLinkPath('Task-03.png');
@@ -689,14 +717,14 @@ function JiraIssueNotification(issue) {
 				return;
 			}
 			//Save contacts
-			if (self.issue.assignee)
-				jira.contacts.update(self.issue.assignee);
+			if (self.issue.fields.assignee)
+				jira.contacts.update(self.issue.fields.assignee);
 
-			if (self.issue.creator)
-				jira.contacts.update(self.issue.creator);
+			if (self.issue.fields.creator)
+				jira.contacts.update(self.issue.fields.creator);
 
-			if (self.issue.reporter)
-				jira.contacts.update(self.issue.reporter);
+			if (self.issue.fields.reporter)
+				jira.contacts.update(self.issue.fields.reporter);
 
 			//Save Notification
 			var creation = false;
@@ -752,6 +780,15 @@ function JiraIssueNotification(issue) {
 		});
 	};
 
+	self.processCommentEdits = function () {
+		//Update this issue
+		//self.save(function (obj) {
+		//    if (obj) {
+
+		//    }
+		//});
+	};
+
 	self.addAttachment = function () {
 		yasoon.view.fileChooser.open(function (selectedFiles) {
 			var formData = [];
@@ -776,6 +813,18 @@ function JiraIssueNotification(issue) {
 			});
 
 		});
+	};
+
+	self.editIssue = function () {
+	    yasoon.dialog.open({
+	        width: 900,
+	        height: 650,
+	        title: 'Edit Jira Issue',
+	        resizable: true,
+	        htmlFile: 'Dialogs/newIssueDialog.html',
+	        initParameter: { 'settings': jira.settings, 'ownUser': jira.data.ownUser, 'editIssue': self.issue },
+	        closeCallback: jira.ribbons.ribbonOnCloseNewIssue
+	    });
 	};
 }
 

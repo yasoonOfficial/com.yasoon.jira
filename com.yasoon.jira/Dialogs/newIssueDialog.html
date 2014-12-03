@@ -2,10 +2,11 @@
 <link rel="stylesheet" href="Dialogs/select2.css">
 <script src="Dialogs/select2.min.js"></script>
 <script src="Dialogs/jiraDialog.js"></script>
+<script src="Dialogs/moment.min.js"></script>
 
 <div style="display: block; width: 810px; margin-left: -406px; margin-top: -297px;" class="jira-dialog box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready" id="create-issue-dialog">
     <div class="jira-dialog-heading">
-        <h2 title="Create Issue">Create Issue</h2>
+        <h2 class="jira-title">Create Issue</h2>
     </div>
     <div class="jira-dialog-content">
 
@@ -43,18 +44,6 @@
                             <div class="field-group">
                                 <label for="priority">Priority</label>
                                 <select class="select input-field" id="priority" name="priority">
-                                    <option class="imagebacked" data-icon="images/blocker.png" value="1">
-                                        Blocker
-                                    </option>
-                                    <option class="imagebacked" data-icon="images/critical.png" value="2">
-                                        Critical
-                                    </option>
-                                    <option class="imagebacked" selected="selected" data-icon="images/minor.png" value="4">
-                                        Normal
-                                    </option>
-                                    <option class="imagebacked" data-icon="images/trivial.png" value="5">
-                                        Trivial
-                                    </option>
                                 </select>
                                 <!--<a class="help-lnk" href="/secure/ShowConstantsHelp.jspa?decorator=popup#PriorityLevels" title="Get local help about Priority" data-helplink="local"><span class="aui-icon aui-icon-small aui-iconfont-help"></span></a>-->
                             </div>
@@ -70,7 +59,7 @@
                                 <div class="long-field" id="components-multi-select">
                                     <select class="text input-field"  id="components" name="components" multiple=""></select>
                                 </div>
-                                <div class="description">Mit der Eingabe beginnen, um nach Komponenten zu suchen, oder nach unten dr&uuml;cken, um auszuw&auml;hlen.</div>
+                                <div class="description">Mit der Eingabe beginnen, um nach Komponenten zu suchen.</div>
                             </div>
                             <div class="field-group aui-field-versionspicker frother-control-renderer">
                                 <label for="versions">Affects Version/s</label>
