@@ -82,7 +82,6 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			SyncProcessId = setTimeout(function () { jira.SyncInProcess = false; }, 1000 * 60 * 4);
 			jira.SyncInProcess = true;
 			startSync = new Date();
-			yasoon.logLevel = 0;
 
 			jiraQueue(
 				self.initData,
