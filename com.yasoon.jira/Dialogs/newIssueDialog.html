@@ -23,6 +23,7 @@
                                     <label for="project">Project<span class="aui-icon icon-required">Required</span></label>
                                     <select class="select input-field" id="project" name="pid">
                                         <option></option>
+                                        <optgroup class="templates" label="" style="display:none;"></optgroup>
                                         <optgroup class="recent" label="Recent Projects"></optgroup>
                                         <optgroup class="all" label="All Projects"></optgroup>
                                     </select>
@@ -132,6 +133,8 @@
                             <div id="ContainerCustomFields">
 
                             </div>
+                        </div>
+                        <div id="LoaderArea" style="display: none; background: url(Dialogs/ajax-loader.gif) no-repeat center center; ">
                         </div>
                     </div>
                     <div class="buttons-container form-footer">

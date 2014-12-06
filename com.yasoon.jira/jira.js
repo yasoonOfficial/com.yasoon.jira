@@ -1317,6 +1317,7 @@ function JiraRibbonController() {
 
 		}
 		else {
+            
 			var selection = ribbonCtx.items[ribbonCtx.readingPaneItem].getSelection(0);
 
 			if (!selection || !selection.trim()) {
@@ -1330,7 +1331,7 @@ function JiraRibbonController() {
 				title: 'New Jira Issue',
 				resizable: true,
 				htmlFile: 'Dialogs/newIssueDialog.html',
-				initParameter: { settings: jira.settings, 'ownUser': jira.data.ownUser, text: selection },
+				initParameter: { settings: jira.settings, 'ownUser': jira.data.ownUser, text: selection, mail: ribbonCtx.items[ribbonCtx.readingPaneItem] },
 				closeCallback: self.ribbonOnCloseNewIssue
 			});
 		}

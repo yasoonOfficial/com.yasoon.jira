@@ -11,19 +11,31 @@ function formatIcon(element) {
 
 function formatUser(user) { return user.displayName; }
 
+function createTemplate(email, sender, project, values) {
+    this.senderEmail = email;
+    this.senderName = sender;
+    this.project = project;
+    this.values = values;
+}
+
 yasoon.dialog.load(new function () { //jshint ignore:line
     var self = this;
-    var projectMeta = '';
+   
     jira = this;
     jira.CONST_HEADER = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
         
     self.UIFormHandler = UIFormHandler();
+    var project = null;
+    var templates = [];
+    var projectMeta = '';
 
     self.init = function (initParams) {
         self.settings = initParams.settings;
         self.ownUser = initParams.ownUser;
         self.editIssue = initParams.editIssue;
+        self.mail = initParams.mail;
 
+        self.currentTemplates = [];
         self.projects = [];
         self.selectedAttachments = [];
         //Load Recent Projects
@@ -36,6 +48,23 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
         if (initParams.text) {
             $('#description').val(initParams.text);
+        }
+
+        if (self.mail) {
+            //Created from an email --> check for templates
+            var templateString = yasoon.setting.getAppParameter('createTemplates');
+            if (templateString) {
+                templates = JSON.parse(templateString);
+            }
+            self.currentTemplates = $.grep(templates, function (t) { return t.senderEmail === self.mail.senderEmail; });
+            if (self.currentTemplates.length > 0) {
+                var group = $('#project').find('.templates');
+                group.attr('label', 'Templates for ' + self.mail.senderName);
+                $.each(self.currentTemplates, function (i, template) {
+                    group.append('<option style="background-image: url(images/projectavatar.png)" value="template' + template.project.id + '">' + template.project.name + '</option>');
+                });
+                group.show();
+            }
         }
 
         if (!initParams.editIssue) {
@@ -93,7 +122,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
             var proj = self.editIssue.fields.project;
             self.projects.push(proj);
             all.append('<option style="background-image: url(images/projectavatar.png)" value="' + proj.id + '" data-key="' + proj.key + '">' + proj.name + '</option>');
-            $('#project').select2("destroy");
             $('#project').select2();
             $('#project').select2('val', proj.id);
             $('#project').select2("enable", false);
@@ -126,7 +154,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
             //Project ID
             result.fields.project = {
-                id: $('#project').val()
+                id: project.id
             };
 
             //Issue Type
@@ -194,6 +222,23 @@ yasoon.dialog.load(new function () { //jshint ignore:line
             //Get Custom Fields
             self.UIFormHandler.getFormData(projectMeta, result);
 
+            //Save Template if created by Email
+            if (self.mail) {
+                var newTemplate = new createTemplate(self.mail.senderEmail, self.mail.senderName, project, result);
+                newTemplate.project = project;
+                var templateFound = false;
+                $.each(templates, function (i, temp) {
+                    if (temp.senderEmail == newTemplate.senderEmail && temp.project.id == newTemplate.project.id) {
+                        templates[i] = newTemplate;
+                        templateFound = true;
+                    }
+                });
+
+                if (!templateFound) {
+                    templates.push(newTemplate);
+                }
+                yasoon.setting.setAppParameter('createTemplates', JSON.stringify(templates));
+            }
             //Switch for edit or create
             var url = self.settings.baseUrl + '/rest/api/2/issue';
             var method = yasoon.ajaxMethod.Post;
@@ -268,6 +313,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
     this.handleError = function (data, statusCode, result, errorText, cbkParam) {
         $('#MainAlert').show();
+        $('#LoaderArea').hide();
         console.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data);
     };
 
@@ -331,196 +377,257 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
     this.selectProject = function () {
         var edit = !!self.editIssue;
+        var selectedProject = $('#project').val();
         $('#MainAlert').hide();
-        console.log('selected Project: ' + $('#project').val());
-        if ($('#project').val() && $('#project').val() !== '0') {
-            var project = $.grep(self.projects, function (proj) { return proj.id === $('#project').val(); })[0];
-
-            // Save Project in recently used
-            self.addRecentProject(project);
-
-            //Get Values of project
-            yasoon.oauth({
-                url: self.settings.baseUrl + '/rest/api/2/project/' + project.id,
-                oauthServiceName: 'auth',
-                headers: jira.CONST_HEADER,
-                type: yasoon.ajaxMethod.Get,
-                error: jira.handleError,
-                success: function (data) {
-                    var project = JSON.parse(data);
-                    $('#issuetype').html(' ');
-                    project.issueTypes.sort(function (a, b) {
-                        if (a.id > b.id)
-                            return 1;
-                        else
-                            return -1;
-                    });
-                    $.each(project.issueTypes, function (i, type) {
-                        $('#issuetype').append('<option data-icon="' + type.iconUrl + '" value="' + type.id + '">' + type.name + '</option>');
-                    });
-
-                    $("#issuetype").select2({
-                        formatResult: formatIcon,
-                        formatSelection: formatIcon,
-                        escapeMarkup: function (m) { return m; }
-                    });
-
-                    //Handle edit case
-                    if (edit) {
-                        $("#issuetype").select2('val', self.editIssue.fields.issuetype.id);
-                        $("#issuetype").select2('enable', false);
-                        $("#priority").select2('val', self.editIssue.fields.priority.id);
-                    }
-
-                    $('#issuetype').change(function () {
-                        self.updateCustomFields(projectMeta);
-                    });
-
-                    self.updateCustomFields(projectMeta);
-
-                    $('#IssueArea').show();
-                    $('#ContentArea').show();
+        console.log('selected Project: ' + selectedProject);
+        if (selectedProject) {
+            var isTemplate = (selectedProject.indexOf('template') > -1);
+            if (isTemplate) {
+                var projId = selectedProject.replace('template', '');
+                var template = $.grep(self.currentTemplates, function (temp) { return temp.project.id === projId; })[0];
+                if (template) {
+                    project = $.grep(self.projects, function (proj) { return proj.id === projId; })[0];
+                    edit = true;
+                    self.editIssue = template.values;
                 }
-            });
+            } else {
+                project = $.grep(self.projects, function (proj) { return proj.id === selectedProject; })[0];
 
-            //Get components
-            yasoon.oauth({
-                url: self.settings.baseUrl + '/rest/api/2/project/' + project.id + '/components',
-                oauthServiceName: 'auth',
-                headers: jira.CONST_HEADER,
-                type: yasoon.ajaxMethod.Get,
-                error: jira.handleError,
-                success: function (data) {
-                    var components = JSON.parse(data);
-                    $('#components').html('');
-                    $.each(components, function (i, comp) {
-                        $('#components').append('<option title="' + comp.description + '" value="' + comp.id + '">' + comp.name + '</option>');
+                // Save Project in recently used
+                self.addRecentProject(project);
+            }
+           
+            //Show Loader!
+            $('#ContentArea').hide();
+            $('#LoaderArea').show();
+            $.when(
+                self.getProjectValues(),
+                self.getComponents(),
+                self.getVersions(),
+                self.getUser(),
+                self.getMetaData(),
+                self.getLabels()
+            ).done(function () {
+                //Handle edit case
+                if (edit) {
+                    //Project Data
+                    $("#issuetype").select2('val', self.editIssue.fields.issuetype.id);
+                    $("#issuetype").select2('enable', false);
+                    $("#priority").select2('val', self.editIssue.fields.priority.id);
+
+                    //Components
+                    var comps = [];
+                    $.each(self.editIssue.fields.components, function (i, comp) {
+                        comps.push(comp.id);
                     });
-                    $('#components').select2();
+                    $('#components').select2('val', comps);
 
-                    //Edit case
-                    if (edit) {
-                        var comps = [];
-                        $.each(self.editIssue.fields.components, function (i, comp) {
-                            comps.push(comp.id);
-                        });
-                        $('#components').select2('val', comps);
-                    }
-                }
-            });
-
-            //Get Versions
-            yasoon.oauth({
-                url: self.settings.baseUrl + '/rest/api/2/project/' + project.id + '/versions',
-                oauthServiceName: 'auth',
-                headers: jira.CONST_HEADER,
-                type: yasoon.ajaxMethod.Get,
-                error: jira.handleError,
-                success: function (data) {
-                    var versions = JSON.parse(data);
-                    $('#versions').html('');
-                    $('#fixVersions').html('');
-
-                    $.each(versions, function (i, comp) {
-                        $('#versions').append('<option title="' + comp.description + '" value="' + comp.id + '">' + comp.name + '</option>');
-                        $('#fixVersions').append('<option title="' + comp.description + '" value="' + comp.id + '">' + comp.name + '</option>');
+                    //Versions
+                    var fixVers = [];
+                    $.each(self.editIssue.fields.fixVersions, function (i, version) {
+                        fixVers.push(version.id);
                     });
-                    $('#versions').select2();
-                    $('#fixVersions').select2();
+                    $('#fixVersions').select2('val', fixVers);
 
-                    //Edit case
-                    if (edit) {
-                        var fixVers = [];
-                        $.each(self.editIssue.fields.fixVersions, function (i, version) {
-                            fixVers.push(version.id);
-                        });
-                        $('#fixVersions').select2('val', fixVers);
-
-                        var vers = [];
-                        $.each(self.editIssue.fields.versions, function (i, version) {
-                            vers.push(version.id);
-                        });
-                        $('#versions').select2('val', vers);
-                    }
-                }
-            });
-
-            //Get Assignable Users
-            yasoon.oauth({
-                url: self.settings.baseUrl + '/rest/api/2/user/assignable/search?project=' + project.key + '&maxResults=1000',
-                oauthServiceName: 'auth',
-                headers: jira.CONST_HEADER,
-                type: yasoon.ajaxMethod.Get,
-                error: jira.handleError,
-                success: function (data) {
-                    var assignees = JSON.parse(data);
-                    //Transform Data
-                    $.each(assignees, function (i, user) {
-                        user.id = user.name;
+                    var vers = [];
+                    $.each(self.editIssue.fields.versions, function (i, version) {
+                        vers.push(version.id);
                     });
+                    $('#versions').select2('val', vers);
 
-                    $('#assignee').select2({
-                        data: { results: assignees, text: 'displayName' },
-                        formatResult: formatUser,
-                        formatSelection: formatUser,
-                    });
-
-                    if (edit && self.editIssue.fields.assignee) {
+                    //User
+                    if (self.editIssue.fields.assignee) {
                         $('#assignee').select2('val', self.editIssue.fields.assignee.id);
                     }
 
-                    $('#assign-to-me-trigger').click(function () {
-                        if (self.ownUser) {
-                            $('#assignee').val(self.ownUser.name).trigger("change");
-                        }
-                    });
-                }
-            });
-
-            //Meta Data for custom fields
-            yasoon.oauth({
-                url: self.settings.baseUrl + '/rest/api/2/issue/createmeta?projectIds=' + project.id + '&expand=projects.issuetypes.fields',
-                oauthServiceName: 'auth',
-                headers: jira.CONST_HEADER,
-                type: yasoon.ajaxMethod.Get,
-                error: jira.handleError,
-                success: function (data) {
-                    var meta = JSON.parse(data);
-                    console.log(meta);
-                    //Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
-                    projectMeta = $.grep(meta.projects, function (p) { return p.id === project.id; })[0];
-                    self.updateCustomFields(projectMeta);
-                }
-            });
-
-            //Label Data
-            yasoon.oauth({
-                url: self.settings.baseUrl + '/rest/api/1.0/labels/suggest?query=',
-                oauthServiceName: 'auth',
-                headers: jira.CONST_HEADER,
-                type: yasoon.ajaxMethod.Get,
-                error: jira.handleError,
-                success: function (data) {
-                    var labels = JSON.parse(data);
-                    var labelArray = [];
-                    if (labels.suggestions) {
-                        $.each(labels.suggestions, function (i, label) {
-                            labelArray.push(label.label);
-                        });
-                    }
-                    $('#labels').select2({
-                        tags: labelArray,
-                        tokenSeparators: [" "]
-                    });
-
-                    if (edit && self.editIssue.fields.labels) {
+                    //Labels
+                    if (self.editIssue.fields.labels) {
                         $('#labels').select2('val', self.editIssue.fields.labels);
                     }
-
                 }
+
+                $('#IssueArea').show();
+                $('#LoaderArea').hide();
+                $('#ContentArea').show();
             });
         }
     };
+
+    self.getProjectValues = function () {
+        var dfd = $.Deferred();
+        //Get Values of project
+        yasoon.oauth({
+            url: self.settings.baseUrl + '/rest/api/2/project/' + project.id,
+            oauthServiceName: 'auth',
+            headers: jira.CONST_HEADER,
+            type: yasoon.ajaxMethod.Get,
+            error: jira.handleError,
+            success: function (data) {
+                var project = JSON.parse(data);
+                $('#issuetype').html(' ');
+                project.issueTypes.sort(function (a, b) {
+                    if (a.id > b.id)
+                        return 1;
+                    else
+                        return -1;
+                });
+                $.each(project.issueTypes, function (i, type) {
+                    $('#issuetype').append('<option data-icon="' + type.iconUrl + '" value="' + type.id + '">' + type.name + '</option>');
+                });
+
+                $("#issuetype").select2({
+                    formatResult: formatIcon,
+                    formatSelection: formatIcon,
+                    escapeMarkup: function (m) { return m; }
+                });
+
+                $('#issuetype').change(function () {
+                    self.updateCustomFields(projectMeta);
+                });
+
+                dfd.resolve();
+            }
+        });
+
+        return dfd.promise();
+
+    };
+
+    self.getComponents = function () {
+        var dfd = $.Deferred();
+        //Get components
+        yasoon.oauth({
+            url: self.settings.baseUrl + '/rest/api/2/project/' + project.id + '/components',
+            oauthServiceName: 'auth',
+            headers: jira.CONST_HEADER,
+            type: yasoon.ajaxMethod.Get,
+            error: jira.handleError,
+            success: function (data) {
+                var components = JSON.parse(data);
+                $('#components').html('');
+                $.each(components, function (i, comp) {
+                    $('#components').append('<option title="' + comp.description + '" value="' + comp.id + '">' + comp.name + '</option>');
+                });
+                $('#components').select2();
+
+                dfd.resolve();
+            }
+        });
+
+        return dfd.promise();
+    };
+
+    self.getVersions = function () {
+        var dfd = $.Deferred();
+        //Get Versions
+        yasoon.oauth({
+            url: self.settings.baseUrl + '/rest/api/2/project/' + project.id + '/versions',
+            oauthServiceName: 'auth',
+            headers: jira.CONST_HEADER,
+            type: yasoon.ajaxMethod.Get,
+            error: jira.handleError,
+            success: function (data) {
+                var versions = JSON.parse(data);
+                $('#versions').html('');
+                $('#fixVersions').html('');
+
+                $.each(versions, function (i, comp) {
+                    $('#versions').append('<option title="' + comp.description + '" value="' + comp.id + '">' + comp.name + '</option>');
+                    $('#fixVersions').append('<option title="' + comp.description + '" value="' + comp.id + '">' + comp.name + '</option>');
+                });
+                $('#versions').select2();
+                $('#fixVersions').select2();
+
+                dfd.resolve();
+            }
+        });
+
+        return dfd.promise();
+    };
+
+    self.getUser = function () {
+        var dfd = $.Deferred();
+        //Get Assignable Users
+        yasoon.oauth({
+            url: self.settings.baseUrl + '/rest/api/2/user/assignable/search?project=' + project.key + '&maxResults=1000',
+            oauthServiceName: 'auth',
+            headers: jira.CONST_HEADER,
+            type: yasoon.ajaxMethod.Get,
+            error: jira.handleError,
+            success: function (data) {
+                var assignees = JSON.parse(data);
+                //Transform Data
+                $.each(assignees, function (i, user) {
+                    user.id = user.name;
+                });
+
+                $('#assignee').select2({
+                    data: { results: assignees, text: 'displayName' },
+                    formatResult: formatUser,
+                    formatSelection: formatUser,
+                });
+
+                $('#assign-to-me-trigger').click(function () {
+                    if (self.ownUser) {
+                        $('#assignee').val(self.ownUser.name).trigger("change");
+                    }
+                });
+
+                dfd.resolve();
+            }
+        });
+        return dfd.promise();
+    };
+
+    self.getMetaData = function () {
+        var dfd = $.Deferred();
+        //Meta Data for custom fields
+        yasoon.oauth({
+            url: self.settings.baseUrl + '/rest/api/2/issue/createmeta?projectIds=' + project.id + '&expand=projects.issuetypes.fields',
+            oauthServiceName: 'auth',
+            headers: jira.CONST_HEADER,
+            type: yasoon.ajaxMethod.Get,
+            error: jira.handleError,
+            success: function (data) {
+                var meta = JSON.parse(data);
+                //Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
+                projectMeta = $.grep(meta.projects, function (p) { return p.id === project.id; })[0];
+                self.updateCustomFields(projectMeta);
+                dfd.resolve();
+            }
+        });
+
+        return dfd.promise();
+    };
+
+    self.getLabels = function () {
+        var dfd = $.Deferred();
+        //Label Data
+        yasoon.oauth({
+            url: self.settings.baseUrl + '/rest/api/1.0/labels/suggest?query=',
+            oauthServiceName: 'auth',
+            headers: jira.CONST_HEADER,
+            type: yasoon.ajaxMethod.Get,
+            error: jira.handleError,
+            success: function (data) {
+                var labels = JSON.parse(data);
+                var labelArray = [];
+                if (labels.suggestions) {
+                    $.each(labels.suggestions, function (i, label) {
+                        labelArray.push(label.label);
+                    });
+                }
+                $('#labels').select2({
+                    tags: labelArray,
+                    tokenSeparators: [" "]
+                });
+
+                dfd.resolve();
+            }
+        });
+        return dfd.promise();
+    };
+
 }); //jshint ignore:line
 
 function UIFormHandler() {
