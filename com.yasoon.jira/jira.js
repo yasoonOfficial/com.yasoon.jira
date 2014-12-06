@@ -524,15 +524,15 @@ function JiraNotificationController() {
 					$.each(issue.fields.comment.comments, function (i, comment) {
 					    var event = null;
 						if (new Date(comment.updated) >= jira.settings.lastSync && comment.updated != comment.created) {
-
-							//This is an updated comment --> update
-							event = self.createCommentAction(comment, issue);
-							self.createNotification(event).save(function () {
-								counter++;
-								if (counter == issue.fields.comment.comments.length) {
-									dfd.resolve();
-								}
-							});
+                            
+							////This is an updated comment --> update
+							//event = self.createCommentAction(comment, issue);
+							//self.createNotification(event).save(function () {
+							//	counter++;
+							//	if (counter == issue.fields.comment.comments.length) {
+							//		dfd.resolve();
+							//	}
+							//});
 						} else if (new Date(comment.created) >= jira.settings.lastSync) {
 							//This is a new comment. It may has been created with attachments --> check if it's already on database
 							var yEvent = yasoon.notification.getByExternalId('c' + comment.id);
