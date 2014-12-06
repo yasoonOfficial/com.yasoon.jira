@@ -129,7 +129,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			success: function (data) {
 				var obj = jiraXmlToJson(new DOMParser().parseFromString(data, "text/xml"));
 				console.log('page:', obj);
-				if (obj.feed.entry) {
+				if (obj.feed && obj.feed.entry) {
 					//Adjust Data. If it's only 1 entry it's an object instead of array
 					if (!$.isArray(obj.feed.entry)) {
 						obj.feed.entry = [obj.feed.entry];
