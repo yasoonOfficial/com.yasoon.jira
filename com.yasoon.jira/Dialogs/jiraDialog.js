@@ -127,7 +127,18 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			$('#project').select2('val', proj.id);
 			$('#project').select2("enable", false);
 
-			self.selectProject();
+			//Load issue Meta in edit case!
+			yasoon.oauth({
+				url: self.settings.baseUrl + '/rest/api/2/issue/'+self.editIssue.id+'?expand=editmeta,renderedFields,transitions,changelog,operations',
+				oauthServiceName: 'auth',
+				headers: jira.CONST_HEADER,
+				type: yasoon.ajaxMethod.Get,
+				error: jira.handleError,
+				success: function (data) {
+					self.editIssue = JSON.parse(data);
+					self.selectProject();
+				}
+			});
 		}
 
 		$('#AddAttachmentLink').click(function () {
@@ -671,7 +682,7 @@ function UIFormHandler() {
 		},
 		getFormData: function (meta, result) {
 			result = result || {};
-
+			console.log(meta);
 			//Find Meta for current Issue Type
 			var metaIssue = $.grep(meta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
 
