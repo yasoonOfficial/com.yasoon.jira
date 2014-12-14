@@ -1,8 +1,8 @@
 {
 	"$schema": "http://developer.yasoon.com/yasoon-module.json",
 	"id": 16,
-	"versionId": 56,
-	"version": "0.4.1",
+	"versionId": 57,
+	"version": "0.4.2",
 	"appNamespace": "com.yasoon.jira",
 	"title": "Jira",
 	"description": "Outlook Integration of Jira",
