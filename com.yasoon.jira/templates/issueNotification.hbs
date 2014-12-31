@@ -1,4 +1,5 @@
 <div style="position:relative; line-height: 1.42857;" class="jiraContainer">
+    <!-- Collapsed View-->
   <div class="row body-collapsed" style="padding-top:2px;">
     <div class="col-sm-2" style="padding-left: 20px;">
       <div class="jiraFeedExpand" style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; cursor:pointer;">
@@ -6,17 +7,17 @@
       </div>
     </div>
     <div class="col-sm-2">
-      <span title="{{issuetype.description}}">
-        <img src="{{issuetype.iconUrl}}" style="margin-right: 2px;" />{{issuetype.name}}
+      <span title="{{fields.issuetype.description}}">
+        <img src="{{fields.issuetype.iconUrl}}" style="margin-right: 2px;" />{{fields.issuetype.name}}
       </span>
     </div>
     <div class="col-sm-2">
-      <span title="{{status.description}}">
-        <img src="{{status.iconUrl}}" style="margin-right: 2px;" /> {{status.name}}
+      <span title="{{fields.status.description}}">
+        <img src="{{fields.status.iconUrl}}" style="margin-right: 2px;" /> {{fields.status.name}}
       </span>
     </div>
     <div class="col-sm-2">
-      <span> F&auml;llig: {{#if duedate}} {{duedate}} {{else}} - {{/if}}</span>
+      <span>Due at: {{#if fields.duedate}} {{fields.duedate}} {{else}} - {{/if}}</span>
     </div>
     <div class="col-sm-3">
       <span>
@@ -24,6 +25,7 @@
       </span>
     </div>
   </div>
+    <!-- Expanded View-->
   <div class="row body-open" style="display:none;">
     <div class="col-sm-8" style="padding: 2px 20px;">
       <div class="jiraFeedClose" style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; cursor:pointer;">
@@ -33,32 +35,32 @@
         <div class="col-sm-6">
           <div class="row" style="margin-top: 5px;">
             <div class="col-sm-4">
-              <span style="color: #707070">Typ:</span>
+              <span style="color: #707070">Type:</span>
             </div>
             <div class="col-sm-8">
-              <span title="{{issuetype.description}}">
-                <img src="{{issuetype.iconUrl}}" style="margin-right: 2px;" />{{issuetype.name}}
+              <span title="{{fields.issuetype.description}}">
+                <img src="{{fields.issuetype.iconUrl}}" style="margin-right: 2px;" />{{fields.issuetype.name}}
               </span>
             </div>
           </div>
           <div class="row" style="margin-top: 5px;">
             <div class="col-sm-4">
-              <span style="color: #707070">Priorit&auml;t:</span>
+              <span style="color: #707070">Priority</span>
             </div>
             <div class="col-sm-8">
               <span>
-                <img src="{{priority.iconUrl}}" style="margin-right: 2px;" />{{priority.name}}
+                <img src="{{fields.priority.iconUrl}}" style="margin-right: 2px;" />{{fields.priority.name}}
               </span>
             </div>
           </div>
-          {{#if versions}}
+          {{#if fields.versions}}
           <div class="row" style="margin-top: 5px;">
             <div class="col-sm-4">
-              <span style="color: #707070">betrifft Version(en):</span>
+              <span style="color: #707070">Affected versions:</span>
             </div>
             <div class="col-sm-8">
               <span>
-                {{#each versions}}
+                {{#each fields.versions}}
                   {{#unless @first}}, {{/unless}}<span title="{{description}}"> {{name}}</span>
                 {{/each}}
               </span>
@@ -68,10 +70,10 @@
           {{#if environment}}
           <div class="row" style="margin-top: 5px;">
             <div class="col-sm-4">
-              <span style="color: #707070">Umgebung:</span>
+              <span style="color: #707070">Enviroment:</span>
             </div>
             <div class="col-sm-8">
-              <div>{{environment}}</div>
+              <div>{{renderedFields.environment}}</div>
             </div>
           </div>
           {{/if}}
@@ -82,28 +84,28 @@
               <span style="color: #707070">Status:</span>
             </div>
             <div class="col-sm-8">
-              <span title="{{status.description}}" >
-                <img src="{{status.iconUrl}}" style="margin-right: 2px;" /> {{status.name}}
+              <span title="{{fields.status.description}}" >
+                <img src="{{fields.status.iconUrl}}" style="margin-right: 2px;" /> {{fields.status.name}}
               </span>
             </div>
           </div>
           <div class="row" style="margin-top: 5px;">
             <div class="col-sm-4">
-              <span style="color: #707070">L&ouml;sung:</span>
+              <span style="color: #707070">Solution:</span>
             </div>
             <div class="col-sm-8">
-              <span> {{#if resolution}}{{resolution.name}}{{else}}nicht erledigt{{/if}}</span>
+              <span> {{#if fields.resolution}}{{fields.resolution.name}}{{else}}not done{{/if}}</span>
             </div>
           </div>
-          {{#if fixVersions}}
+          {{#if fields.fixVersions}}
           <div class="row" style="margin-top: 5px;">
             <div class="col-sm-4">
-              <span style="color: #707070">L&ouml;sungs- version(en):</span>
+              <span style="color: #707070">Fix versions:</span>
             </div>
             <div class="col-sm-8">
               <span>
-                {{#each fixVersions}}
-                  {{#unless @first}}, {{/unless}}<a href="{{../baseUrl}}/browse/{{../project.key}}/fixforversion/{{id}}" title="{{description}}"> {{name}}</a>
+                {{#each fields.fixVersions}}
+                  {{#unless @first}}, {{/unless}}<a href="{{../baseUrl}}/browse/{{../fields.project.key}}/fixforversion/{{id}}" title="{{description}}"> {{name}}</a>
                 {{/each}}
               </span>
             </div>
@@ -112,18 +114,18 @@
         </div>
       </div>
       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top: 15px;">
-        Beschreibung <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
+        Description <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
       </div>
       <div class="row" style="margin-top: 5px;">
-        <div class="col-sm-12"> {{{description}}}</div>
+        <div class="col-sm-12"> {{{renderedFields.description}}}</div>
       </div>
-        {{#if attachments}}
+        {{#if fields.attachments}}
         <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top: 15px;">
             Attachments <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
         </div>
         <div class="row" style="margin-top: 5px;">
             <div class="col-sm-12">
-                {{#each attachments}}
+                {{#each fields.attachments}}
                 <span class="jiraFile" style="margin-right:15px; white-space:nowrap;"><a href="{{content}}"><img style="width:16px;" src="{{fileIcon}}" />{{{filename}}}</a></span>
                 {{/each}}
             </div>
@@ -132,11 +134,11 @@
     </div>
     <div class="col-sm-4" style="padding: 10px 20px;">
       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden;">
-        Personen <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
+        Persons <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
       </div>
       <div class="row" style="margin-top: 5px;">
         <div class="col-sm-4">
-          <span style="color: #707070">Bearbeiter:</span>
+          <span style="color: #707070">Assignee:</span>
         </div>
         <div class="col-sm-8">
           <span>
@@ -146,7 +148,7 @@
       </div>
       <div class="row" style="margin-top: 5px;">
         <div class="col-sm-4">
-          <span style="color: #707070">Autor:</span>
+          <span style="color: #707070">Creator:</span>
         </div>
         <div class="col-sm-8">
           <span>
@@ -155,25 +157,25 @@
         </div>
       </div>
       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top:15px;">
-        Daten <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
+        Dates <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
       </div>
-      {{#if duedate}}
+      {{#if fields.duedate}}
       <div class="row" style="margin-top: 5px;">
         <div class="col-sm-4">
-          <span style="color: #707070">F&auml;llig:</span>
+          <span style="color: #707070">Due at:</span>
         </div>
         <div class="col-sm-8">
-          <span>{{duedate}}</span>
+          <span>{{fields.duedate}}</span>
         </div>
       </div>
       {{/if}}
-      {{#if resolutiondate}}
+      {{#if fields.resolutiondate}}
       <div class="row" style="margin-top: 5px;">
         <div class="col-sm-4">
-          <span style="color: #707070">Erledigt:</span>
+          <span style="color: #707070">Finished at:</span>
         </div>
         <div class="col-sm-8">
-          <span> {{resolutiondate}}</span>
+          <span> {{fields.resolutiondate}}</span>
         </div>
       </div>
       {{/if}}

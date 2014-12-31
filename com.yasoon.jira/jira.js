@@ -707,27 +707,17 @@ function JiraIssueNotification(issue) {
 	    }
 
 		feed.setTemplate('templates/issueNotification.hbs', {
-			issuetype: self.issue.fields.issuetype,
-			status: self.issue.fields.status,
-			duedate: self.issue.renderedFields.duedate,
+		    fields: self.issue.fields,
+            renderedFields: self.issue.renderedFields,
 			assignee: {
 				avatarUrl: (self.issue.fields.assignee) ? self.issue.fields.assignee.avatarUrls['16x16'] : '',
-				displayName: (self.issue.fields.assignee) ? self.issue.fields.assignee.displayName : 'niemand'
+				displayName: (self.issue.fields.assignee) ? self.issue.fields.assignee.displayName : 'noone'
 			},
 			creator: {
 				avatarUrl: (self.issue.fields.creator) ? self.issue.fields.creator.avatarUrls['16x16'] : '',
 				displayName: (self.issue.fields.creator) ? self.issue.fields.creator.displayName : 'anonym'
 			},
-			baseUrl: jira.settings.baseUrl,
-			project: self.issue.fields.project,
-			priority: self.issue.fields.priority,
-			versions: self.issue.fields.versions,
-			environment: self.issue.renderedFields.environment,
-			resolution: self.issue.fields.resolution,
-			fixVersions: self.issue.fields.fixVersions,
-			description: self.issue.renderedFields.description,
-			resolutiondate: self.issue.fields.resolutiondate,
-			attachments: self.issue.fields.attachment
+			baseUrl: jira.settings.baseUrl
 		});
 	};
 
