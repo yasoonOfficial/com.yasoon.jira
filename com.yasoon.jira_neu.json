@@ -1,0 +1,59 @@
+{
+	"$schema": "http://developer.yasoon.com/yasoon-module.json",
+	"id": 16,
+	"versionId": 57,
+	"version": "0.4.2",
+	"appNamespace": "com.yasoon.jira",
+	"title": "Jira",
+	"description": "Outlook Integration of Jira",
+	"homepage": "http://www.jira.com",
+	"author": {
+		"name": "Andreas Schmidt",
+		"email": "andreas.schmidt@yasoon.com"
+	},
+	"vendor": {
+		"name": "yasoon UG",
+		"email": "contact@yasoon.de",
+		"url": "http://www.yasoon.com"
+	},
+	"logoImage": "logo.png",
+	"notificationImage": "logo_round.png",
+	"files": [
+		"jira.js"
+	],
+	"main": "jira.js",
+	"oauth": [
+		{
+			"serviceName": "auth",
+			"oauthVersion": 1,
+			"clientId": "yasoonjira",
+			"clientCertificate": "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",
+			"customCertificate": "MIIDkzCCAnugAwIBAgIJANC8WG7PZ0ohMA0GCSqGSIb3DQEBCwUAMGAxCzAJBgNVBAYTAkNIMRQwEgYDVQQIDAtTd2l0emVybGFuZDENMAsGA1UEBwwEQmVybjEUMBIGA1UECgwLw5DCoXJlYXRldXIxFjAUBgNVBAMMDSouY3JlYXRldXIuY2gwHhcNMTQwOTExMTQxMTQwWhcNMTcwOTEwMTQxMTQwWjBgMQswCQYDVQQGEwJDSDEUMBIGA1UECAwLU3dpdHplcmxhbmQxDTALBgNVBAcMBEJlcm4xFDASBgNVBAoMC8OQwqFyZWF0ZXVyMRYwFAYDVQQDDA0qLmNyZWF0ZXVyLmNoMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw1B3BxMzFREmCDsqEJ11x1RyIYqpMdzFsEtnZ3qCUh8i4qfjtR1mISqG3hwJ+S5Zqn7SyoFDfKmGntNPXyIno86h1oURiC/4nEKXGOy+7BtoKVKzytQ2RZCrKqG9FgEbjJ/cgN+cUXB7FUhfs0+Ms7tDpMHsKIosvngJBb8xj+0PuCF3UfwQ3SvikZu3RSlLq5KhvI2QwKsla+fqahnMVlGCmnVkWFTVFc/sKwfi/SHDFu7XLWMXstmr3EAHghtfWUcYDS8dnlmt/UPSKoO/rKrGUEL8O93qar8i8ZJpY3yQOCQKFcFDPnYCDru6/ZXyF2fIn8HjaZ6RFsiGGyAdPQIDAQABo1AwTjAdBgNVHQ4EFgQU+PHd8wxhX3PGS7X6QDhAj4p17/IwHwYDVR0jBBgwFoAU+PHd8wxhX3PGS7X6QDhAj4p17/IwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAc005y+ZizTqVIcMxjzabpeSq4swQHhGwbocd6Idj6X//uGO0y1u+8ee69vHXQDxb6uAoGwbelz35hOk0gi6oQsN/1uV1J7aTPiPKyKDM7hANrUIIEzuq7Z5MBj1zjN4yh498roy0xEfY29k3jAiQVt0VUFyOadTN1Uiw7MKDtvIpXuvyOYYzzpT2pk1GKgH+5/9k0AhPfhdHqiIgMonoKwQhCfzNggyGHclZQDF8LQg6WuV4WYJPs2NHL4MSdtUWaY3TH7sybPR9Ec25jt81RT9+mcaDfN4wAGROT2L5JDeKP+lI1FOQ5wPGyUoxTef//KR+OlsthUhCupp32iTBrw==",
+			"signatureMethod": "rsaSha1",
+			"requestUrl": "$baseUrl$/plugins/servlet/oauth/request-token",
+			"requestParameters": {
+				"url": {
+					"baseUrl": "$param:baseUrl"
+				}
+			},
+			"requestMethod": "post",
+			"authorizationUrl": "$baseUrl$/plugins/servlet/oauth/authorize",
+			"authorizationParameters": {
+				"url": {
+					"baseUrl": "$param:baseUrl"
+				}
+			},
+			"authorizationMethod": "post",
+			"tokenUrl": "$baseUrl$/plugins/servlet/oauth/access-token",
+			"tokenMethod": "post",
+			"tokenParameters": {
+				"url": {
+					"baseUrl": "$param:baseUrl"
+				}
+			}
+		}
+	],
+	predeliveredConfiguration: {
+		"baseUrl": "https://jira.createur.ch"
+	}
+}
