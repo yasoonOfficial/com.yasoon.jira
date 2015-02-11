@@ -1476,4 +1476,4 @@ function jiraQueue() {
 
 	return promise;
 }
-//@ sourceURL=jira.js
+//@ sourceURL=http://Jira/jira.js

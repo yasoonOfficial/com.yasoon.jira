@@ -561,10 +561,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				$('#versions').html('');
 				$('#fixVersions').html('');
 
-				$.each(versions, function (i, comp) {
-					$('#versions').append('<option title="' + comp.description + '" value="' + comp.id + '">' + comp.name + '</option>');
-					$('#fixVersions').append('<option title="' + comp.description + '" value="' + comp.id + '">' + comp.name + '</option>');
-				});
+				if (versions && versions.length > 0) {
+				    $.each(versions, function (i, comp) {
+				        $('#versions').append('<option title="' + comp.description + '" value="' + comp.id + '">' + comp.name + '</option>');
+				        $('#fixVersions').append('<option title="' + comp.description + '" value="' + comp.id + '">' + comp.name + '</option>');
+				    });
+				}
 				$('#versions').select2();
 				$('#fixVersions').select2();
 
@@ -586,10 +588,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			error: jira.handleError,
 			success: function (data) {
 				var assignees = JSON.parse(data);
-				//Transform Data
-				$.each(assignees, function (i, user) {
-					user.id = user.name;
-				});
+			    //Transform Data
+				if (assignees && assignees.length > 0) {
+				    $.each(assignees, function (i, user) {
+				        user.id = user.name;
+				    });
+				}
 
 				$('#assignee').select2({
 					data: { results: assignees, text: 'displayName' },
