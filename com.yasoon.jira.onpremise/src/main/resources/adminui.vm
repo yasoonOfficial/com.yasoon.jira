@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="decorator" content="atl.admin" />
+        $webResourceManager.requireResource("com.yasoon.jira.yasoononpremise:resources")
+    </head>
+    <body>
+        <section id="content" class="bootstrap-wrapper ac-content" >
+            <div id="RegisteredArea" style="margin: 50px; margin-top: 0px; max-width: 800px; display:none">
+                <div>
+                    <div class="bootstrap-wrapper page-header">
+                        <h1>Jira for Outlook<small><br />powered by yasoon</small></small></h1>
+                    </div>
+                    This Jira instance is <b> registered</b>. <br />
+                    <div class="bootstrap-wrapper panel panel-success">
+                        <div class="bootstrap-wrapper panel-heading">
+                            <h3 class="bootstrap-wrapper panel-title">Yasoon Account</h3>
+                        </div>
+                        <div class="bootstrap-wrapper panel-body">
+                            To configure the yasoon account, please visit our <a target="_blank" href="https://store.yasoon.com">Admin Panel</a>
+                        </div>
+                    </div>
+                    <br />
+                    <div id="appLinkStatus" class="bootstrap-wrapper panel panel-warning">
+                        <div class="bootstrap-wrapper panel-heading">
+                            <h3 class="bootstrap-wrapper panel-title">JIRA Configuration</h3>
+                        </div>
+                        <div class="bootstrap-wrapper panel-body">
+                            <div style="margin-bottom: 10px">
+                                Your JIRA instance needs a new application link, to allow JIRA for Outlook to access it. Please click the button below to configure this automatically.
+                            </div>
+                            <button type="button" id="AddApplicationLinkButton" class="bootstrap-wrapper btn btn-default">Add Application Link</button>
+                            <div style="margin-top: 20px">
+                                In case something is not working as expected, please follow our <a target="_blank" href="https://yasoon.zendesk.com/hc/en-us/articles/201911802-Technical-Admin-Guide">manual configuration guide</a>.
+                            </div>
+                        </div>                        
+                    </div>
+                    <br />
+                    <div class="bootstrap-wrapper panel panel-info">
+                        <div class="bootstrap-wrapper panel-heading">
+                            <h3 class="bootstrap-wrapper panel-title">Outlook App Download</h3>
+                        </div>
+                        <div class="bootstrap-wrapper panel-body">
+                            After you have take over all your settings, you can download and distribute the setup: <a> download </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="LoginArea" style="max-width: 600px; display:none;">
+                <div class="bootstrap-wrapper page-header">
+                    <h1>Yasoon<small> Login </small></h1>
+                </div>
+                <div class="bootstrap-wrapper well well-lg">
+                    <form role="form" id="LoginForm" class="bootstrap-wrapper" style="max-width: 600px;">
+                        <div class="bootstrap-wrapper form-group">
+                            <label for="emailAddress">Your Email</label>
+                            <input type="email" class="bootstrap-wrapper form-control" id="emailaddress" name="emailAddress" placeholder="Email address">
+                        </div>
+                        <div class="bootstrap-wrapper form-group">
+                            <label for="password">Password</label>
+                            <input type="password" class="bootstrap-wrapper form-control" id="password" name="password" placeholder="Password">
+                        </div>
+                        <button type="button" id="LoginYasoonButton" class="bootstrap-wrapper btn btn-default">Login</button>
+                    </form>
+                </div>
+            </div>
+            <div id="UnregisteredArea" style="">
+                <form role="form" id="RegisterCompanyForm" class="bootstrap-wrapper" style="max-width: 600px; margin: 50px; margin-top: 0; display: none;">
+                    <div>
+                        <div class="bootstrap-wrapper page-header">
+                            <h1>Welcome to Jira for Outlook <small><br />powered by yasoon</small></h1>
+                        </div>
+                        This Jira instance is <b>not yet registered at yasoon.</b> <br />
+                        Please signup at yasoon via the form below or login with your existing yasoon account to assign this Jira instance to your account.
+                        <br /><br />
+                    </div>
+                    <div class="bootstrap-wrapper form-group">
+                        <label for="company">Company Name</label>
+                        <input type="text" class="bootstrap-wrapper form-control" id="company" name="company" placeholder="Company Name">
+                    </div>
+                    <div class="bootstrap-wrapper form-group">
+                        <label for="firstname">Firstname</label>
+                        <input type="text" class="bootstrap-wrapper form-control" id="firstname" name="firstName" placeholder="Firstname">
+                    </div>
+                    <div class="bootstrap-wrapper form-group">
+                        <label for="lastname">Lastname</label>
+                        <input type="text" class="bootstrap-wrapper form-control" id="lastname" name="lastName" placeholder="Lastname">
+                    </div>
+                    <div class="bootstrap-wrapper form-group">
+                        <label for="emailAddress">Your Email</label>
+                        <input type="email" class="bootstrap-wrapper form-control" id="emailaddress" name="emailAddress" placeholder="Email address">
+                    </div>
+                    <div class="bootstrap-wrapper form-group">
+                        <label for="password">Password</label>
+                        <input type="password" class="bootstrap-wrapper form-control" id="password" name="password" placeholder="Password">
+                    </div>
+                    <div class="bootstrap-wrapper form-group">
+                        <label for="password1">Confirm password</label>
+                        <input type="password" class="bootstrap-wrapper form-control" id="password1" name="password1" placeholder="Confirm Password">
+                        <span class="bootstrap-wrapper help-block" style="visibility:hidden;">Password does not match!</span>
+                    </div>
+                    <input type="hidden" class="bootstrap-wrapper form-control" id="comment" name="comment" value="Registered via Jira">
+                    <button type="button" id="RegisterCompanyButton" class="bootstrap-wrapper btn btn-default">Register</button> or <a id="LoginYasoon" style="cursor: pointer;"> login to your yasoon account</a>
+                </form>
+            </div>
+        </section>
+    </body>
+</html>

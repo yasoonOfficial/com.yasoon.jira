@@ -1,0 +1,34 @@
+{
+     "name": "Yasoon Outlook Integration for Jira (Cloud)",
+     "description": "yasoon",
+     "key": "com.yasoon",
+     "baseUrl": "http://localhost:1337/jira",
+     "vendor": {
+         "name": "Yasoon",
+         "url": "http://www.yasoon.com"
+     },
+     "authentication": {
+         "type": "jwt"
+     },
+	"lifecycle": {
+        "installed": "/install"
+    },
+	 "scopes": [
+        "read", "write"
+    ],
+     "apiVersion": 1,
+     "modules": {
+         "adminPages": [
+             {
+                 "url": "/helloworld.html",
+                 "key": "hello-world",
+                 "location": "system.admin/globalsettings",
+                 "name": {
+                     "value": "Yasoon"
+                 }
+				 
+             }
+         ]
+     },
+	  "enableLicensing": true
+ }

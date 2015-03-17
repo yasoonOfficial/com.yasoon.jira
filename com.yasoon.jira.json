@@ -53,6 +53,6 @@
 		}
 	],
 	predeliveredConfiguration: {
-		"baseUrl": "http://jira.sovanta.zz"
+		"baseUrl": "http://jira.seaboardmarine.com:8080"
 	}
 }

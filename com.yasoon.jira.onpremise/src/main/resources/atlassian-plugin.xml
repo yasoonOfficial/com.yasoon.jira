@@ -1,0 +1,58 @@
+<atlassian-plugin key="${project.groupId}.${project.artifactId}" name="${project.name}" plugins-version="2">
+    <plugin-info>
+        <description>${project.description}</description>
+        <version>${project.version}</version>
+        <vendor name="${project.organization.name}" url="${project.organization.url}" />
+        <param name="plugin-icon">images/pluginIcon.png</param>
+        <param name="plugin-logo">images/pluginLogo.png</param>
+    </plugin-info>
+
+    <!-- add our i18n resource -->
+    <resource type="i18n" name="i18n" location="yasoononpremise"/>
+    
+    <!-- add our web resources -->
+    <web-resource key="resources" name="yasoononpremise Web Resources">
+        <dependency>com.atlassian.auiplugin:ajs</dependency>
+        <resource type="download" name="yasoononpremise.css" location="/css/yasoononpremise.css"/>
+        <resource type="download" name="bootstrap.css" location="/css/bootstrap.css"/>        
+        <resource type="download" name="yasoononpremise.js" location="/js/yasoononpremise.js"/>
+        <resource type="download" name="bootstrap.js" location="/js/bootstrap.js"/>
+        <resource type="download" name="jquery.js" location="/js/jquery.js"/>
+        <resource type="download" name="main.js" location="/js/main.js"/>
+        <resource type="download" name="images/" location="/images"/>
+        <context>yasoononpremise</context>
+    </web-resource>
+            
+    <!-- import from the product container -->
+    <component-import key="applicationProperties" interface="com.atlassian.sal.api.ApplicationProperties" />
+    <component-import key="userManager" interface="com.atlassian.sal.api.user.UserManager" />
+    <component-import key="loginUriProvider" interface="com.atlassian.sal.api.auth.LoginUriProvider" />
+    <component-import key="renderer" interface="com.atlassian.templaterenderer.velocity.one.six.VelocityTemplateRenderer" />
+    <component-import key="eventPublisher" interface="com.atlassian.event.api.EventPublisher"/>
+    <component-import key="applicationLinkService" interface="com.atlassian.applinks.spi.link.MutatingApplicationLinkService" />    
+    <component-import key="typeAccessor" interface="com.atlassian.applinks.spi.util.TypeAccessor"/>
+    <component-import key="storeService" interface="com.atlassian.oauth.serviceprovider.ServiceProviderConsumerStore"/>
+    
+    <component key="eventListener" class="com.yasoon.jira.LifecycleListener">
+       <description>Class that processes the incoming JIRA issue events.</description>
+    </component>
+    
+    <web-item key="jira-menu-item" name="Outlook App" section="system.admin/globalsettings" weight="10" application="jira">
+        <description>Link to Jira for Outlook admin page.</description> 
+        <label key="jiraforoutlook.admin.label" /> 
+        <link linkId="jiraforoutlook-admin-link">/plugins/servlet/jiraforoutlook/admin</link> 
+    </web-item>
+    
+    <servlet key="admin-servlet" class="com.yasoon.jira.AdminUIServlet">
+        <url-pattern>/jiraforoutlook/admin</url-pattern>        
+    </servlet>
+    
+    <servlet key="system-info-servlet" class="com.yasoon.jira.SystemInfoServlet">
+        <url-pattern>/jiraforoutlook/sysinfo</url-pattern>
+    </servlet>
+    
+    <servlet key="app-link-servlet" class="com.yasoon.jira.ApplicationLinkServlet">
+        <url-pattern>/jiraforoutlook/applink</url-pattern>
+    </servlet>
+    
+</atlassian-plugin>
