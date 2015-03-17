@@ -17,12 +17,6 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
  
 	this.lifecycle = function(action, oldVersion, newVersion) {
 		if (action === yasoon.lifecycle.Upgrade) {
-			if (newVersion === '0.3') {
-				var notifs = yasoon.notification.getAll();
-				$.each(notifs, function (i, notif) {
-					yasoon.notification.remove(notif.notificationId);
-				});
-			}
 		}
 	};
 
@@ -74,6 +68,11 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 
 	var SyncProcessId = null;
 	this.sync = function () {
+
+	    if (!jira.settings.currentService) {
+	        return;
+	    }
+
 		if (SyncProcessId && !jira.SyncInProcess) {
 			clearTimeout(SyncProcessId);
 		}
@@ -121,7 +120,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		jiraLog('Get Activity Stream');
 		yasoon.oauth({
 			url: url,
-			oauthServiceName: 'auth',
+			oauthServiceName: jira.settings.currentService,
 			headers: jira.CONST_HEADER,
 			type: yasoon.ajaxMethod.Get,
 			callbackParameter: dfd,
@@ -182,7 +181,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			jiraLog('Get Own Data');
 			yasoon.oauth({
 				url: jira.settings.baseUrl + '/rest/api/2/myself',
-				oauthServiceName: 'auth',
+				oauthServiceName: jira.settings.currentService,
 				headers: jira.CONST_HEADER,
 				type: yasoon.ajaxMethod.Get,
 				callbackParameter: dfd,
@@ -194,7 +193,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 					jiraLog('Get Projects');
 					yasoon.oauth({
 						url: jira.settings.baseUrl + '/rest/api/2/project',
-						oauthServiceName: 'auth',
+						oauthServiceName: jira.settings.currentService,
 						headers: jira.CONST_HEADER,
 						type: yasoon.ajaxMethod.Get,
 						error: jira.handleError,
@@ -206,7 +205,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 								jiraLog('Get Single Project Data');
 								yasoon.oauth({
 									url: jira.settings.baseUrl + '/rest/api/2/project/' + proj.id,
-									oauthServiceName: 'auth',
+									oauthServiceName: jira.settings.currentService,
 									headers: jira.CONST_HEADER,
 									type: yasoon.ajaxMethod.Get,
 									error: jira.handleError,
@@ -225,7 +224,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 					jiraLog('Get Issuetypes');
 					yasoon.oauth({
 						url: jira.settings.baseUrl + '/rest/api/2/issuetype',
-						oauthServiceName: 'auth',
+						oauthServiceName: jira.settings.currentService,
 						headers: jira.CONST_HEADER,
 						type: yasoon.ajaxMethod.Get,
 						error: jira.handleError,
@@ -261,28 +260,57 @@ function JiraSettingController() {
 			return;
 		}
 
-		//if (!yasoon.app.isOAuthed('auth')) {
-		//    console.log('No settings - oAuth login missing');
-		//    container.setContent('<p> Please login first </p>');
-		//    return;
-		//}
-
-		var html = '<p>Please use the settings below to configure the Jira app.</p>' +
+		var oAuthServices = yasoon.app.getOAuthServices();
+		console.log(jira.settings);
+		var html = '';
+		if (!jira.settings.currentService) {
+			html = '<p>Please choose your Jira instance and login.</p>' +
 				   '<form class="form-horizontal" role="form">' +
-		//Desktop Notification
+		// Instance Selection
 					'   <div class="form-group" style="position:relative; margin-top:20px;">' +
 					'       <div class="col-sm-4 checkbox">' +
-					'           <b class="pull-right">Show Desktop Notification</b>' +
+					'           <b class="pull-right">Select your System</b>' +
 					'       </div>' +
 					'       <div class="col-sm-8">' +
-					'           <div class="checkbox">' +
-					'               <label>' +
-					'                   <input class="formValue" type="checkbox" id="showDesktopNotif" name="showDesktopNotif">' +
-					'               </label>' +
-					'           </div>' +
+					'           <select id="currentService" class="form-control">';
+			$.each(oAuthServices, function (i, service) {
+				html += '           <option value="' + service.serviceName + '">' + service.appParams.description + '</option>';
+			});
+
+			html += '           </select>' +
+					'       </div>' +
+					'   </div>' +
+					'   <div class="form-group" style="position:relative;margin-top:20px;">' +
+					'       <div class="col-sm-4">' +
+					'           <button class="btn btn-primary" id="jiraLogin">Login</button>' +
 					'       </div>' +
 					'   </div>' +
 					'</form>';
+
+
+		} else {
+			html = '<p>Choose your settings. Only logout if you like to stop the service or like to connect to another Jira system</p>' +
+				  '<form class="form-horizontal" role="form">' +
+			//Desktop Notification
+			'   <div class="form-group" style="position:relative; margin-top:20px;">' +
+			'       <div class="col-sm-4 checkbox">' +
+			'           <b class="pull-right">Show Desktop Notification</b>' +
+			'       </div>' +
+			'       <div class="col-sm-8">' +
+			'           <div class="checkbox">' +
+			'               <label>' +
+			'                   <input class="formValue" type="checkbox" id="showDesktopNotif" name="showDesktopNotif">' +
+			'               </label>' +
+			'           </div>' +
+			'       </div>' +
+			'   </div>' +
+			'   <div class="form-group" style="position:relative;margin-top:20px;">' +
+			'       <div class="col-sm-4">' +
+			'           <button class="btn btn-default" id="jiraLogout">Logout</button>' +
+			'       </div>' +
+			'   </div>' +
+			'</form>';
+		}
 
 		//Add Values
 		var elem = $('<div>' + html + '</div>');
@@ -296,7 +324,61 @@ function JiraSettingController() {
 			}
 		});
 		//Add JS
-		container.afterRender = function () { };
+		container.afterRender = function () {
+			$('#jiraLogin').unbind().click(function () {
+				var selectedServiceName = $('#currentService').val();
+				var newService = $.grep(oAuthServices, function (s) { return s.serviceName == selectedServiceName; })[0];
+
+				if (!newService) {
+					yasoon.alert.add({ type: yasoon.alert.alertType.error, message: "Login to this systen not possible due to a missing configuration. Please contact your admin." });
+					throw new Error('Selected service ' + selectedServiceName + ' does not exist.');
+				}
+
+				if(!newService.appParams || !newService.appParams.url){
+					yasoon.alert.add({ type: yasoon.alert.alertType.error, message: "Login to this system not possible due to a missing configuration. Please contact your admin." });
+					return false;
+				}
+
+				//Set new BaseUrl so it's considered for oAuth flow
+				yasoon.setting.setAppParameter('baseUrl', newService.appParams.url);
+				jira.settings.baseUrl = newService.appParams.url;
+
+				if (newService.accessToken) {
+
+					//Set new currentService
+					self.currentService = selectedServiceName;
+					yasoon.setting.setAppParameter('settings', JSON.stringify(self));
+
+					//Refresh UI
+					oAuthSuccess();
+				} else {
+					yasoon.app.getOAuthUrlAsync('com.yasoon.jira', selectedServiceName, function (url) {
+						window.open(url);
+					},
+					function () {
+						//Set new currentService
+						self.currentService = selectedServiceName;
+						yasoon.setting.setAppParameter('settings', JSON.stringify(self));
+
+						//Refresh UI
+						oAuthSuccess();
+					});
+				}
+
+				return false;
+			});
+
+			$('#jiraLogout').unbind().click(function () {
+				self.baseUrl = '';
+				self.currentService = '';
+				yasoon.setting.setAppParameter('baseUrl', '');
+				yasoon.setting.setAppParameter('settings', JSON.stringify(self));
+
+
+				yasoon.view.settings.renderOptionPane(yasoon.view.settings.currentApp());
+				return false;
+			});
+		};
 		container.setContent(elem.html());
 	};
 
@@ -341,6 +423,7 @@ function JiraSettingController() {
 	if (!settingsString) {
 		//Initial Settings
 		self.showDesktopNotif = true;
+		self.currentService = '';
 		yasoon.setting.setAppParameter('settings', JSON.stringify(self));
 
 	} else {
@@ -406,7 +489,7 @@ function JiraNotificationController() {
 
 		yasoon.oauth({
 			url: jira.settings.baseUrl + '/rest/api/2/issue/' + issue.key + '/comment',
-			oauthServiceName: 'auth',
+			oauthServiceName: jira.settings.currentService,
 			headers: jira.CONST_HEADER,
 			data: body,
 			type: yasoon.ajaxMethod.Post,
@@ -522,9 +605,9 @@ function JiraNotificationController() {
 				if (issue.fields.comment && issue.fields.comment.comments && issue.fields.comment.comments.length > 0) {
 					var counter = 0;
 					$.each(issue.fields.comment.comments, function (i, comment) {
-					    var event = null;
+						var event = null;
 						if (new Date(comment.updated) >= jira.settings.lastSync && comment.updated != comment.created) {
-                            
+							
 							////This is an updated comment --> update
 							//event = self.createCommentAction(comment, issue);
 							//self.createNotification(event).save(function () {
@@ -539,10 +622,10 @@ function JiraNotificationController() {
 							if (!yEvent) {
 								event = self.createCommentAction(comment, issue);
 								self.createNotification(event).save(function () {
-								    counter++;
-								    if (counter == issue.fields.comment.comments.length) {
-								        dfd.resolve();
-								    }
+									counter++;
+									if (counter == issue.fields.comment.comments.length) {
+										dfd.resolve();
+									}
 								});
 							} else {
 								counter++;
@@ -699,16 +782,16 @@ function JiraIssueNotification(issue) {
 	};
 
 	self.renderBody = function (feed) {
-	    //Transform data
-	    if (self.issue.fields.attachment) {
-	        $.each(self.issue.fields.attachment, function (i, att) {
-	            att.fileIcon = yasoon.io.getFileIconPath(att.mimeType);
-	        });
-	    }
+		//Transform data
+		if (self.issue.fields.attachment) {
+			$.each(self.issue.fields.attachment, function (i, att) {
+				att.fileIcon = yasoon.io.getFileIconPath(att.mimeType);
+			});
+		}
 
 		feed.setTemplate('templates/issueNotification.hbs', {
-		    fields: self.issue.fields,
-            renderedFields: self.issue.renderedFields,
+			fields: self.issue.fields,
+			renderedFields: self.issue.renderedFields,
 			assignee: {
 				avatarUrl: (self.issue.fields.assignee) ? self.issue.fields.assignee.avatarUrls['16x16'] : '',
 				displayName: (self.issue.fields.assignee) ? self.issue.fields.assignee.displayName : 'noone'
@@ -778,7 +861,7 @@ function JiraIssueNotification(issue) {
 				var body = JSON.stringify(bodyObj);
 				yasoon.oauth({
 					url: jira.settings.baseUrl + '/rest/api/2/issue/' + key + '/transitions',
-					oauthServiceName: 'auth',
+					oauthServiceName: jira.settings.currentService,
 					headers: jira.CONST_HEADER,
 					data: body,
 					type: yasoon.ajaxMethod.Post,
@@ -890,7 +973,7 @@ function JiraIssueNotification(issue) {
 
 			yasoon.oauth({
 				url: jira.settings.baseUrl + '/rest/api/2/issue/' + self.issue.id + '/attachments',
-				oauthServiceName: 'auth',
+				oauthServiceName: jira.settings.currentService,
 				type: yasoon.ajaxMethod.Post,
 				formData: formData,
 				headers: { Accept: 'application/json', 'X-Atlassian-Token': 'nocheck' },
@@ -1103,7 +1186,7 @@ function JiraIssueActionNotification(event) {
 
 		self.event.type = 'IssueAction';
 
-	    ///* Clear unused data to save DB space*/
+		///* Clear unused data to save DB space*/
 		var tempIssue = JSON.parse(JSON.stringify(self.event.issue)); // Performance Intensive but nessecary. Never change original object
 		delete tempIssue.fields;
 		delete tempIssue.renderedFields;
@@ -1141,7 +1224,7 @@ function JiraIssueController() {
 		jiraLog('Get Changed Issues');
 		yasoon.oauth({
 			url: jira.settings.baseUrl + '/rest/api/2/search?jql=' + jql + '&fields=*all&expand=transitions,renderedFields',
-			oauthServiceName: 'auth',
+			oauthServiceName: jira.settings.currentService,
 			headers: jira.CONST_HEADER,
 			type: yasoon.ajaxMethod.Get,
 			callbackParameter: dfd,
@@ -1151,7 +1234,7 @@ function JiraIssueController() {
 				var needReload = [];
 				var result = JSON.parse(data);
 				if (result.total > 0) {
-				    issues = result.issues;
+					issues = result.issues;
 				}
 				dfd.resolve();
 			}
@@ -1289,7 +1372,7 @@ function JiraRibbonController() {
 	};
 
 	this.ribbonOnNewIssue = function (ribbonId, ribbonCtx) {
-		if (!yasoon.app.isOAuthed('auth')) {
+		if (!yasoon.app.isOAuthed(jira.settings.currentService)) {
 			yasoon.dialog.showMessageBox('Please login to Jira in settings menu first!');
 			return;
 		}
@@ -1307,7 +1390,7 @@ function JiraRibbonController() {
 
 		}
 		else {
-            
+			
 			var selection = ribbonCtx.items[ribbonCtx.readingPaneItem].getSelection(0);
 
 			if (!selection || !selection.trim()) {
@@ -1367,7 +1450,7 @@ function jiraIssueGetter() {
 				jiraLog('Call Issue');
 				yasoon.oauth({
 					url: jira.settings.baseUrl + '/rest/api/2/issue/' + issueKey + '?expand=transitions,renderedFields',
-					oauthServiceName: 'auth',
+					oauthServiceName: jira.settings.currentService,
 					headers: jira.CONST_HEADER,
 					type: yasoon.ajaxMethod.Get,
 					error: jira.handleError,
@@ -1391,7 +1474,7 @@ function jiraWatcherGetter() {
 			jiraLog('Get Watchers');
 			yasoon.oauth({
 				url: jira.settings.baseUrl + '/rest/api/2/issue/' + deferredObject.id + '/watchers',
-				oauthServiceName: 'auth',
+				oauthServiceName: jira.settings.currentService,
 				headers: jira.CONST_HEADER,
 				type: yasoon.ajaxMethod.Get,
 				error: jira.handleError,

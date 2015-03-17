@@ -77,7 +77,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			//Select all projects
 			yasoon.oauth({
 				url: self.settings.baseUrl + '/rest/api/2/project',
-				oauthServiceName: 'auth',
+				oauthServiceName: jira.settings.currentService,
 				headers: jira.CONST_HEADER,
 				type: yasoon.ajaxMethod.Get,
 				error: jira.handleError,
@@ -130,7 +130,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			//Load issue Meta in edit case!
 			yasoon.oauth({
 				url: self.settings.baseUrl + '/rest/api/2/issue/'+self.editIssue.id+'?expand=editmeta,renderedFields,transitions,changelog,operations',
-				oauthServiceName: 'auth',
+				oauthServiceName: jira.settings.currentService,
 				headers: jira.CONST_HEADER,
 				type: yasoon.ajaxMethod.Get,
 				error: jira.handleError,
@@ -270,7 +270,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			}
 			yasoon.oauth({
 				url:url,
-				oauthServiceName: 'auth',
+				oauthServiceName: jira.settings.currentService,
 				headers: jira.CONST_HEADER,
 				data: JSON.stringify(result),
 				type: method,
@@ -294,7 +294,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 						yasoon.oauth({
 							url: jira.settings.baseUrl + '/rest/api/2/issue/' + issue.id + '/attachments',
-							oauthServiceName: 'auth',
+							oauthServiceName: jira.settings.currentService,
 							type: yasoon.ajaxMethod.Post,
 							formData: formData,
 							headers: { Accept: 'application/json', 'X-Atlassian-Token': 'nocheck' },
@@ -488,7 +488,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		//Get Values of project
 		yasoon.oauth({
 			url: self.settings.baseUrl + '/rest/api/2/project/' + project.id,
-			oauthServiceName: 'auth',
+			oauthServiceName: jira.settings.currentService,
 			headers: jira.CONST_HEADER,
 			type: yasoon.ajaxMethod.Get,
 			error: jira.handleError,
@@ -528,7 +528,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		//Get components
 		yasoon.oauth({
 			url: self.settings.baseUrl + '/rest/api/2/project/' + project.id + '/components',
-			oauthServiceName: 'auth',
+			oauthServiceName: jira.settings.currentService,
 			headers: jira.CONST_HEADER,
 			type: yasoon.ajaxMethod.Get,
 			error: jira.handleError,
@@ -552,7 +552,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		//Get Versions
 		yasoon.oauth({
 			url: self.settings.baseUrl + '/rest/api/2/project/' + project.id + '/versions',
-			oauthServiceName: 'auth',
+			oauthServiceName: jira.settings.currentService,
 			headers: jira.CONST_HEADER,
 			type: yasoon.ajaxMethod.Get,
 			error: jira.handleError,
@@ -582,7 +582,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		//Get Assignable Users
 		yasoon.oauth({
 			url: self.settings.baseUrl + '/rest/api/2/user/assignable/search?project=' + project.key + '&maxResults=1000',
-			oauthServiceName: 'auth',
+			oauthServiceName: jira.settings.currentService,
 			headers: jira.CONST_HEADER,
 			type: yasoon.ajaxMethod.Get,
 			error: jira.handleError,
@@ -618,7 +618,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		//Meta Data for custom fields
 		yasoon.oauth({
 			url: self.settings.baseUrl + '/rest/api/2/issue/createmeta?projectIds=' + project.id + '&expand=projects.issuetypes.fields',
-			oauthServiceName: 'auth',
+			oauthServiceName: jira.settings.currentService,
 			headers: jira.CONST_HEADER,
 			type: yasoon.ajaxMethod.Get,
 			error: jira.handleError,
@@ -639,7 +639,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		//Label Data
 		yasoon.oauth({
 			url: self.settings.baseUrl + '/rest/api/1.0/labels/suggest?query=',
-			oauthServiceName: 'auth',
+			oauthServiceName: jira.settings.currentService,
 			headers: jira.CONST_HEADER,
 			type: yasoon.ajaxMethod.Get,
 			error: jira.handleError,
