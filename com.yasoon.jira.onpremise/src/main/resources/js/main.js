@@ -1,4 +1,6 @@
 var authToken = '';
+var serverUrl = 'http://localhost:1337';
+
 $(document).ready(function () {
     $.ajax({
         url: 'sysinfo',
@@ -10,12 +12,19 @@ $(document).ready(function () {
         
         var serverId = systemInfo.licenses[0].serverId;    
         $.ajax({
-                url: 'http://localhost:1337/jira/isInstanceRegistered',
+                url: serverUrl + '/jira/isInstanceRegistered',
                 data: { serverId: serverId },
                 type: 'GET'
         }).done(function(data) {
                 if(data.registered) {
-                        $('#RegisteredArea').show();
+                        if($.cookie('yasoonAuthToken')) {
+                            authToken = $.cookie('yasoonAuthToken');
+                            $('#RegisteredArea').show();
+                        }   
+                        else {
+                            $('#LoginArea').show();
+                        }
+                        
                         checkAppLink();
                 } else {
                         $('#UnregisteredArea').show();
@@ -64,7 +73,7 @@ $(document).ready(function () {
                     }
                     //Send Data
                     $.ajax({
-                        url: 'http://localhost:1337/api/company/register',
+                        url: serverUrl + '/api/company/register',
                         contentType: 'application/json',
                         data: JSON.stringify(formData),
                         processData: false,
@@ -87,7 +96,7 @@ $(document).ready(function () {
                         };
                         
                         $.ajax({
-                            url: 'http://localhost:1337/jira/install',
+                            url: serverUrl + '/jira/install',
                             contentType: 'application/json',
                             data: JSON.stringify(instanceData),
                             processData: false,
@@ -96,15 +105,16 @@ $(document).ready(function () {
                         
                             //User created... Get authorization token
                             $.ajax({
-                                url: 'http://localhost:1337/api/user/auth',
+                                url: serverUrl + '/api/user/auth',
                                 contentType: 'application/json',
                                 data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
                                 processData: false,
                                 type: 'POST'
                             }).done(function (auth) {
                                 authToken = auth;
+                                $.cookie('yasoonAuthToken', authToken);
                                 $.ajax({
-                                    url: 'http://localhost:1337/jira/assigncompany',
+                                    url: serverUrl + '/jira/assigncompany',
                                     contentType: 'application/json',
                                     data: JSON.stringify({ serverId: serverId }),
                                     headers: { userAuthToken: authToken },
@@ -144,28 +154,39 @@ $(document).ready(function () {
                                         
                      //First, generate certificate
                      $.ajax({
-                        url: 'http://localhost:1337/api/support/genkeypair',
+                        url: serverUrl + '/api/support/genkeypair',
                         type: 'GET'
                      }).done(function(data) {
-                         //Create the app link
+                         //Create the OAuth service on yasoon side                         
                          $.ajax({
-                            url: 'applink',
-                            contentType: 'application/json',
-                            data: JSON.stringify({ cert: data.certificate }),
-                            processData: false,
-                            type: 'POST'
-                        }).done(function (auth) {
-                            //Create the OAuth service on yasoon side
-                            // todo
-                            checkAppLink();
-                        });
-                     });                     
+                                url: serverUrl + '/jira/oauth',
+                                contentType: 'application/json',
+                                data: JSON.stringify({ 
+                                    clientCertificate: data.pkcs12,
+                                    serverId: serverId
+                                }),
+                                headers: { userAuthToken: authToken },
+                                processData: false,
+                                type: 'POST'
+                            }).done(function () {
+                                //Create the app link
+                                $.ajax({
+                                   url: 'applink',
+                                   contentType: 'application/json',
+                                   data: JSON.stringify({ cert: data.certificate }),
+                                   processData: false,
+                                   type: 'POST'
+                                }).done(function (auth) {
+                                    checkAppLink();
+                                });                                
+                            });                        
+                     });
                 });
                 
                 $('#LoginYasoonButton').click(function (e) {
                     
                     //Transform data                    
-                    var formArray = $('#RegisterCompanyForm').serializeArray();
+                    var formArray = $('#LoginForm').serializeArray();
                     var formData = {};
                     $.each(formArray, function (i, elem) {
                         formData[elem.name] = elem.value;
@@ -183,7 +204,7 @@ $(document).ready(function () {
                         };
                         
                     $.ajax({
-                        url: 'http://localhost:1337/jira/install',
+                        url: serverUrl + '/jira/install',
                         contentType: 'application/json',
                         data: JSON.stringify(instanceData),
                         processData: false,
@@ -192,15 +213,16 @@ $(document).ready(function () {
 
                         //Login
                         $.ajax({
-                            url: 'http://localhost:1337/api/user/auth',
+                            url: serverUrl + '/api/user/auth',
                             contentType: 'application/json',
                             data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
                             processData: false,
                             type: 'POST'
                         }).done(function (auth) {
                             authToken = auth;
+                            $.cookie('yasoonAuthToken', authToken);
                             $.ajax({
-                                url: 'http://localhost:1337/jira/assigncompany',
+                                url: serverUrl + '/jira/assigncompany',
                                 contentType: 'application/json',
                                 data: JSON.stringify({ serverId: serverId }),
                                 headers: { userAuthToken: authToken },

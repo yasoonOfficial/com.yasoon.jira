@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta name="decorator" content="atl.admin" />
-        $webResourceManager.requireResource("com.yasoon.jira.yasoononpremise:resources")
+        $webResourceManager.requireResource("com.yasoon.jira.onpremise:resources")
     </head>
     <body>
         <section id="content" class="bootstrap-wrapper ac-content" >
@@ -46,11 +46,11 @@
                     </div>
                 </div>
             </div>
-            <div id="LoginArea" style="max-width: 600px; display:none;">
+            <div id="LoginArea" style="max-width: 600px; margin: 50px; margin-top: 0px; display:none;">
                 <div class="bootstrap-wrapper page-header">
                     <h1>Yasoon<small> Login </small></h1>
                 </div>
-                <div class="bootstrap-wrapper well well-lg">
+                <div class="bootstrap-wrapper">
                     <form role="form" id="LoginForm" class="bootstrap-wrapper" style="max-width: 600px;">
                         <div class="bootstrap-wrapper form-group">
                             <label for="emailAddress">Your Email</label>
@@ -64,8 +64,8 @@
                     </form>
                 </div>
             </div>
-            <div id="UnregisteredArea" style="">
-                <form role="form" id="RegisterCompanyForm" class="bootstrap-wrapper" style="max-width: 600px; margin: 50px; margin-top: 0; display: none;">
+            <div id="UnregisteredArea" style=" display: none;">
+                <form role="form" id="RegisterCompanyForm" class="bootstrap-wrapper" style="max-width: 600px; margin: 50px; margin-top: 0;">
                     <div>
                         <div class="bootstrap-wrapper page-header">
                             <h1>Welcome to Jira for Outlook <small><br />powered by yasoon</small></h1>
