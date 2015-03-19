@@ -963,14 +963,15 @@ function JiraIssueNotification(issue) {
 				yEvent.externalData = JSON.stringify(tempIssue);
 
 				if (creation) {
-					yasoon.notification.add1(yEvent, function (newNotif) {
+				    yasoon.notification.add1(yEvent, function (newNotif) {
+				        yasoon.notification.incrementCounter();
 						jira.notifications.queueChildren(self.issue); // Trigger Sync of all children. If successfull it will set childrenLoaded!
 						jira.notifications.addDesktopNotification(newNotif);
 						if (cbk)
 							cbk(newNotif);
 					});
 				} else {
-					yasoon.notification.save1(yEvent, function (notif) {
+				    yasoon.notification.save1(yEvent, function (notif) {
 						if (!self.issue.childrenLoaded)
 							jira.notifications.queueChildren(self.issue); // Trigger Sync of all children. If successfull it will set childrenLoaded!
 
@@ -1171,12 +1172,14 @@ function JiraIssueActionNotification(event) {
 			type: 'IssueComment'
 		});
 		if (creation) {
-			yasoon.notification.add1(yEvent, function (newNotif) {
+		    yasoon.notification.add1(yEvent, function (newNotif) {
+		        yasoon.notification.incrementCounter();
 				jira.notifications.addDesktopNotification(newNotif, self.event);
 				cbk();
 			});
 		} else {
-			yasoon.notification.save1(yEvent, function (newNotif) {
+		    yasoon.notification.save1(yEvent, function (newNotif) {
+		        yasoon.notification.incrementCounter();
 				jira.notifications.addDesktopNotification(newNotif);
 				cbk();
 			});
@@ -1221,12 +1224,14 @@ function JiraIssueActionNotification(event) {
 
 		yEvent.externalData = JSON.stringify(self.event);
 		if (creation) {
-			yasoon.notification.add1(yEvent, function (newNotif) {
+		    yasoon.notification.add1(yEvent, function (newNotif) {
+		        yasoon.notification.incrementCounter();
 				jira.notifications.addDesktopNotification(newNotif, self.event);
 				cbk();
 			});
 		} else {
-			yasoon.notification.save1(yEvent, function (newNotif) {
+		    yasoon.notification.save1(yEvent, function (newNotif) {
+		        yasoon.notification.incrementCounter();
 				jira.notifications.addDesktopNotification(newNotif);
 				cbk();
 			});
