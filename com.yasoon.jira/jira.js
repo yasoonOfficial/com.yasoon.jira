@@ -69,9 +69,9 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	var SyncProcessId = null;
 	this.sync = function () {
 
-	    if (!jira.settings.currentService) {
-	        return;
-	    }
+		if (!jira.settings.currentService) {
+			return;
+		}
 
 		if (SyncProcessId && !jira.SyncInProcess) {
 			clearTimeout(SyncProcessId);
@@ -261,8 +261,13 @@ function JiraSettingController() {
 		}
 
 		var oAuthServices = yasoon.app.getOAuthServices();
-		console.log(jira.settings);
 		var html = '';
+		var description = '';
+
+		if (oAuthServices.length === 1) {
+			jira.settings.currentService = oAuthServices[0];
+		}
+
 		if (!jira.settings.currentService) {
 			html = '<p>Please choose your Jira instance and login.</p>' +
 				   '<form class="form-horizontal" role="form">' +
@@ -274,7 +279,10 @@ function JiraSettingController() {
 					'       <div class="col-sm-8">' +
 					'           <select id="currentService" class="form-control">';
 			$.each(oAuthServices, function (i, service) {
-				html += '           <option value="' + service.serviceName + '">' + service.appParams.description + '</option>';
+				description = service.serviceName;
+				if (service.appParams)
+					description = service.appParams.description;
+				html += '           <option value="' + service.serviceName + '">' + description + '</option>';
 			});
 
 			html += '           </select>' +
@@ -285,6 +293,7 @@ function JiraSettingController() {
 					'           <button class="btn btn-primary" id="jiraLogin">Login</button>' +
 					'       </div>' +
 					'   </div>' +
+					'   <div> Miss a Jira System? <a id="jiraReloadOAuth"> Reload System Information</a></div>' +
 					'</form>';
 
 
@@ -303,12 +312,16 @@ function JiraSettingController() {
 			'               </label>' +
 			'           </div>' +
 			'       </div>' +
-			'   </div>' +
-			'   <div class="form-group" style="position:relative;margin-top:20px;">' +
-			'       <div class="col-sm-4">' +
-			'           <button class="btn btn-default" id="jiraLogout">Logout</button>' +
-			'       </div>' +
-			'   </div>' +
+			'   </div>';
+
+			if (yasoon.app.isOAuthed(jira.settings.currentService.serviceName)) {
+				html += '<div class="form-group" style="position:relative;margin-top:20px;">' +
+					'       <div class="col-sm-4">' +
+					'           <button class="btn btn-default" id="jiraLogout">Logout</button>' +
+					'       </div>' +
+					'   </div>';
+			}
+			html += '<div> Miss a Jira System? <a id="jiraReloadOAuth"> Reload System Information</a></div>' +
 			'</form>';
 		}
 
@@ -377,6 +390,17 @@ function JiraSettingController() {
 
 				yasoon.view.settings.renderOptionPane(yasoon.view.settings.currentApp());
 				return false;
+			});
+
+			$('#jiraReloadOAuth').unbind().click(function () {
+				yasoon.app.downloadManifest(null, function (path) {
+					if (path) {
+						yasoon.app.update(null, null, function () {
+							yasoon.view.settings.renderOptionPane(yasoon.view.settings.currentApp());
+						});
+						
+					}
+				});
 			});
 		};
 		container.setContent(elem.html());

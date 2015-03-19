@@ -29,7 +29,8 @@
 	"appParams": {
 		"description": "Development System",
 		"url": "https://yasoondev.atlassian.net"
-	}
+	},
+	"mainService" : false
 },
 "master" : 
 {
@@ -63,5 +64,6 @@
 	"appParams": {
 		"description": "Main Jira",
 		"url": "https://yasoon.atlassian.net"
-	}
+	},
+	"mainService" : false
 }}
