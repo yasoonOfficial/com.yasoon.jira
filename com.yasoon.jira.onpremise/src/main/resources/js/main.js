@@ -1,5 +1,5 @@
 var authToken = '';
-var serverUrl = 'http://localhost:1337';
+var serverUrl = 'https://store.yasoon.com';
 
 $(document).ready(function () {
     $.ajax({
@@ -20,6 +20,8 @@ $(document).ready(function () {
                         if($.cookie('yasoonAuthToken')) {
                             authToken = $.cookie('yasoonAuthToken');
                             $('#RegisteredArea').show();
+                            $('#storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
+                            checkDownloadLink();
                         }   
                         else {
                             $('#LoginArea').show();
@@ -29,8 +31,12 @@ $(document).ready(function () {
                 } else {
                         $('#UnregisteredArea').show();
                 }
+                
                 $('#RegisterCompanyButton').click(function (e) {
-                    //Transform data
+                    
+                    $('#RegisterCompanyButton').prop("disabled", true);
+                    
+                    //Transform data                    
                     var formArray = $('#RegisterCompanyForm').serializeArray();
                     var formData = {};
                     $.each(formArray, function (i, elem) {
@@ -113,6 +119,8 @@ $(document).ready(function () {
                             }).done(function (auth) {
                                 authToken = auth;
                                 $.cookie('yasoonAuthToken', authToken);
+                                $('#storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
+                                
                                 $.ajax({
                                     url: serverUrl + '/jira/assigncompany',
                                     contentType: 'application/json',
@@ -124,6 +132,7 @@ $(document).ready(function () {
                                     $('#RegisteredArea').show();
                                     $('#UnregisteredArea').hide();
                                     checkAppLink();
+                                    checkDownloadLink();
                                 }).fail(function () {
                                     alert('Oops, this shouldn\'t happen. Our Engineers are already informed. Please try again later.');
                                 });
@@ -221,6 +230,8 @@ $(document).ready(function () {
                         }).done(function (auth) {
                             authToken = auth;
                             $.cookie('yasoonAuthToken', authToken);
+                            $('#storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
+                            
                             $.ajax({
                                 url: serverUrl + '/jira/assigncompany',
                                 contentType: 'application/json',
@@ -231,7 +242,8 @@ $(document).ready(function () {
                             }).done(function () {
                                 $('#RegisteredArea').show();
                                 $('#LoginArea').hide();
-                                checkAppLink()
+                                checkAppLink();
+                                checkDownloadLink();
                             }).fail(function () {
                                 alert('Oops, this shouldn\'t happen. Our Engineers are already informed. Please try again later.');
                             });
@@ -252,6 +264,23 @@ function getUrlParameterByName(name) {
     var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
         results = regex.exec(location.search);
     return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+function checkDownloadLink() {
+    $.ajax({
+        url: serverUrl + '/api/company/build',
+        type: 'GET',
+        headers: { userAuthToken: authToken }
+    })
+    .done(function(infos) {
+        if(infos.state !== 5) {
+            setTimeout(checkDownloadLink, 30000);
+        }                
+        else {
+            $('#downloadLinkArea').empty().append('<a class="bootstrap-wrapper btn btn-default" target="_blank" href="' + infos.downloadUrl + '">Download</a>');
+            $('#downloadLinkStatus').removeClass('panel-warning').addClass('panel-success');
+        }
+    });
 }
 
 function checkAppLink() {

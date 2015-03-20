@@ -17,7 +17,7 @@
                             <h3 class="bootstrap-wrapper panel-title">Yasoon Account</h3>
                         </div>
                         <div class="bootstrap-wrapper panel-body">
-                            To configure the yasoon account, please visit our <a target="_blank" href="https://store.yasoon.com">Admin Panel</a>
+                            To configure the yasoon account, please visit our <a id="storeLink" target="_blank" href="https://store.yasoon.com">Admin Panel</a>
                         </div>
                     </div>
                     <br />
@@ -36,12 +36,15 @@
                         </div>                        
                     </div>
                     <br />
-                    <div class="bootstrap-wrapper panel panel-info">
+                    <div id="downloadLinkStatus" class="bootstrap-wrapper panel panel-warning">
                         <div class="bootstrap-wrapper panel-heading">
                             <h3 class="bootstrap-wrapper panel-title">Outlook App Download</h3>
                         </div>
                         <div class="bootstrap-wrapper panel-body">
-                            After you have take over all your settings, you can download and distribute the setup: <a> download </a>
+                            After everything is configured, you need to install the Outlook app. It may take a few minutes until the download it ready. 
+                            <div id="downloadLinkArea" style="margin-top: 10px">
+                                <img src="images/loader_small.gif" />
+                            </div>
                         </div>
                     </div>
                 </div>
