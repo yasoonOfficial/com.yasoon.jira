@@ -1,25 +1,25 @@
 <div style="position:relative; line-height: 1.42857;" class="jiraContainer">
     <!-- Collapsed View-->
-  <div class="row body-collapsed" style="padding-top:2px;">
+  <div class="row body-collapsed" style="padding-top:2px; padding-bottom:3px;">
     <div class="col-sm-2" style="padding-left: 20px;">
       <div class="jiraFeedExpand" style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; cursor:pointer;">
         <i class="fa fa-caret-right"></i> Summary:
       </div>
     </div>
-    <div class="col-sm-2">
+    <div class="col-sm-2" style="margin-top: -3px">
       <span title="{{fields.issuetype.description}}">
         <img src="{{fields.issuetype.iconUrl}}" style="margin-right: 2px;" />{{fields.issuetype.name}}
       </span>
     </div>
-    <div class="col-sm-2">
+    <div class="col-sm-2" style="margin-top: -3px">
       <span title="{{fields.status.description}}">
         <img src="{{fields.status.iconUrl}}" style="margin-right: 2px;" /> {{fields.status.name}}
       </span>
     </div>
-    <div class="col-sm-2">
+    <div class="col-sm-3" style="margin-top: -3px">
       <span>Due at: {{#if fields.duedate}} {{fields.duedate}} {{else}} - {{/if}}</span>
     </div>
-    <div class="col-sm-3">
+    <div class="col-sm-3" style="margin-top: -3px">
       <span>
         <img src="{{assignee.avatarUrl}}" style="margin-right: 2px;" /> {{assignee.displayName}}
       </span>
@@ -119,13 +119,13 @@
       <div class="row" style="margin-top: 5px;">
         <div class="col-sm-12"> {{{renderedFields.description}}}</div>
       </div>
-        {{#if fields.attachments}}
+        {{#if fields.attachment}}
         <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top: 15px;">
             Attachments <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
         </div>
         <div class="row" style="margin-top: 5px;">
             <div class="col-sm-12">
-                {{#each fields.attachments}}
+                {{#each fields.attachment}}
                 <span class="jiraFile" style="margin-right:15px; white-space:nowrap;"><a href="{{content}}"><img style="width:16px;" src="{{fileIcon}}" />{{{filename}}}</a></span>
                 {{/each}}
             </div>
