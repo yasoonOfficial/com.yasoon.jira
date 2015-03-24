@@ -20,8 +20,9 @@ $(document).ready(function () {
                         if($.cookie('yasoonAuthToken')) {
                             authToken = $.cookie('yasoonAuthToken');
                             $('#RegisteredArea').show();
-                            $('#storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
+                            $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
                             checkDownloadLink();
+                            checkProduct();
                         }   
                         else {
                             $('#LoginArea').show();
@@ -119,7 +120,7 @@ $(document).ready(function () {
                             }).done(function (auth) {
                                 authToken = auth;
                                 $.cookie('yasoonAuthToken', authToken);
-                                $('#storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
+                                $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
                                 
                                 $.ajax({
                                     url: serverUrl + '/jira/assigncompany',
@@ -133,6 +134,7 @@ $(document).ready(function () {
                                     $('#UnregisteredArea').hide();
                                     checkAppLink();
                                     checkDownloadLink();
+                                    checkProduct();
                                 }).fail(function () {
                                     alert('Oops, this shouldn\'t happen. Our Engineers are already informed. Please try again later.');
                                 });
@@ -230,7 +232,7 @@ $(document).ready(function () {
                         }).done(function (auth) {
                             authToken = auth;
                             $.cookie('yasoonAuthToken', authToken);
-                            $('#storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
+                            $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
                             
                             $.ajax({
                                 url: serverUrl + '/jira/assigncompany',
@@ -244,6 +246,7 @@ $(document).ready(function () {
                                 $('#LoginArea').hide();
                                 checkAppLink();
                                 checkDownloadLink();
+                                checkProduct();
                             }).fail(function () {
                                 alert('Oops, this shouldn\'t happen. Our Engineers are already informed. Please try again later.');
                             });
@@ -266,6 +269,34 @@ function getUrlParameterByName(name) {
     return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
+function checkProduct() {
+    $.ajax({
+        url: serverUrl + '/api/company/product',
+        headers: { userAuthToken: authToken },
+        type: 'GET'
+    }).done(function (data) {
+        var product = null;
+        if (data.length === 1) {
+            product = data[0];
+        }
+        
+        if (!product || new Date(product.validUntil).getTime() < new Date().getTime()) {
+            //License Outdated
+            $('#licenseStatus').removeClass('panel-success').removeClass('panel-warning').addClass('panel-danger');
+        } else if (new Date(product.validUntil).getTime() < new Date(2099, 11, 1).getTime()) {
+            $('#JiraExpirationDate').text(new Date(product.validUntil).toLocaleDateString());
+            $('#licenseStatus').removeClass('panel-success').removeClass('panel-danger').addClass('panel-warning');
+        } else {
+            //License Ok
+            $('#JiraSupportDate').text(new Date(product.parameters.supportUntil).toLocaleDateString());
+            $('#licenseStatus').removeClass('panel-danger').removeClass('panel-warning').addClass('panel-success');
+        }
+    })
+    .fail(function () {
+        $('#licenseStatus').removeClass('panel-danger').removeClass('panel-warning').removeClass('panel-success').addClass('panel-info');
+    }); 
+}
+
 function checkDownloadLink() {
     $.ajax({
         url: serverUrl + '/api/company/build',
@@ -277,13 +308,15 @@ function checkDownloadLink() {
             setTimeout(checkDownloadLink, 30000);
         }                
         else {
-            $('#downloadLinkArea').empty().append('<a class="bootstrap-wrapper btn btn-default" target="_blank" href="' + infos.downloadUrl + '">Download</a>');
+            $('#downloadLink').append('<a class="bootstrap-wrapper btn btn-default" target="_blank" style="float: left; margin-right: 20px" href="' + infos.downloadUrl + '">Download</a> <input type="text" style="width: 400px" class="form-control" value="' + infos.downloadUrl + '" />');
             $('#downloadLinkStatus').removeClass('panel-warning').addClass('panel-success');
+            $('#downloadLinkWaiting').hide();
+            $('#downloadLinkArea').show();
         }
     })
-	.fail(function() {
-		setTimeout(checkDownloadLink, 30000);
-	});
+    .fail(function() {
+            setTimeout(checkDownloadLink, 30000);
+    });
 }
 
 function checkAppLink() {

@@ -2,22 +2,69 @@
 <html lang="en">
     <head>
         <meta name="decorator" content="atl.admin" />
-        $webResourceManager.requireResource("com.yasoon.jira.onpremise:resources")
+        <title>JIRA for Outlook</title>
+        <style>
+            .panel-success > .success-body {
+             display:block !important;
+            }
+
+            .panel-warning > .warning-body {
+             display: block !important;
+            }
+
+            .panel-danger > .danger-body {
+             display: block !important;
+            }
+
+            .panel-info > .info-body {
+                display: block !important;
+            }
+
+            .success-body {
+             display:none;
+            }
+
+            .warning-body {
+             display: none;
+            }
+
+            .danger-body {
+             display: none;
+            }
+
+            .info-body {
+                display: none;
+            }
+           </style>
+        $webResourceManager.requireResource("com.yasoon.jira.onpremise:resources")        
     </head>
     <body>
         <section id="content" class="bootstrap-wrapper ac-content" >
             <div id="RegisteredArea" style="margin: 50px; margin-top: 0px; max-width: 800px; display:none">
                 <div>
                     <div class="bootstrap-wrapper page-header">
-                        <h1>Jira for Outlook<small><br />powered by yasoon</small></small></h1>
+                        <h1>JIRA for Outlook<small><br />powered by yasoon</small></h1>
                     </div>
-                    This Jira instance is <b> registered</b>. <br />
-                    <div class="bootstrap-wrapper panel panel-success">
+                    
+                    <div id="licenseStatus" class="bootstrap-wrapper panel">
                         <div class="bootstrap-wrapper panel-heading">
-                            <h3 class="bootstrap-wrapper panel-title">Yasoon Account</h3>
+                            <h3 class="bootstrap-wrapper panel-title">Account Status</h3>
                         </div>
-                        <div class="bootstrap-wrapper panel-body">
-                            To configure the yasoon account, please visit our <a id="storeLink" target="_blank" href="https://store.yasoon.com">Admin Panel</a>
+                        <div id="purchasedStatus" class="bootstrap-wrapper panel-body success-body">
+                                This JIRA instance is <b>licensed</b> and ready to use. Support will expire on <b><span id="JiraSupportDate"></span></b> <br />
+                                If you like to change your settings, please visit our <a class="storeLink" target="_blank" href="https://store.yasoon.com">yasoon admin panel</a>
+                        </div>
+                        <div id="trialStatus" class="bootstrap-wrapper panel-body warning-body">
+                                JIRA for Outlook will <b>expire on <span id="JiraExpirationDate"></span></b>. All Outlook apps will be disabled a few days afterwards. <br />
+                                If you like to continue to use JIRA for Outlook, please purchase licenses through our <a class="storeLink" target="_blank" href="https://store.yasoon.com">yasoon admin panel</a>.
+                        </div>
+                        <div id="trialExpired" class="bootstrap-wrapper panel-body danger-body">
+                                The instance is <b>not licensed</b> anymore. All Outlook apps will be disabled soon (or are already disabled).<br />
+                                If you like to continue to use JIRA for Outlook, please please purchase licenses through our <a class="storeLink" target="_blank" href="https://store.yasoon.com">yasoon admin panel</a>.                                
+                        </div>
+                        <div class="bootstrap-wrapper panel-body info-body">
+                            Could not retrieve license information. Please reload this page to try it again.<br /><br/>
+                            You can still access our <a class="storeLink" target="_blank" href="https://store.yasoon.com">yasoon admin panel</a>
                         </div>
                     </div>
                     <br />
@@ -27,11 +74,11 @@
                         </div>
                         <div class="bootstrap-wrapper panel-body">
                             <div style="margin-bottom: 10px">
-                                Your JIRA instance needs a new application link, to allow JIRA for Outlook to access it. Please click the button below to configure this automatically.
+                                JIRA for Outlook needs an application link to access your JIRA from Outlook. Please click the button below to configure this automatically.
                             </div>
                             <button type="button" id="AddApplicationLinkButton" class="bootstrap-wrapper btn btn-default">Add Application Link</button>
                             <div style="margin-top: 20px">
-                                In case something is not working as expected, please follow our <a target="_blank" href="https://yasoon.zendesk.com/hc/en-us/articles/201911802-Technical-Admin-Guide">manual configuration guide</a>.
+                                In case something is not working as expected, please follow our <a target="_blank" href="https://yasoon.zendesk.com/hc/en-us/articles/202740381-Technical-Admin-Guide-Server">manual configuration guide</a>.
                             </div>
                         </div>                        
                     </div>
@@ -40,11 +87,17 @@
                         <div class="bootstrap-wrapper panel-heading">
                             <h3 class="bootstrap-wrapper panel-title">Outlook App Download</h3>
                         </div>
-                        <div class="bootstrap-wrapper panel-body">
-                            After everything is configured, you need to install the Outlook app. It may take a few minutes until the download it ready. 
-                            <div id="downloadLinkArea" style="margin-top: 10px">
-                                <img src="images/loader_small.gif" />
+                        <div id="downloadLinkWaiting" class="bootstrap-wrapper panel-body">
+                            Your JIRA for Outlook setup file is being prepared. This may take a few minutes
+                            <div style="margin-top: 10px">
+                                <img src="https://store.yasoon.com/images/loader_small.gif" />
                             </div>
+                        </div>
+                        <div id="downloadLinkArea" class="panel-body success-body">
+                            Your JIRA for Outlook is ready to use. Please download and install the JIRA Outlook app.<br />
+                            Share this link with your JIRA users to get them started.
+                            <div id="downloadLink" style="margin-top: 10px">
+                            </div>                                 
                         </div>
                     </div>
                 </div>
@@ -71,10 +124,10 @@
                 <form role="form" id="RegisterCompanyForm" class="bootstrap-wrapper" style="max-width: 600px; margin: 50px; margin-top: 0;">
                     <div>
                         <div class="bootstrap-wrapper page-header">
-                            <h1>Welcome to Jira for Outlook <small><br />powered by yasoon</small></h1>
+                            <h1>Welcome to JIRA for Outlook <small><br />powered by yasoon</small></h1>
                         </div>
-                        This Jira instance is <b>not yet registered at yasoon.</b> <br />
-                        Please signup at yasoon via the form below or login with your existing yasoon account to assign this Jira instance to your account.
+                        This JIRA instance is <b>not yet registered at yasoon.</b> <br />
+                        Please signup at yasoon via the form below or login with your existing yasoon account to assign this JIRA instance to your account.
                         <br /><br />
                     </div>
                     <div class="bootstrap-wrapper form-group">
@@ -82,16 +135,16 @@
                         <input type="text" class="bootstrap-wrapper form-control" id="company" name="company" placeholder="Company Name">
                     </div>
                     <div class="bootstrap-wrapper form-group">
-                        <label for="firstname">Firstname</label>
-                        <input type="text" class="bootstrap-wrapper form-control" id="firstname" name="firstName" placeholder="Firstname">
+                        <label for="firstname">First Name</label>
+                        <input type="text" class="bootstrap-wrapper form-control" id="firstname" name="firstName" placeholder="First Name">
                     </div>
                     <div class="bootstrap-wrapper form-group">
-                        <label for="lastname">Lastname</label>
-                        <input type="text" class="bootstrap-wrapper form-control" id="lastname" name="lastName" placeholder="Lastname">
+                        <label for="lastname">Last Name</label>
+                        <input type="text" class="bootstrap-wrapper form-control" id="lastname" name="lastName" placeholder="Last Name">
                     </div>
                     <div class="bootstrap-wrapper form-group">
                         <label for="emailAddress">Your Email</label>
-                        <input type="email" class="bootstrap-wrapper form-control" id="emailaddress" name="emailAddress" placeholder="Email address">
+                        <input type="email" class="bootstrap-wrapper form-control" id="emailaddress" name="emailAddress" placeholder="Email Address">
                     </div>
                     <div class="bootstrap-wrapper form-group">
                         <label for="password">Password</label>
@@ -102,7 +155,7 @@
                         <input type="password" class="bootstrap-wrapper form-control" id="password1" name="password1" placeholder="Confirm Password">
                         <span class="bootstrap-wrapper help-block" style="visibility:hidden;">Password does not match!</span>
                     </div>
-                    <input type="hidden" class="bootstrap-wrapper form-control" id="comment" name="comment" value="Registered via Jira">
+                    <input type="hidden" class="bootstrap-wrapper form-control" id="comment" name="comment" value="Registered via JIRA">
                     <button type="button" id="RegisterCompanyButton" class="bootstrap-wrapper btn btn-default">Register</button> or <a id="LoginYasoon" style="cursor: pointer;"> login to your yasoon account</a>
                 </form>
             </div>
