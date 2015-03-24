@@ -280,7 +280,10 @@ function checkDownloadLink() {
             $('#downloadLinkArea').empty().append('<a class="bootstrap-wrapper btn btn-default" target="_blank" href="' + infos.downloadUrl + '">Download</a>');
             $('#downloadLinkStatus').removeClass('panel-warning').addClass('panel-success');
         }
-    });
+    })
+	.fail(function() {
+		setTimeout(checkDownloadLink, 30000);
+	});
 }
 
 function checkAppLink() {

@@ -264,10 +264,6 @@ function JiraSettingController() {
 		var html = '';
 		var description = '';
 
-		if (oAuthServices.length === 1) {
-			jira.settings.currentService = oAuthServices[0];
-		}
-
 		if (!jira.settings.currentService) {
 			html = '<p>Please choose your Jira instance and login.</p>' +
 				   '<form class="form-horizontal" role="form">' +
@@ -312,16 +308,12 @@ function JiraSettingController() {
 			'               </label>' +
 			'           </div>' +
 			'       </div>' +
-			'   </div>';
-
-			if (yasoon.app.isOAuthed(jira.settings.currentService.serviceName)) {
-				html += '<div class="form-group" style="position:relative;margin-top:20px;">' +
-					'       <div class="col-sm-4">' +
-					'           <button class="btn btn-default" id="jiraLogout">Logout</button>' +
-					'       </div>' +
-					'   </div>';
-			}
-			html += '<div> Miss a Jira System? <a id="jiraReloadOAuth"> Reload System Information</a></div>' +
+			'   </div>' +
+			'	<div class="form-group" style="position:relative;margin-top:20px;">' +
+			'       <div class="col-sm-4">' +
+			'           <button class="btn btn-default" id="jiraLogout">Logout</button>' +
+			'       </div>' +
+			'   </div>' +
 			'</form>';
 		}
 
@@ -401,6 +393,7 @@ function JiraSettingController() {
 						
 					}
 				});
+				return false;
 			});
 		};
 		container.setContent(elem.html());
@@ -448,6 +441,11 @@ function JiraSettingController() {
 		//Initial Settings
 		self.showDesktopNotif = true;
 		self.currentService = '';
+		var oAuthServices = yasoon.app.getOAuthServices();
+		if (oAuthServices.length === 1) {
+			self.currentService = oAuthServices[0].serviceName;
+		}
+		
 		yasoon.setting.setAppParameter('settings', JSON.stringify(self));
 
 	} else {
@@ -459,6 +457,8 @@ function JiraSettingController() {
 
 		self.lastSync = new Date(self.lastSync);
 	}
+	
+	//
 }
 
 function JiraNotificationController() {
@@ -964,7 +964,6 @@ function JiraIssueNotification(issue) {
 
 				if (creation) {
 				    yasoon.notification.add1(yEvent, function (newNotif) {
-				        yasoon.notification.incrementCounter();
 						jira.notifications.queueChildren(self.issue); // Trigger Sync of all children. If successfull it will set childrenLoaded!
 						jira.notifications.addDesktopNotification(newNotif);
 						if (cbk)
@@ -1401,7 +1400,7 @@ function JiraRibbonController() {
 	};
 
 	this.ribbonOnNewIssue = function (ribbonId, ribbonCtx) {
-		if (!yasoon.app.isOAuthed(jira.settings.currentService)) {
+		if (!jira.settings.currentService || !yasoon.app.isOAuthed(jira.settings.currentService)) {
 			yasoon.dialog.showMessageBox('Please login to Jira in settings menu first!');
 			return;
 		}

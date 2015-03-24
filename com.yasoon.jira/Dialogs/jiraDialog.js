@@ -328,6 +328,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			$('#create-issue-submit').removeAttr("disabled");
 			$('#summary').val('');
 			$('#description').val('');
+			$('#AttachmentContainer').html('');
+			self.selectedAttachments = [];
 		} else {
 			yasoon.dialog.close({ action: 'success' });
 		}
