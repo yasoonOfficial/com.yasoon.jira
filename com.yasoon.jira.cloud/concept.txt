@@ -16,3 +16,12 @@ https://{HOSTNAME}:{PORT}/{CONTEXT}/rest/atlassian-connect/latest/license
 Run Cloud command
 atlas-run-standalone --product jira --version 6.4-OD-11-014 --bundled-plugins com.atlassian.bundles:json-schema-validator-atlassian-bundle:1.0.4,com.atlassian.webhooks:atlassian-webhooks-plugin:1.0.6,com.atlassian.jwt:jwt-plugin:1.2.2,com.atlassian.upm:atlassian-universal-plugin-manager-plugin:2.18.2-D20141112T015724,com.atlassian.plugins:atlassian-connect-plugin:1.1.17 --jvmargs -Datlassian.upm.on.demand=true
 http-server -p 8000
+
+
+Canonical Request License
+
+GET&/rest/atlassian-connect/latest/license&
+e648e4eb6f6b80fa27c4d6c3fa02bc6ed5685b35be152578c38e00339897ae13
+
+ 
+"https://yasoon.atlassian.net/rest/atlassian-connect/1/addons/com.yasoon.jira.cloud?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJjb20ueWFzb29uLmppcmEuY2xvdWQiLCJpYXQiOjE0MjcxMTU1MTYsImV4cCI6MTQyNzIwMTkxNiwiYXVkIjoiQXVkaWVuY2UiLCJzdWIiOiJTdWJqZWN0IiwicXNoIjoiMDE4ODlmYjQ2MWJiMGU4ZTFiNTUyNWZiMjcyNGQ2ZjU2M2FiNjM1NzcyOTI2MzI5NTUyYTQ2MzczNTIyYmQyZSJ9.yFpNaI4Ma0JSb69fea_qoBExnLHGjccA2OTUO-_NPQw"
