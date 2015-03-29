@@ -6,7 +6,7 @@ $(function () {
 
 function formatIcon(element) {
 	if (!element.id) return element.text; // optgroup
-	return '<img style="margin-right:3px;" src="'+ $(element.element).data('icon')+'"/>' + element.text;
+	return '<img style="margin-right:3px; width: 16px;" src="'+ $(element.element).data('icon')+'"/>' + element.text;
 }
 
 function formatUser(user) { return user.displayName; }
@@ -30,6 +30,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	var projectMeta = '';
 
 	self.init = function (initParams) {
+		self.icons = new JiraIconController();
 		self.settings = initParams.settings;
 		self.ownUser = initParams.ownUser;
 		self.editIssue = initParams.editIssue;
@@ -370,7 +371,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				//Handle Priority
 				if (key === 'priority') {
 					$('#priority').html('');
-					$.each(value.allowedValues, function(i, prio) {
+					$.each(value.allowedValues, function (i, prio) {
+						prio.iconUrl = jira.icons.mapIconUrl(prio.iconUrl);
 						$('#priority').append('<option class="imagebacked" data-icon="'+prio.iconUrl +'" value="'+ prio.id +'">'+ prio.name +'</option>');
 					});
 					$('#priority').val('3'); //Set major as default
@@ -504,6 +506,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 						return -1;
 				});
 				$.each(project.issueTypes, function (i, type) {
+					type.iconUrl = jira.icons.mapIconUrl(type.iconUrl);
 					$('#issuetype').append('<option data-icon="' + type.iconUrl + '" value="' + type.id + '">' + type.name + '</option>');
 				});
 
@@ -564,10 +567,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				$('#fixVersions').html('');
 
 				if (versions && versions.length > 0) {
-				    $.each(versions, function (i, comp) {
-				        $('#versions').append('<option title="' + comp.description + '" value="' + comp.id + '">' + comp.name + '</option>');
-				        $('#fixVersions').append('<option title="' + comp.description + '" value="' + comp.id + '">' + comp.name + '</option>');
-				    });
+					$.each(versions, function (i, comp) {
+						$('#versions').append('<option title="' + comp.description + '" value="' + comp.id + '">' + comp.name + '</option>');
+						$('#fixVersions').append('<option title="' + comp.description + '" value="' + comp.id + '">' + comp.name + '</option>');
+					});
 				}
 				$('#versions').select2();
 				$('#fixVersions').select2();
@@ -590,11 +593,11 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			error: jira.handleError,
 			success: function (data) {
 				var assignees = JSON.parse(data);
-			    //Transform Data
+				//Transform Data
 				if (assignees && assignees.length > 0) {
-				    $.each(assignees, function (i, user) {
-				        user.id = user.name;
-				    });
+					$.each(assignees, function (i, user) {
+						user.id = user.name;
+					});
 				}
 
 				$('#assignee').select2({
@@ -629,6 +632,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				//Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
 				projectMeta = $.grep(meta.projects, function (p) { return p.id === project.id; })[0];
 				self.updateCustomFields(projectMeta);
+				console.log(projectMeta);
 				dfd.resolve();
 			}
 		});
@@ -671,12 +675,132 @@ function UIFormHandler() {
 	function renderSingleText(id, field, container) {
 		$(container).append('<div class="field-group">' +
 							'   <label for="' + field.name + '">' + field.name +
-							'       '+(( field.required) ? '<span class="aui-icon icon-required">Required</span>' : '' ) + 
+							'       '+(( field.required) ? '<span class="aui-icon icon-required">Required</span>' : '' ) +
 							'   </label>' +
 							'    <input class="text long-field" id="' + id + '" name="' + id + '" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:textfield">' +
 							'</div>');
 	}
 	
+	function renderCheckboxes(id, field, container) {
+	    var html = '<div class="field-group" id="' + field.schema.customId + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes">' +
+            '    <label>' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ';
+		$.each(field.allowedValues, function (i, option) {
+			html += '   <div class="checkbox">' +
+				   '       <label><input type="checkbox" value="' + option.id +'">' + option.value +
+				   '   </div>';
+		});
+
+		html += '</div>';
+		$(container).append(html);
+	}
+
+	function renderDatePicker(id, field, container) {
+		var html = '<div class="field-group aui-field-datepicker"> ' +
+				   '    <label for="' + field.schema.customId + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ' +
+				   '    <input class="text medium-field" id="' + field.schema.customId + '" name="' + field.schema.customId + '" placeholder="yyyy/mm/dd" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
+				   '    <a href="#" id="' + field.schema.customId + '-trigger" title="Select a date" tabindex="-1"><span class="aui-icon icon-date">Select a date</span></a> ' +
+				   '</div>';
+		$(container).append(html);
+
+		$('#' + field.schema.customId).datepicker({
+		    showOtherMonths: true,
+		    selectOtherMonths: true,
+		    dateFormat: 'yy/mm/dd'
+		});
+
+		$('#'+ field.schema.customId +'-trigger').unbind().click(function (e) {
+		    $('#' + field.schema.customId).datepicker("show");
+		});
+
+	}
+
+	function renderDateTimePicker(id, field, container) {
+
+	}
+
+	function renderLabels(id, field, container) {
+	    var html = '<div class="field-group aui-field-componentspicker frother-control-renderer">' +
+                   '    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+                   '    <div class="long-field">' + 
+                   '        <input class="text input-field" id="' + id + '" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:labels"></input>' +
+                   '    </div>'+
+                   '</div>';
+
+	    $(container).append(html);
+	    yasoon.oauth({
+	        url: jira.settings.baseUrl + '/rest/api/1.0/labels/suggest?customFieldId=10203&query=',
+	        oauthServiceName: jira.settings.currentService,
+	        headers: jira.CONST_HEADER,
+	        type: yasoon.ajaxMethod.Get,
+	        error: jira.handleError,
+	        success: function (data) {
+	            var labels = JSON.parse(data);
+	            var labelArray = [];
+	            if (labels.suggestions) {
+	                $.each(labels.suggestions, function (i, label) {
+	                    labelArray.push(label.label);
+	                });
+	            }
+	            $('#' + id).select2({
+	                tags: labelArray,
+	                tokenSeparators: [" "]
+	            });
+	        }
+	    });
+	}
+
+	function renderNumber(id, field, container) {
+		$(container).append('<div class="field-group">' +
+					'   <label for="' + id + '">' + field.name +
+					'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
+					'   </label>' +
+					'    <input class="text long-field" id="' + id + '" name="' + id + '" value="" type="number" data-type="com.atlassian.jira.plugin.system.customfieldtypes:float">' +
+					'</div>');
+	}
+
+	function renderSelectList(id, field, container) {
+	    var html = '<div class="field-group input-field">' +
+                   '    <label for="issuetype">' + field.name+ '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+                   '    <select data-container-class="issuetype-ss" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">';
+	    $.each(field.allowedValues, function (i, option) {
+	        html += '<option value="' + option.id + '">' + option.value + '</option>';
+	    });
+	    html +=  '      </select>' +
+                  '</div>';
+
+	    $(container).append(html);
+
+	    $('#'+id).select2();
+	}
+
+	function renderMultiSelectList(id, field, container) {
+	    var html = '<div class="field-group input-field">' +
+           '    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+           '    <select data-container-class="issuetype-ss" class="select input-field" id="' + id + '" name="' + id + '" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">';
+	    $.each(field.allowedValues, function (i, option) {
+	        html += '<option value="' + option.id + '">' + option.value + '</option>';
+	    });
+	    html += '      </select>' +
+                  '</div>';
+
+	    $(container).append(html);
+
+	    $('#' + id).select2();
+	}
+
+	function renderTextarea(id, field, container) {
+	    $(container).append('<div class="field-group">' +
+            '   <label for="' + id + '">' + field.name +
+            '       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
+            '   </label>' +
+            '    <textarea class="form-control" id="' + id + '" name="' + id + '" rows="5" data-type="com.atlassian.jira.plugin.system.customfieldtypes:textarea"></textarea>' +
+            '</div>');
+	}
+
+	function renderUserPicker(id, field, container) {
+
+	}
+
 	return {
 		render: function (id, field, container) {
 			switch (field.schema.custom) {
@@ -684,6 +808,42 @@ function UIFormHandler() {
 				case 'com.atlassian.jira.plugin.system.customfieldtypes:url':
 					renderSingleText(id, field, container);
 					break;
+
+				case 'com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes':
+					renderCheckboxes(id, field, container);
+					break;
+
+				case 'com.atlassian.jira.plugin.system.customfieldtypes:datepicker':
+					renderDatePicker(id, field, container);
+					break;
+
+				case 'com.atlassian.jira.plugin.system.customfieldtypes:datetime':
+					renderDateTimePicker(id, field, container);
+					break;
+
+				case 'com.atlassian.jira.plugin.system.customfieldtypes:labels':
+					renderLabels(id, field, container);
+					break;
+
+				case 'com.atlassian.jira.plugin.system.customfieldtypes:float':
+					renderNumber(id, field, container);
+					break;
+
+				case 'com.atlassian.jira.plugin.system.customfieldtypes:select':
+					renderSelectList(id, field, container);
+					break;
+
+				case 'com.atlassian.jira.plugin.system.customfieldtypes:multiselect':
+					renderMultiSelectList(id, field, container);
+					break;
+					
+				case 'com.atlassian.jira.plugin.system.customfieldtypes:textarea':
+					renderTextarea(id, field, container);
+					break;
+
+				case 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker':
+					renderUserPicker(id, field, container);
+					break;			        
 			}
 		},
 		getFormData: function (meta, result) {
@@ -698,7 +858,6 @@ function UIFormHandler() {
 						//Try to find the field in form
 						var elem = $('#' + key);
 						if (elem.length > 0 && elem.val()) {
-							console.log('Element found: ', elem);
 							switch (elem.data('type')) {
 								case 'com.atlassian.jira.plugin.system.customfieldtypes:textfield':
 									result.fields[key] = elem.val();
@@ -711,6 +870,80 @@ function UIFormHandler() {
 
 		}
 	};
+}
+
+function JiraIconController() {
+	var self = this;
+	//Contains object { url: '' , fileName: '' }
+	var iconBuffer = [];
+
+	var saveIcon = function (url) {
+		//generate unique FileName
+		var fileName = 'Images\\' + jiraCreateHash(url) + '.png';
+		console.log(url + ' : ' + fileName);
+		//Download File
+		yasoon.io.download(url, fileName, false, function () {
+			//Success Handler
+			var result = iconBuffer.filter(function (elem) { return elem.url == url; });
+			if (result.length === 1) {
+				result[0].fileName = yasoon.io.getLinkPath(fileName);
+			}
+			yasoon.setting.setAppParameter('icons', JSON.stringify(iconBuffer));
+		});
+
+		//Temporary save URL in Buffer
+		iconBuffer.push({ url: url, fileName: url });
+
+		return url;
+	};
+
+	this.mapIconUrl = function (url) {
+		//Avoid mapping local URLs
+		if (url.indexOf('http') !== 0) {
+			return url;
+		}
+
+		var result = iconBuffer.filter(function (elem) { return elem.url == url; });
+		if (result.length > 1) {
+			//Should never happen --> remove both elements from buffer
+			iconBuffer = iconBuffer.filter(function (elem) { return elem.url != url; });
+			result = [];
+		}
+
+		var absUrl = '';
+		if (result.length === 1) {
+			absUrl = result[0].fileName;
+		} else {
+			absUrl = saveIcon(url);
+		}
+
+		return yasoon.io.getDialogRelativePath(absUrl);
+	};
+
+	this.addIcon = function (url) {
+	    var result = iconBuffer.filter(function (elem) { return elem.url == url; });
+	    if (result.length === 0) {
+	        saveIcon(url);
+	    }
+	};
+
+
+	// init
+	var iconString = yasoon.setting.getAppParameter('icons');
+	if (iconString) {
+		iconBuffer = JSON.parse(iconString);
+	}
+}
+
+function jiraCreateHash(input) {
+	var hash = 0, i, chr, len;
+	if (input.length === 0) return hash;
+	for (i = 0, len = input.length; i < len; i++) {
+		chr = input.charCodeAt(i);
+		hash = ((hash << 5) - hash) + chr;
+		hash |= 0; // Convert to 32bit integer
+	}
+	return hash;
 }
 
 

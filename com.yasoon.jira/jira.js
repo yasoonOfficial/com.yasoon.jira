@@ -25,6 +25,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		jira.notifications = new JiraNotificationController();
 		jira.ribbons = new JiraRibbonController();
 		jira.contacts = new JiraContactController();
+		jira.icons = new JiraIconController();
 		jira.issues = new JiraIssueController();
 
 		yasoon.addHook(yasoon.setting.HookCreateRibbon, jira.ribbons.createRibbon);
@@ -804,8 +805,10 @@ function JiraIssueNotification(issue) {
 
 	self.renderTitle = function (feed) {
 		var html = '<span>';
-		if (self.issue.fields.priority)
-			html += '<img style="margin-right: 5px;" src="' + self.issue.fields.priority.iconUrl + '" /> ';
+		if (self.issue.fields.priority) {
+		    var icon = jira.icons.mapIconUrl(self.issue.fields.priority.iconUrl);
+		    html += '<img style="margin-right: 5px; width: 16px;" src="' + icon + '" /> ';
+		}
 
 		html += self.issue.fields.summary + '</span>';
 		feed.setTitle(html);
@@ -818,16 +821,28 @@ function JiraIssueNotification(issue) {
 				att.fileIcon = yasoon.io.getFileIconPath(att.mimeType);
 			});
 		}
+	    //Map known images
+		if (self.issue.fields.issuetype) {
+		    self.issue.fields.issuetype.iconUrl = jira.icons.mapIconUrl(self.issue.fields.issuetype.iconUrl);
+		}
+		if (self.issue.fields.priority) {
+		    self.issue.fields.priority.iconUrl = jira.icons.mapIconUrl(self.issue.fields.priority.iconUrl);
+		}
 
+		if (self.issue.fields.status) {
+		    self.issue.fields.status.iconUrl = jira.icons.mapIconUrl(self.issue.fields.status.iconUrl);
+		}
+
+        //Start rendering
 		feed.setTemplate('templates/issueNotification.hbs', {
 			fields: self.issue.fields,
 			renderedFields: self.issue.renderedFields,
 			assignee: {
-				avatarUrl: (self.issue.fields.assignee) ? self.issue.fields.assignee.avatarUrls['16x16'] : '',
+				avatarUrl: (self.issue.fields.assignee) ? jira.contacts.get(self.issue.fields.assignee.name).ImageURL : '',
 				displayName: (self.issue.fields.assignee) ? self.issue.fields.assignee.displayName : 'noone'
 			},
 			creator: {
-				avatarUrl: (self.issue.fields.creator) ? self.issue.fields.creator.avatarUrls['16x16'] : '',
+				avatarUrl: (self.issue.fields.creator) ? jira.contacts.get(self.issue.fields.creator.name).ImageURL : '',
 				displayName: (self.issue.fields.creator) ? self.issue.fields.creator.displayName : 'anonym'
 			},
 			baseUrl: jira.settings.baseUrl
@@ -933,6 +948,13 @@ function JiraIssueNotification(issue) {
 			if (self.issue.fields.reporter)
 				jira.contacts.update(self.issue.fields.reporter);
 
+		    //Download icons if necessary
+			if (self.issue.fields.issuetype) {
+			    jira.icons.addIcon(self.issue.fields.issuetype.iconUrl);
+			}
+			if (self.issue.fields.priority) {
+			    jira.icons.addIcon(self.issue.fields.priority.iconUrl);
+			}
 			//Save Notification
 			var creation = false;
 			yasoon.notification.getByExternalId1(self.issue.id, function (yEvent) {
@@ -1009,6 +1031,7 @@ function JiraIssueNotification(issue) {
 				headers: { Accept: 'application/json', 'X-Atlassian-Token': 'nocheck' },
 				error: jira.notifications.handleAttachmentError,
 				success: function (data) {
+				    jira.sync();
 				}
 			});
 
@@ -1043,15 +1066,14 @@ function JiraIssueActionNotification(event) {
 		var html;
 		jiraLog('Render Action');
 		if (self.event.type === 'IssueComment') {
-			jiraLog('Render NEw Comment');
 			html = '<span>' + self.event.renderedComment.body + '</span>';
 		} else if (self.event.category && self.event.category['@attributes'].term === 'comment') {
-			//Legacy code!!
+			//Legacy code!! Nov 2014
 			html = '<span>' + self.event.content['#text'] + '</span>';
 		} else {
 			html = '<span>' + self.event.title['#text'] + '</span>';
 			if (self.event.content) {
-				html += '<span class="small yasoon-tooltip" data-toggle="tooltip" data-html="true" title="' + $('<div></div>').html(self.event.content['#text']).text().trim() + '">( <i class="fa fa-exclamation-circle"></i> more)</span>';
+				html += '<span class="small yasoon-tooltip" style="cursor:pointer;" data-toggle="tooltip" data-html="true" title="' + $('<div></div>').html(self.event.content['#text']).text().trim() + '">( <i class="fa fa-exclamation-circle"></i> more)</span>';
 			}
 		}
 		feed.setContent(html);
@@ -1451,24 +1473,124 @@ function JiraRibbonController() {
 
 function JiraContactController() {
 	var self = this;
+	var buffer = [];
 
 	self.update = function (actor) {
-		var c = yasoon.contact.get(actor.name);
+	    var c = yasoon.contact.get(actor.name);
+	    var dbContact = null;
 		if (!c) {
 			var newContact = {
 				contactId: actor.name,
 				contactLastName: actor.displayName,
 				contactEmailAddress: actor.emailAddress,
 				externalData: JSON.stringify(actor),
-				externalAvatarUrl: actor.avatarUrls['48x48']
+				externalAvatarUrl: actor.avatarUrls['48x48'].replace('size=large', 'size=xlarge')
 			};
 			jiraLog('New Contact created: ', newContact);
-			yasoon.contact.add(newContact);
+			dbContact = yasoon.contact.add(newContact);
+			buffer.push(dbContact);
 
 		} else {
-			//Todo: Update of Avatar
+		    var avatarUrl = null;
+		    if (actor.avatarUrls['48x48']) {
+		        avatarUrl = actor.avatarUrls['48x48'].replace('size=large', 'size=xlarge');
+		    }
+			if (c.contactId != actor.name ||
+			   c.contactLastName != actor.displayName ||
+			   c.contactEmailAddress != actor.contactEmailAddress ||
+			   c.externalAvatarUrl != avatarUrl) {
+
+				var updContact = {
+					contactId: actor.name,
+					contactLastName: actor.displayName,
+					contactEmailAddress: actor.emailAddress,
+					externalData: JSON.stringify(actor),
+					externalAvatarUrl: avatarUrl
+				};
+				dbContact = yasoon.contact.save(updContact);
+				if (dbContact) {
+				    //Remove old entry from array
+				    buffer = buffer.filter(function (elem) { return elem.contactId != dbContact.contactId; });
+				    //Add new entry
+				    buffer.push(dbContact);
+				}
+
+			}
 		}
 	};
+
+	self.get = function (id) {
+		var result = $.grep(buffer, function (c) { return c.contactId === id; });
+		if (result.length === 1) {
+			return result[0];
+		} else {
+			result = yasoon.contact.get(id);
+			if (result && result.contactId) {
+				buffer.push(result);
+			}
+			return result;
+		}
+	};
+}
+
+function JiraIconController() {
+    var self = this;
+    //Contains object { url: '' , fileName: '' }
+    var iconBuffer = [];
+
+    var saveIcon = function (url) {
+        //generate unique FileName
+        var fileName = 'Images\\' + jiraCreateHash(url) + '.png';
+        console.log(url + ' : '+ fileName);
+        //Download File
+        yasoon.io.download(url, fileName, false, function () {
+            //Success Handler
+            var result = iconBuffer.filter(function (elem) { return elem.url == url; });
+            if (result.length === 1) {
+                result[0].fileName = yasoon.io.getLinkPath(fileName);
+            }
+            yasoon.setting.setAppParameter('icons', JSON.stringify(iconBuffer));
+        });
+
+        //Temporary save URL in Buffer
+        iconBuffer.push({ url: url, fileName: url });
+
+        return url;
+    };
+
+    this.mapIconUrl = function (url) {
+        //Avoid mapping local URLs
+        if (url.indexOf('http') !== 0) {
+            return url;
+        }
+
+        var result = iconBuffer.filter(function (elem) { return elem.url == url; });
+        if (result.length > 1) {
+            //Should never happen --> remove both elements from buffer
+            iconBuffer = iconBuffer.filter(function (elem) { return elem.url != url; });
+            result = [];
+        }
+
+        if (result.length === 1) {
+            return result[0].fileName;
+        } else {
+            return saveIcon(url);
+        }
+    };
+
+    this.addIcon = function (url) {
+        var result = iconBuffer.filter(function (elem) { return elem.url == url; });
+        if (result.length === 0) {
+            saveIcon(url);
+        }
+    };
+    
+
+    // init
+    var iconString = yasoon.setting.getAppParameter('icons');
+    if (iconString) {
+        iconBuffer = JSON.parse(iconString);
+    }
 }
 
 function jiraIssueGetter() {
@@ -1592,5 +1714,16 @@ function jiraQueue() {
 	deferred.resolve();
 
 	return promise;
+}
+
+function jiraCreateHash(input) {
+    var hash = 0, i, chr, len;
+    if (input.length === 0) return hash;
+    for (i = 0, len = input.length; i < len; i++) {
+        chr = input.charCodeAt(i);
+        hash = ((hash << 5) - hash) + chr;
+        hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
 }
 //@ sourceURL=http://Jira/jira.js
