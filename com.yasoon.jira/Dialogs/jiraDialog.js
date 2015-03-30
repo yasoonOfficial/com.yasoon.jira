@@ -109,16 +109,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			$('.qf-create-another').hide(); //Create another button
 			$('#create-issue-submit').html('Save');
 
-			//Set Text data
-			if (self.editIssue.fields.summary)
-				$('#summary').val(self.editIssue.fields.summary);
-			if (self.editIssue.fields.duedate) 
-				$('#duedate').val(moment(new Date(self.editIssue.fields.duedate)).format('YYYY/MM/DD'));
-			if (self.editIssue.fields.enviroment)
-				$('#enviroment').val(self.editIssue.fields.enviroment);
-			if (self.editIssue.fields.description)
-				$('#description').val(self.editIssue.fields.description);
-
 			//Select issue project manually and load all project parameters
 			var all = $('#project').find('.all');
 			var proj = self.editIssue.fields.project;
@@ -440,7 +430,17 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				self.getLabels()
 			).done(function () {
 				//Handle edit case
-				if (edit) {
+			    if (edit) {
+			        //Set Text data
+			        if (self.editIssue.fields.summary)
+			            $('#summary').val(self.editIssue.fields.summary);
+			        if (self.editIssue.fields.duedate)
+			            $('#duedate').val(moment(new Date(self.editIssue.fields.duedate)).format('YYYY/MM/DD'));
+			        if (self.editIssue.fields.enviroment)
+			            $('#enviroment').val(self.editIssue.fields.enviroment);
+			        if (self.editIssue.fields.description)
+			            $('#description').val(self.editIssue.fields.description);
+
 					//Project Data
 					$("#issuetype").select2('val', self.editIssue.fields.issuetype.id);
 
@@ -478,6 +478,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					if (self.editIssue.fields.labels) {
 						$('#labels').select2('val', self.editIssue.fields.labels);
 					}
+
+				    //Set Custom Fields
+					self.UIFormHandler.setFormData(projectMeta, self.editIssue);
 				}
 
 				$('#IssueArea').show();
@@ -682,7 +685,7 @@ function UIFormHandler() {
 	}
 	
 	function renderCheckboxes(id, field, container) {
-	    var html = '<div class="field-group" id="' + field.schema.customId + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes">' +
+	    var html = '<div class="field-group" id="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes">' +
             '    <label>' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ';
 		$.each(field.allowedValues, function (i, option) {
 			html += '   <div class="checkbox">' +
@@ -696,20 +699,20 @@ function UIFormHandler() {
 
 	function renderDatePicker(id, field, container) {
 		var html = '<div class="field-group aui-field-datepicker"> ' +
-				   '    <label for="' + field.schema.customId + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ' +
-				   '    <input class="text medium-field" id="' + field.schema.customId + '" name="' + field.schema.customId + '" placeholder="yyyy/mm/dd" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
-				   '    <a href="#" id="' + field.schema.customId + '-trigger" title="Select a date" tabindex="-1"><span class="aui-icon icon-date">Select a date</span></a> ' +
+				   '    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ' +
+				   '    <input class="text medium-field" id="' + id + '" name="' + id + '" placeholder="yyyy/mm/dd" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
+				   '    <a href="#" id="' + id + '-trigger" title="Select a date" tabindex="-1"><span class="aui-icon icon-date">Select a date</span></a> ' +
 				   '</div>';
 		$(container).append(html);
 
-		$('#' + field.schema.customId).datepicker({
+		$('#' + id).datepicker({
 		    showOtherMonths: true,
 		    selectOtherMonths: true,
 		    dateFormat: 'yy/mm/dd'
 		});
 
-		$('#'+ field.schema.customId +'-trigger').unbind().click(function (e) {
-		    $('#' + field.schema.customId).datepicker("show");
+		$('#'+ id +'-trigger').unbind().click(function (e) {
+		    $('#' + id).datepicker("show");
 		});
 
 	}
@@ -728,7 +731,7 @@ function UIFormHandler() {
 
 	    $(container).append(html);
 	    yasoon.oauth({
-	        url: jira.settings.baseUrl + '/rest/api/1.0/labels/suggest?customFieldId=10203&query=',
+	        url: jira.settings.baseUrl + '/rest/api/1.0/labels/suggest?customFieldId='+ field.schema.customId +'&query=',
 	        oauthServiceName: jira.settings.currentService,
 	        headers: jira.CONST_HEADER,
 	        type: yasoon.ajaxMethod.Get,
@@ -761,7 +764,8 @@ function UIFormHandler() {
 	function renderSelectList(id, field, container) {
 	    var html = '<div class="field-group input-field">' +
                    '    <label for="issuetype">' + field.name+ '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-                   '    <select data-container-class="issuetype-ss" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">';
+                   '    <select data-container-class="issuetype-ss" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
+                   '        <option value="">None</option>';
 	    $.each(field.allowedValues, function (i, option) {
 	        html += '<option value="' + option.id + '">' + option.value + '</option>';
 	    });
@@ -776,7 +780,7 @@ function UIFormHandler() {
 	function renderMultiSelectList(id, field, container) {
 	    var html = '<div class="field-group input-field">' +
            '    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-           '    <select data-container-class="issuetype-ss" class="select input-field" id="' + id + '" name="' + id + '" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">';
+           '    <select data-container-class="issuetype-ss" class="select text input-field" id="' + id + '" name="' + id + '" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">';
 	    $.each(field.allowedValues, function (i, option) {
 	        html += '<option value="' + option.id + '">' + option.value + '</option>';
 	    });
@@ -846,6 +850,7 @@ function UIFormHandler() {
 					break;			        
 			}
 		},
+
 		getFormData: function (meta, result) {
 			result = result || {};
 			console.log(meta);
@@ -857,18 +862,119 @@ function UIFormHandler() {
 					if (key.indexOf('customfield_') > -1) {
 						//Try to find the field in form
 						var elem = $('#' + key);
-						if (elem.length > 0 && elem.val()) {
+						if (elem.length > 0 ) {
 							switch (elem.data('type')) {
-								case 'com.atlassian.jira.plugin.system.customfieldtypes:textfield':
-									result.fields[key] = elem.val();
+							    case 'com.atlassian.jira.plugin.system.customfieldtypes:textfield':
+							    case 'com.atlassian.jira.plugin.system.customfieldtypes:textarea':
+							    case 'com.atlassian.jira.plugin.system.customfieldtypes:url':
+                                    if(elem.val())
+									    result.fields[key] = elem.val();
 									break;
+
+							    case 'com.atlassian.jira.plugin.system.customfieldtypes:float':
+							        var float = parseFloat(elem.val());
+                                    if(float)
+							            result.fields[key] = float;
+							        break;
+
+							    case 'com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes':
+							        var checkedValues = [];
+							        elem.find('input').each(function () {
+							            if ($(this).is(':checked')) {
+							                checkedValues.push({ id: $(this).val() });
+							            }
+							        });
+							        result.fields[key] = checkedValues;
+							        break;
+
+							    case 'com.atlassian.jira.plugin.system.customfieldtypes:datepicker':
+							        if (elem.val()) {
+							            result.fields[key] = moment(new Date(elem.val())).format('YYYY-MM-DD');
+							        }
+							        break;
+
+							    case 'com.atlassian.jira.plugin.system.customfieldtypes:labels':
+							        if (elem.val()) {
+							            result.fields[key] = elem.val().split(',');
+							        }
+							        break;
+							    case 'com.atlassian.jira.plugin.system.customfieldtypes:select':
+                                    if(elem.val())
+							            result.fields[key] = { id: elem.val() };
+							        break;
+							    case 'com.atlassian.jira.plugin.system.customfieldtypes:multiselect':
+							        var selectedValues = [];
+							        $.each(elem.val(), function (i, id) {
+							            selectedValues.push({ id: id });
+							        });
+							        result.fields[key] = selectedValues;
+							        break;
 							}
 						}
 					}
 				});
 			}
 
+		},
+
+		setFormData: function (meta, issue) {
+		    var metaIssue = $.grep(meta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
+
+		    if (metaIssue) {
+		        $.each(metaIssue.fields, function (key, value) {
+		            if (key.indexOf('customfield_') > -1) {
+		                switch (metaIssue.fields[key].schema.custom) {
+		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:textfield':
+		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:url':
+		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:float':
+		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:textarea':
+		                        if (issue.fields[key]) {
+		                            $('#' + key).val(issue.fields[key]);
+		                        }
+		                        break;
+		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes':
+		                        if (issue.fields[key]) {
+		                            var elem = $('#' + key);
+		                            $.each(issue.fields[key], function (i, value) {
+		                                elem.find('[value='+ value.id +']').prop('checked', true);
+		                            });
+		                            
+		                        }
+		                        break;
+		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:datepicker':
+		                        if (issue.fields[key]) {
+		                            $('#' + key).val(moment(new Date(issue.fields[key])).format('YYYY/MM/DD'));
+		                        }
+		                        break;
+		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:datetime':
+		                        break;
+		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:select':
+		                        if (issue.fields[key]) {
+		                            $('#' + key).select2('val', issue.fields[key].id);
+		                        }
+		                        break;
+		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:labels':
+		                        if (issue.fields[key]) {
+		                            $('#' + key).select2('val', issue.fields[key]);
+		                        }
+		                        break;
+		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:multiselect':
+		                        if (issue.fields[key]) {
+		                            var selectedValues = [];
+		                            $.each(issue.fields[key], function (i, value) {
+		                                selectedValues.push(value.id);
+		                            });
+		                            $('#' + key).select2('val', selectedValues);
+		                        }
+		                        break;
+		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker':
+		                        break;
+		                }
+		            }
+		        });
+		    }
 		}
+        
 	};
 }
 

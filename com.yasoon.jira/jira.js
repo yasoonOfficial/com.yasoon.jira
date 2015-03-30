@@ -838,11 +838,11 @@ function JiraIssueNotification(issue) {
 			fields: self.issue.fields,
 			renderedFields: self.issue.renderedFields,
 			assignee: {
-				avatarUrl: (self.issue.fields.assignee) ? jira.contacts.get(self.issue.fields.assignee.name).ImageURL : '',
-				displayName: (self.issue.fields.assignee) ? self.issue.fields.assignee.displayName : 'noone'
+			    avatarUrl: (self.issue.fields.assignee) ? jira.contacts.get(self.issue.fields.assignee.name).ImageURL : yasoon.io.getLinkPath('Images\\useravatar.png'),
+				displayName: (self.issue.fields.assignee) ? self.issue.fields.assignee.displayName : 'no one'
 			},
 			creator: {
-				avatarUrl: (self.issue.fields.creator) ? jira.contacts.get(self.issue.fields.creator.name).ImageURL : '',
+			    avatarUrl: (self.issue.fields.creator) ? jira.contacts.get(self.issue.fields.creator.name).ImageURL : yasoon.io.getLinkPath('Images\\useravatar.png'),
 				displayName: (self.issue.fields.creator) ? self.issue.fields.creator.displayName : 'anonym'
 			},
 			baseUrl: jira.settings.baseUrl
