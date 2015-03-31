@@ -43,6 +43,12 @@ $(document).ready(function () {
                 
                 $('[data-toggle="popover"]').popover({trigger: 'hover','placement': 'right'});
                 
+				$('#sendMessage').click(function(e) {
+					zE(function() {
+					  zE.show();
+					});
+				});
+				
                 $('#RegisterCompanyButton').click(function (e) {
                     
                     $('#RegisterCompanyButton').prop("disabled", true);
