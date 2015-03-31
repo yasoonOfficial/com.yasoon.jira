@@ -1493,7 +1493,8 @@ function JiraContactController() {
 				contactLastName: actor.displayName,
 				contactEmailAddress: actor.emailAddress,
 				externalData: JSON.stringify(actor),
-				externalAvatarUrl: avatarUrl
+				externalAvatarUrl: avatarUrl,
+				useAuthedDownloadService: jira.settings.currentService
 			};
 			jiraLog('New Contact created: ', newContact);
 			dbContact = yasoon.contact.add(newContact);
@@ -1514,7 +1515,8 @@ function JiraContactController() {
 					contactLastName: actor.displayName,
 					contactEmailAddress: actor.emailAddress,
 					externalData: JSON.stringify(actor),
-					externalAvatarUrl: avatarUrl
+					externalAvatarUrl: avatarUrl,
+					useAuthedDownloadService: jira.settings.currentService
 				};
 				dbContact = yasoon.contact.save(updContact);
 				if (dbContact) {
