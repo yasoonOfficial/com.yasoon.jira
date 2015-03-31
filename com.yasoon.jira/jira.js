@@ -70,7 +70,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	var SyncProcessId = null;
 	this.sync = function () {
 
-		if (!jira.settings.currentService) {
+		if (!jira.settings.currentService || !yasoon.app.isOAuthed(jira.settings.currentService)) {
 			return;
 		}
 
@@ -1492,7 +1492,7 @@ function JiraContactController() {
 
 		} else {
 		    var avatarUrl = null;
-		    if (actor.avatarUrls['48x48']) {
+		    if (actor.avatarUrls && actor.avatarUrls['48x48']) {
 		        avatarUrl = actor.avatarUrls['48x48'].replace('size=large', 'size=xlarge');
 		    }
 			if (c.contactId != actor.name ||
