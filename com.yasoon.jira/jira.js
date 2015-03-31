@@ -197,7 +197,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 						oauthServiceName: jira.settings.currentService,
 						headers: jira.CONST_HEADER,
 						type: yasoon.ajaxMethod.Get,
-						error: jira.handleError,
+						error: jira.handleErrorSoft,
 						success: function (data) {
 							var projects = JSON.parse(data);
 							jira.data.projects = [];
@@ -209,7 +209,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 									oauthServiceName: jira.settings.currentService,
 									headers: jira.CONST_HEADER,
 									type: yasoon.ajaxMethod.Get,
-									error: jira.handleError,
+									error: jira.handleErrorSoft,
 									success: function (data) {
 										var project = JSON.parse(data);
 										jira.data.projects.push(project);
@@ -228,7 +228,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 						oauthServiceName: jira.settings.currentService,
 						headers: jira.CONST_HEADER,
 						type: yasoon.ajaxMethod.Get,
-						error: jira.handleError,
+						error: jira.handleErrorSoft,
 						success: function (data) {
 							var issueTypes = JSON.parse(data);
 							jira.data.issueTypes = issueTypes;
@@ -245,16 +245,21 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 
 	this.handleError = function (data, statusCode, result, errorText, cbkParam) {
-		console.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data);
+	    self.handleErrorSoft(data, statusCode, result, errorText, cbkParam);
+	    jira.SyncInProcess = false;
+	};
 
-		//Detect if oAuth token has become invalid
-		if(statusCode == 401 && result == 'oauth_problem=token_rejected') {
-			yasoon.app.invalidateOAuthToken(jira.settings.currentService);
-		}
+	this.handleErrorSoft = function (data, statusCode, result, errorText, cbkParam) {
+	    console.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data);
 
-		if (cbkParam && cbkParam.fail) {
-			cbkParam.fail();
-		}
+	    //Detect if oAuth token has become invalid
+	    if (statusCode == 401 && result == 'oauth_problem=token_rejected') {
+	        yasoon.app.invalidateOAuthToken(jira.settings.currentService);
+	    }
+
+	    if (cbkParam && cbkParam.fail) {
+	        cbkParam.fail();
+	    }
 	};
 
 }); //jshint ignore:line
@@ -910,7 +915,7 @@ function JiraIssueNotification(issue) {
 					headers: jira.CONST_HEADER,
 					data: body,
 					type: yasoon.ajaxMethod.Post,
-					error: jira.handleError,
+					error: jira.handleErrorSoft,
 					success: function (data) {
 						console.log(data);
 						jira.sync();
@@ -1478,23 +1483,27 @@ function JiraContactController() {
 	self.update = function (actor) {
 	    var c = yasoon.contact.get(actor.name);
 	    var dbContact = null;
+	    var avatarUrl = null;
+	    if (actor.avatarUrls && actor.avatarUrls['48x48']) {
+	        avatarUrl = actor.avatarUrls['48x48'].replace('size=large', 'size=xlarge');
+	    }
 		if (!c) {
 			var newContact = {
 				contactId: actor.name,
 				contactLastName: actor.displayName,
 				contactEmailAddress: actor.emailAddress,
 				externalData: JSON.stringify(actor),
-				externalAvatarUrl: actor.avatarUrls['48x48'].replace('size=large', 'size=xlarge')
+				externalAvatarUrl: avatarUrl
 			};
 			jiraLog('New Contact created: ', newContact);
 			dbContact = yasoon.contact.add(newContact);
 			buffer.push(dbContact);
 
 		} else {
-		    var avatarUrl = null;
-		    if (actor.avatarUrls && actor.avatarUrls['48x48']) {
-		        avatarUrl = actor.avatarUrls['48x48'].replace('size=large', 'size=xlarge');
-		    }
+            //We don't want to override an existing avatrUrl with null
+		    if (!avatarUrl)
+		        avatarUrl = c.externalAvatarUrl;
+
 			if (c.contactId != actor.name ||
 			   c.contactLastName != actor.displayName ||
 			   c.contactEmailAddress != actor.contactEmailAddress ||
