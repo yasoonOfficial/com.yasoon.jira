@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
+    <head>        
+        <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+
+        
         <meta name="decorator" content="atl.admin" />
         <title>JIRA for Outlook</title>
         <style>
@@ -36,7 +39,17 @@
                 display: none;
             }
            </style>
-        $webResourceManager.requireResource("com.yasoon.jira.onpremise:resources")        
+        $webResourceManager.requireResource("com.yasoon.jira.cloud:resources")
+        
+        <script src="//cdn.ravenjs.com/1.1.2/jquery,native/raven.min.js"></script>
+        <!-- Start of yasoon Zendesk Widget script -->
+        <script>/*<![CDATA[*/window.zEmbed||function(e,t){var n,o,d,i,s,a=[],r=document.createElement("iframe");window.zEmbed=function(){a.push(arguments)},window.zE=window.zE||window.zEmbed,r.src="javascript:false",r.title="",r.role="presentation",(r.frameElement||r).style.cssText="display: none",d=document.getElementsByTagName("script"),d=d[d.length-1],d.parentNode.insertBefore(r,d),i=r.contentWindow,s=i.document;try{o=s}catch(c){n=document.domain,r.src='javascript:var d=document.open();d.domain="'+n+'";void(0);',o=s}o.open()._l=function(){var o=this.createElement("script");n&&(this.domain=n),o.id="js-iframe-async",o.src=e,this.t=+new Date,this.zendeskHost=t,this.zEQueue=a,this.body.appendChild(o)},o.write('<body onload="document._l();">'),o.close()}("//assets.zendesk.com/embeddable_framework/main.js","yasoon.zendesk.com");/*]]>*/</script>
+        <!-- End of yasoon Zendesk Widget script -->
+        <script>
+          zE(function() {
+            zE.identify({ze23772381: 'JIRA for Outlook'});
+          });
+        </script>
     </head>
     <body>
         <section id="content" class="bootstrap-wrapper ac-content" >
@@ -88,7 +101,7 @@
                             <h3 class="bootstrap-wrapper panel-title">Outlook App Download</h3>
                         </div>
                         <div id="downloadLinkWaiting" class="bootstrap-wrapper panel-body">
-                            Your JIRA for Outlook setup file is being prepared. This may take a few minutes
+                            Your JIRA for Outlook setup file is being prepared. This may take a few minutes.
                             <div style="margin-top: 10px">
                                 <img src="https://store.yasoon.com/images/loader_small.gif" />
                             </div>
@@ -127,7 +140,8 @@
                             <h1>Welcome to JIRA for Outlook <small><br />powered by yasoon</small></h1>
                         </div>
                         This JIRA instance is <b>not yet registered at yasoon.</b> <br />
-                        Please signup at yasoon via the form below or login with your existing yasoon account to assign this JIRA instance to your account.
+                        Please sign up via the form below or login with your existing yasoon account.
+                        <a href="#" data-toggle="popover" title="Why do I need to register?" data-content="The yasoon account allows you to quickly manage your users. In addition, we are able to provide you with a personal setup file. It's will be pre-configured for your JIRA, so no additional configuration will be necessary for users of the Outlook addin.">Why?</a>
                         <br /><br />
                     </div>
                     <div class="bootstrap-wrapper form-group">
@@ -151,7 +165,7 @@
                         <input type="password" class="bootstrap-wrapper form-control" id="password" name="password" placeholder="Password">
                     </div>
                     <div class="bootstrap-wrapper form-group">
-                        <label for="password1">Confirm password</label>
+                        <label for="password1">Confirm Password</label>
                         <input type="password" class="bootstrap-wrapper form-control" id="password1" name="password1" placeholder="Confirm Password">
                         <span class="bootstrap-wrapper help-block" style="visibility:hidden;">Password does not match!</span>
                     </div>

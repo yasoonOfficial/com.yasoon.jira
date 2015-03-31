@@ -15,11 +15,11 @@
     <web-resource key="resources" name="yasoononpremise Web Resources">
         <dependency>com.atlassian.auiplugin:ajs</dependency>
         <resource type="download" name="yasoononpremise.css" location="/css/yasoononpremise.css"/>
-        <resource type="download" name="bootstrap.css" location="/css/bootstrap.css"/>        
+        <resource type="download" name="bootstrap.css" location="/css/bootstrap.css"/>
         <resource type="download" name="yasoononpremise.js" location="/js/yasoononpremise.js"/>
-        <resource type="download" name="bootstrap.js" location="/js/bootstrap.js"/>
         <resource type="download" name="jquery.js" location="/js/jquery.js"/>
-        <resource type="download" name="jquery.cookie.js" location="/js/jquery.cookie.js"/>        
+        <resource type="download" name="bootstrap.js" location="/js/bootstrap.js"/>
+        <resource type="download" name="jquery.cookie.js" location="/js/jquery.cookie.js"/>
         <resource type="download" name="main.js" location="/js/main.js"/>
         <resource type="download" name="images/" location="/images"/>
         <context>yasoononpremise</context>

@@ -11,6 +11,14 @@ $(document).ready(function () {
             systemInfo = JSON.parse(systemInfo);
         
         var serverId = systemInfo.licenses[0].serverId;    
+                  
+        Raven.config('https://6271d99937bd403da519654c1cf47879@sentry2.yasoon.com/4', {
+          tags: {
+              serverId: serverId,
+              baseUrl: systemInfo.baseUrl
+          }
+        }).install();
+
         $.ajax({
                 url: serverUrl + '/jira/isInstanceRegistered',
                 data: { serverId: serverId },
@@ -32,6 +40,8 @@ $(document).ready(function () {
                 } else {
                         $('#UnregisteredArea').show();
                 }
+                
+                $('[data-toggle="popover"]').popover({trigger: 'hover','placement': 'right'});
                 
                 $('#RegisterCompanyButton').click(function (e) {
                     
@@ -135,20 +145,24 @@ $(document).ready(function () {
                                     checkAppLink();
                                     checkDownloadLink();
                                     checkProduct();
-                                }).fail(function () {
-                                    alert('Oops, this shouldn\'t happen. Our Engineers are already informed. Please try again later.');
+                                }).fail(function (jxqr, e) {
+                                    Raven.captureMessage('Error during assignCompany: ' + e);
+                                    alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
                                 });
                                 
-                            }).fail(function () {
-                                alert('Oops, this shouldn\'t happen. Our Engineers are already informed. Please try again later.');
+                            }).fail(function (jxqr, e) {
+                                Raven.captureMessage('Error during userAuth: ' + e);
+                                alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
                             });
                             
-                        }).fail(function () {
-                            alert('Oops, this shouldn\'t happen. Our Engineers are already informed. Please try again later.');
+                        }).fail(function (jxqr, e) {
+                            Raven.captureMessage('Error during install: ' + e);
+                            alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
                         }); 
                         
-                    }).fail(function () {
-                        alert('Oops, this shouldn\'t happen. Our Engineers are already informed. Please try again later.');
+                    }).fail(function (jxqr, e) {
+                        Raven.captureMessage('Error during register: ' + e);
+                        alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
                     });
 
                     e.preventDefault();
@@ -189,8 +203,16 @@ $(document).ready(function () {
                                    type: 'POST'
                                 }).done(function (auth) {
                                     checkAppLink();
-                                });                                
-                            });                        
+                                })
+                                .fail(function (jxqr, e) {
+                                    Raven.captureMessage('Error during applink creation: ' + e);
+                                    alert('An error occurred while creating the application link. Please contact us via the green help button, we\'ll fix this quickly.');
+                                });
+                            })
+                            .fail(function (jxqr, e) {
+                                Raven.captureMessage('Error during oauth update: ' + e);
+                                alert('An error occurred while creating the application link. Please contact us via the green help button, we\'ll fix this quickly.');
+                            });
                      });
                 });
                 
@@ -204,15 +226,15 @@ $(document).ready(function () {
                     });
 
                     var instanceData = {
-                            clientKey: serverId,
-                            baseUrl: data.baseUrl,
-                            key: 'com.yasoon.jira.onpremise',
-                            description: 'Jira on Premise',
-                            pluginsVersion: data.pluginVersion,
-                            productType: 'jira',
-                            serverVersion: data.version,
-                            licenseInfo: data.licenses
-                        };
+                        clientKey: serverId,
+                        baseUrl: systemInfo.baseUrl,
+                        key: 'com.yasoon.jira.onpremise',
+                        pluginsVersion: systemInfo.pluginVersion,
+                        description: 'Jira on Premise',
+                        productType: 'jira',
+                        serverVersion: systemInfo.version,
+                        licenseInfo: systemInfo.licenses
+                    };
                         
                     $.ajax({
                         url: serverUrl + '/jira/install',
@@ -247,17 +269,28 @@ $(document).ready(function () {
                                 checkAppLink();
                                 checkDownloadLink();
                                 checkProduct();
-                            }).fail(function () {
-                                alert('Oops, this shouldn\'t happen. Our Engineers are already informed. Please try again later.');
+                            }).fail(function (jxqr, e) {
+                                Raven.captureMessage('Error during assignCompany: ' + e);
+                                alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
                             });
-                        }).fail(function () {
-                            alert('Invalid credentials.');
+                        }).fail(function (jxqr, e) {
+                            Raven.captureMessage('Error during login: ' + e);                                 
+                            alert('Login failed, probably invalid credentials.');
                         });
-                    }).fail(function () {
-                        alert('Oops, this shouldn\'t happen. Our Engineers are already informed. Please try again later.');
+                    }).fail(function (jxqr, e) {
+                        Raven.captureMessage('Error during install: ' + e);                                 
+                        alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
                     });
                 });
-        });    
+        })
+        .fail(function (jxqr, e) {
+            Raven.captureMessage('Error during isInstanceRegisterd: ' + e);   
+            alert('Could not retrieve system information. Please contact us via the green help button, we\'ll fix this quickly.');
+        });
+    })
+    .fail(function () {
+        console.log(arguments);
+        alert('Could not retrieve system information. Please contact us via the green help button, we\'ll fix this quickly.');
     });
 });
 
