@@ -39,6 +39,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		self.currentTemplates = [];
 		self.projects = [];
+		self.addedAttachmentIds = [];
 		self.selectedAttachments = [];
 		//Load Recent Projects
 		var projectsString = yasoon.setting.getAppParameter('recentProjects');
@@ -66,6 +67,15 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					group.append('<option style="background-image: url(images/projectavatar.png)" value="template' + template.project.id + '">' + template.project.name + '</option>');
 				});
 				group.show();
+			}
+
+		    //Check for attachments
+			if (self.mail.attachments && self.mail.attachments.length > 0) {
+			    $.each(self.mail.attachments, function (i, attachment) {
+			        var handle = attachment.getFileHandle();
+			        var id = yasoon.clipboard.addFile(handle);
+			        self.addedAttachmentIds.push(id);
+			    });
 			}
 		}
 
@@ -322,6 +332,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			$('#AttachmentContainer').html('');
 			self.selectedAttachments = [];
 		} else {
+		    //If there has been attachments loaded into yasoon clipboard, we need to remove them
+		    if (self.addedAttachmentIds.length > 0) {
+		        $.each(self.addedAttachmentIds, function (i, handleId) {
+		            yasoon.clipboard.remove(handleId);
+		        });
+		    }
 			yasoon.dialog.close({ action: 'success' });
 		}
 	};
