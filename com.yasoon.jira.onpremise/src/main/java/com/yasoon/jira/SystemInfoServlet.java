@@ -84,7 +84,7 @@ public class SystemInfoServlet extends HttpServlet {
             
             try {
                 Properties p = new Properties();
-                InputStream is = getClass().getResourceAsStream("/META-INF/maven/com.yasoon.jira/onpremise/pom.properties");
+                InputStream is = getClass().getResourceAsStream("/META-INF/maven/com.yasoon.jira/cloud/pom.properties");
                 if (is != null) {
                     p.load(is);
                     info.setPluginVersion( p.getProperty("version", ""));

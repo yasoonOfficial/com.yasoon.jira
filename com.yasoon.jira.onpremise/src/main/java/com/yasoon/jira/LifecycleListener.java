@@ -45,7 +45,7 @@ public class LifecycleListener implements InitializingBean, DisposableBean {
 
     @EventListener
     public void onPluginEnabledEvent(PluginEnabledEvent pluginEvent) {
-        if(pluginEvent.getPlugin().getKey().equals("com.yasoon.jira.yasoononpremise")) {
+        if(pluginEvent.getPlugin().getKey().equals("com.yasoon.jira.cloud")) {
 //            log.info("--------------------- License Info ------------------");
 //            log.info("ServerID: " + licenseManager.getServerId());
 //            
