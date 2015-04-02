@@ -141,7 +141,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 						if (feed) {
 							console.log('Counter: ' + counter, feed);
 							//Only for jira!
-							if (feed['atlassian:application'] && feed['atlassian:application']['#text'] === 'com.atlassian.jira') {
+							if (feed['atlassian:application'] && feed['atlassian:application']['#text'].toLowerCase().indexOf('jira') > -1) {
 								var notif = jira.notifications.createNotification(feed);
 								notif.save(function () {
 									counter++;
