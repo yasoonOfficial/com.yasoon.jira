@@ -69,6 +69,11 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				group.show();
 			}
 
+		    //Take over Subject
+			if (self.mail.subject) {
+			    $('#summary').val(self.mail.subject);
+			}
+
 		    //Check for attachments
 			if (self.mail.attachments && self.mail.attachments.length > 0) {
 			    $.each(self.mail.attachments, function (i, attachment) {

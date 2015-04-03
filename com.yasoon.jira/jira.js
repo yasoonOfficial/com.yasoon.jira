@@ -1230,10 +1230,10 @@ function JiraIssueActionNotification(event) {
 
 		//Update Author
 		jira.contacts.update({
-			displayName: self.event.author.name['#text'],
-			name: self.event.author['usr:username']['#text'],
-			emailAddress: self.event.author.email['#text'],
-			avatarUrls: { '48x48': self.event.author.link[1].href }
+			displayName: self.event.author.name['#text'] || '',
+			name: self.event.author['usr:username']['#text'] || '',
+			emailAddress: self.event.author.email['#text'] || '' ,
+			avatarUrls: { '48x48': (self.event.author.link[1].href || '') }
 		});
 
 		yEvent.parentNotificationId = parent.notificationId;
@@ -1481,6 +1481,9 @@ function JiraContactController() {
 	var buffer = [];
 
 	self.update = function (actor) {
+	    if (!actor.name || !actor.displayName || !actor.emailAddress)
+	        return;
+
 	    var c = yasoon.contact.get(actor.name);
 	    var dbContact = null;
 	    var avatarUrl = null;
