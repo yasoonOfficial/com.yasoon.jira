@@ -10,12 +10,12 @@ $(document).ready(function () {
         if(typeof(systemInfo) === 'string')
             systemInfo = JSON.parse(systemInfo);
         
-        var serverId = systemInfo.licenses[0].serverId;    
-                  
+        var serverId = systemInfo.serverId || systemInfo.licenses[0].serverId;    
+
         Raven.config('https://6271d99937bd403da519654c1cf47879@sentry2.yasoon.com/4', {
           tags: {
               serverId: serverId,
-              baseUrl: systemInfo.baseUrl
+              key: 'onpremise'
           }
         }).install();
 
@@ -43,11 +43,11 @@ $(document).ready(function () {
                 
                 $('[data-toggle="popover"]').popover({trigger: 'hover','placement': 'right'});
                 
-				$('#sendMessage').click(function(e) {
-					zE(function() {
-					  zE.show();
-					});
-				});
+                $('#sendMessage').click(function(e) {
+                    zE(function() {
+                      zE.activate();
+                    });
+                });
 				
                 $('#RegisterCompanyButton').click(function (e) {
                     

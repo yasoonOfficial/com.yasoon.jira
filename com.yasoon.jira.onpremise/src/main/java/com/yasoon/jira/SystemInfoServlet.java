@@ -77,6 +77,7 @@ public class SystemInfoServlet extends HttpServlet {
             
             SystemInfo info = new SystemInfo();
             info.setLicenses(collectedLicenses);
+            info.setServerId(licenseManager.getServerId());
             
             ApplicationProperties props = ComponentAccessor.getApplicationProperties();            
             info.setBaseUrl(props.getString(APKeys.JIRA_BASEURL));
@@ -186,9 +187,18 @@ class SystemInfo {
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
     }
+
+    public String getServerId() {
+        return serverId;
+    }
+
+    public void setServerId(String serverId) {
+        this.serverId = serverId;
+    }
     
     private ArrayList<JiraLicense> licenses;
     private String baseUrl;
     private String version;
     private String pluginVersion;
+    private String serverId;
 }
