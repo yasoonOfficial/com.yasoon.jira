@@ -289,60 +289,8 @@ function JiraIconController() {
     }
 }
 
-function jiraIssueGetter() {
-	var deferredObject = this.deferredObject;
-
-	return $.Deferred(function (dfd) {
-		if (deferredObject && !deferredObject.issue) {
-			var issueKey = (deferredObject['activity:target']) ? deferredObject['activity:target'].title['#text'] : deferredObject['activity:object'].title['#text'];
-			deferredObject.issue = jira.issues.get(issueKey);
-			if (deferredObject.issue) {
-				dfd.resolve();
-			} else {
-				jiraLog('Call Issue');
-				yasoon.oauth({
-					url: jira.settings.baseUrl + '/rest/api/2/issue/' + issueKey + '?expand=transitions,renderedFields',
-					oauthServiceName: jira.settings.currentService,
-					headers: jira.CONST_HEADER,
-					type: yasoon.ajaxMethod.Get,
-					error: jira.handleError,
-					success: function (data) {
-						deferredObject.issue = JSON.parse(data);
-						dfd.resolve();
-					}
-				});
-			}
-		} else {
-			dfd.resolve();
-		}
-	});
-}
-
-function jiraWatcherGetter() {
-	var deferredObject = this.deferredObject;
-
-	return $.Deferred(function (dfd) {
-		if (deferredObject && deferredObject.fields.watches && !deferredObject.fields.watches.watchers) {
-			jiraLog('Get Watchers');
-			yasoon.oauth({
-				url: jira.settings.baseUrl + '/rest/api/2/issue/' + deferredObject.id + '/watchers',
-				oauthServiceName: jira.settings.currentService,
-				headers: jira.CONST_HEADER,
-				type: yasoon.ajaxMethod.Get,
-				error: jira.handleError,
-				success: function (data) {
-					deferredObject.fields.watches.watchers = JSON.parse(data).watchers;
-					dfd.resolve();
-				}
-			});
-		} else {
-			dfd.resolve();
-		}
-	});
-}
-
 function jiraLog(text, obj, stacktrace) {
-	if (yasoon.logLevel === 0) {
+	if (yasoon.logLevel == 0) { //jshint ignore:line
 		var stack = '';
 		var json = '';
 		if (stacktrace !== undefined && stacktrace) {
@@ -358,8 +306,8 @@ function jiraLog(text, obj, stacktrace) {
 		if (obj) {
 			json = '\n' + JSON.stringify(obj);
 		}
-
-		yasoon.util.log(text + ' ' + json + ' ' + stack);
+		console.log(text, obj);
+		//yasoon.util.log(text + ' ' + json + ' ' + stack);
 	}
 }
 
@@ -423,7 +371,7 @@ function jiraCreateHash(input) {
     return hash;
 }
 
-function jiraGetData(relativeUrl) {
+function jiraGet(relativeUrl) {
     return new Promise(function (resolve, reject) {
         yasoon.oauth({
             url: jira.settings.baseUrl + relativeUrl,
@@ -431,7 +379,7 @@ function jiraGetData(relativeUrl) {
             headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
             type: yasoon.ajaxMethod.Get,
             error: function (data, statusCode, result, errorText, cbkParam) {
-                reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText));
+                reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText));
             },
             success: function (data) {
                 resolve(data);
@@ -440,18 +388,17 @@ function jiraGetData(relativeUrl) {
     });
 }
 
-function jiraAjaxData(relativeUrl, method, data) {
-    //We could return $.ajax directly, but it always has 3 return parameters :-( 
-    // I just want to have a single return parameter - the result --> build own deferred and only take over one parameter
+function jiraAjax(relativeUrl, method, data, formData) {
     return new Promise(function (resolve, reject) {
         yasoon.oauth({
             url: jira.settings.baseUrl + relativeUrl,
             oauthServiceName: jira.settings.currentService,
-            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck' },
             data: data,
+            formData: formData,
             type: method,
             error: function (data, statusCode, result, errorText, cbkParam) {
-                reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText));
+                reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText));
             },
             success: function (data) {
                 resolve(data);
@@ -486,5 +433,29 @@ function jiraSyncQueue() {
 			});
         });
     };
+}
+
+function jiraGetNotification(id) {
+    return new Promise(function (resolve, reject) {
+        yasoon.notification.getByExternalId1(id, function (yEvent) {
+            resolve(yEvent);
+        });
+    });
+}
+
+function jiraAddNotification(notif) {
+    return new Promise(function (resolve, reject) {
+        yasoon.notification.add1(notif, function (newNotif) {
+            resolve(newNotif);
+        });
+    });
+}
+
+function jiraSaveNotification(notif) {
+    return new Promise(function (resolve, reject) {
+        yasoon.notification.save1(notif, function (newNotif) {
+            resolve(newNotif);
+        });
+    });
 }
 //@ sourceURL=http://Jira/functions.js

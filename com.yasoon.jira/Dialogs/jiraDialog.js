@@ -15,6 +15,10 @@ function createTemplate(email, sender, project, values) {
 	this.senderEmail = email;
 	this.senderName = sender;
 	this.project = project;
+    //Create deep copy
+	values = JSON.parse(JSON.stringify(values));
+	delete values.summary;
+	delete values.description;
 	this.values = values;
 }
 
@@ -426,6 +430,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					project = $.grep(self.projects, function (proj) { return proj.id === projId; })[0];
 					edit = true;
 					self.editIssue = template.values;
+				    //Legacy code 0.6 --> description and summary have been saved inside the template
+					delete self.editIssue.summary;
+					delete self.editIssue.description;
+
 					self.fromTemplate = true;
 				}
 			} else {

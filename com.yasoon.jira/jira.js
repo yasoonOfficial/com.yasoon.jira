@@ -1,7 +1,9 @@
 var jira = {};
-function jiraSyncError(message) {
+function jiraSyncError(message, statusCode, errorText) {
     this.message = message;
     this.name = "SyncError";
+    this.statusCode = statusCode;
+    this.errorText = errorText;
 }
 jiraSyncError.prototype = Object.create(Error.prototype);
 
@@ -31,6 +33,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		jira.ribbons = new JiraRibbonController();
 		jira.contacts = new JiraContactController();
 		jira.icons = new JiraIconController();
+		jira.queue = new jiraSyncQueue();
 		jira.issues = new JiraIssueController();
 
 		yasoon.addHook(yasoon.setting.HookCreateRibbon, jira.ribbons.createRibbon);
@@ -72,181 +75,132 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		yasoon.periodicCallback(300, jira.sync);
 	};
 
-	var SyncProcessId = null;
 	this.sync = function () {
 
 		if (!jira.settings.currentService || !yasoon.app.isOAuthed(jira.settings.currentService)) {
-			return Promise.reject();
+			return;
 		}
 
-		if (SyncProcessId && !jira.SyncInProcess) {
-			clearTimeout(SyncProcessId);
-		}
+		return jira.queue.add(self.syncData);
+	};
 
-		if (!jira.SyncInProcess) {
-			SyncProcessId = setTimeout(function () { jira.SyncInProcess = false; }, 1000 * 60 * 4);
-			jira.SyncInProcess = true;
-			startSync = new Date();
+	this.syncData = function () {
+	    var currentTs = new Date().getTime();
+	    var oldTs = jira.settings.lastSync.getTime() - 1000;
 
-			jiraQueue(
-				self.initData,
-				jira.issues.refreshBuffer,
-				self.syncStream,
-				jira.notifications.processChildren,
-				jira.notifications.processCommentEdits
-			).done(function () {
-				//Everything done
-				jiraLog('Everything done!');
-				clearTimeout(SyncProcessId);
-				SyncProcessId = '';
-				jira.SyncInProcess = false;
-				jira.settings.setLastSync(startSync);
-			});
-		}
+	    jiraLog('Sync starts: ' + new Date().toISOString());
+	    return self.initData()
+        .then(function () {
+            jira.issues.refreshBuffer();
+            return self.syncStream('/activity?streams=update-date+BETWEEN+' + oldTs + '+' + currentTs);
+        })
+        .then(function () {
+            return jira.notifications.processChildren();
+        })
+        .then(function () {
+            return jira.notifications.processCommentEdits();
+        })
+        .then(function () {
+            jira.settings.setLastSync(startSync);
+            jiraLog('Sync done: ' + new Date().toISOString());
+        })
+        .catch(jiraSyncError, function (error) {
+            jiraLog('Sync Error:', error);
+        })
+        .catch(function (e) {
+            yasoon.util.log(e.message, yasoon.util.severity.error, getStackTrace(e));
+        });
 	};
 
 	//Handle Sync Event
-	this.syncStream = function () {
-		var dfd = $.Deferred();
-		var currentTs = new Date().getTime();
-		var oldTs = jira.settings.lastSync.getTime() - 1000;
-		self.pullData(jira.settings.baseUrl + '/activity?streams=update-date+BETWEEN+' + oldTs + '+' + currentTs, jira.CONST_PULL_RESULTS, function () {
-			jiraLog('FinishSyncCbk');
-			dfd.resolve();
-		},dfd);
-		return dfd.promise();
-	};
+	this.syncStream = function (url, maxResults, currentPage) {
+	    //Defaults
+	    maxResults = maxResults || jira.CONST_PULL_RESULTS;
+	    currentPage = currentPage || 0;
 
-	this.pullData = function (url, maxResults, finishCallback,dfd) {
-		if (url.indexOf('?') === -1) {
-			url += '?maxResults=' + maxResults;
-		} else {
+        //Add maxResults to URL
+	    if (url.indexOf('?') === -1) 
+	        url += '?maxResults=' + maxResults;
+	    else 
 			url += '&maxResults=' + maxResults;
-		}
+	
 		jiraLog('Get Activity Stream');
-		yasoon.oauth({
-			url: url,
-			oauthServiceName: jira.settings.currentService,
-			headers: jira.CONST_HEADER,
-			type: yasoon.ajaxMethod.Get,
-			callbackParameter: dfd,
-			error: jira.handleError,
-			success: function (data) {
-				var obj = jiraXmlToJson(new DOMParser().parseFromString(data, "text/xml"));
-				console.log('page:', obj);
-				if (obj.feed && obj.feed.entry) {
-					//Adjust Data. If it's only 1 entry it's an object instead of array
-					if (!$.isArray(obj.feed.entry)) {
-						obj.feed.entry = [obj.feed.entry];
-					}
-					//Start Processing (striclty one by one)
-					var counter = 0;
-					var processEntry = function () {
-						var feed = obj.feed.entry[counter];
-						if (feed) {
-							console.log('Counter: ' + counter, feed);
-							//Only for jira!
-							if (feed['atlassian:application'] && feed['atlassian:application']['#text'].toLowerCase().indexOf('jira') > -1) {
-								var notif = jira.notifications.createNotification(feed);
-								notif.save(function () {
-									counter++;
-									processEntry();
-								});
-							}
-						} else {
-							//Determine if paging is required
-							var lastObj = obj.feed.entry[obj.feed.entry.length - 1];
-							var lastObjDate = new Date(lastObj.updated['#text']);
-							if (obj.feed.entry.length === maxResults && jira.settings.lastSync < lastObjDate && currentPage <= 5) {
-								currentPage++;
-								console.log('currentPage:' + currentPage);
-								self.pullData(jira.settings.baseUrl + '/activity?streams=update-date+BEFORE+' + (lastObjDate.getTime() - 2000), jira.CONST_PULL_RESULTS, finishCallback);
-							} else {
-								if (finishCallback)
-									finishCallback();
-							}
-						}
-					};
 
-					processEntry();
+		return jiraGet(url)
+        .then(function (xmlData) {
+            var jsonPage = jiraXmlToJson(new DOMParser().parseFromString(xmlData, "text/xml"));
+            jiraLog('page:', jsonPage);
+            if (jsonPage.feed && jsonPage.feed.entry) {
+                //Adjust Data. If it's only 1 entry it's an object instead of array
+                if (!$.isArray(jsonPage.feed.entry)) {
+                    jsonPage.feed.entry = [jsonPage.feed.entry];
+                }
+                return jsonPage.feed.entry;
+            }
+            return [];
+        })
+        .each(function (feedEntry, index) {
+            jiraLog('Item #' + index + ':', feedEntry);
+            //Only for jira!
+            if (feedEntry['atlassian:application'] && feedEntry['atlassian:application']['#text'].toLowerCase().indexOf('jira') > -1) {
+                var notif = jira.notifications.createNotification(feedEntry);
+                return notif.save();
+            }
+        })
+        .then(function (entries) {
+            //Determine if paging is required
+            if (entries && entries.length > 0) {
+                var lastObj = entries[entries.length - 1];
+                var lastObjDate = new Date(lastObj.updated['#text']);
 
-				} else {
-					if (finishCallback)
-						finishCallback();
-				}
-			}
-		});
+                if (entries.length == maxResults && jira.settings.lastSync < lastObjDate && currentPage < 5) {
+                    return self.syncStream('/activity?streams=update-date+BEFORE+' + (lastObjDate.getTime() - 2000), maxResults, currentPage + 1);
+                }
+            }
+        });
+
 	};
 
 	this.initData = function () {
-		var dfd = $.Deferred();
+        //First Get Own User Data
+	    jiraLog('Get Own Data');
+	    if (jira.firstTime) {
+	        return jiraGet('/rest/api/2/myself')
+            .then(function (ownUserData) {
+                jira.data.ownUser = JSON.parse(ownUserData);
 
-		if (!jira.firstTime) {
-			dfd.resolve();
-		} else {
-			jiraLog('Get Own Data');
-			yasoon.oauth({
-				url: jira.settings.baseUrl + '/rest/api/2/myself',
-				oauthServiceName: jira.settings.currentService,
-				headers: jira.CONST_HEADER,
-				type: yasoon.ajaxMethod.Get,
-				callbackParameter: dfd,
-				error: jira.handleError,
-				success: function (data) {
-					jira.data.ownUser = JSON.parse(data);
-					jira.firstTime = false;
-					dfd.resolve();
-					jiraLog('Get Projects');
-					yasoon.oauth({
-						url: jira.settings.baseUrl + '/rest/api/2/project',
-						oauthServiceName: jira.settings.currentService,
-						headers: jira.CONST_HEADER,
-						type: yasoon.ajaxMethod.Get,
-						error: jira.handleErrorSoft,
-						success: function (data) {
-							var projects = JSON.parse(data);
-							jira.data.projects = [];
-							var counter = 0;
-							$.each(projects, function (i, proj) {
-								jiraLog('Get Single Project Data');
-								yasoon.oauth({
-									url: jira.settings.baseUrl + '/rest/api/2/project/' + proj.id,
-									oauthServiceName: jira.settings.currentService,
-									headers: jira.CONST_HEADER,
-									type: yasoon.ajaxMethod.Get,
-									error: jira.handleErrorSoft,
-									success: function (data) {
-										var project = JSON.parse(data);
-										jira.data.projects.push(project);
-										counter++;
-										if (counter === projects.length) {
-											jira.settings.updateData();
-										}
-									}
-								});
-							});
-						}
-					});
-					jiraLog('Get Issuetypes');
-					yasoon.oauth({
-						url: jira.settings.baseUrl + '/rest/api/2/issuetype',
-						oauthServiceName: jira.settings.currentService,
-						headers: jira.CONST_HEADER,
-						type: yasoon.ajaxMethod.Get,
-						error: jira.handleErrorSoft,
-						success: function (data) {
-							var issueTypes = JSON.parse(data);
-							jira.data.issueTypes = issueTypes;
-							jira.settings.updateData();
-						}
-					});
-
-				}
-			});
-		}
-
-		return dfd.promise();
-
+            })
+            .then(function () {
+                //Second get all projects
+                jiraLog('Get Projects');
+                return jiraGet('/rest/api/2/project')
+                .then(function (projectData) {
+                    var projects = JSON.parse(projectData);
+                    jira.data.projects = [];
+                    return projects;
+                })
+                .each(function (project) {
+                    //Get detailed information for each project
+                    return jiraGet('/rest/api/2/project/' + project.id)
+                    .then(function (singleProject) {
+                        var proj = JSON.parse(singleProject);
+                        jira.data.projects.push(proj);
+                    });
+                });
+            })
+            .then(function () {
+                //Third get all issue types
+                jiraLog('Get Issuetypes');
+                return jiraGet('/rest/api/2/issuetype')
+                .then(function (issueTypes) {
+                    jira.data.issueTypes = JSON.parse(issueTypes);
+                    jira.settings.updateData();
+                    jira.firstTime = false;
+                });
+            });
+	    } else {
+	        return Promise.resolve();
+	    }
 	};
 
 	this.handleError = function (data, statusCode, result, errorText, cbkParam) {
