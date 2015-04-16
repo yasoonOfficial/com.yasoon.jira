@@ -688,10 +688,10 @@ function JiraIssueActionNotification(event) {
 
 		//Update Author
 		jira.contacts.update({
-			displayName: self.event.author.name['#text'] || '',
-			name: self.event.author['usr:username']['#text'] || '',
-			emailAddress: self.event.author.email['#text'] || '' ,
-			avatarUrls: { '48x48': (self.event.author.link[1].href || '') }
+		    displayName: (self.event.author.name) ? self.event.author.name['#text'] : '',
+		    name: (self.event.author['usr:username']) ? self.event.author['usr:username']['#text'] : '',
+		    emailAddress: (self.event.author.email) ? self.event.author.email['#text'] : '',
+		    avatarUrls: { '48x48': ((self.event.author.link && self.event.author.link[1]) ? self.event.author.link[1].href : '') }
 		});
 
 		yEvent.parentNotificationId = parent.notificationId;
@@ -752,7 +752,7 @@ function JiraIssueController() {
 		if (result.length > 0) {
 			return result[0];
 		}
-		return jiraGet('/rest/api/2/issue/' + id + '?expand=transitions,renderedFields')
+		return jiraGet('/rest/api/2/issue/' + id + '?expand=transitions,renderedFields') //,schema,editmeta,names
 	    .then(function(issueData) {
 	        var issue = JSON.parse(issueData);
 	        issues.push(issue);

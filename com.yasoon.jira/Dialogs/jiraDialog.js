@@ -27,7 +27,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
    
 	jira = this;
 	jira.CONST_HEADER = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
-		
+	jira.selectedProject = null;
+
 	self.UIFormHandler = UIFormHandler();
 	var project = null;
 	var templates = [];
@@ -446,7 +447,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				// Save Project in recently used
 				self.addRecentProject(project);
 			}
-		   
+			jira.selectedProject = project;
 			//Show Loader!
 			$('#ContentArea').hide();
 			$('#LoaderArea').show();
@@ -834,6 +835,71 @@ function UIFormHandler() {
 
 	}
 
+	function renderEpicLink(id, field, container) {
+	    var html = '<div class="field-group input-field">' +
+           '    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+           '    <select data-container-class="issuetype-ss" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.pyxis.greenhopper.jira:gh-epic-link">' +
+           '        <option></option>'+
+           '    </select>' +
+           '</div>';
+
+	    $(container).append(html);
+
+	    //$('#' + id).select2();
+
+	    yasoon.oauth({
+	        url: jira.settings.baseUrl + '/rest/greenhopper/1.0/epics?maxResults=100&projectKey='+ jira.selectedProject.key,
+	        oauthServiceName: jira.settings.currentService,
+	        headers: jira.CONST_HEADER,
+	        type: yasoon.ajaxMethod.Get,
+	        error: jira.handleError,
+	        success: function (data) {
+	            //{"epicNames":[{"key":"SSP-24","name":"Epic 1"},{"key":"SSP-25","name":"Epic 2"}],"total":2}
+	            var epics = JSON.parse(data);
+	            var result = [];
+	            if (epics && epics.total > 0) {
+	                $.each(epics.epicNames, function (i, epic) {
+	                    $(container).find('#' + id).append('<option value="' + epic.key + '"> ' + epic.name + ' ( ' + epic.key + ' )</option>');
+	                });
+	            }
+	            $('#' + id).select2();
+	        }
+	    });
+	    
+	}
+
+	function renderSprintLink(id, field, container) {
+	    var html = '<div class="field-group input-field">' +
+           '    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+           '    <select data-container-class="issuetype-ss" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.pyxis.greenhopper.jira:gh-sprint">' +
+           '        <option></option>' +
+           '    </select>' +
+           '</div>';
+
+	    $(container).append(html);
+
+	    //$('#' + id).select2();
+
+	    yasoon.oauth({
+	        url: jira.settings.baseUrl + '/rest/greenhopper/1.0/sprint/picker',
+	        oauthServiceName: jira.settings.currentService,
+	        headers: jira.CONST_HEADER,
+	        type: yasoon.ajaxMethod.Get,
+	        error: jira.handleError,
+	        success: function (data) {
+	            //{"suggestions":[{"name":"Sample Sprint 2","id":1,"stateKey":"ACTIVE"}],"allMatches":[]}
+	            var sprints = JSON.parse(data);
+	            var result = [];
+	            if (sprints && sprints.suggestions.length > 0) {
+	                $.each(sprints.suggestions, function (i, sprint) {
+	                    $(container).find('#'+id).append('<option value="' + sprint.id + '"> ' + sprint.name + '</option>');
+	                });
+	            }
+	            $('#' + id).select2();
+	        }
+	    });
+
+	}
 	return {
 		render: function (id, field, container) {
 			switch (field.schema.custom) {
@@ -876,7 +942,15 @@ function UIFormHandler() {
 
 				case 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker':
 					renderUserPicker(id, field, container);
-					break;			        
+					break;
+
+			    case 'com.pyxis.greenhopper.jira:gh-epic-link':
+			        renderEpicLink(id, field, container);
+			        break;
+
+			    case 'com.pyxis.greenhopper.jira:gh-sprint':
+			        renderSprintLink(id, field, container);
+			        break;
 			}
 		},
 
@@ -896,6 +970,7 @@ function UIFormHandler() {
 							    case 'com.atlassian.jira.plugin.system.customfieldtypes:textfield':
 							    case 'com.atlassian.jira.plugin.system.customfieldtypes:textarea':
 							    case 'com.atlassian.jira.plugin.system.customfieldtypes:url':
+							    case 'com.pyxis.greenhopper.jira:gh-sprint':
                                     if(elem.val())
 									    result.fields[key] = elem.val();
 									break;
@@ -930,6 +1005,10 @@ function UIFormHandler() {
 							    case 'com.atlassian.jira.plugin.system.customfieldtypes:select':
                                     if(elem.val())
 							            result.fields[key] = { id: elem.val() };
+                                    break;
+							    case 'com.pyxis.greenhopper.jira:gh-epic-link':
+							        if (elem.val())
+							            result.fields[key] = 'key:'+ elem.val();
 							        break;
 							    case 'com.atlassian.jira.plugin.system.customfieldtypes:multiselect':
 							        var selectedValues = [];
@@ -978,6 +1057,8 @@ function UIFormHandler() {
 		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:datetime':
 		                        break;
 		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:select':
+		                    case 'com.pyxis.greenhopper.jira:gh-epic-link':
+		                    case 'com.pyxis.greenhopper.jira:gh-sprint':
 		                        if (issue.fields[key]) {
 		                            $('#' + key).select2('val', issue.fields[key].id);
 		                        }
