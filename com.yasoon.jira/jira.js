@@ -143,8 +143,9 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
             jiraLog('Item #' + index + ':', feedEntry);
             //Only for jira!
             if (feedEntry['atlassian:application'] && feedEntry['atlassian:application']['#text'].toLowerCase().indexOf('jira') > -1) {
-                var notif = jira.notifications.createNotification(feedEntry);
-                return notif.save();
+            	var notif = jira.notifications.createNotification(feedEntry);
+				if(notif)
+					return notif.save();
             }
         })
         .then(function (entries) {
@@ -153,7 +154,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
                 var lastObj = entries[entries.length - 1];
                 var lastObjDate = new Date(lastObj.updated['#text']);
 
-                if (entries.length == maxResults && jira.settings.lastSync < lastObjDate && currentPage < 5) {
+                if (entries.length == maxResults && jira.settings.lastSync < lastObjDate && currentPage < 2) {
                     return self.syncStream('/activity?streams=update-date+BEFORE+' + (lastObjDate.getTime() - 2000), maxResults, currentPage + 1);
                 }
             }

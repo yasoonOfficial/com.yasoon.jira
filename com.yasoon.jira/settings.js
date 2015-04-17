@@ -1,5 +1,16 @@
 function JiraSettingController() {
 	var self = this;
+	var defaults = { currentService: '',
+		lastSync: new Date( new Date().getTime() - (1000 * 60* 60* 24 * 30) ),// If nothing in db, set it to 30 days ago
+		showDesktopNotif: true,
+		showFeedAssignee: true,
+		showFeedMentioned: true,
+		showFeedWatcher: true,
+		showFeedProjectLead: false,
+		showFeedReporter: true,
+		showFeedCreator: true,
+		showFeedComment: true
+	};
 
 	self.renderSettingsContainer = function (container) {
 		if (!container) {
@@ -51,6 +62,48 @@ function JiraSettingController() {
 			'           <div class="checkbox">' +
 			'               <label>' +
 			'                   <input class="formValue" type="checkbox" id="showDesktopNotif" name="showDesktopNotif">' +
+			'               </label>' +
+			'           </div>' +
+			'       </div>' +
+			'   </div>' +
+			'   <div class="form-group" style="position:relative; margin-top:20px;">' +
+			'       <div class="col-sm-4 checkbox">' +
+			'           <b class="pull-right">Show feed entry for issue if</b>' +
+			'       </div>' +
+			'       <div class="col-sm-8">' +
+			'           <div class="checkbox">' +
+			'               <label>' +
+			'                   <input class="formValue" type="checkbox" id="showFeedAssignee" name="showFeedAssignee" disabled checked> I am the assignee' +
+			'               </label>' +
+			'           </div>' +
+			'           <div class="checkbox">' +
+			'               <label>' +
+			'                   <input class="formValue" type="checkbox" id="showFeedMentioned" name="showFeedMentioned" disabled checked> I have been mentioned' +
+			'               </label>' +
+			'           </div>' +
+			'           <div class="checkbox">' +
+			'               <label>' +
+			'                   <input class="formValue" type="checkbox" id="showFeedWatcher" name="showFeedWatcher"> I am watching the issue' +
+			'               </label>' +
+			'           </div>' +
+			'           <div class="checkbox">' +
+			'               <label>' +
+			'                   <input class="formValue" type="checkbox" id="showFeedProjectLead" name="showFeedProjectLead"> I am the project lead' +
+			'               </label>' +
+			'           </div>' +
+			'           <div class="checkbox">' +
+			'               <label>' +
+			'                   <input class="formValue" type="checkbox" id="showFeedReporter" name="showFeedReporter"> I am the reporter' +
+			'               </label>' +
+			'           </div>' +
+			'           <div class="checkbox">' +
+			'               <label>' +
+			'                   <input class="formValue" type="checkbox" id="showFeedCreator" name="showFeedCreator"> I am the creator' +
+			'               </label>' +
+			'           </div>' +
+			'           <div class="checkbox">' +
+			'               <label>' +
+			'                   <input class="formValue" type="checkbox" id="showFeedComment" name="showFeedComment"> I commented on the issue' +
 			'               </label>' +
 			'           </div>' +
 			'       </div>' +
@@ -169,9 +222,6 @@ function JiraSettingController() {
 	};
 
 	/****** Initial Load of settings */
-	self.lastSync = new Date( new Date().getTime() - (1000 * 60* 60* 24 * 30) ); // If nothing in db, set it to 30 days ago
-		
-
 	var urlString = yasoon.setting.getAppParameter('baseUrl');
 	if (urlString) {
 		self.baseUrl = urlString;
@@ -182,29 +232,29 @@ function JiraSettingController() {
 		jira.data = JSON.parse(dataString);
 	}
 
+	//Determine settings to load:
 	var settingsString = yasoon.setting.getAppParameter('settings');
+	var settings = null;
 	if (!settingsString) {
 		//Initial Settings
-		self.showDesktopNotif = true;
-		self.currentService = '';
+		settings = defaults;
+
 		var oAuthServices = yasoon.app.getOAuthServices();
 		if (oAuthServices.length === 1) {
-			self.currentService = oAuthServices[0].serviceName;
+			settings.currentService = oAuthServices[0].serviceName;
 		}
-		
-		yasoon.setting.setAppParameter('settings', JSON.stringify(self));
-
+		yasoon.setting.setAppParameter('settings', JSON.stringify(settings));
 	} else {
 		//Load Settings
-		var settings = JSON.parse(settingsString);
-		$.each(settings, function (key, value) {
-			self[key] = value;
-		});
-
-		self.lastSync = new Date(self.lastSync);
+		settings = JSON.parse(settingsString);
+		settings = $.extend(defaults, settings);
+		
 	}
-	
-	//
+
+	$.each(settings, function (key, value) {
+		self[key] = value;
+	});
+	self.lastSync = new Date(self.lastSync);
 }
 
 //@ sourceURL=http://Jira/settings.js

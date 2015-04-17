@@ -205,23 +205,23 @@ function JiraIssueNotification(issue) {
 			return true;
 		}
 		//Check if I'm creator , reporter or assignee
-		if (self.issue.fields.creator && self.issue.fields.creator.name === jira.data.ownUser.name) {
+		if (self.issue.fields.creator && self.issue.fields.creator.name === jira.data.ownUser.name && jira.settings.showFeedCreator) {
 		    jiraLog('creator equals');
 			return true;
 		}
 
-		if (self.issue.fields.reporter && self.issue.fields.reporter.name === jira.data.ownUser.name) {
+		if (self.issue.fields.reporter && self.issue.fields.reporter.name === jira.data.ownUser.name && jira.settings.showFeedReporter) {
 		    jiraLog('reporter equals');
 			return true;
 		}
 
-		if (self.issue.fields.assignee && self.issue.fields.assignee.name === jira.data.ownUser.name) {
+		if (self.issue.fields.assignee && self.issue.fields.assignee.name === jira.data.ownUser.name && jira.settings.showFeedAssignee) {
 		    jiraLog('assignee equals');
 			return true;
 		}
 
 		//Am I watcher?
-		if (self.issue.fields.watches.watchers) {
+		if (self.issue.fields.watches.watchers && jira.settings.showFeedWatcher) {
 			found = false;
 			$.each(self.issue.fields.watches.watchers, function (i, watcher) {
 				if (watcher.name === jira.data.ownUser.name) {
@@ -236,7 +236,7 @@ function JiraIssueNotification(issue) {
 		}
 
 		//Is it my own project? --> find project in buffer
-		if (jira.data.projects) {
+		if (jira.data.projects && jira.settings.showFeedProjectLead) {
 			var proj = $.grep(jira.data.projects, function (project) { return self.issue.fields.project.id === project.id; })[0];
 			if (proj && proj.lead && proj.lead.name === jira.data.ownUser.name) {
 			    jiraLog('Project Lead equals');
@@ -248,11 +248,11 @@ function JiraIssueNotification(issue) {
 		if (self.issue.fields.comment && self.issue.fields.comment.comments) {
 			found = false;
 			$.each(self.issue.fields.comment.comments, function (i, comment) {
-				if (comment.author && comment.author.name === jira.data.ownUser.name) {
+				if (comment.author && comment.author.name === jira.data.ownUser.name && jira.settings.showFeedComment) {
 					found = true;
 					return false;
 				}
-				if (comment.body && comment.body.indexOf('[~' + jira.data.ownUser.name + ']') > -1) {
+				if (comment.body && comment.body.indexOf('[~' + jira.data.ownUser.name + ']') > -1 && jira.settings.showFeedMentioned) {
 					found = true;
 					return false;
 				}

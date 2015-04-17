@@ -7,7 +7,8 @@ function JiraRibbonController() {
 		ribbonFactory.create({
 			type: 'contextMenus',
 			renderTo: [
-				'Microsoft.Outlook.Explorer'
+				'Microsoft.Outlook.Explorer',
+				'Microsoft.Outlook.Mail.Read'
 			],
 			items: [{
 				type: 'contextMenu',
