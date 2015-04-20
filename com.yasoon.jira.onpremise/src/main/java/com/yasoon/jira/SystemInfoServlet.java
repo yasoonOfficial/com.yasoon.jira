@@ -67,21 +67,30 @@ public class SystemInfoServlet extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-            Gson gson = new Gson();
             
+            Gson gson = new Gson();            
             ArrayList<JiraLicense> collectedLicenses = new ArrayList<JiraLicense>();
-            Iterable<LicenseDetails> licenses = licenseManager.getLicenses();
-            for(LicenseDetails licDetails : licenses) {
-                collectedLicenses.add(licDetails.getJiraLicense());
+            SystemInfo info = new SystemInfo();
+            
+            if(licenseManager != null) {
+                Iterable<LicenseDetails> licenses = licenseManager.getLicenses();
+                
+                if(licenses != null) {            
+                    for(LicenseDetails licDetails : licenses) {
+                        collectedLicenses.add(licDetails.getJiraLicense());
+                    }
+                }
+
+                info.setLicenses(collectedLicenses);
+                info.setServerId(licenseManager.getServerId());
             }
             
-            SystemInfo info = new SystemInfo();
-            info.setLicenses(collectedLicenses);
-            info.setServerId(licenseManager.getServerId());
+            ApplicationProperties props = ComponentAccessor.getApplicationProperties();
             
-            ApplicationProperties props = ComponentAccessor.getApplicationProperties();            
-            info.setBaseUrl(props.getString(APKeys.JIRA_BASEURL));
-            info.setVersion(props.getString(APKeys.JIRA_VERSION));
+            if(props != null) {            
+                info.setBaseUrl(props.getString(APKeys.JIRA_BASEURL));
+                info.setVersion(props.getString(APKeys.JIRA_VERSION));
+            }
             
             try {
                 Properties p = new Properties();

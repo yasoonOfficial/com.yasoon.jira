@@ -294,9 +294,10 @@ $(document).ready(function () {
             alert('Could not retrieve system information. Please contact us via the green help button, we\'ll fix this quickly.');
         });
     })
-    .fail(function () {
+    .fail(function (a, b, error) {
         console.log(arguments);
         alert('Could not retrieve system information. Please contact us via the green help button, we\'ll fix this quickly.');
+        alert('Please provide the following info: ' + error);
     });
 });
 
