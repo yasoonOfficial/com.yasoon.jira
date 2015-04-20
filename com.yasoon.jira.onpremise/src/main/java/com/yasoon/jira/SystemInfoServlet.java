@@ -7,20 +7,27 @@
 package com.yasoon.jira;
 
 import com.atlassian.event.api.EventPublisher;
+import com.atlassian.extras.api.LicenseEdition;
 import com.atlassian.extras.api.jira.JiraLicense;
 import com.atlassian.jira.component.ComponentAccessor;
 import com.atlassian.jira.config.properties.APKeys;
 import com.atlassian.jira.config.properties.ApplicationProperties;
 import com.atlassian.jira.license.JiraLicenseManager;
 import com.atlassian.jira.license.LicenseDetails;
+import com.atlassian.extras.api.LicenseType;
+import com.atlassian.jira.web.util.OutlookDate;
+import com.atlassian.jira.web.util.OutlookDateManager;
 import com.atlassian.sal.api.auth.LoginUriProvider;
 import com.atlassian.sal.api.user.UserManager;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Properties;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -38,12 +45,14 @@ public class SystemInfoServlet extends HttpServlet {
     private final JiraLicenseManager licenseManager;
     private final UserManager userManager;
     private final LoginUriProvider loginUriProvider;
+    private final OutlookDateManager dateManager;
     private static final Logger log = LoggerFactory.getLogger(LifecycleListener.class);
 
-    public SystemInfoServlet(JiraLicenseManager licenseManager, UserManager userManager, LoginUriProvider loginUriProvider) {
+    public SystemInfoServlet(JiraLicenseManager licenseManager, UserManager userManager, LoginUriProvider loginUriProvider, OutlookDateManager dateManager) {
         this.licenseManager = licenseManager;
         this.userManager = userManager;
         this.loginUriProvider = loginUriProvider;
+        this.dateManager = dateManager;
     }
     
     /**
@@ -69,16 +78,24 @@ public class SystemInfoServlet extends HttpServlet {
         try {
             
             Gson gson = new Gson();            
-            ArrayList<JiraLicense> collectedLicenses = new ArrayList<JiraLicense>();
+            ArrayList<JiraLicenseInfo> collectedLicenses = new ArrayList<JiraLicenseInfo>();
             SystemInfo info = new SystemInfo();
             
-            if(licenseManager != null) {
-                Iterable<LicenseDetails> licenses = licenseManager.getLicenses();
-                
-                if(licenses != null) {            
-                    for(LicenseDetails licDetails : licenses) {
-                        collectedLicenses.add(licDetails.getJiraLicense());
+            if(licenseManager != null) {                
+                //getLicenses was introduced in 6.3, ensure compat until 6.0
+                if(supportsMultipleLicenses(licenseManager)) {                
+                    Iterable<LicenseDetails> licenses = licenseManager.getLicenses();
+
+                    if(licenses != null) {            
+                        for(LicenseDetails licDetails : licenses) {
+                            JiraLicense jiraLicInfo = licDetails.getJiraLicense();
+                            collectedLicenses.add(new JiraLicenseInfo(jiraLicInfo));
+                        }
                     }
+                }
+                else {
+                    OutlookDate d = this.dateManager.getOutlookDate(Locale.ENGLISH);
+                    collectedLicenses.add(new JiraLicenseInfo(licenseManager.getLicense(), d));                    
                 }
 
                 info.setLicenses(collectedLicenses);
@@ -107,6 +124,19 @@ public class SystemInfoServlet extends HttpServlet {
         } finally {
             out.close();
         }
+    }
+    
+    private boolean supportsMultipleLicenses(JiraLicenseManager licenseManager) {
+        Class clazz = licenseManager.getClass();
+        Method[] methods = clazz.getMethods();
+        
+        for (Method method : methods) {
+            if (method.getName().equals("getLicenses")) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     private void redirectToLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -163,6 +193,288 @@ public class SystemInfoServlet extends HttpServlet {
 
 }
 
+final class JiraLicenseInfo {
+    public JiraLicenseInfo(JiraLicense jiraLic) {
+        setDescription(jiraLic.getDescription());
+        
+        if(jiraLic.getOrganisation() != null)        
+            setOrganisation(jiraLic.getOrganisation().getName());
+        
+        setCreationDate(jiraLic.getCreationDate());
+        setExpiryDate(jiraLic.getExpiryDate());
+        setPurchaseDate(jiraLic.getPurchaseDate());
+        
+        if(jiraLic.getPartner() != null)
+            setPartnerName(jiraLic.getPartner().getName());
+        
+        setMaximumNumberOfUsers(jiraLic.getMaximumNumberOfUsers());
+        setIsEvaluation(jiraLic.isEvaluation());        
+        setIsExpired(jiraLic.isExpired());
+        setMaintenanceExpiryDate(jiraLic.getMaintenanceExpiryDate());
+        setIsUnlimitedNumberOfUsers(jiraLic.isUnlimitedNumberOfUsers());
+        setLicenseEdition(jiraLic.getLicenseEdition());
+        setLicenseType(jiraLic.getLicenseType());
+    }
+    
+    public JiraLicenseInfo(LicenseDetails details, OutlookDate date) {
+        setDescription(details.getDescription());
+        setMaintenanceEndDate(details.getMaintenanceEndString(date));
+        setOrganisation(details.getOrganisation());
+        setPartnerName(details.getPartnerName());
+        setMaximumNumberOfUsers(details.getMaximumNumberOfUsers());
+        setPurchaseDateString(details.getPurchaseDate(date));
+        setIsCommercial(details.isCommercial());
+        setIsCommunity(details.isCommunity());
+        setIsDemonstration(details.isDemonstration());
+        setIsDeveloper(details.isDeveloper());
+        setIsEntitledToSupport(details.isEntitledToSupport());
+        setIsEvaluation(details.isEvaluation());
+        setIsExpired(details.isExpired());
+        setIsLicenseAlmostExpired(details.isLicenseAlmostExpired());
+        setIsLicenseSet(details.isLicenseSet());
+        setIsNonProfit(details.isNonProfit());
+        setIsOpenSource(details.isOpenSource());
+        setIsPersonalLicense(details.isPersonalLicense());
+        setIsStarter(details.isStarter());
+        setIsUnlimitedNumberOfUsers(details.isUnlimitedNumberOfUsers());
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public int getMaximumNumberOfUsers() {
+        return maximumNumberOfUsers;
+    }
+
+    public void setMaximumNumberOfUsers(int maximumNumberOfUsers) {
+        this.maximumNumberOfUsers = maximumNumberOfUsers;
+    }
+
+    public String getOrganisation() {
+        return organisation;
+    }
+
+    public void setOrganisation(String organisation) {
+        this.organisation = organisation;
+    }
+
+    public String getPartnerName() {
+        return partnerName;
+    }
+
+    public void setPartnerName(String partnerName) {
+        this.partnerName = partnerName;
+    }
+
+    public Date getMaintenanceExpiryDate() {
+        return maintenanceExpiryDate;
+    }
+
+    public void setMaintenanceExpiryDate(Date maintenanceExpiryDate) {
+        this.maintenanceExpiryDate = maintenanceExpiryDate;
+    }
+    
+    public boolean isIsCommercial() {
+        return isCommercial;
+    }
+
+    public void setIsCommercial(boolean isCommercial) {
+        this.isCommercial = isCommercial;
+    }
+
+    public boolean isIsCommunity() {
+        return isCommunity;
+    }
+
+    public void setIsCommunity(boolean isCommunity) {
+        this.isCommunity = isCommunity;
+    }
+
+    public boolean isIsDemonstration() {
+        return isDemonstration;
+    }
+
+    public void setIsDemonstration(boolean isDemonstration) {
+        this.isDemonstration = isDemonstration;
+    }
+
+    public boolean isIsDeveloper() {
+        return isDeveloper;
+    }
+
+    public void setIsDeveloper(boolean isDeveloper) {
+        this.isDeveloper = isDeveloper;
+    }
+
+    public boolean isIsEntitledToSupport() {
+        return isEntitledToSupport;
+    }
+
+    public void setIsEntitledToSupport(boolean isEntitledToSupport) {
+        this.isEntitledToSupport = isEntitledToSupport;
+    }
+
+    public boolean isIsEvaluation() {
+        return isEvaluation;
+    }
+
+    public void setIsEvaluation(boolean isEvaluation) {
+        this.isEvaluation = isEvaluation;
+    }
+
+    public boolean isIsExpired() {
+        return isExpired;
+    }
+
+    public void setIsExpired(boolean isExpired) {
+        this.isExpired = isExpired;
+    }
+
+    public boolean isIsLicenseAlmostExpired() {
+        return isLicenseAlmostExpired;
+    }
+
+    public void setIsLicenseAlmostExpired(boolean isLicenseAlmostExpired) {
+        this.isLicenseAlmostExpired = isLicenseAlmostExpired;
+    }
+
+    public boolean isIsLicenseSet() {
+        return isLicenseSet;
+    }
+
+    public void setIsLicenseSet(boolean isLicenseSet) {
+        this.isLicenseSet = isLicenseSet;
+    }
+
+    public boolean isIsNonProfit() {
+        return isNonProfit;
+    }
+
+    public void setIsNonProfit(boolean isNonProfit) {
+        this.isNonProfit = isNonProfit;
+    }
+
+    public boolean isIsOpenSource() {
+        return isOpenSource;
+    }
+
+    public void setIsOpenSource(boolean isOpenSource) {
+        this.isOpenSource = isOpenSource;
+    }
+
+    public boolean isIsPersonalLicense() {
+        return isPersonalLicense;
+    }
+
+    public void setIsPersonalLicense(boolean isPersonalLicense) {
+        this.isPersonalLicense = isPersonalLicense;
+    }
+
+    public boolean isIsStarter() {
+        return isStarter;
+    }
+
+    public void setIsStarter(boolean isStarter) {
+        this.isStarter = isStarter;
+    }
+
+    public boolean isIsUnlimitedNumberOfUsers() {
+        return isUnlimitedNumberOfUsers;
+    }
+
+    public void setIsUnlimitedNumberOfUsers(boolean isUnlimitedNumberOfUsers) {
+        this.isUnlimitedNumberOfUsers = isUnlimitedNumberOfUsers;
+    }
+
+    public String getPurchaseDateString() {
+        return purchaseDateString;
+    }
+
+    public void setPurchaseDateString(String purchaseDateString) {
+        this.purchaseDateString = purchaseDateString;
+    }
+
+    public Date getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(Date creationDate) {
+        this.creationDate = creationDate;
+    }
+
+    public Date getPurchaseDate() {
+        return purchaseDate;
+    }
+
+    public void setPurchaseDate(Date purchaseDate) {
+        this.purchaseDate = purchaseDate;
+    }
+
+    public Date getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(Date expiryDate) {
+        this.expiryDate = expiryDate;
+    }
+
+    public LicenseType getLicenseType() {
+        return licenseType;
+    }
+
+    public void setLicenseType(LicenseType licenseType) {
+        this.licenseType = licenseType;
+    }
+
+    public LicenseEdition getLicenseEdition() {
+        return licenseEdition;
+    }
+
+    public void setLicenseEdition(LicenseEdition licenseEdition) {
+        this.licenseEdition = licenseEdition;
+    }
+
+    public String getMaintenanceEndDate() {
+        return maintenanceEndDate;
+    }
+
+    public void setMaintenanceEndDate(String maintenanceEndDate) {
+        this.maintenanceEndDate = maintenanceEndDate;
+    }
+
+    private String description;
+    private int maximumNumberOfUsers;
+    private String organisation;
+    private String partnerName;
+    private String purchaseDateString;
+    private String maintenanceEndDate;
+    private boolean isCommercial;
+    private boolean isCommunity;
+    private boolean isDemonstration;
+    private boolean isDeveloper;
+    private boolean isEntitledToSupport;
+    private boolean isEvaluation;
+    private boolean isExpired;
+    private boolean isLicenseAlmostExpired;
+    private boolean isLicenseSet;
+    private boolean isNonProfit;
+    private boolean isOpenSource;
+    private boolean isPersonalLicense;
+    private boolean isStarter;
+    private boolean isUnlimitedNumberOfUsers;
+    private Date creationDate;
+    private Date purchaseDate;
+    private Date expiryDate;
+    private Date maintenanceExpiryDate;
+    private LicenseType licenseType;
+    private LicenseEdition licenseEdition;
+}
+
 class SystemInfo {
 
     public String getPluginVersion() {
@@ -181,11 +493,11 @@ class SystemInfo {
         this.version = version;
     }
 
-    public ArrayList<JiraLicense> getLicenses() {
+    public ArrayList<JiraLicenseInfo> getLicenses() {
         return licenses;
     }
 
-    public void setLicenses(ArrayList<JiraLicense> licenses) {
+    public void setLicenses(ArrayList<JiraLicenseInfo> licenses) {
         this.licenses = licenses;
     }
 
@@ -205,7 +517,7 @@ class SystemInfo {
         this.serverId = serverId;
     }
     
-    private ArrayList<JiraLicense> licenses;
+    private ArrayList<JiraLicenseInfo> licenses;
     private String baseUrl;
     private String version;
     private String pluginVersion;

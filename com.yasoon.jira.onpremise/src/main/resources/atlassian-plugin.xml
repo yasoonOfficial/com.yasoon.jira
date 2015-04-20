@@ -38,7 +38,7 @@
        <description>Class that processes the incoming JIRA issue events.</description>
     </component>
     
-    <web-item key="jira-menu-item" name="Outlook App" section="system.admin/globalsettings" weight="10" application="jira">
+    <web-item key="jira-menu-item" name="Outlook App" section="admin_plugins_menu/integrations_section" weight="10" application="jira">
         <description>Link to Jira for Outlook admin page.</description> 
         <label key="jiraforoutlook.admin.label" /> 
         <link linkId="jiraforoutlook-admin-link">/plugins/servlet/jiraforoutlook/admin</link> 
