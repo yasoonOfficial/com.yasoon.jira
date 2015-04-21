@@ -24,6 +24,20 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
  
 	this.lifecycle = function(action, oldVersion, newVersion) {
 		if (action === yasoon.lifecycle.Upgrade) {
+			if (newVersion == "0.6.1") {
+				var oAuthServices = yasoon.app.getOAuthServices();
+				if (oAuthServices.length > 0) {
+					var authedServices = oAuthServices.filter(function (element) { return !!element.accessToken; });
+					if (authedServices.length > 0) {
+						var data = yasoon.setting.getAppParameter('settings');
+						if (data) {
+							data = JSON.parse(data);
+							data.currentService = authedServices[0].serviceName;
+							yasoon.setting.setAppParameter('settings', JSON.stringify(data));
+						}
+					}
+				}
+			}
 		}
 	};
 

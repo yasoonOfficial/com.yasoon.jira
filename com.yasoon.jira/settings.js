@@ -1,6 +1,7 @@
 function JiraSettingController() {
 	var self = this;
-	var defaults = { currentService: '',
+	var defaults = {
+		currentService: '',
 		lastSync: new Date( new Date().getTime() - (1000 * 60* 60* 24 * 30) ),// If nothing in db, set it to 30 days ago
 		showDesktopNotif: true,
 		showFeedAssignee: true,
