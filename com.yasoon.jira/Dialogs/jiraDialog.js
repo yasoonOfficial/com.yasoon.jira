@@ -272,6 +272,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				}
 				yasoon.setting.setAppParameter('createTemplates', JSON.stringify(templates));
 			}
+			console.log('Send Data:', result);
 			//Switch for edit or create
 			var url = self.settings.baseUrl + '/rest/api/2/issue';
 			var method = yasoon.ajaxMethod.Post;
@@ -857,12 +858,14 @@ function UIFormHandler() {
 	            //{"epicNames":[{"key":"SSP-24","name":"Epic 1"},{"key":"SSP-25","name":"Epic 2"}],"total":2}
 	            var epics = JSON.parse(data);
 	            var result = [];
+	            var oldValue = $('#' + id).data('value');
 	            if (epics && epics.total > 0) {
 	                $.each(epics.epicNames, function (i, epic) {
 	                    $(container).find('#' + id).append('<option value="' + epic.key + '"> ' + epic.name + ' ( ' + epic.key + ' )</option>');
 	                });
 	            }
 	            $('#' + id).select2();
+	            $('#' + id).select2('val', oldValue);
 	        }
 	    });
 	    
@@ -890,12 +893,14 @@ function UIFormHandler() {
 	            //{"suggestions":[{"name":"Sample Sprint 2","id":1,"stateKey":"ACTIVE"}],"allMatches":[]}
 	            var sprints = JSON.parse(data);
 	            var result = [];
+	            var oldValue = $('#' + id).data('value');
 	            if (sprints && sprints.suggestions.length > 0) {
 	                $.each(sprints.suggestions, function (i, sprint) {
 	                    $(container).find('#'+id).append('<option value="' + sprint.id + '"> ' + sprint.name + '</option>');
 	                });
 	            }
 	            $('#' + id).select2();
+	            $('#' + id).select2('val', oldValue);
 	        }
 	    });
 
@@ -970,11 +975,50 @@ function UIFormHandler() {
 							    case 'com.atlassian.jira.plugin.system.customfieldtypes:textfield':
 							    case 'com.atlassian.jira.plugin.system.customfieldtypes:textarea':
 							    case 'com.atlassian.jira.plugin.system.customfieldtypes:url':
-							    case 'com.pyxis.greenhopper.jira:gh-sprint':
                                     if(elem.val())
 									    result.fields[key] = elem.val();
 									break;
-
+								case 'com.pyxis.greenhopper.jira:gh-sprint':
+									
+									if (elem.val() && !jira.editIssue)
+										result.fields[key] = elem.val();
+									else if (jira.editIssue) {
+										var sprintId = '';
+										if (jira.editIssue.fields[key])
+											sprintId = parseSprintId(jira.editIssue.fields[key][0]);
+										if (sprintId != elem.val()) {
+											if (elem.val()) {
+												yasoon.oauth({
+													url: 'https://yasoon.atlassian.net/rest/greenhopper/1.0/sprint/rank',
+													oauthServiceName: jira.settings.currentService,
+													type: yasoon.ajaxMethod.Put,
+													data: '{"idOrKeys":["' + jira.editIssue.key + '"],"sprintId":' + elem.val() + ',"addToBacklog":false}',
+													headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck' },
+													error: function (data, statusCode, result, errorText, cbkParam) {
+														yasoon.util.log('Error on Sprint add: ' + result);
+													},
+													success: function (data) {
+														yasoon.util.log('Success on Sprint add: ' + data);
+													}
+												});
+											} else {
+												yasoon.oauth({
+													url: 'https://yasoon.atlassian.net/rest/greenhopper/1.0/sprint/rank',
+													oauthServiceName: jira.settings.currentService,
+													type: yasoon.ajaxMethod.Put,
+													data: '{"idOrKeys":["' + jira.editIssue.key + '"],"sprintId":"","addToBacklog":true}',
+													headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck' },
+													error: function (data, statusCode, result, errorText, cbkParam) {
+														yasoon.util.log('Error on Sprint remove: ' + result);
+													},
+													success: function (data) {
+														yasoon.util.log('Success on Sprint remove: ' + data);
+													}
+												});
+											}
+										}
+									}
+									break;
 							    case 'com.atlassian.jira.plugin.system.customfieldtypes:float':
 							        var float = parseFloat(elem.val());
                                     if(float)
@@ -1006,9 +1050,42 @@ function UIFormHandler() {
                                     if(elem.val())
 							            result.fields[key] = { id: elem.val() };
                                     break;
-							    case 'com.pyxis.greenhopper.jira:gh-epic-link':
-							        if (elem.val())
-							            result.fields[key] = 'key:'+ elem.val();
+								case 'com.pyxis.greenhopper.jira:gh-epic-link':
+									if (!jira.editIssue && elem.val()) {
+										result.fields[key] = 'key:' + elem.val();
+									}
+							    	else if (jira.editIssue && jira.editIssue.fields[key] != elem.val())
+							    	{
+							    		//Time to make it dirty! Epic links cannot be changed via REST APi --> Status code 500
+							    		// Ticket: https://jira.atlassian.com/browse/GHS-10333
+							    		//There is a workaround --> update it via unofficial greenhopper API --> that completely breaks ou concept so just do it now and do not return an result
+							    		if (elem.val()) {
+							    			//Create or update
+							    			yasoon.oauth({
+							    				url: jira.settings.baseUrl + '/rest/greenhopper/1.0/epics/' + elem.val() +'/add',
+							    				oauthServiceName: jira.settings.currentService,
+							    				type: yasoon.ajaxMethod.Put,
+							    				data: '{ "issueKeys":["' + jira.editIssue.key +'"] }',
+							    				headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck' },
+							    				error: function (data, statusCode, result, errorText, cbkParam) {
+							    					yasoon.util.log('Error on EpicLink add: ' + result);
+							    				}
+							    			});
+							    		} else {
+							    			//Delete
+							    			yasoon.oauth({
+							    				url: jira.settings.baseUrl + '/rest/greenhopper/1.0/epics/remove',
+							    				oauthServiceName: jira.settings.currentService,
+							    				type: yasoon.ajaxMethod.Put,
+							    				data: '{ "issueKeys":["'+ jira.editIssue.key +'"] }',
+							    				headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck' },
+							    				error: function (data, statusCode, result, errorText, cbkParam) {
+							    					yasoon.util.log('Error on EpicLink remove: ' + result);
+
+							    				}
+							    			});
+							    		}
+							    	}
 							        break;
 							    case 'com.atlassian.jira.plugin.system.customfieldtypes:multiselect':
 							        var selectedValues = [];
@@ -1064,19 +1141,15 @@ function UIFormHandler() {
 		                	case 'com.pyxis.greenhopper.jira:gh-sprint':
 		                		if (issue.fields[key] && issue.fields[key].length > 0) {
 		                			//Wierd --> it's an array of strings with following structure:  "com.atlassian.greenhopper.service.sprint.Sprint@7292f4[rapidViewId=<null>,state=ACTIVE,name=Sample Sprint 2,startDate=2015-04-09T01:54:26.773+02:00,endDate=2015-04-23T02:14:26.773+02:00,completeDate=<null>,sequence=1,id=1]"
-		                			var sprintString = issue.fields[key][0];
-		                			var splitResult = sprintString.split(',');
-		                			var idObj = splitResult.filter(function (elem) { return elem.indexOf('id') === 0; });
-		                			if (idObj.length > 0) {
-		                				idObj = idObj[0].split('=')[1];
-		                				$('#' + key).select2('val', idObj);
-		                			}
+		                			$('#' + key).select2('val', parseSprintId(issue.fields[key][0]));
+		                			$('#' + key).data('value', parseSprintId(issue.fields[key][0]));
 		                		}
 		                		break;
 		                	case 'com.atlassian.jira.plugin.system.customfieldtypes:labels':
 		                	case 'com.pyxis.greenhopper.jira:gh-epic-link':
 		                        if (issue.fields[key]) {
-		                            $('#' + key).select2('val', issue.fields[key]);
+		                        	$('#' + key).select2('val', issue.fields[key]);
+		                        	$('#' + key).data('value', issue.fields[key]);
 		                        }
 		                        break;
 		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:multiselect':
@@ -1173,5 +1246,15 @@ function jiraCreateHash(input) {
 	return hash;
 }
 
+function parseSprintId(input) {
+	var result = '';
+	var splitResult = input.split(',');
+	var idObj = splitResult.filter(function (elem) { return elem.indexOf('id') === 0; });
+	if (idObj.length > 0) {
+		result = idObj[0].split('=')[1].replace(']', '');
+	}
+
+	return result;
+}
 
  
