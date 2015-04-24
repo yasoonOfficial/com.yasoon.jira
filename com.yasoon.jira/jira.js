@@ -83,6 +83,19 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 					return id;
 				}
 			},
+			{
+				name: 'By Reporter',
+				jsonPath: 'fields.reporter.emailAddress',
+				label: function (name, id) {
+					//if (jira.data.issueTypes) {
+					//	var issueType = $.grep(jira.data.issueTypes, function (i) { return i.id === id; })[0];
+					//	if (issueType) {
+					//		return issueType.name;
+					//	}
+					//}
+					return id;
+				}
+			}
 		]);
 		yasoon.on("sync", jira.sync);
 		yasoon.app.on("oAuthSuccess", jira.sync);

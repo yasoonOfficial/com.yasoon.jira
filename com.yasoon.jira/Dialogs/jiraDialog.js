@@ -839,7 +839,7 @@ function UIFormHandler() {
 	    var html = '<div class="field-group input-field">' +
            '    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
            '    <select data-container-class="issuetype-ss" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.pyxis.greenhopper.jira:gh-epic-link">' +
-           '        <option></option>'+
+           '        <option value="">None</option>'+
            '    </select>' +
            '</div>';
 
@@ -872,7 +872,7 @@ function UIFormHandler() {
 	    var html = '<div class="field-group input-field">' +
            '    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
            '    <select data-container-class="issuetype-ss" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.pyxis.greenhopper.jira:gh-sprint">' +
-           '        <option></option>' +
+           '        <option value="">None</option>'+
            '    </select>' +
            '</div>';
 
@@ -1056,14 +1056,25 @@ function UIFormHandler() {
 		                        break;
 		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:datetime':
 		                        break;
-		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:select':
-		                    case 'com.pyxis.greenhopper.jira:gh-epic-link':
-		                    case 'com.pyxis.greenhopper.jira:gh-sprint':
+		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:select':		                    
 		                        if (issue.fields[key]) {
 		                            $('#' + key).select2('val', issue.fields[key].id);
 		                        }
 		                        break;
-		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:labels':
+		                	case 'com.pyxis.greenhopper.jira:gh-sprint':
+		                		if (issue.fields[key] && issue.fields[key].length > 0) {
+		                			//Wierd --> it's an array of strings with following structure:  "com.atlassian.greenhopper.service.sprint.Sprint@7292f4[rapidViewId=<null>,state=ACTIVE,name=Sample Sprint 2,startDate=2015-04-09T01:54:26.773+02:00,endDate=2015-04-23T02:14:26.773+02:00,completeDate=<null>,sequence=1,id=1]"
+		                			var sprintString = issue.fields[key][0];
+		                			var splitResult = sprintString.split(',');
+		                			var idObj = splitResult.filter(function (elem) { return elem.indexOf('id') === 0; });
+		                			if (idObj.length > 0) {
+		                				idObj = idObj[0].split('=')[1];
+		                				$('#' + key).select2('val', idObj);
+		                			}
+		                		}
+		                		break;
+		                	case 'com.atlassian.jira.plugin.system.customfieldtypes:labels':
+		                	case 'com.pyxis.greenhopper.jira:gh-epic-link':
 		                        if (issue.fields[key]) {
 		                            $('#' + key).select2('val', issue.fields[key]);
 		                        }

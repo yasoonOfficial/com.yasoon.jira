@@ -1,5 +1,6 @@
 var authToken = '';
 var serverUrl = 'https://store.yasoon.com';
+var isInstanceRegistered = false;
 
 $(document).ready(function () {
     $.ajax({
@@ -23,7 +24,8 @@ $(document).ready(function () {
                 url: serverUrl + '/jira/isInstanceRegistered',
                 data: { serverId: serverId },
                 type: 'GET'
-        }).done(function(data) {
+        }).done(function (data) {
+        	isInstanceRegistered = data.registered;
                 if(data.registered) {
                         if($.cookie('yasoonAuthToken')) {
                             authToken = $.cookie('yasoonAuthToken');
@@ -242,51 +244,62 @@ $(document).ready(function () {
                         licenseInfo: systemInfo.licenses
                     };
                         
-                    $.ajax({
-                        url: serverUrl + '/jira/install',
-                        contentType: 'application/json',
-                        data: JSON.stringify(instanceData),
-                        processData: false,
-                        type: 'POST'
-                    }).done(function (result) {
+                	//Login
+                    if (isInstanceRegistered) {
+                    	$('#RegisteredArea').show();
+                    	$('#LoginArea').hide();
+                    	checkAppLink();
+                    	checkDownloadLink();
+                    	checkProduct();
+                    } else {
+                    	$.ajax({
+                    		url: serverUrl + '/api/user/auth',
+                    		contentType: 'application/json',
+                    		data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
+                    		processData: false,
+                    		type: 'POST'
+                    	})
+						.done(function (auth) {
+							authToken = auth;
+							$.cookie('yasoonAuthToken', authToken);
+							$('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
 
-                        //Login
-                        $.ajax({
-                            url: serverUrl + '/api/user/auth',
-                            contentType: 'application/json',
-                            data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
-                            processData: false,
-                            type: 'POST'
-                        }).done(function (auth) {
-                            authToken = auth;
-                            $.cookie('yasoonAuthToken', authToken);
-                            $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
-                            
-                            $.ajax({
-                                url: serverUrl + '/jira/assigncompany',
-                                contentType: 'application/json',
-                                data: JSON.stringify({ serverId: serverId }),
-                                headers: { userAuthToken: authToken },
-                                processData: false,
-                                type: 'POST'
-                            }).done(function () {
-                                $('#RegisteredArea').show();
-                                $('#LoginArea').hide();
-                                checkAppLink();
-                                checkDownloadLink();
-                                checkProduct();
-                            }).fail(function (jxqr, e) {
-                                Raven.captureMessage('Error during assignCompany: ' + e);
-                                alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
-                            });
-                        }).fail(function (jxqr, e) {
-                            Raven.captureMessage('Error during login: ' + e);                                 
-                            alert('Login failed, probably invalid credentials.');
-                        });
-                    }).fail(function (jxqr, e) {
-                        Raven.captureMessage('Error during install: ' + e);                                 
-                        alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
-                    });
+							$.ajax({
+								url: serverUrl + '/jira/install',
+								contentType: 'application/json',
+								data: JSON.stringify(instanceData),
+								processData: false,
+								type: 'POST'
+							})
+							.done(function (result) {
+								$.ajax({
+									url: serverUrl + '/jira/assigncompany',
+									contentType: 'application/json',
+									data: JSON.stringify({ serverId: serverId }),
+									headers: { userAuthToken: authToken },
+									processData: false,
+									type: 'POST'
+								}).done(function () {
+									$('#RegisteredArea').show();
+									$('#LoginArea').hide();
+									checkAppLink();
+									checkDownloadLink();
+									checkProduct();
+								}).fail(function (jxqr, e) {
+									Raven.captureMessage('Error during assignCompany: ' + e);
+									alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
+								});
+							})
+							.fail(function (jxqr, e) {
+								Raven.captureMessage('Error during install: ' + e);
+								alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
+							});
+						})
+						.fail(function (jxqr, e) {
+							Raven.captureMessage('Error during login: ' + e);
+							alert('Login failed, probably invalid credentials.');
+						});
+                    }
                 });
         })
         .fail(function (jxqr, e) {
@@ -323,7 +336,7 @@ function checkProduct() {
         if (!product || new Date(product.validUntil).getTime() < new Date().getTime()) {
             //License Outdated
             $('#licenseStatus').removeClass('panel-success').removeClass('panel-warning').addClass('panel-danger');
-        } else if (new Date(product.validUntil).getTime() < new Date(2099, 11, 1).getTime()) {
+        } else if (new Date(product.validUntil).getTime() < new Date(2099, 10, 1).getTime()) {
             $('#JiraExpirationDate').text(new Date(product.validUntil).toLocaleDateString());
             $('#licenseStatus').removeClass('panel-success').removeClass('panel-danger').addClass('panel-warning');
         } else {
