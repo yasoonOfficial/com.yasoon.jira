@@ -15,11 +15,36 @@ function createTemplate(email, sender, project, values) {
 	this.senderEmail = email;
 	this.senderName = sender;
 	this.project = project;
-    //Create deep copy
+	//Create deep copy
 	values = JSON.parse(JSON.stringify(values));
 	delete values.summary;
 	delete values.description;
 	this.values = values;
+}
+
+function submitErrorHandler(data, statusCode, result, errorText, cbkParam) {
+	$('#JiraSpinner').hide();
+	$('#create-issue-submit').removeAttr("disabled");
+	result = JSON.parse(result);
+
+	//Parse different error messages
+	var error = '';
+	if(result.errors && result.errors.summary)
+		error = result.errors.summary;
+	else if(result.errorMessages && result.errorMessages.length > 0)
+		error = result.errorMessages[0];
+	else 
+		error = JSON.stringify(result);
+
+	alert('Sorry, that did not work. Check your input and try again. ' + error);
+	jira.transaction.currentCallCounter = -1;
+}
+
+function submitSuccessHandler(data) {
+	jira.transaction.currentCallCounter--;
+
+	if(jira.transaction.currentCallCounter === 0)
+		jira.close({ action: 'success' });
 }
 
 yasoon.dialog.load(new function () { //jshint ignore:line
@@ -41,6 +66,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		self.editIssue = initParams.editIssue;
 		self.fromTemplate = false;
 		self.mail = initParams.mail;
+		self.currentMeta = null;
+		self.transaction = { currentCallCounter: 0, errorOccured: null };
 
 		self.currentTemplates = [];
 		self.projects = [];
@@ -74,18 +101,18 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				group.show();
 			}
 
-		    //Take over Subject
+			//Take over Subject
 			if (self.mail.subject) {
-			    $('#summary').val(self.mail.subject);
+				$('#summary').val(self.mail.subject);
 			}
 
-		    //Check for attachments
+			//Check for attachments
 			if (self.mail.attachments && self.mail.attachments.length > 0) {
-			    $.each(self.mail.attachments, function (i, attachment) {
-			        var handle = attachment.getFileHandle();
-			        var id = yasoon.clipboard.addFile(handle);
-			        self.addedAttachmentIds.push(id);
-			    });
+				$.each(self.mail.attachments, function (i, attachment) {
+					var handle = attachment.getFileHandle();
+					var id = yasoon.clipboard.addFile(handle);
+					self.addedAttachmentIds.push(id);
+				});
 			}
 		}
 
@@ -140,7 +167,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 			//Load issue Meta in edit case!
 			yasoon.oauth({
-				url: self.settings.baseUrl + '/rest/api/2/issue/'+self.editIssue.id+'?expand=editmeta,renderedFields,transitions,changelog,operations',
+				url: self.settings.baseUrl + '/rest/api/2/issue/'+self.editIssue.id+'?expand=editmeta,renderedFields,transitions,changelog,operations,names',
 				oauthServiceName: jira.settings.currentService,
 				headers: jira.CONST_HEADER,
 				type: yasoon.ajaxMethod.Get,
@@ -177,6 +204,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		//Submit Button - (Create & Edit)
 		$('#create-issue-submit').unbind().click(function (e) {
+			jira.transaction.currentCallCounter = 0;
 			$('#MainAlert').hide();
 			var result = {
 				fields: {}
@@ -253,7 +281,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			}
 
 			//Get Custom Fields
-			self.UIFormHandler.getFormData(projectMeta, result);
+			self.UIFormHandler.getFormData(result);
 
 			//Save Template if created by Email
 			if (self.mail) {
@@ -280,18 +308,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				url = url + '/' + self.editIssue.key;
 				method = yasoon.ajaxMethod.Put;
 			}
+			jira.transaction.currentCallCounter++;
 			yasoon.oauth({
 				url:url,
 				oauthServiceName: jira.settings.currentService,
 				headers: jira.CONST_HEADER,
 				data: JSON.stringify(result),
 				type: method,
-				error: function (data, statusCode, result, errorText, cbkParam) {
-					$('#JiraSpinner').hide();
-					$('#create-issue-submit').removeAttr("disabled");
-					var error = (JSON.parse(result).errors.summary) ? JSON.parse(result).errors.summary : JSON.stringify(JSON.parse(result).errors);
-					alert('Sorry, that did not work. Check your input and try again. ' + error);
-				},
+				error: submitErrorHandler,
 				success: function (data) {
 					if (self.selectedAttachments.length > 0 && data) {
 						var issue = JSON.parse(data);
@@ -311,16 +335,19 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 							formData: formData,
 							headers: { Accept: 'application/json', 'X-Atlassian-Token': 'nocheck' },
 							error: function (data, statusCode, result, errorText, cbkParam) {
-								self.close({ action: 'success' });
+								jira.transaction.currentCallCounter--;
 								yasoon.dialog.showMessageBox('Issue ' + issue.key + ' created, but uploading the attachments did not work.');
 
+								if(jira.transaction.currentCallCounter === 0)
+									self.close({ action: 'success' });
+
 							},
-							success: function (data) {
-								self.close({ action: 'success' });
-							}
+							success: submitSuccessHandler
 						});
 					} else {
-						self.close({ action: 'success' });
+						jira.transaction.currentCallCounter--;
+						if(jira.transaction.currentCallCounter === 0)
+							self.close({ action: 'success' });
 					}
 				}
 			});
@@ -347,12 +374,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			// due to pending dialog.close
 			yasoon.dialog.clearEvents();
 
-		    //If there has been attachments loaded into yasoon clipboard, we need to remove them
-		    if (self.addedAttachmentIds.length > 0) {
-		        $.each(self.addedAttachmentIds, function (i, handleId) {
-		            yasoon.clipboard.remove(handleId);
-		        });
-		    }
+			//If there has been attachments loaded into yasoon clipboard, we need to remove them
+			if (self.addedAttachmentIds.length > 0) {
+				$.each(self.addedAttachmentIds, function (i, handleId) {
+					yasoon.clipboard.remove(handleId);
+				});
+			}
 
 			yasoon.dialog.close({ action: 'success' });
 		}
@@ -381,15 +408,20 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			return;
 
 		//Find Meta for current Issue Type
-		var metaIssue = $.grep(meta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
+		if (meta.issuetypes) {
+			jira.currentMeta = $.grep(meta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
+		} else {
+			jira.currentMeta = meta;
+		}
 
-		if (metaIssue) {
+		if (jira.currentMeta) {
 			//Init Data - hide everything and cleanup custom fields --> generate them afterwards again based on new meta
 			$('.field-group').hide();
+			$('.icon-required').hide();
 			$('#ContainerCustomFields').html('');
 
 			//Apply new meta
-			$.each(metaIssue.fields, function (key, value) {
+			$.each(jira.currentMeta.fields, function (key, value) {
 				//Handle Priority
 				if (key === 'priority') {
 					$('#priority').html('');
@@ -412,8 +444,17 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 				//Show/Hide Standard Fields
 				if ($('#' + key).length > 0) {
+					//Show Field
 					$('#' + key).closest('.field-group').show();
+					//Set Custom Description
+					$('#' + key).closest('.field-group').find('label').children('.descr').html(value.name);
+					//Set Custom Description
+					if(value.required)
+						$('#' + key).closest('.field-group').find('label').children('.icon-required').show();
 				}
+
+				
+
 				//Handle Custom Fields
 				if (key.indexOf('customfield_') > -1) {
 					self.UIFormHandler.render(key, value, $('#ContainerCustomFields'));
@@ -437,7 +478,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					project = $.grep(self.projects, function (proj) { return proj.id === projId; })[0];
 					edit = true;
 					self.editIssue = template.values;
-				    //Legacy code 0.6 --> description and summary have been saved inside the template
+					//Legacy code 0.6 --> description and summary have been saved inside the template
 					delete self.editIssue.summary;
 					delete self.editIssue.description;
 
@@ -457,6 +498,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			//Show Loader!
 			$('#ContentArea').hide();
 			$('#LoaderArea').show();
+
 			$.when(
 				self.getProjectValues(),
 				self.getComponents(),
@@ -465,58 +507,64 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				self.getMetaData(),
 				self.getLabels()
 			).done(function () {
-				//Handle edit case
-			    if (edit) {
-			        //Set Text data
-			        if (self.editIssue.fields.summary)
-			            $('#summary').val(self.editIssue.fields.summary);
-			        if (self.editIssue.fields.duedate)
-			            $('#duedate').val(moment(new Date(self.editIssue.fields.duedate)).format('YYYY/MM/DD'));
-			        if (self.editIssue.fields.enviroment)
-			            $('#enviroment').val(self.editIssue.fields.enviroment);
-			        if (self.editIssue.fields.description)
-			            $('#description').val(self.editIssue.fields.description);
+				if (edit) {
+					self.updateCustomFields(self.editIssue.editmeta);
+
+					//Set Text data
+					if (self.editIssue.fields.summary && self.currentMeta.fields.summary)
+						$('#summary').val(self.editIssue.fields.summary);
+					if (self.editIssue.fields.duedate && self.currentMeta.fields.duedate)
+						$('#duedate').val(moment(new Date(self.editIssue.fields.duedate)).format('YYYY/MM/DD'));
+					if (self.editIssue.fields.enviroment && self.currentMeta.fields.enviroment)
+						$('#enviroment').val(self.editIssue.fields.enviroment);
+					if (self.editIssue.fields.description && self.currentMeta.fields.description)
+						$('#description').val(self.editIssue.fields.description);
 
 					//Project Data
 					$("#issuetype").select2('val', self.editIssue.fields.issuetype.id);
 
-					if(!self.fromTemplate)
+					if (!self.fromTemplate)
 						$("#issuetype").select2('enable', false);
 
-					$("#priority").select2('val', self.editIssue.fields.priority.id);
+					if(self.currentMeta.fields.priority)
+						$("#priority").select2('val', self.editIssue.fields.priority.id);
 
 					//Components
-					var comps = [];
-					$.each(self.editIssue.fields.components, function (i, comp) {
-						comps.push(comp.id);
-					});
-					$('#components').select2('val', comps);
+					if (self.currentMeta.fields.components) {
+						var comps = [];
+						$.each(self.editIssue.fields.components, function (i, comp) {
+							comps.push(comp.id);
+						});
+						$('#components').select2('val', comps);
+					}
 
 					//Versions
-					var fixVers = [];
-					$.each(self.editIssue.fields.fixVersions, function (i, version) {
-						fixVers.push(version.id);
-					});
-					$('#fixVersions').select2('val', fixVers);
-
-					var vers = [];
-					$.each(self.editIssue.fields.versions, function (i, version) {
-						vers.push(version.id);
-					});
-					$('#versions').select2('val', vers);
-
+					if (self.currentMeta.fields.fixVersions) {
+						var fixVers = [];
+						$.each(self.editIssue.fields.fixVersions, function (i, version) {
+							fixVers.push(version.id);
+						});
+						$('#fixVersions').select2('val', fixVers);
+					}
+					if (self.currentMeta.fields.versions) {
+						var vers = [];
+						$.each(self.editIssue.fields.versions, function (i, version) {
+							vers.push(version.id);
+						});
+						$('#versions').select2('val', vers);
+					}
 					//User
-					if (self.editIssue.fields.assignee) {
+					if (self.editIssue.fields.assignee && self.currentMeta.fields.assignee) {
 						$('#assignee').select2('val', self.editIssue.fields.assignee.id);
 					}
 
 					//Labels
-					if (self.editIssue.fields.labels) {
+					if (self.editIssue.fields.labels && self.currentMeta.fields.labels) {
 						$('#labels').select2('val', self.editIssue.fields.labels);
 					}
 
-				    //Set Custom Fields
-					self.UIFormHandler.setFormData(projectMeta, self.editIssue);
+					//Set Custom Fields
+					self.UIFormHandler.setFormData(self.editIssue);
 				}
 
 				$('#IssueArea').show();
@@ -545,8 +593,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 						return -1;
 				});
 				$.each(project.issueTypes, function (i, type) {
-					type.iconUrl = jira.icons.mapIconUrl(type.iconUrl);
-					$('#issuetype').append('<option data-icon="' + type.iconUrl + '" value="' + type.id + '">' + type.name + '</option>');
+					if (!type.subtask) {
+						type.iconUrl = jira.icons.mapIconUrl(type.iconUrl);
+						$('#issuetype').append('<option data-icon="' + type.iconUrl + '" value="' + type.id + '">' + type.name + '</option>');
+					}
 				});
 
 				$("#issuetype").select2({
@@ -721,8 +771,8 @@ function UIFormHandler() {
 	}
 	
 	function renderCheckboxes(id, field, container) {
-	    var html = '<div class="field-group" id="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes">' +
-            '    <label>' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ';
+		var html = '<div class="field-group" id="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes">' +
+			'    <label>' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ';
 		$.each(field.allowedValues, function (i, option) {
 			html += '   <div class="checkbox">' +
 				   '       <label><input type="checkbox" value="' + option.id +'">' + option.value +
@@ -742,13 +792,13 @@ function UIFormHandler() {
 		$(container).append(html);
 
 		$('#' + id).datepicker({
-		    showOtherMonths: true,
-		    selectOtherMonths: true,
-		    dateFormat: 'yy/mm/dd'
+			showOtherMonths: true,
+			selectOtherMonths: true,
+			dateFormat: 'yy/mm/dd'
 		});
 
 		$('#'+ id +'-trigger').unbind().click(function (e) {
-		    $('#' + id).datepicker("show");
+			$('#' + id).datepicker("show");
 		});
 
 	}
@@ -758,34 +808,34 @@ function UIFormHandler() {
 	}
 
 	function renderLabels(id, field, container) {
-	    var html = '<div class="field-group aui-field-componentspicker frother-control-renderer">' +
-                   '    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-                   '    <div class="long-field">' + 
-                   '        <input class="text input-field" id="' + id + '" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:labels"></input>' +
-                   '    </div>'+
-                   '</div>';
+		var html = '<div class="field-group aui-field-componentspicker frother-control-renderer">' +
+				   '    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+				   '    <div class="long-field">' + 
+				   '        <input class="text input-field" id="' + id + '" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:labels"></input>' +
+				   '    </div>'+
+				   '</div>';
 
-	    $(container).append(html);
-	    yasoon.oauth({
-	        url: jira.settings.baseUrl + '/rest/api/1.0/labels/suggest?customFieldId='+ field.schema.customId +'&query=',
-	        oauthServiceName: jira.settings.currentService,
-	        headers: jira.CONST_HEADER,
-	        type: yasoon.ajaxMethod.Get,
-	        error: jira.handleError,
-	        success: function (data) {
-	            var labels = JSON.parse(data);
-	            var labelArray = [];
-	            if (labels.suggestions) {
-	                $.each(labels.suggestions, function (i, label) {
-	                    labelArray.push(label.label);
-	                });
-	            }
-	            $('#' + id).select2({
-	                tags: labelArray,
-	                tokenSeparators: [" "]
-	            });
-	        }
-	    });
+		$(container).append(html);
+		yasoon.oauth({
+			url: jira.settings.baseUrl + '/rest/api/1.0/labels/suggest?customFieldId='+ field.schema.customId +'&query=',
+			oauthServiceName: jira.settings.currentService,
+			headers: jira.CONST_HEADER,
+			type: yasoon.ajaxMethod.Get,
+			error: jira.handleError,
+			success: function (data) {
+				var labels = JSON.parse(data);
+				var labelArray = [];
+				if (labels.suggestions) {
+					$.each(labels.suggestions, function (i, label) {
+						labelArray.push(label.label);
+					});
+				}
+				$('#' + id).select2({
+					tags: labelArray,
+					tokenSeparators: [" "]
+				});
+			}
+		});
 	}
 
 	function renderNumber(id, field, container) {
@@ -798,43 +848,43 @@ function UIFormHandler() {
 	}
 
 	function renderSelectList(id, field, container) {
-	    var html = '<div class="field-group input-field">' +
-                   '    <label for="issuetype">' + field.name+ '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-                   '    <select data-container-class="issuetype-ss" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
-                   '        <option value="">None</option>';
-	    $.each(field.allowedValues, function (i, option) {
-	        html += '<option value="' + option.id + '">' + option.value + '</option>';
-	    });
-	    html +=  '      </select>' +
-                  '</div>';
+		var html = '<div class="field-group input-field">' +
+				   '    <label for="issuetype">' + field.name+ '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+				   '    <select data-container-class="issuetype-ss" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
+				   '        <option value="">None</option>';
+		$.each(field.allowedValues, function (i, option) {
+			html += '<option value="' + option.id + '">' + option.value + '</option>';
+		});
+		html +=  '      </select>' +
+				  '</div>';
 
-	    $(container).append(html);
+		$(container).append(html);
 
-	    $('#'+id).select2();
+		$('#'+id).select2();
 	}
 
 	function renderMultiSelectList(id, field, container) {
-	    var html = '<div class="field-group input-field">' +
-           '    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-           '    <select data-container-class="issuetype-ss" class="select text input-field" id="' + id + '" name="' + id + '" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">';
-	    $.each(field.allowedValues, function (i, option) {
-	        html += '<option value="' + option.id + '">' + option.value + '</option>';
-	    });
-	    html += '      </select>' +
-                  '</div>';
+		var html = '<div class="field-group input-field">' +
+		   '    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+		   '    <select data-container-class="issuetype-ss" class="select text input-field" id="' + id + '" name="' + id + '" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">';
+		$.each(field.allowedValues, function (i, option) {
+			html += '<option value="' + option.id + '">' + option.value + '</option>';
+		});
+		html += '      </select>' +
+				  '</div>';
 
-	    $(container).append(html);
+		$(container).append(html);
 
-	    $('#' + id).select2();
+		$('#' + id).select2();
 	}
 
 	function renderTextarea(id, field, container) {
-	    $(container).append('<div class="field-group">' +
-            '   <label for="' + id + '">' + field.name +
-            '       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
-            '   </label>' +
-            '    <textarea class="form-control" id="' + id + '" name="' + id + '" rows="5" data-type="com.atlassian.jira.plugin.system.customfieldtypes:textarea"></textarea>' +
-            '</div>');
+		$(container).append('<div class="field-group">' +
+			'   <label for="' + id + '">' + field.name +
+			'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
+			'   </label>' +
+			'    <textarea class="form-control" id="' + id + '" name="' + id + '" rows="5" data-type="com.atlassian.jira.plugin.system.customfieldtypes:textarea"></textarea>' +
+			'</div>');
 	}
 
 	function renderUserPicker(id, field, container) {
@@ -842,74 +892,75 @@ function UIFormHandler() {
 	}
 
 	function renderEpicLink(id, field, container) {
-	    var html = '<div class="field-group input-field">' +
-           '    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-           '    <select data-container-class="issuetype-ss" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.pyxis.greenhopper.jira:gh-epic-link">' +
-           '        <option value="">None</option>'+
-           '    </select>' +
-           '</div>';
+		var html = '<div class="field-group input-field">' +
+		   '    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+		   '    <select data-container-class="issuetype-ss" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.pyxis.greenhopper.jira:gh-epic-link">' +
+		   '        <option value="">None</option>'+
+		   '    </select>' +
+		   '</div>';
 
-	    $(container).append(html);
+		$(container).append(html);
 
-	    //$('#' + id).select2();
+		//$('#' + id).select2();
 
-	    yasoon.oauth({
-	        url: jira.settings.baseUrl + '/rest/greenhopper/1.0/epics?maxResults=100&projectKey='+ jira.selectedProject.key,
-	        oauthServiceName: jira.settings.currentService,
-	        headers: jira.CONST_HEADER,
-	        type: yasoon.ajaxMethod.Get,
-	        error: jira.handleError,
-	        success: function (data) {
-	            //{"epicNames":[{"key":"SSP-24","name":"Epic 1"},{"key":"SSP-25","name":"Epic 2"}],"total":2}
-	            var epics = JSON.parse(data);
-	            var result = [];
-	            var oldValue = $('#' + id).data('value');
-	            if (epics && epics.total > 0) {
-	                $.each(epics.epicNames, function (i, epic) {
-	                    $(container).find('#' + id).append('<option value="' + epic.key + '"> ' + epic.name + ' ( ' + epic.key + ' )</option>');
-	                });
-	            }
-	            $('#' + id).select2();
-	            $('#' + id).select2('val', oldValue);
-	        }
-	    });
-	    
+		yasoon.oauth({
+			url: jira.settings.baseUrl + '/rest/greenhopper/1.0/epics?maxResults=100&projectKey='+ jira.selectedProject.key,
+			oauthServiceName: jira.settings.currentService,
+			headers: jira.CONST_HEADER,
+			type: yasoon.ajaxMethod.Get,
+			error: jira.handleError,
+			success: function (data) {
+				//{"epicNames":[{"key":"SSP-24","name":"Epic 1"},{"key":"SSP-25","name":"Epic 2"}],"total":2}
+				var epics = JSON.parse(data);
+				var result = [];
+				var oldValue = $('#' + id).data('value');
+				if (epics && epics.total > 0) {
+					$.each(epics.epicNames, function (i, epic) {
+						$(container).find('#' + id).append('<option value="' + epic.key + '"> ' + epic.name + ' ( ' + epic.key + ' )</option>');
+					});
+				}
+				$('#' + id).select2();
+				$('#' + id).select2('val', oldValue);
+			}
+		});
+		
 	}
 
 	function renderSprintLink(id, field, container) {
-	    var html = '<div class="field-group input-field">' +
-           '    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-           '    <select data-container-class="issuetype-ss" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.pyxis.greenhopper.jira:gh-sprint">' +
-           '        <option value="">None</option>'+
-           '    </select>' +
-           '</div>';
+		var html = '<div class="field-group input-field">' +
+		   '    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+		   '    <select data-container-class="issuetype-ss" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.pyxis.greenhopper.jira:gh-sprint">' +
+		   '        <option value="">None</option>'+
+		   '    </select>' +
+		   '</div>';
 
-	    $(container).append(html);
+		$(container).append(html);
 
-	    //$('#' + id).select2();
+		//$('#' + id).select2();
 
-	    yasoon.oauth({
-	        url: jira.settings.baseUrl + '/rest/greenhopper/1.0/sprint/picker',
-	        oauthServiceName: jira.settings.currentService,
-	        headers: jira.CONST_HEADER,
-	        type: yasoon.ajaxMethod.Get,
-	        error: jira.handleError,
-	        success: function (data) {
-	            //{"suggestions":[{"name":"Sample Sprint 2","id":1,"stateKey":"ACTIVE"}],"allMatches":[]}
-	            var sprints = JSON.parse(data);
-	            var result = [];
-	            var oldValue = $('#' + id).data('value');
-	            if (sprints && sprints.suggestions.length > 0) {
-	                $.each(sprints.suggestions, function (i, sprint) {
-	                    $(container).find('#'+id).append('<option value="' + sprint.id + '"> ' + sprint.name + '</option>');
-	                });
-	            }
-	            $('#' + id).select2();
-	            $('#' + id).select2('val', oldValue);
-	        }
-	    });
+		yasoon.oauth({
+			url: jira.settings.baseUrl + '/rest/greenhopper/1.0/sprint/picker',
+			oauthServiceName: jira.settings.currentService,
+			headers: jira.CONST_HEADER,
+			type: yasoon.ajaxMethod.Get,
+			error: jira.handleError,
+			success: function (data) {
+				//{"suggestions":[{"name":"Sample Sprint 2","id":1,"stateKey":"ACTIVE"}],"allMatches":[]}
+				var sprints = JSON.parse(data);
+				var result = [];
+				var oldValue = $('#' + id).data('value');
+				if (sprints && sprints.suggestions.length > 0) {
+					$.each(sprints.suggestions, function (i, sprint) {
+						$(container).find('#'+id).append('<option value="' + sprint.id + '"> ' + sprint.name + '</option>');
+					});
+				}
+				$('#' + id).select2();
+				$('#' + id).select2('val', oldValue);
+			}
+		});
 
 	}
+
 	return {
 		render: function (id, field, container) {
 			switch (field.schema.custom) {
@@ -954,34 +1005,32 @@ function UIFormHandler() {
 					renderUserPicker(id, field, container);
 					break;
 
-			    case 'com.pyxis.greenhopper.jira:gh-epic-link':
-			        renderEpicLink(id, field, container);
-			        break;
+				case 'com.pyxis.greenhopper.jira:gh-epic-link':
+					renderEpicLink(id, field, container);
+					break;
 
-			    case 'com.pyxis.greenhopper.jira:gh-sprint':
-			        renderSprintLink(id, field, container);
-			        break;
+				case 'com.pyxis.greenhopper.jira:gh-sprint':
+					renderSprintLink(id, field, container);
+					break;
 			}
 		},
 
-		getFormData: function (meta, result) {
+		getFormData: function (result) {
 			result = result || {};
-			console.log(meta);
 			//Find Meta for current Issue Type
-			var metaIssue = $.grep(meta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
-
-			if (metaIssue) {
-				$.each(metaIssue.fields, function (key, value) {
+			
+			if (jira.currentMeta) {
+				$.each(jira.currentMeta.fields, function (key, value) {
 					if (key.indexOf('customfield_') > -1) {
 						//Try to find the field in form
 						var elem = $('#' + key);
 						if (elem.length > 0 ) {
 							switch (elem.data('type')) {
-							    case 'com.atlassian.jira.plugin.system.customfieldtypes:textfield':
-							    case 'com.atlassian.jira.plugin.system.customfieldtypes:textarea':
-							    case 'com.atlassian.jira.plugin.system.customfieldtypes:url':
-                                    if(elem.val())
-									    result.fields[key] = elem.val();
+								case 'com.atlassian.jira.plugin.system.customfieldtypes:textfield':
+								case 'com.atlassian.jira.plugin.system.customfieldtypes:textarea':
+								case 'com.atlassian.jira.plugin.system.customfieldtypes:url':
+									if(elem.val())
+										result.fields[key] = elem.val();
 									break;
 								case 'com.pyxis.greenhopper.jira:gh-sprint':
 									
@@ -992,113 +1041,104 @@ function UIFormHandler() {
 										if (jira.editIssue.fields[key])
 											sprintId = parseSprintId(jira.editIssue.fields[key][0]);
 										if (sprintId != elem.val()) {
+											jira.transaction.currentCallCounter++;
 											if (elem.val()) {
 												yasoon.oauth({
-													url: 'https://yasoon.atlassian.net/rest/greenhopper/1.0/sprint/rank',
+													url: jira.settings.baseUrl + '/rest/greenhopper/1.0/sprint/rank',
 													oauthServiceName: jira.settings.currentService,
 													type: yasoon.ajaxMethod.Put,
 													data: '{"idOrKeys":["' + jira.editIssue.key + '"],"sprintId":' + elem.val() + ',"addToBacklog":false}',
 													headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck' },
-													error: function (data, statusCode, result, errorText, cbkParam) {
-														yasoon.util.log('Error on Sprint add: ' + result);
-													},
-													success: function (data) {
-														yasoon.util.log('Success on Sprint add: ' + data);
-													}
+													error: submitErrorHandler,
+													success: submitSuccessHandler
 												});
 											} else {
 												yasoon.oauth({
-													url: 'https://yasoon.atlassian.net/rest/greenhopper/1.0/sprint/rank',
+													url: jira.settings.baseUrl + '/rest/greenhopper/1.0/sprint/rank',
 													oauthServiceName: jira.settings.currentService,
 													type: yasoon.ajaxMethod.Put,
 													data: '{"idOrKeys":["' + jira.editIssue.key + '"],"sprintId":"","addToBacklog":true}',
 													headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck' },
-													error: function (data, statusCode, result, errorText, cbkParam) {
-														yasoon.util.log('Error on Sprint remove: ' + result);
-													},
-													success: function (data) {
-														yasoon.util.log('Success on Sprint remove: ' + data);
-													}
+													error: submitErrorHandler,
+													success: submitSuccessHandler
 												});
 											}
 										}
 									}
 									break;
-							    case 'com.atlassian.jira.plugin.system.customfieldtypes:float':
-							        var float = parseFloat(elem.val());
-                                    if(float)
-							            result.fields[key] = float;
-							        break;
+								case 'com.atlassian.jira.plugin.system.customfieldtypes:float':
+									var float = parseFloat(elem.val());
+									if(float)
+										result.fields[key] = float;
+									break;
 
-							    case 'com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes':
-							        var checkedValues = [];
-							        elem.find('input').each(function () {
-							            if ($(this).is(':checked')) {
-							                checkedValues.push({ id: $(this).val() });
-							            }
-							        });
-							        result.fields[key] = checkedValues;
-							        break;
+								case 'com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes':
+									var checkedValues = [];
+									elem.find('input').each(function () {
+										if ($(this).is(':checked')) {
+											checkedValues.push({ id: $(this).val() });
+										}
+									});
+									result.fields[key] = checkedValues;
+									break;
 
-							    case 'com.atlassian.jira.plugin.system.customfieldtypes:datepicker':
-							        if (elem.val()) {
-							            result.fields[key] = moment(new Date(elem.val())).format('YYYY-MM-DD');
-							        }
-							        break;
+								case 'com.atlassian.jira.plugin.system.customfieldtypes:datepicker':
+									if (elem.val()) {
+										result.fields[key] = moment(new Date(elem.val())).format('YYYY-MM-DD');
+									}
+									break;
 
-							    case 'com.atlassian.jira.plugin.system.customfieldtypes:labels':
-							        if (elem.val()) {
-							            result.fields[key] = elem.val().split(',');
-							        }
-							        break;
-							    case 'com.atlassian.jira.plugin.system.customfieldtypes:select':
-                                    if(elem.val())
-							            result.fields[key] = { id: elem.val() };
-                                    break;
+								case 'com.atlassian.jira.plugin.system.customfieldtypes:labels':
+									if (elem.val()) {
+										result.fields[key] = elem.val().split(',');
+									}
+									break;
+								case 'com.atlassian.jira.plugin.system.customfieldtypes:select':
+									if(elem.val())
+										result.fields[key] = { id: elem.val() };
+									break;
 								case 'com.pyxis.greenhopper.jira:gh-epic-link':
 									if (!jira.editIssue && elem.val()) {
 										result.fields[key] = 'key:' + elem.val();
 									}
-							    	else if (jira.editIssue && jira.editIssue.fields[key] != elem.val())
-							    	{
-							    		//Time to make it dirty! Epic links cannot be changed via REST APi --> Status code 500
-							    		// Ticket: https://jira.atlassian.com/browse/GHS-10333
-							    		//There is a workaround --> update it via unofficial greenhopper API --> that completely breaks ou concept so just do it now and do not return an result
-							    		if (elem.val()) {
-							    			//Create or update
-							    			yasoon.oauth({
-							    				url: jira.settings.baseUrl + '/rest/greenhopper/1.0/epics/' + elem.val() +'/add',
-							    				oauthServiceName: jira.settings.currentService,
-							    				type: yasoon.ajaxMethod.Put,
-							    				data: '{ "issueKeys":["' + jira.editIssue.key +'"] }',
-							    				headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck' },
-							    				error: function (data, statusCode, result, errorText, cbkParam) {
-							    					yasoon.util.log('Error on EpicLink add: ' + result);
-							    				}
-							    			});
-							    		} else {
-							    			//Delete
-							    			yasoon.oauth({
-							    				url: jira.settings.baseUrl + '/rest/greenhopper/1.0/epics/remove',
-							    				oauthServiceName: jira.settings.currentService,
-							    				type: yasoon.ajaxMethod.Put,
-							    				data: '{ "issueKeys":["'+ jira.editIssue.key +'"] }',
-							    				headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck' },
-							    				error: function (data, statusCode, result, errorText, cbkParam) {
-							    					yasoon.util.log('Error on EpicLink remove: ' + result);
-
-							    				}
-							    			});
-							    		}
-							    	}
-							        break;
-							    case 'com.atlassian.jira.plugin.system.customfieldtypes:multiselect':
-							        var selectedValues = [];
-							        $.each(elem.val(), function (i, id) {
-							            selectedValues.push({ id: id });
-							        });
-							        result.fields[key] = selectedValues;
-							        break;
+									else if (jira.editIssue && jira.editIssue.fields[key] != elem.val())
+									{
+										//Time to make it dirty! Epic links cannot be changed via REST APi --> Status code 500
+										// Ticket: https://jira.atlassian.com/browse/GHS-10333
+										//There is a workaround --> update it via unofficial greenhopper API --> that completely breaks ou concept so just do it now and do not return an result
+										jira.transaction.currentCallCounter++;
+										if (elem.val()) {
+											//Create or update
+											yasoon.oauth({
+												url: jira.settings.baseUrl + '/rest/greenhopper/1.0/epics/' + elem.val() +'/add',
+												oauthServiceName: jira.settings.currentService,
+												type: yasoon.ajaxMethod.Put,
+												data: '{ "issueKeys":["' + jira.editIssue.key +'"] }',
+												headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck' },
+												error: submitErrorHandler,
+												success: submitSuccessHandler
+											});
+										} else {
+											//Delete
+											yasoon.oauth({
+												url: jira.settings.baseUrl + '/rest/greenhopper/1.0/epics/remove',
+												oauthServiceName: jira.settings.currentService,
+												type: yasoon.ajaxMethod.Put,
+												data: '{ "issueKeys":["'+ jira.editIssue.key +'"] }',
+												headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck' },
+												error: submitErrorHandler,
+												success: submitSuccessHandler
+											});
+										}
+									}
+									break;
+								case 'com.atlassian.jira.plugin.system.customfieldtypes:multiselect':
+									var selectedValues = [];
+									$.each(elem.val(), function (i, id) {
+										selectedValues.push({ id: id });
+									});
+									result.fields[key] = selectedValues;
+									break;
 							}
 						}
 					}
@@ -1107,73 +1147,70 @@ function UIFormHandler() {
 
 		},
 
-		setFormData: function (meta, issue) {
-		    var metaIssue = $.grep(meta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
-
-		    if (metaIssue) {
-		        $.each(metaIssue.fields, function (key, value) {
-		            if (key.indexOf('customfield_') > -1) {
-		                switch (metaIssue.fields[key].schema.custom) {
-		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:textfield':
-		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:url':
-		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:float':
-		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:textarea':
-		                        if (issue.fields[key]) {
-		                            $('#' + key).val(issue.fields[key]);
-		                        }
-		                        break;
-		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes':
-		                        if (issue.fields[key]) {
-		                            var elem = $('#' + key);
-		                            $.each(issue.fields[key], function (i, value) {
-		                                elem.find('[value='+ value.id +']').prop('checked', true);
-		                            });
-		                            
-		                        }
-		                        break;
-		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:datepicker':
-		                        if (issue.fields[key]) {
-		                            $('#' + key).val(moment(new Date(issue.fields[key])).format('YYYY/MM/DD'));
-		                        }
-		                        break;
-		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:datetime':
-		                        break;
-		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:select':		                    
-		                        if (issue.fields[key]) {
-		                            $('#' + key).select2('val', issue.fields[key].id);
-		                        }
-		                        break;
-		                	case 'com.pyxis.greenhopper.jira:gh-sprint':
-		                		if (issue.fields[key] && issue.fields[key].length > 0) {
-		                			//Wierd --> it's an array of strings with following structure:  "com.atlassian.greenhopper.service.sprint.Sprint@7292f4[rapidViewId=<null>,state=ACTIVE,name=Sample Sprint 2,startDate=2015-04-09T01:54:26.773+02:00,endDate=2015-04-23T02:14:26.773+02:00,completeDate=<null>,sequence=1,id=1]"
-		                			$('#' + key).select2('val', parseSprintId(issue.fields[key][0]));
-		                			$('#' + key).data('value', parseSprintId(issue.fields[key][0]));
-		                		}
-		                		break;
-		                	case 'com.atlassian.jira.plugin.system.customfieldtypes:labels':
-		                	case 'com.pyxis.greenhopper.jira:gh-epic-link':
-		                        if (issue.fields[key]) {
-		                        	$('#' + key).select2('val', issue.fields[key]);
-		                        	$('#' + key).data('value', issue.fields[key]);
-		                        }
-		                        break;
-		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:multiselect':
-		                        if (issue.fields[key]) {
-		                            var selectedValues = [];
-		                            $.each(issue.fields[key], function (i, value) {
-		                                selectedValues.push(value.id);
-		                            });
-		                            $('#' + key).select2('val', selectedValues);
-		                        }
-		                        break;
-		                    case 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker':
-		                        break;
-		                }
-		            }
-		        });
-		    }
+		setFormData: function (issue) {
+			if (jira.currentMeta) {
+				$.each(jira.currentMeta.fields, function (key, value) {
+					if (key.indexOf('customfield_') > -1) {
+						switch (jira.currentMeta.fields[key].schema.custom) {
+							case 'com.atlassian.jira.plugin.system.customfieldtypes:textfield':
+							case 'com.atlassian.jira.plugin.system.customfieldtypes:url':
+							case 'com.atlassian.jira.plugin.system.customfieldtypes:float':
+							case 'com.atlassian.jira.plugin.system.customfieldtypes:textarea':
+								if (issue.fields[key]) {
+									$('#' + key).val(issue.fields[key]);
+								}
+								break;
+							case 'com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes':
+								if (issue.fields[key]) {
+									var elem = $('#' + key);
+									$.each(issue.fields[key], function (i, value) {
+										elem.find('[value='+ value.id +']').prop('checked', true);
+									});
+									
+								}
+								break;
+							case 'com.atlassian.jira.plugin.system.customfieldtypes:datepicker':
+								if (issue.fields[key]) {
+									$('#' + key).val(moment(new Date(issue.fields[key])).format('YYYY/MM/DD'));
+								}
+								break;
+							case 'com.atlassian.jira.plugin.system.customfieldtypes:datetime':
+								break;
+							case 'com.atlassian.jira.plugin.system.customfieldtypes:select':		                    
+								if (issue.fields[key]) {
+									$('#' + key).select2('val', issue.fields[key].id);
+								}
+								break;
+							case 'com.pyxis.greenhopper.jira:gh-sprint':
+								if (issue.fields[key] && issue.fields[key].length > 0) {
+									$('#' + key).select2('val', parseSprintId(issue.fields[key][0]));
+									$('#' + key).data('value', parseSprintId(issue.fields[key][0]));
+								}
+								break;
+							case 'com.atlassian.jira.plugin.system.customfieldtypes:labels':
+							case 'com.pyxis.greenhopper.jira:gh-epic-link':
+								if (issue.fields[key]) {
+									$('#' + key).select2('val', issue.fields[key]);
+									$('#' + key).data('value', issue.fields[key]);
+								}
+								break;
+							case 'com.atlassian.jira.plugin.system.customfieldtypes:multiselect':
+								if (issue.fields[key]) {
+									var selectedValues = [];
+									$.each(issue.fields[key], function (i, value) {
+										selectedValues.push(value.id);
+									});
+									$('#' + key).select2('val', selectedValues);
+								}
+								break;
+							case 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker':
+								break;
+						}
+					}
+				});
+			}
 		}
-        
+		
 	};
 }
 
@@ -1226,10 +1263,10 @@ function JiraIconController() {
 	};
 
 	this.addIcon = function (url) {
-	    var result = iconBuffer.filter(function (elem) { return elem.url == url; });
-	    if (result.length === 0) {
-	        saveIcon(url);
-	    }
+		var result = iconBuffer.filter(function (elem) { return elem.url == url; });
+		if (result.length === 0) {
+			saveIcon(url);
+		}
 	};
 
 
@@ -1252,13 +1289,19 @@ function jiraCreateHash(input) {
 }
 
 function parseSprintId(input) {
+	//Wierd --> it's an array of strings with following structure:  "com.atlassian.greenhopper.service.sprint.Sprint@7292f4[rapidViewId=<null>,state=ACTIVE,name=Sample Sprint 2,startDate=2015-04-09T01:54:26.773+02:00,endDate=2015-04-23T02:14:26.773+02:00,completeDate=<null>,sequence=1,id=1]"
+	//First get content of array (everything between [])
+	//Then split at ,
+	//Then find id
 	var result = '';
-	var splitResult = input.split(',');
-	var idObj = splitResult.filter(function (elem) { return elem.indexOf('id') === 0; });
-	if (idObj.length > 0) {
-		result = idObj[0].split('=')[1].replace(']', '');
+	var matches = /\[(.+)\]/g.exec(input);
+	if (matches.length > 0) {
+		var splitResult = matches[1].split(',');
+		var idObj = splitResult.filter(function (elem) { return elem.indexOf('id') === 0; });
+		if (idObj.length > 0) {
+			result = idObj[0].split('=')[1];
+		}
 	}
-
 	return result;
 }
 

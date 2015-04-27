@@ -196,8 +196,13 @@ function JiraIssueNotification(issue) {
 
 	function isSyncNeeded() {
 		var found = false;
-		//Check if Issue is relevant
 
+		//Do not sync epics
+		if (self.issue.fields.issuetype && self.issue.fields.issuetype.iconUrl.indexOf('ico_epic.png') > -1) {
+			return false; //Do not sync Epics
+		}
+		//Check if Issue is relevant
+		
 		//Check if issue exist
 		var issue = yasoon.notification.getByExternalId(self.issue.id);
 		if (issue) {
