@@ -343,12 +343,17 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			$('#AttachmentContainer').html('');
 			self.selectedAttachments = [];
 		} else {
+			//Invalidate dialog events, so that the following won't throw any events => will lead to errors
+			// due to pending dialog.close
+			yasoon.dialog.clearEvents();
+
 		    //If there has been attachments loaded into yasoon clipboard, we need to remove them
 		    if (self.addedAttachmentIds.length > 0) {
 		        $.each(self.addedAttachmentIds, function (i, handleId) {
 		            yasoon.clipboard.remove(handleId);
 		        });
 		    }
+
 			yasoon.dialog.close({ action: 'success' });
 		}
 	};
