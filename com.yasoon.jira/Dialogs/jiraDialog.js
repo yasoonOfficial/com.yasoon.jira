@@ -106,14 +106,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				$('#summary').val(self.mail.subject);
 			}
 
-			//Check for attachments
-			if (self.mail.attachments && self.mail.attachments.length > 0) {
-				$.each(self.mail.attachments, function (i, attachment) {
-					var handle = attachment.getFileHandle();
-					var id = yasoon.clipboard.addFile(handle);
-					self.addedAttachmentIds.push(id);
-				});
-			}
+			////Check for attachments
+			//if (self.mail.attachments && self.mail.attachments.length > 0) {
+			//	$.each(self.mail.attachments, function (i, attachment) {
+			//		var handle = attachment.getFileHandle();
+			//		var id = yasoon.clipboard.addFile(handle);
+			//		self.addedAttachmentIds.push(id);
+			//	});
+			//}
 		}
 
 		if (!initParams.editIssue) {
@@ -374,12 +374,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			// due to pending dialog.close
 			yasoon.dialog.clearEvents();
 
-			//If there has been attachments loaded into yasoon clipboard, we need to remove them
-			if (self.addedAttachmentIds.length > 0) {
-				$.each(self.addedAttachmentIds, function (i, handleId) {
-					yasoon.clipboard.remove(handleId);
-				});
-			}
+			////If there has been attachments loaded into yasoon clipboard, we need to remove them
+			//if (self.addedAttachmentIds.length > 0) {
+			//	$.each(self.addedAttachmentIds, function (i, handleId) {
+			//		yasoon.clipboard.remove(handleId);
+			//	});
+			//}
 
 			yasoon.dialog.close({ action: 'success' });
 		}
