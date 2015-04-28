@@ -915,6 +915,7 @@ function UIFormHandler() {
 				var result = [];
 				var oldValue = $('#' + id).data('value');
 				if (epics && epics.total > 0) {
+					$(container).find('#' + id).html('<option value="">None</option>');
 					$.each(epics.epicNames, function (i, epic) {
 						$(container).find('#' + id).append('<option value="' + epic.key + '"> ' + epic.name + ' ( ' + epic.key + ' )</option>');
 					});
@@ -950,6 +951,7 @@ function UIFormHandler() {
 				var result = [];
 				var oldValue = $('#' + id).data('value');
 				if (sprints && sprints.suggestions.length > 0) {
+					$(container).find('#' + id).html('<option value="">None</option>');
 					$.each(sprints.suggestions, function (i, sprint) {
 						$(container).find('#'+id).append('<option value="' + sprint.id + '"> ' + sprint.name + '</option>');
 					});
