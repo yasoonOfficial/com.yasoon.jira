@@ -19,6 +19,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 	
 	jira.firstTime = true;
+	jira.firstSyncedNotifications = 0;
 	var startSync = new Date();
 	var currentPage = 1;
  
@@ -130,6 +131,12 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
         .then(function () {
             jira.settings.setLastSync(startSync);
             jiraLog('Sync done: ' + new Date().toISOString());
+			if(jira.firstTime) {
+				yasoon.util.logActivity('syncCompleted', JSON.stringify({
+					app: 'com.yasoon.jira',
+					count: jira.firstSyncedNotifications
+				}));
+			}
         })
         .catch(jiraSyncError, function (error) {
             jiraLog('Sync Error:', error);
@@ -171,6 +178,10 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
             //Only for jira!
             if (feedEntry['atlassian:application'] && feedEntry['atlassian:application']['#text'].toLowerCase().indexOf('jira') > -1) {
             	var notif = jira.notifications.createNotification(feedEntry);
+				
+				if(jira.firstTime) 
+					jira.firstSyncedNotifications++;
+				
 				if(notif)
 					return notif.save();
             }
@@ -196,7 +207,6 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	        return jiraGet('/rest/api/2/myself')
             .then(function (ownUserData) {
                 jira.data.ownUser = JSON.parse(ownUserData);
-
             })
             .then(function () {
                 //Second get all projects
