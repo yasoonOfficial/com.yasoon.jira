@@ -42,7 +42,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		}
 	};
 
-	this.init = function () {
+	this.init = function init () {
 		jira.settings = new JiraSettingController();
 		jira.notifications = new JiraNotificationController();
 		jira.ribbons = new JiraRibbonController();
@@ -103,7 +103,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		yasoon.periodicCallback(300, jira.sync);
 	};
 
-	this.sync = function () {
+	this.sync = function sync () {
 
 		if (!jira.settings.currentService || !yasoon.app.isOAuthed(jira.settings.currentService)) {
 			return;

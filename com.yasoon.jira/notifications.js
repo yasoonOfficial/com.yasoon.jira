@@ -16,12 +16,10 @@ function JiraNotificationController() {
 		yasoon.alert.add({ type: yasoon.alert.alertType.error, message: 'Could not upload Attachment(s): ' + errorMessage });
 	};
 
-	self.addComment = function (parent, comment, successCbk, attachments, errorCbk) {
+	self.addComment = function addComment (parent, comment, successCbk, attachments, errorCbk) {
 		try {
 			//check comment for mention
-			console.log('Before', comment);
 			comment = comment.replace(/@\[[\w\s]+\]\(user:([^\)]+)\)/g, '[~$1]');
-			console.log('After', comment);
 			var body = JSON.stringify({
 				"body": comment
 			});
@@ -178,7 +176,7 @@ function JiraNotificationController() {
 		});
 	};
 
-	self.renderNotification = function (feed) {
+	self.renderNotification = function renderNotification (feed) {
 		var event = self.createNotification(JSON.parse(feed.externalData));
 		if (event) {
 			event.renderBody(feed);

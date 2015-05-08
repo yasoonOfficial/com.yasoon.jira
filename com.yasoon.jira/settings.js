@@ -13,7 +13,7 @@ function JiraSettingController() {
 		showFeedComment: true
 	};
 
-	self.renderSettingsContainer = function (container) {
+	self.renderSettingsContainer = function renderSettingsContainer (container) {
 		if (!container) {
 			return;
 		}
@@ -199,7 +199,7 @@ function JiraSettingController() {
 		container.setContent(elem.html());
 	};
 
-	self.saveSettings = function (form) {
+	self.saveSettings = function saveSettings (form) {
 		//Create deep copy
 		$.each(form, function (i, param) {
 			if (param.value == "true") {

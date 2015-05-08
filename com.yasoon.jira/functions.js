@@ -1,7 +1,7 @@
 function JiraRibbonController() {
     var self = this;
 
-	this.createRibbon = function (ribbonFactory) {
+	this.createRibbon = function createRibbon (ribbonFactory) {
 		jira.ribbonFactory = ribbonFactory;
 
 		ribbonFactory.create({
@@ -115,7 +115,7 @@ function JiraRibbonController() {
 		});
 	};
 
-	this.ribbonOnNewIssue = function (ribbonId, ribbonCtx) {
+	this.ribbonOnNewIssue = function ribbonOnNewIssue (ribbonId, ribbonCtx) {
 		if (!jira.settings.currentService || !yasoon.app.isOAuthed(jira.settings.currentService)) {
 			yasoon.dialog.showMessageBox('Please login to Jira in settings menu first!');
 			return;
@@ -154,7 +154,7 @@ function JiraRibbonController() {
 		}
 	};
 
-	this.ribbonOnCloseNewIssue = function () {
+	this.ribbonOnCloseNewIssue = function ribbonOnCloseNewIssue () {
 		jira.sync();
 	};
 }
@@ -379,10 +379,10 @@ function jiraGet(relativeUrl) {
             oauthServiceName: jira.settings.currentService,
             headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
             type: yasoon.ajaxMethod.Get,
-            error: function (data, statusCode, result, errorText, cbkParam) {
+            error: function jiraGetError (data, statusCode, result, errorText, cbkParam) {
                 reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText));
             },
-            success: function (data) {
+            success: function jiraGetSuccess (data) {
                 resolve(data);
             }
         });
@@ -398,10 +398,10 @@ function jiraAjax(relativeUrl, method, data, formData) {
             data: data,
             formData: formData,
             type: method,
-            error: function (data, statusCode, result, errorText, cbkParam) {
+            error: function jiraAjaxError (data, statusCode, result, errorText, cbkParam) {
                 reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText));
             },
-            success: function (data) {
+            success: function jiraAjaxSuccess (data) {
                 resolve(data);
             }
         });
@@ -438,7 +438,7 @@ function jiraSyncQueue() {
 
 function jiraGetNotification(id) {
     return new Promise(function (resolve, reject) {
-        yasoon.notification.getByExternalId1(id, function (yEvent) {
+        yasoon.notification.getByExternalId1(id, function jiraGetNotification (yEvent) {
             resolve(yEvent);
         });
     });
@@ -446,7 +446,7 @@ function jiraGetNotification(id) {
 
 function jiraAddNotification(notif) {
     return new Promise(function (resolve, reject) {
-        yasoon.notification.add1(notif, function (newNotif) {
+        yasoon.notification.add1(notif, function jiraAddNotification (newNotif) {
             resolve(newNotif);
         });
     });
@@ -454,7 +454,7 @@ function jiraAddNotification(notif) {
 
 function jiraSaveNotification(notif) {
     return new Promise(function (resolve, reject) {
-        yasoon.notification.save1(notif, function (newNotif) {
+        yasoon.notification.save1(notif, function jiraSaveNotification (newNotif) {
             resolve(newNotif);
         });
     });
