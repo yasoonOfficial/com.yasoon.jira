@@ -143,7 +143,10 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
         })
         .catch(function (e) {
             yasoon.util.log(e.message, yasoon.util.severity.error, getStackTrace(e));
-        });
+        })
+		.finally(function() {
+			jira.notifications.showDesktopNotif();
+		});
 	};
 
 	//Handle Sync Event
