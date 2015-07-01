@@ -1,5 +1,5 @@
 function JiraRibbonController() {
-    var self = this;
+	var self = this;
 
 	this.createRibbon = function createRibbon (ribbonFactory) {
 		jira.ribbonFactory = ribbonFactory;
@@ -10,7 +10,19 @@ function JiraRibbonController() {
 				'Microsoft.Outlook.Explorer',
 				'Microsoft.Outlook.Mail.Read'
 			],
-			items: [{
+			items: [ {
+				type: 'contextMenu',
+				idMso: 'ContextMenuMailItem',
+				items: [
+					{
+						id: 'newIssueFullMail',
+						type: 'button',
+						image: 'logo_icon1.png',
+						label: 'New Issue',
+						onAction: self.ribbonOnNewIssue
+					}
+				]
+			}, {
 				type: 'contextMenu',
 				idMso: 'MenuMailNewItem',
 				items: [{
@@ -120,38 +132,40 @@ function JiraRibbonController() {
 			yasoon.dialog.showMessageBox('Please login to Jira in settings menu first!');
 			return;
 		}
-		if (ribbonId == 'newIssue') {
+		var initParams = { 'settings': jira.settings, 'ownUser': jira.data.ownUser };
 
-			yasoon.dialog.open({
-				width: 900,
-				height: 650,
-				title: 'New Jira Issue',
-				resizable: true,
-				htmlFile: 'Dialogs/newIssueDialog.html',
-				initParameter: { 'settings': jira.settings, 'ownUser': jira.data.ownUser },
-				closeCallback: self.ribbonOnCloseNewIssue
-			});
-
-		}
-		else {
+		if (ribbonId == 'newIssueFullMail') {
+			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
+			initParams.text = initParams.mail.plainText;
+			//var fullMail = $('<div>' + initParams.mail.body + '</div>');
+			//var mailBody = fullMail.find('body');
+			//if(mailBody.length > 0) {
+			//	initParams.text = mailBody.text().trim();
+			//} else {
+			//	initParams.text = fullMail.text();
+			//}
+		} else if (ribbonId == 'newIssue') {
 			
+		} else {
 			var selection = ribbonCtx.items[ribbonCtx.readingPaneItem].getSelection(0);
 
 			if (!selection || !selection.trim()) {
 				yasoon.dialog.showMessageBox('Please select some text first!');
 				return;
 			}
-
-			yasoon.dialog.open({
-				width: 900,
-				height: 650,
-				title: 'New Jira Issue',
-				resizable: true,
-				htmlFile: 'Dialogs/newIssueDialog.html',
-				initParameter: { settings: jira.settings, 'ownUser': jira.data.ownUser, text: selection, mail: ribbonCtx.items[ribbonCtx.readingPaneItem] },
-				closeCallback: self.ribbonOnCloseNewIssue
-			});
+			initParams.text = selection;
+			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
 		}
+
+		yasoon.dialog.open({
+			width: 900,
+			height: 650,
+			title: 'New Jira Issue',
+			resizable: true,
+			htmlFile: 'Dialogs/newIssueDialog.html',
+			initParameter: initParams,
+			closeCallback: self.ribbonOnCloseNewIssue
+		});
 	};
 
 	this.ribbonOnCloseNewIssue = function ribbonOnCloseNewIssue () {
@@ -164,15 +178,15 @@ function JiraContactController() {
 	var buffer = [];
 
 	self.update = function (actor) {
-	    if (!actor.name || !actor.displayName || !actor.emailAddress)
-	        return;
+		if (!actor.name || !actor.displayName || !actor.emailAddress)
+			return;
 
-	    var c = yasoon.contact.get(actor.name);
-	    var dbContact = null;
-	    var avatarUrl = null;
-	    if (actor.avatarUrls && actor.avatarUrls['48x48']) {
-	        avatarUrl = actor.avatarUrls['48x48'].replace('size=large', 'size=xlarge');
-	    }
+		var c = yasoon.contact.get(actor.name);
+		var dbContact = null;
+		var avatarUrl = null;
+		if (actor.avatarUrls && actor.avatarUrls['48x48']) {
+			avatarUrl = actor.avatarUrls['48x48'].replace('size=large', 'size=xlarge');
+		}
 		if (!c) {
 			var newContact = {
 				contactId: actor.name,
@@ -187,9 +201,9 @@ function JiraContactController() {
 			buffer.push(dbContact);
 
 		} else {
-            //We don't want to override an existing avatrUrl with null
-		    if (!avatarUrl)
-		        avatarUrl = c.externalAvatarUrl;
+			//We don't want to override an existing avatrUrl with null
+			if (!avatarUrl)
+				avatarUrl = c.externalAvatarUrl;
 
 			if (c.contactId != actor.name ||
 			   c.contactLastName != actor.displayName ||
@@ -206,10 +220,10 @@ function JiraContactController() {
 				};
 				dbContact = yasoon.contact.save(updContact);
 				if (dbContact) {
-				    //Remove old entry from array
-				    buffer = buffer.filter(function (elem) { return elem.contactId != dbContact.contactId; });
-				    //Add new entry
-				    buffer.push(dbContact);
+					//Remove old entry from array
+					buffer = buffer.filter(function (elem) { return elem.contactId != dbContact.contactId; });
+					//Add new entry
+					buffer.push(dbContact);
 				}
 
 			}
@@ -228,88 +242,6 @@ function JiraContactController() {
 			return result;
 		}
 	};
-}
-
-function JiraIconController() {
-    var self = this;
-    //Contains object { url: '' , fileName: '' }
-    var iconBuffer = [];
-
-    var saveIcon = function (url) {
-        //generate unique FileName
-        var fileName = 'Images\\' + jiraCreateHash(url) + '.png';
-        console.log(url + ' : '+ fileName);
-        //Download File
-        yasoon.io.download(url, fileName, false, function () {
-            //Success Handler
-            var result = iconBuffer.filter(function (elem) { return elem.url == url; });
-            if (result.length === 1) {
-                result[0].fileName = yasoon.io.getLinkPath(fileName);
-            }
-            yasoon.setting.setAppParameter('icons', JSON.stringify(iconBuffer));
-        });
-
-        //Temporary save URL in Buffer
-        iconBuffer.push({ url: url, fileName: url });
-
-        return url;
-    };
-
-    this.mapIconUrl = function (url) {
-        //Avoid mapping local URLs
-        if (url.indexOf('http') !== 0) {
-            return url;
-        }
-
-        var result = iconBuffer.filter(function (elem) { return elem.url == url; });
-        if (result.length > 1) {
-            //Should never happen --> remove both elements from buffer
-            iconBuffer = iconBuffer.filter(function (elem) { return elem.url != url; });
-            result = [];
-        }
-
-        if (result.length === 1) {
-            return result[0].fileName;
-        } else {
-            return saveIcon(url);
-        }
-    };
-
-    this.addIcon = function (url) {
-        var result = iconBuffer.filter(function (elem) { return elem.url == url; });
-        if (result.length === 0) {
-            saveIcon(url);
-        }
-    };
-    
-
-    // init
-    var iconString = yasoon.setting.getAppParameter('icons');
-    if (iconString) {
-        iconBuffer = JSON.parse(iconString);
-    }
-}
-
-function jiraLog(text, obj, stacktrace) {
-	if (yasoon.logLevel == 0) { //jshint ignore:line
-		var stack = '';
-		var json = '';
-		if (stacktrace !== undefined && stacktrace) {
-			try {
-				var a = doesNotExit + forceException;
-			} catch (e) {
-				stack = '\n' + printStackTrace(e).split('\n')
-					.slice(1)
-					.join('\n');
-
-			}
-		}
-		if (obj) {
-			json = '\n' + JSON.stringify(obj);
-		}
-		console.log(text, obj);
-		//yasoon.util.log(text + ' ' + json + ' ' + stack);
-	}
 }
 
 function jiraXmlToJson(xmlDom) {
@@ -361,102 +293,91 @@ function jiraQueue() {
 	return promise;
 }
 
-function jiraCreateHash(input) {
-    var hash = 0, i, chr, len;
-    if (input.length === 0) return hash;
-    for (i = 0, len = input.length; i < len; i++) {
-        chr = input.charCodeAt(i);
-        hash = ((hash << 5) - hash) + chr;
-        hash |= 0; // Convert to 32bit integer
-    }
-    return hash;
-}
-
-function jiraGet(relativeUrl) {
-    return new Promise(function (resolve, reject) {
-        yasoon.oauth({
-            url: jira.settings.baseUrl + relativeUrl,
-            oauthServiceName: jira.settings.currentService,
-            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-            type: yasoon.ajaxMethod.Get,
-            error: function jiraGetError (data, statusCode, result, errorText, cbkParam) {
-                reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText));
-            },
-            success: function jiraGetSuccess (data) {
-                resolve(data);
-            }
-        });
-    });
-}
-
-function jiraAjax(relativeUrl, method, data, formData) {
-    return new Promise(function (resolve, reject) {
-        yasoon.oauth({
-            url: jira.settings.baseUrl + relativeUrl,
-            oauthServiceName: jira.settings.currentService,
-            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck' },
-            data: data,
-            formData: formData,
-            type: method,
-            error: function jiraAjaxError (data, statusCode, result, errorText, cbkParam) {
-                reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText));
-            },
-            success: function jiraAjaxSuccess (data) {
-                resolve(data);
-            }
-        });
-    });
-}
-
 function jiraSyncQueue() {
-    var self = this;
-    var lastPromise = null;
+	var self = this;
+	var lastPromise = null;
 
-    this.add = function (fct) {
-        return new Promise(function (resolve, reject) {
-            var promise = null;
-            if (lastPromise) {
-                promise = lastPromise.finally(function () {
-                    return fct();
-                });
-            } else {
-                promise = fct();
-            }
+	this.add = function (fct) {
+		return new Promise(function (resolve, reject) {
+			var promise = null;
+			if (lastPromise) {
+				promise = lastPromise.finally(function () {
+					return fct();
+				});
+			} else {
+				promise = fct();
+			}
 
-            lastPromise = promise
+			lastPromise = promise
 			.then(function () {
-			    //next();
-			    resolve.apply(this, arguments);
+				//next();
+				resolve.apply(this, arguments);
 			})
 			.catch(function () {
-			    //next();
-			    resolve.apply(this, arguments);
+				//next();
+				resolve.apply(this, arguments);
 			});
-        });
-    };
+		});
+	};
 }
 
 function jiraGetNotification(id) {
-    return new Promise(function (resolve, reject) {
-        yasoon.notification.getByExternalId1(id, function jiraGetNotification (yEvent) {
-            resolve(yEvent);
-        });
-    });
+	return new Promise(function (resolve, reject) {
+		try {
+			yasoon.notification.getByExternalId1(id, resolve);
+		} catch (e) {
+			reject(e);
+		}
+	});
 }
 
 function jiraAddNotification(notif) {
-    return new Promise(function (resolve, reject) {
-        yasoon.notification.add1(notif, function jiraAddNotification (newNotif) {
-            resolve(newNotif);
-        });
-    });
+	return new Promise(function (resolve, reject) {
+		try {
+			yasoon.notification.add1(notif, resolve);
+		} catch (e) {
+			reject(e);
+		}
+	});
 }
 
 function jiraSaveNotification(notif) {
-    return new Promise(function (resolve, reject) {
-        yasoon.notification.save1(notif, function jiraSaveNotification (newNotif) {
-            resolve(newNotif);
-        });
-    });
+	return new Promise(function (resolve, reject) {
+		try {
+			yasoon.notification.save1(notif, resolve);
+		} catch (e) {
+			reject(e);
+		}
+	});
+}
+
+function jiraGetCalendarItem(id) {
+	return new Promise(function (resolve, reject) {
+		try {
+			yasoon.outlook.calendar.getAsync(id, resolve, reject);
+		} catch (e) {
+			reject(e);
+		}
+	});
+}
+
+function jiraAddCalendarItem(item, calendarId) {
+	return new Promise(function (resolve, reject) {
+		try {
+			yasoon.outlook.calendar.addAsync(item, calendarId, resolve, reject);
+		} catch (e) {
+			reject(e);
+		}
+	});
+}
+
+function jiraSaveCalendarItem(item) {
+	return new Promise(function (resolve, reject) {
+		try {
+			yasoon.outlook.calendar.saveAsync(item, resolve, reject);
+		} catch (e) {
+			reject(e);
+		}
+	});
 }
 //@ sourceURL=http://Jira/functions.js

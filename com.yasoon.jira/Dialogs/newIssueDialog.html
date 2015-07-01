@@ -1,153 +1,61 @@
 <link rel="stylesheet" href="Dialogs/style.css">
-<link rel="stylesheet" href="Dialogs/select2.css">
+<link rel="stylesheet" href="Dialogs/select2.min.css">
 <link rel="stylesheet" href="Dialogs/jquery-date.min.css" />
-<script src="Dialogs/select2.min.js"></script>
-<script src="Dialogs/jiraDialog.js"></script>
+<script src="Dialogs/select2.full.min.js"></script>
 <script src="Dialogs/moment.min.js"></script>
+<script src="common.js"></script>
+<script src="Dialogs/jiraDialog.js"></script>
+
 
 <div style="display: block; width: 810px; margin-left: -406px; margin-top: -297px;" class="jira-dialog box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready" id="create-issue-dialog">
-    <div class="jira-dialog-heading">
-        <h2 class="jira-title">Create Issue</h2>
-    </div>
-    <div class="jira-dialog-content">
+	<div class="jira-dialog-heading">
+		<h2 class="jira-title">Create Issue</h2>
+	</div>
+	<div class="jira-dialog-content">
 
-        <div class="qf-container">
-            <div class="qf-unconfigurable-form">
-                <form name="jiraform" action="#" class="aui">
-                    <div class="form-body" style="height: 480px;">
-                        <div id="MainAlert" class="alert alert-danger" style="display:none; margin: -20px -20px 0px -20px; border-radius: 0px;">
-                            <span>Connection Error. Loading Values from Jira not possible.</span>
-                        </div>
-                        <div class="issue-setup-fields">
-                            <div class="qf-field qf-field-project qf-required">
-                                <div class="field-group " >
-                                    <label for="project">Project<span class="aui-icon icon-required">Required</span></label>
-                                    <select class="select input-field" id="project" name="pid">
-                                        <option></option>
-                                        <optgroup class="templates" label="" style="display:none;"></optgroup>
-                                        <optgroup class="recent" label="Recent Projects"></optgroup>
-                                        <optgroup class="all" label="All Projects"></optgroup>
-                                    </select>
-                                </div>
-                            </div>
-                            <div id="IssueArea" class="qf-field qf-field-issuetype qf-required" style="display:none;">
-                                <div class="field-group input-field">
-                                    <label for="issuetype">Issue Type<span class="aui-icon icon-required">Required</span></label>
-                                    <select data-container-class="issuetype-ss" class="select input-field" id="issuetype" name="issuetype"></select>
-                                   <!--<a class="help-lnk" href="/secure/ShowConstantsHelp.jspa?decorator=popup#IssueTypes" title="Get local help about Issue Type" data-helplink="local"><span class="aui-icon aui-icon-small aui-iconfont-help"></span></a>--> 
-                                </div>
-                            </div>
-                        </div>
-                        <div id="ContentArea" class="content" style="display:none;">
-                            <div class="field-group">
-                                <label for="summary"><span class="descr">Summary</span><span class="aui-icon icon-required">Required</span></label>
-                                <input class="text long-field" id="summary" name="summary" value="" type="text">
-                            </div>
-                            <div class="field-group">
-                                <label for="priority"><span>Priority</span><span class="aui-icon icon-required">Required</span></label>
-                                <select class="select input-field" id="priority" name="priority">
-                                </select>
-                                <!--<a class="help-lnk" href="/secure/ShowConstantsHelp.jspa?decorator=popup#PriorityLevels" title="Get local help about Priority" data-helplink="local"><span class="aui-icon aui-icon-small aui-iconfont-help"></span></a>-->
-                            </div>
-                            <div class="field-group aui-field-datepicker">
-                                <label for="duedate"><span class="descr">Due Date</span><span class="aui-icon icon-required">Required</span></label>
-                                <input class="text medium-field" id="duedate" name="duedate" placeholder="yyyy/mm/dd" value="" type="text">
-                                <a href="#" id="duedate-trigger" title="Select a date" tabindex="-1">
-                                    <span class="aui-icon icon-date">Select a date</span>
-                                </a>
-                            </div>
-                            <div class="field-group aui-field-componentspicker frother-control-renderer">
-                                <label for="components"><span class="descr">Component(s)</span><span class="aui-icon icon-required">Required</span></label>
-                                <div class="long-field" id="components-multi-select">
-                                    <select class="text input-field"  id="components" name="components" multiple=""></select>
-                                </div>
-                                <div class="description">Just start typing to look up existing values</div>
-                            </div>
-                            <div class="field-group aui-field-versionspicker frother-control-renderer">
-                                <label for="versions"><span class="descr">Affects Version/s</span><span class="aui-icon icon-required">Required</span></label>
-                                <div class="long-field" id="versions-multi-select">
-                                    <select class="text input-field" id="versions" name="versions" multiple=""></select>
-                                </div>
-                            </div>
-                            <div class="field-group aui-field-versionspicker frother-control-renderer">
-                                <label for="fixVersions"><span class="descr">Fix Version/s</span><span class="aui-icon icon-required">Required</span></label>
-                                <div class="long-field" id="fixVersions-multi-select">
-                                    <select class="text input-field" id="fixVersions" name="fixVersions" multiple=""></select>
-                                </div>
-                            </div>
-                            <div class="field-group" id="assignee-container">
-                                <label for="assignee"><span class="descr"> Assignee</span><span class="aui-icon icon-required">Required</span></label>
-                                <input type="hidden" id="assignee" name="assignee" class="select input-field"></input>
-                                <a href="#assignee" id="assign-to-me-trigger">Assign to me</a>
-                            </div>
-                            <div class="field-group">
-                                <label for="environment"><span class="descr">Environment</span><span class="aui-icon icon-required">Required</span></label>
-
-
-                                <div class="wiki-edit">
-                                    <div id="environment-wiki-edit" class="wiki-edit-content">
-                                        <textarea class="textarea long-field wiki-textfield long-field" id="environment" name="environment" rows="2" wrap="virtual"></textarea>
-                                        <div class="content-inner">
-                                        </div>
-                                    </div>
-                                </div>
-                                <!--<div class="field-tools">
-                                    <a class="fullscreen" href="#" id="environment-preview_link" title="preview"><span class="aui-icon wiki-renderer-icon"></span></a>
-                                    <a class="help-lnk" id="viewHelp" href="/secure/WikiRendererHelpAction.jspa?section=texteffects" title="Get local help about wiki markup help" data-helplink="local"><span class="aui-icon aui-icon-small aui-iconfont-help"></span></a>
-                                </div>-->
-                                <div class="description">For example operating system, software platform and/or hardware specifications (include as appropriate for the issue).</div>
-                            </div>
-                            <div class="field-group">
-                                <label for="description"><span class="descr">Description</span><span class="aui-icon icon-required">Required</span></label>
-
-
-                                <div class="wiki-edit">
-                                    <div id="description-wiki-edit" class="wiki-edit-content">
-                                        <textarea class="textarea long-field wiki-textfield long-field" id="description" name="description" rows="12" wrap="virtual"></textarea>
-                                        <div class="content-inner">
-                                        </div>
-                                    </div>
-                                </div>
-                                <!--
-                                <div class="field-tools">
-                                    <a class="fullscreen" href="#" id="description-preview_link" title="preview"><span class="aui-icon wiki-renderer-icon"></span></a>
-                                    <a class="help-lnk" id="viewHelp" href="/secure/WikiRendererHelpAction.jspa?section=texteffects" title="Get local help about wiki markup help" data-helplink="local"><span class="aui-icon aui-icon-small aui-iconfont-help"></span></a>
-                                </div>
-                                -->
-                            </div>
-                            <div class="field-group">
-                                <label for="description"><span class="descr">Attachment</span><span class="aui-icon icon-required">Required</span></label>
-                                <div>
-                                    <div id="attachment"><a id="AddAttachmentLink" style="margin-top: 2px; cursor:pointer;"> add Attachment</a></div>
-                                    <div id="AttachmentContainer">
-
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="field-group aui-field-componentspicker frother-control-renderer">
-                                <label for="labels"><span class="descr">Label(s)</span><span class="aui-icon icon-required">Required</span></label>
-                                <div class="long-field" id="labels-multi-select">
-                                    <input class="text input-field" id="labels" name="labels" ></input>
-                                </div>
-                                <div class="description"></div>
-                            </div>
-                            <div id="ContainerCustomFields">
-
-                            </div>
-                        </div>
-                        <div id="LoaderArea" style="display: none; background: url(Dialogs/ajax-loader.gif) no-repeat center center; width: 600px; height: 350px;">
-                        </div>
-                    </div>
-                    <div class="buttons-container form-footer">
-                        <div class="buttons">
-                            <img src="Dialogs/ajax-loader.gif" style="display:none;" id="JiraSpinner">
-                            <label for="qf-create-another" class="qf-create-another" style="font-weight:normal;"><input id="qf-create-another" type="checkbox" /> Create another</label>
-                            <a accesskey="s" title="" class="button" id="create-issue-submit" > Create </a>
-                            <a href="#" accesskey="`" title="" id="create-issue-cancel" class="cancel">Cancel</a>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+		<div class="qf-container">
+			<div class="qf-unconfigurable-form">
+				<form name="jiraform" action="#" class="aui">
+					<div class="form-body" style="height: 480px;">
+						<div id="MainAlert" class="alert alert-danger" style="display:none; margin: -20px -20px 0px -20px; border-radius: 0px;">
+							<span>Connection Error. Loading Values from Jira not possible.</span>
+						</div>
+						<div class="issue-setup-fields">
+							<div class="qf-field qf-field-project qf-required">
+								<div class="field-group " >
+									<label for="project">Project<span class="aui-icon icon-required">Required</span></label>
+									<select class="select input-field" id="project" name="pid" style="width: 50%">
+										<option></option>
+										<optgroup class="templates" label="" style="display:none;"></optgroup>
+										<optgroup class="recent" label="Recent Projects"></optgroup>
+										<optgroup class="all" label="All Projects"></optgroup>
+									</select>
+									<img src="Dialogs/ajax-loader.gif" style="display:none;" id="ProjectSpinner" />
+								</div>
+							</div>
+							<div id="IssueArea" class="qf-field qf-field-issuetype qf-required" style="display:none;">
+								<div class="field-group input-field">
+									<label for="issuetype">Issue Type<span class="aui-icon icon-required">Required</span></label>
+									<select class="select input-field" id="issuetype" name="issuetype" style="width: 50%"></select>
+								</div>
+							</div>
+						</div>
+						<div id="ContentArea" class="content" style="display:none;">
+							<div id="ContainerFields"></div>
+						</div>
+						<div id="LoaderArea" style="display: none; background: url(Dialogs/ajax-loader.gif) no-repeat center center; width: 600px; height: 350px;">
+						</div>
+					</div>
+					<div class="buttons-container form-footer">
+						<div class="buttons">
+							<img src="Dialogs/ajax-loader.gif" style="display:none;" id="JiraSpinner">
+							<label for="qf-create-another" class="qf-create-another" style="font-weight:normal;"><input id="qf-create-another" type="checkbox" /> Create another</label>
+							<a accesskey="s" title="" class="button" id="create-issue-submit" > Create </a>
+							<a href="#" accesskey="`" title="" id="create-issue-cancel" class="cancel">Cancel</a>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
 </div>

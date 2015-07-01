@@ -1,12 +1,4 @@
 var jira = {};
-function jiraSyncError(message, statusCode, errorText) {
-    this.message = message;
-    this.name = "SyncError";
-    this.statusCode = statusCode;
-    this.errorText = errorText;
-}
-jiraSyncError.prototype = Object.create(Error.prototype);
-
 yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	var self = this;
 	jira = this;

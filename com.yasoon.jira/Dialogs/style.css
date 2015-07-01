@@ -1174,8 +1174,8 @@ form.aui .field-group label.overlabel{left:3px;top:3px;}
 #edit-project-key-toggle{margin-left:10px;}
 a.aui-iconised-link div.yad{white-space:nowrap;text-overflow:ellipsis;overflow:hidden;}
 #manage-attachments .buttons-container.form-footer{border-top:0;}
-#assign-to-me-trigger{display:inline-block;margin-left:10px;}
-.full-width-field~#assign-to-me-trigger,.jira-dialog #assign-to-me-trigger{display:table;margin-left:0;margin-top:5px;}
+#assign-to-me-trigger, #assign-to-me-trigger-reporter {display:inline-block;margin-left:10px;}
+.full-width-field~#assign-to-me-trigger,.jira-dialog #assign-to-me-trigger, .jira-dialog #assign-to-me-trigger-reporter{display:table;margin-left:0;margin-top:5px;}
 #issue-filter .date-searcher,.date-searcher{min-width:370px;}#issue-filter .date-searcher .field-group,.date-searcher .field-group{margin-bottom:4px;}#issue-filter .date-searcher .field-group .error,.date-searcher .field-group .error{margin-left:25px;}
 #issue-filter .date-searcher .field-group .js-dp-type-toggle,.date-searcher .field-group .js-dp-type-toggle{margin-left:0;margin-right:8px;}
 #issue-filter .date-searcher .field-group label,.date-searcher .field-group label,#issue-filter .date-searcher .field-group input,.date-searcher .field-group input,#issue-filter .date-searcher .field-group select,.date-searcher .field-group select,#issue-filter .date-searcher .field-group span.icon-date,.date-searcher .field-group span.icon-date{float:none;display:inline-block;}
@@ -2787,4 +2787,9 @@ form#issue-filter .multi-select.check-list-select{width:100%;}
 }
 .select2-container-multi .select2-choices {
 	border: 0px !important;
+}
+
+.assign-to-me-trigger {
+	margin-left: 0;
+	margin-top: 5px;
 }
