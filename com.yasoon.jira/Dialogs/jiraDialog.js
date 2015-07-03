@@ -431,6 +431,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			'description',
 			'attachment',
 			'labels',
+			'timetracking'
 		];
 		var addedFields = [];
 
@@ -510,7 +511,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				var meta = JSON.parse(data);
 				//Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
 				self.projectMeta = $.grep(meta.projects, function (p) { return p.id === jira.selectedProject.id; })[0];
-				console.log(self.currentMeta);
 				dfd.resolve();
 			}
 		});
@@ -584,6 +584,7 @@ function UIFormHandler() {
 				renderSingleText(id, field, container);
 				break;
 			case 'timetracking':
+				renderTimeTracking(id, field, container);
 				break;
 			case 'versions':
 				renderMultiSelectList(id, field, container);
@@ -670,7 +671,7 @@ function UIFormHandler() {
 									result.fields[key] = elem.val();
 								break;
 							case 'com.pyxis.greenhopper.jira:gh-sprint':
-
+								//Bug in JIRA --> Edit is not supported via normal REST api --> See type com.pyxis.greenhopper.jira:gh-epic-link for more information.
 								if (elem.val() && !jira.editIssue)
 									result.fields[key] = elem.val();
 								else if (jira.editIssue) {
@@ -775,6 +776,13 @@ function UIFormHandler() {
 								});
 								result.fields[key] = selectedValues;
 								break;
+							case 'timetracking':
+								//Timetracking consists of two fields :o
+								result.fields[key] = {
+									originalEstimate: $('#' + key + '_originalestimate').val(),
+									remainingEstimate: $('#' + key + '_remainingestimate').val()
+								};
+								break;
 						}
 					}
 				});
@@ -860,6 +868,12 @@ function UIFormHandler() {
 								.trigger('change');
 							}
 							break;
+
+						case 'timetracking':
+							if (issue.fields[key]) {
+								$('#' + key + '_originalestimate').val(issue.fields[key].originalEstimate);
+								$('#' + key + '_remainingestimate').val(issue.fields[key].remainingEstimate);
+							}
 					}
 				});
 			}
@@ -917,9 +931,8 @@ function renderDateTimePicker(id, field, container) {
 function renderLabels(id, field, container) {
 	var html = '<div class="field-group aui-field-componentspicker frother-control-renderer">' +
 				'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-				'    <div class="long-field">' + 
-				'        <select style="width:50%;" class="select input-field" id="' + id + '" multiple="" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:labels"></input>' +
-				'    </div>'+
+				'       <select style="width:50%;" class="select input-field" id="' + id + '" multiple="" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:labels"></select>' +
+				'	<div class="description">Start typing to get a list of possible matches or press down to select.</div>' +
 				'</div>';
 
 	$(container).append(html);
@@ -978,8 +991,9 @@ function renderSelectList(id, field, container) {
 		var text = option.name || option.value;
 		html += '<option value="' + option.id + '" data-icon="'+ ((icon) ? icon : '' ) +'">' + text + '</option>';
 	});
-	html +=  '      </select>' +
-				'</div>';
+	html += '      </select>' +
+			//'	<div class="description">Start typing to get a list of possible matches or press down to select.</div>' +
+			'</div>';
 
 	$(container).append(html);
 
@@ -992,13 +1006,14 @@ function renderSelectList(id, field, container) {
 
 function renderMultiSelectList(id, field, container) {
 	var html = '<div class="field-group input-field">' +
-		'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-		'    <select data-container-class="issuetype-ss" class="select text input-field" id="' + id + '" name="' + id + '" style="width: 50%" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">';
-	$.each(field.allowedValues, function (i, option) {
-		var text = option.name || option.value;
-		html += '<option value="' + option.id + '">' + text + '</option>';
-	});
-	html += '      </select>' +
+				'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+				'    <select data-container-class="issuetype-ss" class="select text input-field" id="' + id + '" name="' + id + '" style="width: 50%" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">';
+			$.each(field.allowedValues, function (i, option) {
+				var text = option.name || option.value;
+				html += '<option value="' + option.id + '">' + text + '</option>';
+			});
+		html += '      </select>' +
+				//'	<div class="description">Start typing to get a list of possible matches or press down to select.</div>' +
 				'</div>';
 
 	$(container).append(html);
@@ -1028,11 +1043,11 @@ function renderUserPicker(id, field, container) {
 	// But we cannot be sure when user has been loaded.
 	//So we create this link invisible in case user has not been loaded yet (and then user loading will activate the links)
 	// or we'll display it immediately if we already have all information.
-	if(jira.mail  && id !== 'assignee') {
-		if (jira.senderUser.name === -1) {
+	if(id !== 'assignee') {
+		if (jira.mail && jira.senderUser.name === -1) {
 			//user does not exist in system
 			html += '<a style="margin-left: 50px;" href="#' + id + '" class="create-sender">Create User ' + jira.mail.senderName + '</a>';
-		} else if (!jira.senderUser) {
+		} else if (jira.mail && !jira.senderUser) {
 			//user may not exist in system
 			html += '<a style="margin-left: 50px; display:none" href="#' + id + '" class="create-sender">Create User ' + jira.mail.senderName + '</a>';
 		}
@@ -1196,6 +1211,27 @@ function renderAttachmentLink(id, field, container) {
 			});
 		});
 	});
+}
+
+function renderTimeTracking(id, field, container) {
+	$(container).append('<div id="' + id + '" data-type="timetracking"></div>');
+	$('#' + id).append('<div class="field-group">' +
+						'   <label for="'+ id +'_originalestimate"> Original Estimate'+
+						'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
+						'   </label>' +
+						'   <input class="text long-field" style="width:50%;" id="' + id + '_originalestimate" name="' + id + '_originalestimate" value="" type="text">' +
+						'	<span class="aui-form example">(eg. 3w 4d 12h)</span>' +
+						'	<div class="description">The original estimate of how much work is involved in resolving this issue.</div>'+
+						'</div>');
+
+	$('#' + id).append('<div class="field-group">' +
+						'   <label for="' + id + '_remainingestimate"> Remaining Estimate' +
+						'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
+						'   </label>' +
+						'   <input class="text long-field" style="width:50%;" id="' + id + '_remainingestimate" name="' + id + '_remainingestimate" value="" type="text">' +
+						'	<span class="aui-form example">(eg. 3w 4d 12h)</span>' +
+						'	<div class="description">An estimate of how much work remains until this issue will be resolved.</div>' +
+						'</div>');
 }
 
 function parseSprintId(input) {
