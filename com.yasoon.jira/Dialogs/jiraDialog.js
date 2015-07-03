@@ -22,6 +22,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.currentIssue = null;
 	this.selectedProject = null;
 	this.senderUser = null;
+	this.projectMeta = null;
 
 	this.recentProjects = [];
 	this.projects = [];
@@ -135,7 +136,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			jiraGet('/rest/api/2/issue/' + self.editIssue.id + '?expand=editmeta,renderedFields,transitions,changelog,operations,names')
 			.then(function (data) {
 				self.currentIssue = JSON.parse(data);
-				self.currentMeta = self.currentIssue.editmeta;
 
 				//Select Issue Type
 				$('#issuetype').append('<option data-icon="' + jira.currentIssue.fields.issuetype.iconUrl + '" value="' + jira.currentIssue.fields.issuetype.id + '">' + jira.currentIssue.fields.issuetype.name + '</option>');
@@ -222,81 +222,26 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 
 	this.submitForm = function (e) {
+		//Reset data
 		jira.transaction.currentCallCounter = 0;
-		$('#MainAlert').hide();
 		var result = {
 			fields: {}
 		};
 
+		//Prepare UI
+		$('#MainAlert').hide();
 		$('#create-issue-submit').attr('disabled', 'disabled');
 		$('#JiraSpinner').show();
 
-		//Project ID
+		//Collect fixed data:
+		//1. Project ID
 		result.fields.project = {
-			id: project.id
+			id: self.selectedProject.id
 		};
-
-		//Issue Type
+		//2. Issue Type
 		result.fields.issuetype = {
 			id: $('#issuetype').val()
 		};
-
-		////Title
-		//result.fields.summary = $('#summary').val();
-
-		////Due Date
-		//if ($('#duedate').val()) {
-		//	result.fields.duedate = moment(new Date($('#duedate').val())).format('YYYY-MM-DD');
-		//}
-		////Priority
-		//result.fields.priority = {
-		//	id: $('#priority').val()
-		//};
-
-		////Components
-		//if ($('#components').val() && $('#components').val().length > 0) {
-		//	var comps = [];
-		//	$.each($('#components').val(), function (i, id) {
-		//		comps.push({ id: id });
-		//	});
-		//	result.fields.components = comps;
-		//}
-
-		////Versions
-		//if ($('#versions').val() && $('#versions').val().length > 0) {
-		//	var versions = [];
-		//	$.each($('#versions').val(), function (i, id) {
-		//		versions.push({ id: id });
-		//	});
-		//	result.fields.versions = versions;
-		//}
-		////FixVersions
-		//if ($('#fixVersions').val() && $('#fixVersions').val().length > 0) {
-		//	var fixversions = [];
-		//	$.each($('#fixVersions').val(), function (i, id) {
-		//		fixversions.push({ id: id });
-		//	});
-		//	result.fields.fixVersions = fixversions;
-		//}
-		////Labels
-		//if ($('#labels').val()) {
-		//	result.fields.labels = $('#labels').val().split(',');
-		//}
-
-		////Enviroment
-		//if ($('#enviroment').val()) {
-		//	result.fields.enviroment = $('#enviroment').val();
-		//}
-		////Description
-		//if ($('#description').val()) {
-		//	result.fields.description = $('#description').val();
-		//}
-		////Assignee
-		//if ($('#assignee').val()) {
-		//	result.fields.assignee = {
-		//		name: $('#assignee').val()
-		//	};
-		//}
 
 		//Get Generated Fields
 		self.UIFormHandler.getFormData(result);
@@ -318,6 +263,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			}
 			yasoon.setting.setAppParameter('createTemplates', JSON.stringify(self.savedTemplates));
 		}
+
 		console.log('Send Data:', result);
 
 		//Switch for edit or create
@@ -443,14 +389,15 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					templateResult: formatIcon,
 					templateSelection: formatIcon
 				});
-				$('#issuetype').select2('val', self.selectedProject.issueTypes[0].id);
-				$('#issuetype').unbind().change(function () {
-					var meta = $.grep(self.currentMeta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
+				$('#issuetype').val(self.selectedProject.issueTypes[0].id).trigger('change');
+				$('#issuetype').change(function () {
+					var meta = $.grep(self.projectMeta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
+					console.log('New Meta', meta);
 					jira.renderIssue(meta);
 				});
 				$('#IssueArea').show();
 
-				var meta = $.grep(self.currentMeta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
+				var meta = $.grep(self.projectMeta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
 				jira.renderIssue(meta);
 
 				$('#LoaderArea').hide();
@@ -461,6 +408,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 
 	this.renderIssue = function (meta) {
+		//Set this as current meta
+		jira.currentMeta = meta;
+
 		//First clean up everything
 		$('#ContainerFields').html('');
 		$('#LoaderArea').show();
@@ -522,66 +472,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			if (self.selectedText) {
 				$('#description').val(self.selectedText);
 			}
-
-
 		}
 
-		//Values in edit case
+		//Set all Values in edit case
 		if (self.editIssue) {
-			////Set Text data
-			//if (self.editIssue.fields.summary && self.currentMeta.fields.summary)
-			//	$('#summary').val(self.editIssue.fields.summary);
-			//if (self.editIssue.fields.duedate && self.currentMeta.fields.duedate)
-			//	$('#duedate').val(moment(new Date(self.editIssue.fields.duedate)).format('YYYY/MM/DD'));
-			//if (self.editIssue.fields.enviroment && self.currentMeta.fields.enviroment)
-			//	$('#enviroment').val(self.editIssue.fields.enviroment);
-			//if (self.editIssue.fields.description && self.currentMeta.fields.description)
-			//	$('#description').val(self.editIssue.fields.description);
-
-			////Project Data
-			//$("#issuetype").select2('val', self.editIssue.fields.issuetype.id);
-
-			//if (!self.fromTemplate)
-			//	$("#issuetype").select2('enable', false);
-
-			//if (self.currentMeta.fields.priority)
-			//	$("#priority").select2('val', self.editIssue.fields.priority.id);
-
-			////Components
-			//if (self.currentMeta.fields.components) {
-			//	var comps = [];
-			//	$.each(self.editIssue.fields.components, function (i, comp) {
-			//		comps.push(comp.id);
-			//	});
-			//	$('#components').select2('val', comps);
-			//}
-
-			////Versions
-			//if (self.currentMeta.fields.fixVersions) {
-			//	var fixVers = [];
-			//	$.each(self.editIssue.fields.fixVersions, function (i, version) {
-			//		fixVers.push(version.id);
-			//	});
-			//	$('#fixVersions').select2('val', fixVers);
-			//}
-			//if (self.currentMeta.fields.versions) {
-			//	var vers = [];
-			//	$.each(self.editIssue.fields.versions, function (i, version) {
-			//		vers.push(version.id);
-			//	});
-			//	$('#versions').select2('val', vers);
-			//}
-			////User
-			//if (self.editIssue.fields.assignee && self.currentMeta.fields.assignee) {
-			//	$('#assignee').select2('val', self.editIssue.fields.assignee.id);
-			//}
-
-			////Labels
-			//if (self.editIssue.fields.labels && self.currentMeta.fields.labels) {
-			//	$('#labels').select2('val', self.editIssue.fields.labels);
-			//}
-
-			//Set Custom Fields
 			self.UIFormHandler.setFormData(self.editIssue);
 		}
 	};
@@ -615,7 +509,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			success: function (data) {
 				var meta = JSON.parse(data);
 				//Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
-				self.currentMeta = $.grep(meta.projects, function (p) { return p.id === jira.selectedProject.id; })[0];
+				self.projectMeta = $.grep(meta.projects, function (p) { return p.id === jira.selectedProject.id; })[0];
 				console.log(self.currentMeta);
 				dfd.resolve();
 			}
@@ -762,7 +656,6 @@ function UIFormHandler() {
 		getFormData: function (result) {
 			result = result || {};
 			//Find Meta for current Issue Type
-
 			if (jira.currentMeta) {
 				$.each(jira.currentMeta.fields, function (key, value) {
 					//Try to find the field in form
@@ -834,7 +727,7 @@ function UIFormHandler() {
 
 							case 'com.atlassian.jira.plugin.system.customfieldtypes:labels':
 								if (elem.val()) {
-									result.fields[key] = elem.val().split(',');
+									result.fields[key] = elem.val();
 								}
 								break;
 							case 'com.atlassian.jira.plugin.system.customfieldtypes:select':
@@ -892,83 +785,81 @@ function UIFormHandler() {
 		setFormData: function (issue) {
 			if (jira.currentMeta) {
 				$.each(jira.currentMeta.fields, function (key, value) {
-					if (key.indexOf('customfield_') > -1) {
-						var type = jira.currentMeta.fields[key].schema.custom || jira.currentMeta.fields[key].schema.system;
-						switch (type) {
-							case 'com.atlassian.jira.plugin.system.customfieldtypes:textfield':
-							case 'com.atlassian.jira.plugin.system.customfieldtypes:url':
-							case 'com.atlassian.jira.plugin.system.customfieldtypes:float':
-							case 'com.atlassian.jira.plugin.system.customfieldtypes:textarea':
-							case 'summary':
-							case 'description':
-							case 'environment':
-								if (issue.fields[key]) {
-									$('#' + key).val(issue.fields[key]);
-								}
-								break;
-							case 'com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes':
-								if (issue.fields[key]) {
-									var elem = $('#' + key);
-									$.each(issue.fields[key], function (i, value) {
-										elem.find('[value=' + value.id + ']').prop('checked', true);
-									});
+					var type = jira.currentMeta.fields[key].schema.custom || jira.currentMeta.fields[key].schema.system;
+					switch (type) {
+						case 'com.atlassian.jira.plugin.system.customfieldtypes:textfield':
+						case 'com.atlassian.jira.plugin.system.customfieldtypes:url':
+						case 'com.atlassian.jira.plugin.system.customfieldtypes:float':
+						case 'com.atlassian.jira.plugin.system.customfieldtypes:textarea':
+						case 'summary':
+						case 'description':
+						case 'environment':
+							if (issue.fields[key]) {
+								$('#' + key).val(issue.fields[key]);
+							}
+							break;
+						case 'com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes':
+							if (issue.fields[key]) {
+								var elem = $('#' + key);
+								$.each(issue.fields[key], function (i, value) {
+									elem.find('[value=' + value.id + ']').prop('checked', true);
+								});
 
-								}
-								break;
-							case 'com.atlassian.jira.plugin.system.customfieldtypes:datepicker':
-							case 'duedate':
-								if (issue.fields[key]) {
-									$('#' + key).val(moment(new Date(issue.fields[key])).format('YYYY/MM/DD'));
-								}
-								break;
-							case 'com.atlassian.jira.plugin.system.customfieldtypes:datetime':
-								break;
-							case 'com.atlassian.jira.plugin.system.customfieldtypes:select':
-							case 'priority':
-							case 'issuetype':
-								if (issue.fields[key]) {
-									$('#' + key).select2('val', issue.fields[key].id);
-								}
-								break;
-							case 'com.pyxis.greenhopper.jira:gh-sprint':
-								if (issue.fields[key] && issue.fields[key].length > 0) {
-									$('#' + key).select2('val', parseSprintId(issue.fields[key][0]));
-									$('#' + key).data('value', parseSprintId(issue.fields[key][0]));
-								}
-								break;
-							case 'com.atlassian.jira.plugin.system.customfieldtypes:labels':
-							case 'labels':
-							case 'com.pyxis.greenhopper.jira:gh-epic-link':
-								if (issue.fields[key]) {
-									$('#' + key).select2('val', issue.fields[key]);
-									$('#' + key).data('value', issue.fields[key]);
-								}
-								break;
-							case 'com.atlassian.jira.plugin.system.customfieldtypes:multiselect':
-							case 'fixVersions':
-							case 'versions':
-							case 'components':
-								if (issue.fields[key]) {
-									var selectedValues = [];
-									$.each(issue.fields[key], function (i, value) {
-										selectedValues.push(value.id);
-									});
-									$('#' + key).select2('val', selectedValues);
-								}
-								break;
-							case 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker':
-							case 'assignee':
-							case 'reporter':
-								if (issue.fields[key]) {
-									$('#' + key)
-									.data('id', issue.fields[key].name)
-									.data('text', issue.fields[key].displayName)
-									.data('type', '')
-									.val(issue.fields[key].name)
-									.trigger('change');
-								}
-								break;
-						}
+							}
+							break;
+						case 'com.atlassian.jira.plugin.system.customfieldtypes:datepicker':
+						case 'duedate':
+							if (issue.fields[key]) {
+								$('#' + key).val(moment(new Date(issue.fields[key])).format('YYYY/MM/DD'));
+							}
+							break;
+						case 'com.atlassian.jira.plugin.system.customfieldtypes:datetime':
+							break;
+						case 'com.atlassian.jira.plugin.system.customfieldtypes:select':
+						case 'priority':
+						case 'issuetype':
+							if (issue.fields[key]) {
+								$('#' + key).val(issue.fields[key].id).trigger('change');
+							}
+							break;
+						case 'com.pyxis.greenhopper.jira:gh-sprint':
+							if (issue.fields[key] && issue.fields[key].length > 0) {
+								$('#' + key).val(parseSprintId(issue.fields[key][0])).trigger('change');
+								$('#' + key).data('value', parseSprintId(issue.fields[key][0]));
+							}
+							break;
+						case 'com.atlassian.jira.plugin.system.customfieldtypes:labels':
+						case 'labels':
+						case 'com.pyxis.greenhopper.jira:gh-epic-link':
+							if (issue.fields[key]) {
+								$('#' + key).val(issue.fields[key]).trigger('change');
+								$('#' + key).data('value', issue.fields[key]);
+							}
+							break;
+						case 'com.atlassian.jira.plugin.system.customfieldtypes:multiselect':
+						case 'fixVersions':
+						case 'versions':
+						case 'components':
+							if (issue.fields[key]) {
+								var selectedValues = [];
+								$.each(issue.fields[key], function (i, value) {
+									selectedValues.push(value.id);
+								});
+								$('#' + key).val(selectedValues).trigger('change');
+							}
+							break;
+						case 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker':
+						case 'assignee':
+						case 'reporter':
+							if (issue.fields[key]) {
+								$('#' + key)
+								.data('id', issue.fields[key].name)
+								.data('text', issue.fields[key].displayName)
+								.data('type', '')
+								.val(issue.fields[key].name)
+								.trigger('change');
+							}
+							break;
 					}
 				});
 			}
@@ -1027,7 +918,7 @@ function renderLabels(id, field, container) {
 	var html = '<div class="field-group aui-field-componentspicker frother-control-renderer">' +
 				'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
 				'    <div class="long-field">' + 
-				'        <input class="text input-field" id="' + id + '" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:labels"></input>' +
+				'        <select style="width:50%;" class="select input-field" id="' + id + '" multiple="" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:labels"></input>' +
 				'    </div>'+
 				'</div>';
 
@@ -1056,7 +947,8 @@ function renderLabels(id, field, container) {
 				});
 			}
 			$('#' + id).select2({
-				tags: labelArray,
+				tags: true,
+				data: labelArray,
 				tokenSeparators: [" "]
 			});
 		}
@@ -1076,14 +968,15 @@ function renderSelectList(id, field, container) {
 	var html = '<div class="field-group input-field">' +
 				'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
 				'    <select class="select input-field" id="' + id + '" name="' + id + '" style="width: 50%" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
-				'		<option value="">None</option>';
+				'		<option value="">' + ((field.hasDefaultValue) ? 'Default' : 'None') +'</option>';
 
 	$.each(field.allowedValues, function (i, option) {
 		var icon = null;
 		if (option.iconUrl) {
 			icon = jira.icons.mapIconUrl(option.iconUrl);
 		}
-		html += '<option value="' + option.id + '" data-icon="'+ ((icon) ? icon : '' ) +'">' + option.name + '</option>';
+		var text = option.name || option.value;
+		html += '<option value="' + option.id + '" data-icon="'+ ((icon) ? icon : '' ) +'">' + text + '</option>';
 	});
 	html +=  '      </select>' +
 				'</div>';
@@ -1102,7 +995,8 @@ function renderMultiSelectList(id, field, container) {
 		'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
 		'    <select data-container-class="issuetype-ss" class="select text input-field" id="' + id + '" name="' + id + '" style="width: 50%" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">';
 	$.each(field.allowedValues, function (i, option) {
-		html += '<option value="' + option.id + '">' + option.name + '</option>';
+		var text = option.name || option.value;
+		html += '<option value="' + option.id + '">' + text + '</option>';
 	});
 	html += '      </select>' +
 				'</div>';
@@ -1190,7 +1084,13 @@ function renderUserPicker(id, field, container) {
 
 		})
 		.catch(function (error) {
-			console.log('Unsuccessfull', error);
+			if (error && error.statusCode == 403) {
+				alert('You are not allowed to create new users in JIRA. Please contact your administrator to use this function');
+			} else if(error && error.statusCode == 404) {
+				alert('Your JIRA instance is too old and does not support this functionality');
+			} else {
+				alert('That does not work. Please try it again in a few seconds or contact our support (contact@yasoon.de)');
+			}
 		});
 		e.preventDefault();
 	});
@@ -1369,10 +1269,11 @@ function submitErrorHandler(data, statusCode, result, errorText, cbkParam) {
 function submitSuccessHandler(data) {
 	jira.transaction.currentCallCounter--;
 
-	if (jira.transaction.currentCallCounter === 0)
+	if (jira.transaction.currentCallCounter === 0) {
+		//Creation successfull
 		jira.close({ action: 'success' });
+	}
 }
-
 
 // Custom Data Provider for SELECT2  User retrieval
 jira.CustomDataSet = null;
