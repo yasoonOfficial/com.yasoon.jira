@@ -308,8 +308,13 @@ function jiraQueue() {
 }
 
 function getJiraMarkupRenderer() {
+	var inTable = false;
+	var lastOp = '';
+	
 	return new MailRenderer({
 		renderTextElement: function(text, style) {
+			lastOp = 'renderTextElement';
+			
 			//Trim the spaces away and restore them later
 			var trimmedText = text.trim();
 			var prefix = text.substring(0, text.indexOf(trimmedText));
@@ -337,24 +342,42 @@ function getJiraMarkupRenderer() {
 			return prefix + result + suffix; 
 		},
 		renderHyperlink: function(url, label, style) {
+			lastOp = 'renderHyperlink';
+			
 			if(label)
 				return '[' + label + '|' + url + ']';
 			else
 				return '[' + url + ']';
 		},
+		renderTable: function(time) {
+			lastOp = 'renderTable';
+			
+			if(time === 0)
+				inTable = true;
+			else
+				inTable = false;
+		},
 		renderTableRow: function(time, type) {
+			lastOp = 'renderTableRow';
+			
 			if(time === 1)
 				return '\n';
 				
 			return '';
 		},
 		renderTableCell: function(time, rowType, colType) {
+			lastOp = 'renderTableCell';
+			
 			if(time === 0 && colType === 1)
 				return '|';
 			else if(time === 1)
 				return '|'; 
 		},
 		renderNewLine: function() {
+			if(inTable && lastOp === 'newLine')
+				return '';
+			
+			lastOp = 'newLine';
 			return '\n';
 		}
 	});
