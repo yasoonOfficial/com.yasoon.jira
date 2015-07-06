@@ -350,8 +350,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					jira.selectedProject = $.grep(self.projects, function (proj) { return proj.id === projId; })[0];
 					self.currentIssue = template.values;
 					//Legacy code 0.6 --> description and summary have been saved inside the template
-					delete self.editIssue.summary;
-					delete self.editIssue.description;
+					delete self.currentIssue.summary;
+					delete self.currentIssue.description;
 
 				}
 			} else {

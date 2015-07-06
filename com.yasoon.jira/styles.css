@@ -1,0 +1,212 @@
+table.confluenceTable
+{
+	border-collapse: collapse;
+	margin: 5px 0 5px 2px;
+	width: auto;
+}
+td.confluenceTd
+{
+	border: 1px solid #ccc;
+	padding: 3px 4px 3px 4px;
+}
+th.confluenceTh
+{
+	background: #f5f5f5;
+	border: 1px solid #ccc;
+	padding: 3px 4px 3px 4px;
+	text-align: center;
+}
+div.wiki-edit
+{
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+div.wiki-edit p
+{
+	padding: 0;
+}
+div.wiki-edit h1
+{
+	font-size: 2.4em;
+}
+div.wiki-edit h2
+{
+	border: none;
+	font-size: 1.8em;
+}
+div.wiki-edit h3
+{
+	font-size: 1.3em;
+}
+div.wiki-edit h4
+{
+	font-size: 1.2em;
+}
+div.wiki-edit h5
+{
+	font-size: 1em;
+}
+div.wiki-edit h6
+{
+	font-size: .9em;
+}
+div.wiki-edit img,div.wiki-edit a img,div.wiki-edit fieldset
+{
+	border: 0;
+}
+div.wiki-edit ul
+{
+	margin: 0 0 1em 2em;
+}
+div.wiki-edit ol
+{
+	list-style-position: outside;
+	list-style-type: decimal;
+	padding-left: 2.5em;
+}
+div.wiki-edit blockquote
+{
+	border-left: 2px solid #3c78b5;
+	font-family: inherit;
+	font-size: 1em;
+	margin-left: 0;
+	padding-left: 1em;
+}
+div.wiki-edit small,div.wiki-edit .small
+{
+	font-size: .9em;
+}
+div.wiki-edit strong,div.wiki-edit b,div.wiki-edit .bolded
+{
+	font-weight: bold;
+}
+.preformatted,.code
+{
+	background: #f5f5f5;
+	border: 1px solid #ccc;
+	font-family: monospace;
+	font-size: 12px;
+	line-height: 1.33333333333333;
+}
+.code-keyword
+{
+	color: #000091;
+}
+.code-object
+{
+	color: #910091;
+}
+.code-quote,.code-quote .code-keyword,.code-quote .code-object
+{
+	color: #009100;
+}
+.code-comment,.code-comment .code-keyword,.code-comment .code-object,.code-comment .code-quote
+{
+	color: #808080;
+}
+.code-xml .code-keyword
+{
+	font-weight: bold;
+}
+.code-tag
+{
+	color: #000091;
+}
+.panel
+{
+	border: 1px solid #ccc;
+	border-radius: 3px 3px 3px 3px;
+	margin: 9px 0;
+	moz-border-radius: 3px 3px 3px 3px;
+}
+.panelHeader
+{
+	border-bottom: 1px solid #ccc;
+	padding: 9px 12px;
+}
+.panelContent
+{
+	padding: 9px 12px;
+}
+div.wiki-edit .preformatted,div.wiki-edit .code
+{
+	background: #f5f5f5;
+	border: 1px solid #ccc;
+	font-family: monospace;
+	font-size: 12px;
+	line-height: 1.33333333333333;
+}
+div.wiki-edit .code-keyword
+{
+	color: #000091;
+}
+div.wiki-edit .code-object
+{
+	color: #910091;
+}
+div.wiki-edit .code-quote,div.wiki-edit .code-quote .code-keyword,div.wiki-edit .code-quote .code-object
+{
+	color: #009100;
+}
+div.wiki-edit .code-comment,div.wiki-edit .code-comment .code-keyword,div.wiki-edit .code-comment .code-object,div.wiki-edit .code-comment .code-quote
+{
+	color: #808080;
+}
+div.wiki-edit .code-xml .code-keyword
+{
+	font-weight: bold;
+}
+div.wiki-edit .code-tag
+{
+	color: #000091;
+}
+div.wiki-edit .panel
+{
+	border: 1px solid #ccc;
+	border-radius: 3px 3px 3px 3px;
+	margin: 9px 0;
+	moz-border-radius: 3px 3px 3px 3px;
+}
+div.wiki-edit .panelHeader
+{
+	border-bottom: 1px solid #ccc;
+	padding: 9px 12px;
+}
+div.wiki-edit .panelContent
+{
+	padding: 9px 12px;
+}
+div.wiki-edit pre
+{
+	background: none;
+	border: none;
+	padding: 0;
+	width: 100%;
+}
+div.preformattedContent pre,div.codeContent pre
+{
+	max-height: 30em;
+	overflow: auto;
+	white-space: pre-wrap;
+	word-wrap: normal;
+}
+div.preformattedContent pre
+{
+	white-space: pre;
+	word-break: normal;
+}
+table div.preformattedContent pre
+{
+	white-space: pre-wrap;
+	word-break: break-word;
+	word-wrap: break-word;
+}
+.linkerror
+{
+	background-color: #fcc;
+}
+.editPageInsertLinks,.editPageInsertLinks a
+{
+	font-size: 9px;
+	font-weight: normal;
+}

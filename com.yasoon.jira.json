@@ -9,6 +9,7 @@
     "logoImage": "logo.png",
     "notificationImage": "logo_round.png",
     "files": [
+	  "styles.css",
 	  "common.js",
       "functions.js",
       "settings.js",
