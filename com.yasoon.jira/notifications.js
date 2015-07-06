@@ -239,18 +239,9 @@ function JiraIssueNotification(issue) {
 		}
 
 		//Am I watcher?
-		if (self.issue.fields.watches.watchers && jira.settings.showFeedWatcher) {
-			found = false;
-			$.each(self.issue.fields.watches.watchers, function (i, watcher) {
-				if (watcher.name === jira.data.ownUser.name) {
-					found = true;
-					return false;
-				}
-			});
-			if (found) {
-				jiraLog('Found in Watchers');
-				return true;
-			}
+		if (self.issue.fields.watches.isWatching && jira.settings.showFeedWatcher) {
+			jiraLog('Found in Watchers');
+			return true;
 		}
 
 		//Is it my own project? --> find project in buffer
@@ -343,7 +334,6 @@ function JiraIssueNotification(issue) {
 		});
 	};
 
-
 	self.setProperties = function (feed) {
 		feed.properties.actionComment = { type: "plain", attachments: false, mentions: searchUser };
 		feed.properties.customActions = [];
@@ -419,81 +409,86 @@ function JiraIssueNotification(issue) {
 	};
 
 	self.save = function () {
-		return jiraGet('/rest/api/2/issue/' + self.issue.id + '/watchers')
-		.then(function (watchers) {
-			self.issue.fields.watches.watchers = JSON.parse(watchers).watchers;
-		})
-		.then(function () {
-			if (!isSyncNeeded()) {
-				return jiraGetNotification(self.issue.id);
+		if (!isSyncNeeded()) {
+			return jiraGetNotification(self.issue.id);
+		}
+		//Save contacts
+		if (self.issue.fields.assignee)
+			jira.contacts.update(self.issue.fields.assignee);
+
+		if (self.issue.fields.creator)
+			jira.contacts.update(self.issue.fields.creator);
+
+		if (self.issue.fields.reporter)
+			jira.contacts.update(self.issue.fields.reporter);
+
+		//Download icons if necessary
+		if (self.issue.fields.issuetype) {
+			jira.icons.addIcon(self.issue.fields.issuetype.iconUrl);
+		}
+		if (self.issue.fields.priority) {
+			jira.icons.addIcon(self.issue.fields.priority.iconUrl);
+		}
+
+		return jiraGetNotification(self.issue.id)
+		.then(function (yEvent) {
+			var creation = false;
+			if (!yEvent) {
+				//New Notification
+				yEvent = {};
+				creation = true;
+			} else if (yEvent.createdAt.getTime() >= new Date(self.issue.fields.updated).getTime()) {
+				//not new and no update needed
+				return yEvent;
+			} else {
+				self.issue.childrenLoaded = JSON.parse(yEvent.externalData).childrenLoaded; // Take over childrenLoaded flag from old Entity
 			}
-			//Save contacts
-			if (self.issue.fields.assignee)
-				jira.contacts.update(self.issue.fields.assignee);
 
-			if (self.issue.fields.creator)
-				jira.contacts.update(self.issue.fields.creator);
+			yEvent.content = (self.issue.fields.description) ? self.issue.fields.description : 'no content';
+			yEvent.title = self.issue.fields.summary;
+			yEvent.type = 1;
+			yEvent.createdAt = new Date(self.issue.fields.updated);
+			yEvent.contactId = ((self.issue.fields.creator) ? self.issue.fields.creator.name : ((self.issue.fields.reporter) ? self.issue.fields.reporter.name : ''));
+			yEvent.externalId = self.issue.id;
+			self.issue.type = 'issue';
 
-			if (self.issue.fields.reporter)
-				jira.contacts.update(self.issue.fields.reporter);
+			/* Clean up data to save DB space */
+			var tempIssue = JSON.parse(JSON.stringify(self.issue)); // Performance Intensive but nessecary. Never change original object
+			delete tempIssue.fields.comment;
+			delete tempIssue.fields.worklog;
+			delete tempIssue.fields.workratio; //Lead to a dump in JSON Convert due to Int64 Overflow
+			delete tempIssue.fields.watches.watchers;
 
-			//Download icons if necessary
-			if (self.issue.fields.issuetype) {
-				jira.icons.addIcon(self.issue.fields.issuetype.iconUrl);
-			}
-			if (self.issue.fields.priority) {
-				jira.icons.addIcon(self.issue.fields.priority.iconUrl);
-			}
+			delete tempIssue.renderedFields.comment;
+			delete tempIssue.renderedFields.worklog;
+			delete tempIssue.renderedFields.attachment;
 
-			return jiraGetNotification(self.issue.id)
-			.then(function (yEvent) {
-				var creation = false;
-				if (!yEvent) {
-					//New Notification
-					yEvent = {};
-					creation = true;
-				} else if (yEvent.createdAt.getTime() >= new Date(self.issue.fields.updated).getTime()) {
-					//not new and no update needed
-					return yEvent;
-				} else {
-					self.issue.childrenLoaded = JSON.parse(yEvent.externalData).childrenLoaded; // Take over childrenLoaded flag from old Entity
-				}
+			yEvent.externalData = JSON.stringify(tempIssue);
 
-				yEvent.content = (self.issue.fields.description) ? self.issue.fields.description : 'no content';
-				yEvent.title = self.issue.fields.summary;
-				yEvent.type = 1;
-				yEvent.createdAt = new Date(self.issue.fields.updated);
-				yEvent.contactId = ((self.issue.fields.creator) ? self.issue.fields.creator.name : ((self.issue.fields.reporter) ? self.issue.fields.reporter.name : ''));
-				yEvent.externalId = self.issue.id;
-				self.issue.type = 'issue';
+			if (creation) {
+				return jiraAddNotification(yEvent)
+				.then(function (newNotif) {
+					jira.notifications.queueChildren(self.issue); // Trigger Sync of all children. If successfull it will set childrenLoaded!
 
-				/* Clean up data to save DB space */
-				var tempIssue = JSON.parse(JSON.stringify(self.issue)); // Performance Intensive but nessecary. Never change original object
-				delete tempIssue.fields.comment;
-				delete tempIssue.fields.worklog;
-				delete tempIssue.fields.workratio; //Lead to a dump in JSON Convert due to Int64 Overflow
-				delete tempIssue.renderedFields.comment;
-				delete tempIssue.renderedFields.worklog;
-				delete tempIssue.renderedFields.attachment;
-
-				yEvent.externalData = JSON.stringify(tempIssue);
-
-				if (creation) {
-					return jiraAddNotification(yEvent)
-					.then(function (newNotif) {
+					return newNotif;
+					//return new JiraIssueAppointment(self.issue).save()
+					//.then(function () {
+					//	return newNotif;
+					//});
+				});
+			} else {
+				return jiraSaveNotification(yEvent)
+				.then(function (newNotif) {
+					if (!self.issue.childrenLoaded)
 						jira.notifications.queueChildren(self.issue); // Trigger Sync of all children. If successfull it will set childrenLoaded!
-						return newNotif;
-					});
-				} else {
-					return jiraSaveNotification(yEvent)
-					.then(function (newNotif) {
-						if (!self.issue.childrenLoaded)
-							jira.notifications.queueChildren(self.issue); // Trigger Sync of all children. If successfull it will set childrenLoaded!
 
-						return newNotif;
-					});
-				}
-			});
+					return newNotif;
+					//return new JiraIssueAppointment(self.issue).save()
+					//.then(function () {
+					//	return newNotif;
+					//});
+				});
+			}
 		});
 	};
 
@@ -553,8 +548,19 @@ function JiraIssueActionNotification(event) {
 			if (self.event.content) {
 				title = $('<div></div>').html(self.event.content['#text']).text().trim();
 				if (!title && self.event['activity:object']) {
-					console.log('Render inner: ', self.event['activity:object']);
-					title = self.event['activity:object'].title['#text'].trim();
+					if ($.isArray(self.event['activity:object'])) {
+						//Can be an array (e.g. if mutiple files has been uploaded at once.
+						title = '';
+						self.event['activity:object'].forEach(function (elem) {
+							if (title)
+								title += ', ';
+
+							title += elem.title['#text'].trim();
+						});
+
+					} else {
+						title = self.event['activity:object'].title['#text'].trim();
+					}
 				}
 			}
 			if(title)
@@ -763,6 +769,47 @@ function JiraIssueActionNotification(event) {
 	};
 
 }
+
+//function JiraIssueAppointment(issue) {
+//	var self = this;
+//	this.issue = issue;
+
+//	this.save = function () {
+//		if (!self.issue.fields.duedate)
+//			return Promise.resolve();
+
+//		//Check if it's an update or creation
+//		return jiraGetCalendarItem(self.issue.id)
+//		.then(function (dbItem) {
+//			var creation = false;
+//			if (!dbItem) {
+//				//Creation
+//				creation = true;
+//				dbItem = { categories: ['Jira'] };
+//			}
+
+//			dbItem.subject = self.issue.fields.summary;
+//			dbItem.body = self.issue.self + ' \n\r ' + self.issue.fields.description;
+
+//			//Even though "normal" js date supports conversion for full dates with timezone,
+//			// it messes up dates without any time (all day events)
+//			dbItem.startDate = moment(self.issue.fields.duedate).add(16, 'hour').toDate();
+//			dbItem.endDate = moment(self.issue.fields.duedate).add(17, 'hour').toDate();
+
+//			dbItem.isHtmlBody = false;
+//			dbItem.externalId = self.issue.id;
+
+//			//Really needed?!
+//			dbItem.externalData = JSON.stringify(self.issue);
+//			if(creation)
+//				return jiraAddCalendarItem(dbItem);
+//			else
+//				return jiraSaveCalendarItem(dbItem);
+//		});
+
+//	}
+
+//}
 
 function JiraIssueController() {
 	var self = this;
