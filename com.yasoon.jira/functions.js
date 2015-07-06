@@ -154,7 +154,7 @@ function JiraRibbonController() {
 			}
 			
 			yasoon.outlook.mail.renderSelection(ribbonCtx.items[ribbonCtx.readingPaneItem], 'jiraMarkup').then(function(markup) {
-				initParams.text = selection;
+				initParams.text = markup;
 				initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
 				
 				yasoon.dialog.open({
@@ -358,7 +358,7 @@ function getJiraMarkupRenderer() {
 			return '\n';
 		}
 	});
-};
+}
 
 function jiraSyncQueue() {
 	var self = this;

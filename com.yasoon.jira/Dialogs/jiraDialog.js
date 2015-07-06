@@ -248,8 +248,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		//Save Template if created by Email
 		if (self.mail) {
-			var newTemplate = new createTemplate(self.mail.senderEmail, self.mail.senderName, project, result);
-			newTemplate.project = project;
+			var newTemplate = new createTemplate(self.mail.senderEmail, self.mail.senderName, self.selectedProject, result);
 			var templateFound = false;
 			$.each(self.savedTemplates, function (i, temp) {
 				if (temp.senderEmail == newTemplate.senderEmail && temp.project.id == newTemplate.project.id) {
