@@ -49,6 +49,8 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		yasoon.addHook(yasoon.setting.HookRenderSettingsContainer, jira.settings.renderSettingsContainer);
 		yasoon.addHook(yasoon.setting.HookSaveSettings, jira.settings.saveSettings);
 
+		yasoon.outlook.mail.registerRenderer("jiraMarkup", getJiraMarkupRenderer());
+
 		yasoon.feed.addFilter([
 			{
 				name: 'By Project',

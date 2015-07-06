@@ -148,13 +148,27 @@ function JiraRibbonController() {
 			
 		} else {
 			var selection = ribbonCtx.items[ribbonCtx.readingPaneItem].getSelection(0);
-
 			if (!selection || !selection.trim()) {
-				yasoon.dialog.showMessageBox('Please select some text first!');
-				return;
+					yasoon.dialog.showMessageBox('Please select some text first!');
+					return;
 			}
-			initParams.text = selection;
-			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
+			
+			yasoon.outlook.mail.renderSelection(ribbonCtx.items[ribbonCtx.readingPaneItem], 'jiraMarkup').then(function(markup) {
+				initParams.text = selection;
+				initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
+				
+				yasoon.dialog.open({
+					width: 900,
+					height: 650,
+					title: 'New Jira Issue',
+					resizable: true,
+					htmlFile: 'Dialogs/newIssueDialog.html',
+					initParameter: initParams,
+					closeCallback: self.ribbonOnCloseNewIssue
+				});
+			});
+			
+			return;
 		}
 
 		yasoon.dialog.open({
@@ -292,6 +306,59 @@ function jiraQueue() {
 
 	return promise;
 }
+
+function getJiraMarkupRenderer() {
+	return new MailRenderer({
+		renderTextElement: function(text, style) {
+			//Trim the spaces away and restore them later
+			var trimmedText = text.trim();
+			var prefix = text.substring(0, text.indexOf(trimmedText));
+			var suffix = text.substring(text.indexOf(trimmedText) + trimmedText.length, text.length);
+			var result = trimmedText;
+			
+			if(style.isBold)
+				result = '*' + result + '*';
+			
+			if(style.isItalic)
+				result = '_' + result + '_';
+				
+			if(style.isUnderline)
+				result = '+' + result + '+';
+				
+			if(style.isStrikethrough)
+				result = '-' + result + '-';
+				
+			if(style.isHeading)
+				result = 'h' + style.headingSize + '. ' + result;
+
+			if(style.color) 
+				result = '{color:' + style.color + '}' + result + '{color}';
+			 
+			return prefix + result + suffix; 
+		},
+		renderHyperlink: function(url, label, style) {
+			if(label)
+				return '[' + label + '|' + url + ']';
+			else
+				return '[' + url + ']';
+		},
+		renderTableRow: function(time, type) {
+			if(time === 1)
+				return '\n';
+				
+			return '';
+		},
+		renderTableCell: function(time, rowType, colType) {
+			if(time === 0 && colType === 1)
+				return '|';
+			else if(time === 1)
+				return '|'; 
+		},
+		renderNewLine: function() {
+			return '\n';
+		}
+	});
+};
 
 function jiraSyncQueue() {
 	var self = this;
