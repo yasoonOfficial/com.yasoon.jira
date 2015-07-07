@@ -379,6 +379,18 @@ function getJiraMarkupRenderer() {
 			
 			lastOp = 'newLine';
 			return '\n';
+		},
+		renderListLine: function(listLine) {
+			var result = '';
+			for(var i = 0; i <= listLine.indentLevel; i++) {
+				if(listLine.indentStyle[i].format === 0) //decimal
+					result = result + '#';
+				else 
+					result = result + '*';
+			}
+			
+			result += ' ';
+			return result;
 		}
 	});
 }
