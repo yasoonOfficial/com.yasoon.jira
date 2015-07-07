@@ -1026,7 +1026,13 @@ function renderTextarea(id, field, container) {
 		'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
 		'   </label>' +
 		'    <textarea class="form-control" id="' + id + '" name="' + id + '" rows="5" data-type="com.atlassian.jira.plugin.system.customfieldtypes:textarea"></textarea>' +
+		((id === 'description' && jira.mail) ? '<a id="DescriptionInsertPlaintext" style="cursor:pointer;"> Replace with Plaintext</a>' : '' ) +
 		'</div>');
+
+	$('#DescriptionInsertPlaintext').click(function (e) {
+		$('#description').val(jira.mail.getSelection(0));
+		e.preventDefault();
+	});
 }
 
 function renderUserPicker(id, field, container) {
