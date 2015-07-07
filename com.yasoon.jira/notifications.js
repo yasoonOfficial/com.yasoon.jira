@@ -318,16 +318,23 @@ function JiraIssueNotification(issue) {
 			self.issue.fields.status.iconUrl = jira.icons.mapIconUrl(self.issue.fields.status.iconUrl);
 		}
 
+		//Get Contacts
+		var assignee, creator;
+		if (self.issue.fields.assignee)
+			assignee = jira.contacts.get(self.issue.fields.assignee.name);
+		if (self.issue.fields.creator)
+			creator = jira.contacts.get(self.issue.fields.creator.name);
+
 		//Start rendering
 		feed.setTemplate('templates/issueNotification.hbs', {
 			fields: self.issue.fields,
 			renderedFields: self.issue.renderedFields,
 			assignee: {
-				avatarUrl: (self.issue.fields.assignee) ? jira.contacts.get(self.issue.fields.assignee.name).ImageURL : yasoon.io.getLinkPath('Images\\useravatar.png'),
+				avatarUrl: (assignee) ? assignee.ImageURL : yasoon.io.getLinkPath('Images\\useravatar.png'),
 				displayName: (self.issue.fields.assignee) ? self.issue.fields.assignee.displayName : 'no one'
 			},
 			creator: {
-				avatarUrl: (self.issue.fields.creator) ? jira.contacts.get(self.issue.fields.creator.name).ImageURL : yasoon.io.getLinkPath('Images\\useravatar.png'),
+				avatarUrl: (creator) ? creator.ImageURL : yasoon.io.getLinkPath('Images\\useravatar.png'),
 				displayName: (self.issue.fields.creator) ? self.issue.fields.creator.displayName : 'anonym'
 			},
 			baseUrl: jira.settings.baseUrl
@@ -612,7 +619,6 @@ function JiraIssueActionNotification(event) {
 		return Promise.resolve()
 		.then(function () {
 			//Get issue
-			jiraLog('bla', self.event);
 			var issueKey = '';
 			if (self.event.type === 'IssueComment')
 				issueKey = self.event.issue.id;
@@ -622,7 +628,6 @@ function JiraIssueActionNotification(event) {
 		})
 		.then(function (issue) {
 			self.event.issue = issue;
-
 			if (!self.isSyncNeeded()) {
 				return;
 			}
@@ -668,6 +673,11 @@ function JiraIssueActionNotification(event) {
 
 	self.saveComment = function (yEvent, parent, comment) {
 		var creation = false;
+		if (!comment) {
+			//Timing Issue! Comment has been retrieved via feed, but not via Rest API.
+			yasoon.util.log('Comments inconsistency! Comment retrieved by feed but not via REST API.', yasoon.util.severity.error);
+			return;
+		}
 		jiraLog('Comment Save', { event: yEvent, parent: parent });
 		if (!yEvent && parent) {
 			//New Notification
@@ -692,7 +702,7 @@ function JiraIssueActionNotification(event) {
 		yEvent.externalId = 'c'+comment.id;
 		//"Render" title for desktop notification
 		yEvent.title = comment.updateAuthor.displayName + ' commented on: ' + self.event.issue.fields.summary;
-		yEvent.content = renderedComment.body;
+		yEvent.content = (renderedComment.body) ? renderedComment.body : 'no content';
 		yEvent.contactId = comment.updateAuthor.name;
 		yEvent.createdAt = new Date(comment.updated);
 		yEvent.type = 1;		
@@ -718,6 +728,7 @@ function JiraIssueActionNotification(event) {
 	};
 
 	self.saveAction = function (yEvent, parent) {
+		var creation = false;
 		if (!yEvent && parent) {
 			//New Notification
 			yEvent = {};
