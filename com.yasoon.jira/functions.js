@@ -10,19 +10,21 @@ function JiraRibbonController() {
 				'Microsoft.Outlook.Explorer',
 				'Microsoft.Outlook.Mail.Read'
 			],
-			items: [ {
-				type: 'contextMenu',
-				idMso: 'ContextMenuMailItem',
-				items: [
-					{
-						id: 'newIssueFullMail',
-						type: 'button',
-						image: 'logo_icon1.png',
-						label: 'New Issue',
-						onAction: self.ribbonOnNewIssue
-					}
-				]
-			}, {
+			items: [
+			//	{
+			//	type: 'contextMenu',
+			//	idMso: 'ContextMenuMailItem',
+			//	items: [
+			//		{
+			//			id: 'newIssueFullMail',
+			//			type: 'button',
+			//			image: 'logo_icon1.png',
+			//			label: 'New Issue',
+			//			onAction: self.ribbonOnNewIssue
+			//		}
+			//	]
+			//},
+			{
 				type: 'contextMenu',
 				idMso: 'MenuMailNewItem',
 				items: [{
@@ -134,18 +136,30 @@ function JiraRibbonController() {
 		}
 		var initParams = { 'settings': jira.settings, 'ownUser': jira.data.ownUser };
 
+		var dialogOptions = {
+			width: 900,
+			height: 650,
+			title: 'New Jira Issue',
+			resizable: true,
+			htmlFile: 'Dialogs/newIssueDialog.html',
+			initParameter: initParams,
+			closeCallback: self.ribbonOnCloseNewIssue
+		};
+
 		if (ribbonId == 'newIssueFullMail') {
-			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
-			initParams.text = initParams.mail.plainText;
-			//var fullMail = $('<div>' + initParams.mail.body + '</div>');
-			//var mailBody = fullMail.find('body');
-			//if(mailBody.length > 0) {
-			//	initParams.text = mailBody.text().trim();
-			//} else {
-			//	initParams.text = fullMail.text();
-			//}
+			//Ribbon on Mail Item
+			//yasoon.outlook.mail.renderSelection(ribbonCtx.items[ribbonCtx.readingPaneItem], 'jiraMarkup').then(function (markup) {
+			//	initParams.text = markup;
+			//	initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
+
+			//	yasoon.dialog.open(dialogOptions);
+			//});
+
+			return;
 		} else if (ribbonId == 'newIssue') {
-			
+			//Ribbon in Email Selection
+			yasoon.dialog.open(dialogOptions);
+			return;
 		} else {
 			var selection = ribbonCtx.items[ribbonCtx.readingPaneItem].getSelection(0);
 			if (!selection || !selection.trim()) {
@@ -157,29 +171,11 @@ function JiraRibbonController() {
 				initParams.text = markup;
 				initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
 				
-				yasoon.dialog.open({
-					width: 900,
-					height: 650,
-					title: 'New Jira Issue',
-					resizable: true,
-					htmlFile: 'Dialogs/newIssueDialog.html',
-					initParameter: initParams,
-					closeCallback: self.ribbonOnCloseNewIssue
-				});
+				yasoon.dialog.open(dialogOptions);
 			});
 			
 			return;
 		}
-
-		yasoon.dialog.open({
-			width: 900,
-			height: 650,
-			title: 'New Jira Issue',
-			resizable: true,
-			htmlFile: 'Dialogs/newIssueDialog.html',
-			initParameter: initParams,
-			closeCallback: self.ribbonOnCloseNewIssue
-		});
 	};
 
 	this.ribbonOnCloseNewIssue = function ribbonOnCloseNewIssue () {
