@@ -107,6 +107,23 @@ function jiraGet(relativeUrl) {
 	});
 }
 
+function jiraGetWithHeaders(relativeUrl) {
+	return new Promise(function (resolve, reject) {
+		yasoon.oauth({
+			url: jira.settings.baseUrl + relativeUrl,
+			oauthServiceName: jira.settings.currentService,
+			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+			type: yasoon.ajaxMethod.Get,
+			error: function jiraGetError(data, statusCode, result, errorText, cbkParam) {
+				reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText));
+			},
+			success: function jiraGetSuccess(data, something, headers) {
+				resolve([data, headers]);
+			}
+		});
+	});
+}
+
 function jiraAjax(relativeUrl, method, data, formData) {
 	return new Promise(function (resolve, reject) {
 		var request = {
