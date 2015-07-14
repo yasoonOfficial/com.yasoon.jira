@@ -127,7 +127,8 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			jira.settings.setLastSync(startSync);
 			jiraLog('Sync done: ' + new Date().toISOString());
 
-			if(oAuthSuccess){
+			if (oAuthSuccess) {
+				oAuthSuccess = false;
 				yasoon.util.logActivity('oAuthSuccess', JSON.stringify({
 					app: 'com.yasoon.jira',
 					count: jira.firstSyncedNotifications

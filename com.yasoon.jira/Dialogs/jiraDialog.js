@@ -45,7 +45,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				text: 'Suggested',
 				children: [{
 					'id': jira.ownUser.name,
-					'type': 'ownUser',
+					'icon': 'ownUser',
 					'selected': true,
 					'text': jira.ownUser.displayName
 				}]
@@ -57,7 +57,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			}]
 		};
 
-		self.assigneCommonValues = JSON.parse(JSON.stringify(self.userCommonValues));
+		self.assigneeCommonValues = JSON.parse(JSON.stringify(self.userCommonValues));
 
 		//Load Recent Projects from DB
 		var projectsString = yasoon.setting.getAppParameter('recentProjects');
@@ -100,7 +100,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					jira.userCommonValues.results[0].children.push({
 						id: jira.senderUser.name,
 						text: jira.senderUser.displayName,
-						type: 'emailSender'
+						icon: 'emailSender'
 					});
 				} else {
 					jira.senderUser = { name: -1 };
@@ -528,7 +528,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				$('#reporter')
 				.data('id', jira.senderUser.name)
 				.data('text', jira.senderUser.displayName)
-				.data('type', 'emailSender')
+				.data('icon', 'emailSender')
 				.val(jira.senderUser.name)
 				.trigger('change');
 			}
@@ -537,7 +537,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			$('#reporter')
 			.data('id', jira.ownUser.name)
 			.data('text', jira.ownUser.displayName)
-			.data('type', 'ownUser')
+			.data('icon', 'ownUser')
 			.val(jira.ownUser.name)
 			.trigger('change');
 		}
@@ -665,9 +665,15 @@ function UIFormHandler() {
 							case 'com.atlassian.jira.plugin.system.customfieldtypes:textfield':
 							case 'com.atlassian.jira.plugin.system.customfieldtypes:textarea':
 							case 'com.atlassian.jira.plugin.system.customfieldtypes:url':
-							case 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker':
 								if (elem.val())
 									result.fields[key] = elem.val();
+								break;
+							case 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker':
+								if (elem.select2('data')) {
+									result.fields[key] = {
+										name: elem.data('id')
+									};
+								}
 								break;
 							case 'com.pyxis.greenhopper.jira:gh-sprint':
 								//Bug in JIRA --> Edit is not supported via normal REST api --> See type com.pyxis.greenhopper.jira:gh-epic-link for more information.
@@ -1066,7 +1072,7 @@ function renderUserPicker(id, field, container) {
 			$('#' + id)
 				.data('id', jira.ownUser.name)
 				.data('text', jira.ownUser.displayName)
-				.data('type', 'ownUser')
+				.data('icon', 'ownUser')
 				.val(jira.ownUser.name)
 				.trigger('change');
 		}
@@ -1089,7 +1095,7 @@ function renderUserPicker(id, field, container) {
 			$('#' + id)
 			.data('id', user.name)
 			.data('text', user.displayName)
-			.data('type', 'emailSender')
+			.data('icon', 'emailSender')
 			.val(user.name)
 			.trigger('change');
 
@@ -1097,7 +1103,7 @@ function renderUserPicker(id, field, container) {
 			jira.userCommonValues.results[0].children.push({
 				id: user.name,
 				text: user.displayName,
-				type: 'emailSender'
+				icon: 'emailSender'
 			});
 			
 			$('#' + id + '-container').find('.create-sender').css('display', 'none');
@@ -1207,11 +1213,11 @@ function renderAttachmentLink(id, field, container) {
 
 	$('#'+id+'-container').find('.AddAttachmentLink').click(function () {
 		yasoon.view.fileChooser.open(function (selectedFiles) {
-			self.selectedAttachments = selectedFiles;
+			jira.selectedAttachments = selectedFiles;
 
 			$('#' + id + '-selected-container').html('');
 			//Render Attachments
-			$.each(self.selectedAttachments, function (i, fileHandle) {
+			$.each(jira.selectedAttachments, function (i, fileHandle) {
 				$('#' + id + '-selected-container').append('<div><span><img style="width:16px;" src="' + fileHandle.getFileIconPath() + '">' + fileHandle.getFileName() + '</span></div>');
 			});
 		});
@@ -1269,9 +1275,9 @@ function formatUser(user) {
 	if (!user)
 		return '';
 
-	if (user.type === 'ownUser') {
+	if (user.icon === 'ownUser') {
 		return $('<span><i style="margin-right:3px; width: 16px;" class="fa fa-user" />' + user.text +'</span>');
-	} else if (user.type === 'emailSender') {
+	} else if (user.icon === 'emailSender') {
 		return $('<span><i style="margin-right:3px; width: 16px;" class="fa fa-envelope" />' + user.text + '</span>');
 	} else {
 		return user.text;
@@ -1343,7 +1349,7 @@ function (select, Utils) {
 				var user = {
 					id: this.$element.data('id'),
 					text: this.$element.data('text'),
-					type: this.$element.data('type'),
+					icon: this.$element.data('icon'),
 					selected: true
 				};
 				data.push(user);
@@ -1389,7 +1395,7 @@ function (select, Utils) {
 			this.$element
 				.data('id', data.id)
 				.data('text', data.text)
-				.data('type', data.type || '');
+				.data('icon', data.icon || '');
 
 			this.$element.val(val);
 			this.$element.trigger('change');
@@ -1434,13 +1440,15 @@ function (select, Utils) {
 							});
 						});
 					}
-
-					if (id === 'assignee') 
+					if (id === 'assignee') {
 						jira.assigneeCommonValues.results[1].children = result;
-					else 
+						callback(jira.assigneeCommonValues);
+					} else {
 						jira.userCommonValues.results[1].children = result;
+						callback(jira.userCommonValues);
+					}
 
-					callback(jira.userCommonValues);
+					
 				}
 			});
 		} else {
