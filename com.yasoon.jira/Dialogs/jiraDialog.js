@@ -669,7 +669,7 @@ function UIFormHandler() {
 									result.fields[key] = elem.val();
 								break;
 							case 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker':
-								if (elem.select2('data')) {
+								if (elem.data('id')) {
 									result.fields[key] = {
 										name: elem.data('id')
 									};
