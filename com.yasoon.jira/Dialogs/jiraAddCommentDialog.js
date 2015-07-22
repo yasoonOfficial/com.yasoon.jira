@@ -20,6 +20,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.addedAttachmentIds = [];
 	this.selectedAttachments = [];
 
+	this.mailAsMarkup = '';
 	this.recentIssues = [];
 	this.recentProjects = [];
 
@@ -32,12 +33,19 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 
 		//Add attachments to clipboard
-		if (self.mail.attachments && self.mail.attachments.length > 0) {
+		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
 			$.each(self.mail.attachments, function (i, attachment) {
 				var handle = attachment.getFileHandle();
 				var id = yasoon.clipboard.addFile(handle);
 				self.addedAttachmentIds.push(id);
 			});
+		}
+
+		//Add current mail to clipboard
+		if (self.mail) {
+			var handle = self.mail.getFileHandle();
+			var id = yasoon.clipboard.addFile(handle);
+			self.addedAttachmentIds.push(id);
 		}
 
 		//Load Recent Issues from DB
@@ -58,6 +66,16 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		//Add Default Data
 		if (self.selectedText) {
 			$('#description').val(self.selectedText);
+		}
+
+		//Render current mail (just in case we need it as it probably needs some time)
+		if (self.mail) {
+			yasoon.outlook.mail.renderBody(self.mail, 'jiraMarkup')
+			.then(function (markup) {
+				jira.mailAsMarkup = markup;
+				//If there is no selection, set this as description;
+				$('#description').val(markup);
+			});
 		}
 
 		if (this.selectedIssue) {
@@ -83,14 +101,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				placeholder: "Filter by Project"
 			});
 
-			//$('#issue').select2({
-			//	placeholder: "Search for an Issue",
-			//	dataAdapter: jira.CustomIssueData,
-			//	templateResult: function (issue) { return issue.text; },
-			//	templateSelection: function (issue) { return issue.text; },
-			//	minimumInputLength: 0
-			//});
-
 			$('#ProjectSpinner').css('display', 'inline');
 
 			jiraGet('/rest/api/2/project')
@@ -109,7 +119,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 				$('#project').select2("destroy");
 				$('#project').select2({
-					placeholder: "Select a Project"
+					placeholder: "Filter by Project"
 				});
 
 				$('#ProjectSpinner').css('display', 'none');
@@ -174,8 +184,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			//Upload comments
 			promises.push(
 				jiraAjax('/rest/api/2/issue/' + selectedIssue + '/comment', yasoon.ajaxMethod.Post, JSON.stringify({ body: $('#description').val() }))
-				.catch(function (e) {
-					alert('Creating the comment did not work!');
+				.catch(jiraSyncError, function (e) {
+					$('#MainAlert .errorText').text('Connection Error: Commenting did not work: ' + e.getUserFriendlyError());
+					$('#MainAlert').show();
 					throw e;
 				})
 			);
@@ -194,8 +205,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 			promises.push(
 				jiraAjax('/rest/api/2/issue/' + selectedIssue + '/attachments', yasoon.ajaxMethod.Post, null, formData)
-				.catch(function (e) {
-					alert('Uploading the attachments failed.');
+				.catch(jiraSyncError, function (e) {
+					console.log(e.getUserFriendlyError());
+					$('#MainAlert .errorText').text('Connection Error: Uploading the attachments failed: ' + e.getUserFriendlyError());
+					$('#MainAlert').show();
 					throw e;
 				})
 			);
@@ -209,13 +222,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			console.log(e);
 		}).finally(function () {
 			$('#add-issue-submit').removeAttr("disabled");
-			$('#JiraSpinner').show();
+			$('#JiraSpinner').hide();
 		});
 		
 		e.preventDefault();
 	};
 
 	this.handleError = function (data, statusCode, result, errorText, cbkParam) {
+		$('#MainAlert .errorText').text('Connection Error. Loading Values from Jira not possible.');
 		$('#MainAlert').show();
 		$('#LoaderArea').hide();
 		console.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data);

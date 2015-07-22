@@ -24,6 +24,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.senderUser = null;
 	this.projectMeta = null;
 
+	this.mailAsMarkup = '';
 	this.recentProjects = [];
 	this.projects = [];
 	this.addedAttachmentIds = [];
@@ -90,6 +91,11 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					self.addedAttachmentIds.push(id);
 				});
 			}
+
+			//Add current mail to clipboard
+			var handle = self.mail.getFileHandle();
+			var id = yasoon.clipboard.addFile(handle);
+			self.addedAttachmentIds.push(id);
 
 			//Find senderUser
 			jiraGet('/rest/api/2/user/search?username=' + self.mail.senderEmail)
@@ -468,9 +474,16 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				$('#summary').val(self.mail.subject);
 			}
 
-			//Selected Text
+			//Description
 			if (self.selectedText) {
 				$('#description').val(self.selectedText);
+			} else {
+				yasoon.outlook.mail.renderBody(self.mail, 'jiraMarkup')
+				.then(function (markup) {
+					jira.mailAsMarkup = markup;
+					//If there is no selection, set this as description;
+					$('#description').val(markup);
+				});
 			}
 		}
 

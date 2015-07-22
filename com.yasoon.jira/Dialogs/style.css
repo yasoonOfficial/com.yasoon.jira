@@ -2789,7 +2789,13 @@ form#issue-filter .multi-select.check-list-select{width:100%;}
 	border: 0px !important;
 }
 
+/*.hidden {
+	display:none;
+}*/
+
 .assign-to-me-trigger {
 	margin-left: 0;
 	margin-top: 5px;
 }
+
+

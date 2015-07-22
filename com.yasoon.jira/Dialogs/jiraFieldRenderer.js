@@ -480,67 +480,115 @@ function renderMultiSelectList(id, field, container) {
 
 function renderTextarea(id, field, container) {
 	var isDescription = (id === 'description');
-	var descriptionHtml = '<div style="margin-top:5px; position:relative;">'+
-			'<label class="cssSwitch" title="if checked, all inserted text will be automatically converted into JIRA markup to keep the layout information"><input id="UseJiraMarkup" type="checkbox" checked="checked"/><hr> Insert as Jira Markup</label>' +
-			'<span class="dropup pull-right">'+
-			'	<a style="cursor:pointer;" data-toggle="dropdown" class="dropdown-toggle" title="If you like to add the whole mail as attachment, use the \"add attachment\" link below" >Add <span class="caret"></span></a>'+
-			'	<ul class="dropdown-menu">'+
-			((jira.selectedText) ? '<li id="DescriptionSelectedText"><a href="#">Add selected Text</a></li>' : '') +
+	var descriptionHtml = '';
+	if(isDescription && jira.mail){
+		descriptionHtml = '<div style="margin-top:5px; position:relative;">' +
+			'<span id="DescriptionOptionToolbar" class="' + ((jira.mail) ? '' : 'hidden') + '" style="background-color:#EEEEEE; padding: 3px; border-radius: 3px;">' +
+			'	<span title="Toggle Jira Markup of recently inserted markup"><input id="DescriptionUseJiraMarkup" class="toggle-checkbox" type="checkbox" checked="checked"/>Toggle Jira Markup</span>' +
+			'	<a style="cursor:pointer;" class="hidden" id="DescriptionUndoAction"><i class="fa fa-undo"></i> Undo </a>' +
+			'</span>' +
+			'<span class="dropup pull-right">' +
+			'	<a style="cursor:pointer;" data-toggle="dropdown" class="dropdown-toggle" title="If you like to add the whole mail as .msg attachment, use the \"add attachment\" link below" >Replace with <span class="caret"></span></a>' +
+			'	<ul class="dropdown-menu">' +
+			'	<li><span style="display: block;padding: 4px 10px;">Use Jira Markup <input class="toggleJiraMarkup toggle-checkbox" type="checkbox" checked="checked" /></span></li>' +
+			'	<li role="separator" class="divider"></li>' +
+			((jira.selectedText) ? '<li id="DescriptionSelectedText"><a href="#">Add selected text</a></li>' : '') +
 			((jira.mail) ? '<li id="DescriptionFullMail"><a href="#">Add whole conversation</a></li>' : '') +
+			'	</ul>' +
+			'</span>' +
+
+			'<span class="dropup pull-right" style="margin-right: 20px;">'+
+			'	<a style="cursor:pointer;" data-toggle="dropdown" class="dropdown-toggle" title="If you like to add the whole mail as .msg attachment, use the \"add attachment\" link below" >Add <span class="caret"></span></a>'+
+			'	<ul class="dropdown-menu">' +
+			'	<li><span style="display: block;padding: 4px 10px;">Use Jira Markup <input class="toggleJiraMarkup toggle-checkbox" type="checkbox" checked="checked" /></span></li>' +
+			'	<li role="separator" class="divider"></li>'+
 			((jira.mail) ? '<li id="DescriptionMailInformation"><a href="#">Insert mail information</a></li>' : '') +
+			
 			'	</ul>'+
 			'</span>' +
+
 			'</div>';
+	}
+
 	$(container).append('<div class="field-group">' +
 		'   <label for="' + id + '">' + field.name +
 		'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
 		'   </label>' +
 		'    <textarea class="form-control" id="' + id + '" name="' + id + '" rows="'+ ((isDescription) ? 8 : 5) +'" data-type="com.atlassian.jira.plugin.system.customfieldtypes:textarea"></textarea>' +
-		((isDescription) ? descriptionHtml : '') +
+		descriptionHtml + //Is only filled if nessecary
 		'</div>');
 
 	if (isDescription) {
-		//var lastType = (jira.selectedText) ? 'selectedText' : '';
-		//var defaultMarkupText = jira.selectedText || null;
-		//var defaultText = ((jira.mail) ? jira.mail.getSelection(0) : null);
+		var defaultSelectedText = ((jira.selectedText) ? jira.mail.getSelection(0) : null);
 		var useMarkup = true;
+		var backup = '';
+		var lastAction = ((jira.selectedText) ? 'selectedText' : (jira.mail) ? 'wholeMail' : '' );
 
-		$('#UseJiraMarkup').on("change", function (e) {
+		$('.toggleJiraMarkup').on('click', function (e) {
 			useMarkup = this.checked;
-
-			//if (this.checked && defaultMarkupText) {
-			//	$('#description').val(defaultMarkupText);
-			//} else if(!this.checked && defaultText){
-			//	$('#description').val(defaultText);
-			//}
-			e.preventDefault();
+			$('.toggleJiraMarkup').prop('checked', useMarkup);
+			event.stopPropagation();
 		});
 
-		$('#DescriptionSelectedText').on('click', function (e) {
-			if (confirm('Do you really want to replace all text with the selected text in the email?')) {
+		$('#DescriptionUseJiraMarkup').on("change", function (e) {
+			useMarkup = this.checked;
+			$('.toggleJiraMarkup').prop('checked', useMarkup);
+			if (lastAction == 'selectedText') {
 				if (useMarkup)
 					$('#description').val(jira.selectedText);
 				else
-					$('#description').val(jira.mail.getSelection(0));
+					$('#description').val(defaultSelectedText);
+
+			} else if (lastAction == 'wholeMail') {
+				if (useMarkup) {
+					$('#description').val(jira.mailAsMarkup);
+				} else {
+					$('#description').val(jira.mail.getBody(0));
+				}
 			}
+			e.preventDefault();
+		});
+
+		$("#description").on("keyup paste", function (e) {
+			$('#DescriptionOptionToolbar').addClass('hidden');
+		});
+
+		$('#DescriptionUndoAction').on('click', function (e) {
+			$('#description').val(backup);
+			$('#DescriptionOptionToolbar').addClass('hidden');
+		});
+
+		$('#DescriptionSelectedText').on('click', function (e) {
+			backup = $('#description').val();
+			lastAction = 'selectedText';
+			$('#DescriptionOptionToolbar').removeClass('hidden');
+			$('#DescriptionUndoAction').removeClass('hidden');
+
+			if (useMarkup)
+				$('#description').val(jira.selectedText);
+			else
+				$('#description').val(jira.mail.getSelection(0));
+
 		});
 
 		$('#DescriptionFullMail').on('click', function (e) {
-			if (confirm('Do you really want to replace all text with the current email?')) {
-				if (useMarkup)
-					yasoon.outlook.mail.renderBody(jira.mail, 'jiraMarkup')
-					.then(function (markup) {
-						$('#description').val(markup);
-					});
-					
-				else
-					$('#description').val(jira.mail.getBody(0));
+			backup = $('#description').val();
+			lastAction = 'wholeMail';
+			$('#DescriptionOptionToolbar').removeClass('hidden');
+			$('#DescriptionUndoAction').removeClass('hidden');
+
+			if (useMarkup) {
+				$('#description').val(jira.mailAsMarkup);
+			} else {
+				$('#description').val(jira.mail.getBody(0));
 			}
 		});
+
 		$('#DescriptionMailInformation').on('click', function (e) {
+			backup = $('#description').val();
 			var senderTemplate = '';
 			if(useMarkup)
-				senderTemplate = '\n*From:* ' + jira.mail.senderName + ' <[mailto:' + jira.mail.senderEmail + ']> \n*Sent:* ' + moment(jira.mail.receivedAt).format('MMMM Do YYYY, h:mm a') + '\n*To:* [mailto:' + jira.mail.recipients.join('],[mailto:') + ']\n';
+				senderTemplate = '\n*From:* ' + jira.mail.senderName + ' <[mailto:' + jira.mail.senderEmail + ']> \n*Sent:* ' + moment(jira.mail.receivedAt).format('MMMM Do YYYY, h:mm a') + '\n*'+ ((jira.mail.recipients.length > 0) ? 'To:* [mailto:' + jira.mail.recipients.join('],[mailto:') + ']\n' : '');
 			else
 				senderTemplate = '\n From: ' + jira.mail.senderName + ' <' + jira.mail.senderEmail + '> \n Sent: '+ moment(jira.mail.receivedAt).format('MMMM Do YYYY, h:mm a') +' \n To: ' + jira.mail.recipients.join(',')+'\n';
 
@@ -716,7 +764,7 @@ function renderAttachmentLink(id, field, container) {
 	$(container).append('<div class="field-group" id="'+id+'-container">'+
 						'	<label for="description"><span class="descr">Attachment</span></label>' +
 						'	<div>'+
-						'		<div id="'+ id + '"><a class="AddAttachmentLink" style="margin-top: 2px; cursor:pointer;"> add Attachment</a></div>'+
+						'		<div id="'+ id + '"><a class="AddAttachmentLink" style="display:block; margin-top: 5px; cursor:pointer;"> add Attachment</a></div>'+
 						'		<div id="'+id+'-selected-container"></div>'+
 						'	</div>'+
 						'</div>');

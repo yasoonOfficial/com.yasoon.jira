@@ -99,7 +99,7 @@ function jiraGet(relativeUrl) {
 			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
 			type: yasoon.ajaxMethod.Get,
 			error: function jiraGetError(data, statusCode, result, errorText, cbkParam) {
-				reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText));
+				reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText, data, result));
 			},
 			success: function jiraGetSuccess(data) {
 				resolve(data);
@@ -116,7 +116,7 @@ function jiraGetWithHeaders(relativeUrl) {
 			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
 			type: yasoon.ajaxMethod.Get,
 			error: function jiraGetError(data, statusCode, result, errorText, cbkParam) {
-				reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText));
+				reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText,data, result));
 			},
 			success: function jiraGetSuccess(data, something, headers) {
 				resolve([data, headers]);
@@ -135,7 +135,7 @@ function jiraAjax(relativeUrl, method, data, formData) {
 			formData: formData,
 			type: method,
 			error: function jiraAjaxError(data, statusCode, result, errorText, cbkParam) {
-				reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText, data));
+				reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText, data, result));
 			},
 			success: function jiraAjaxSuccess(data) {
 				resolve(data);
@@ -145,12 +145,39 @@ function jiraAjax(relativeUrl, method, data, formData) {
 	});
 }
 
-function jiraSyncError(message, statusCode, errorText, data) {
+function jiraSyncError(message, statusCode, errorText, data, result) {
+	var self = this;
+
 	this.message = message;
 	this.name = "SyncError";
 	this.statusCode = statusCode;
 	this.errorText = errorText;
 	this.data = data;
+	this.result = result;
+
+	this.getUserFriendlyError = function () {
+		try {
+			var result = '';
+			var error = JSON.parse(self.result);
+			if (error.errorMessages && error.errorMessages.length > 0) {
+				error.errorMessages.forEach(function (msg) {
+					result += msg + '<br />';
+				});
+			} else if (error.errors) {
+				if (error.errors.comment) {
+					result = error.errors.comment;
+				} else {
+					result = JSON.stringify(error.errors);
+				}
+			} else {
+				result = 'This did not work due to an unexpected JIRA error.';
+			}
+
+			return result;
+		} catch (e) {
+			return 'This did not work due to an unexpected JIRA error.';
+		}
+	};
 }
 
 jiraSyncError.prototype = Object.create(Error.prototype);

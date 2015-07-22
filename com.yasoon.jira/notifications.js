@@ -851,7 +851,6 @@ function JiraIssueAppointment(issue) {
 				return jiraSaveCalendarItem(dbItem);
 		});
 	};
-
 }
 
 function JiraIssueController() {

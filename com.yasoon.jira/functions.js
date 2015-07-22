@@ -31,7 +31,7 @@ function JiraRibbonController() {
 				type: 'button',
 				image: 'logo_icon1.png',
 				label: 'Add to Issue',
-				onAction: self.ribbonOnNewIssue
+				onAction: self.ribbonOnAddToIssue
 			}]
 		}];
 
@@ -103,16 +103,11 @@ function JiraRibbonController() {
 
 		if (ribbonId == 'newIssueFullMail') {
 			//Ribbon on Mail Item
-			//yasoon.outlook.mail.renderSelection(ribbonCtx.items[ribbonCtx.readingPaneItem], 'jiraMarkup').then(function (markup) {
-			//	initParams.text = markup;
-			//	initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
-
-			//	yasoon.dialog.open(dialogOptions);
-			//});
-
+			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
+			yasoon.dialog.open(dialogOptions);
 			return;
 		} else if (ribbonId == 'newIssue') {
-			//Ribbon in Email Selection
+			//Ribbon in Standard New EMail Dropdown
 			yasoon.dialog.open(dialogOptions);
 			return;
 		} else {
@@ -152,25 +147,33 @@ function JiraRibbonController() {
 			initParameter: initParams,
 			closeCallback: self.ribbonOnCloseAddToIssue
 		};
-		var selection = '';
-		try {
-			 selection = ribbonCtx.items[ribbonCtx.readingPaneItem].getSelection(0);
-		} catch(e) {
-			yasoon.dialog.showMessageBox('Couldn\'t determine the current email. Please switch the focus to another email and try again');
-			return;
-		}
-		if (!selection || !selection.trim()) {
-			yasoon.dialog.showMessageBox('Please select some text first!');
-			return;
-		}
 
-		yasoon.outlook.mail.renderSelection(ribbonCtx.items[ribbonCtx.readingPaneItem], 'jiraMarkup')
-		.then(function (markup) {
-			initParams.text = markup;
+		if (ribbonId == 'addToIssueFullMail') {
+			console.log('Emails',ribbonCtx.items[ribbonCtx.readingPaneItem]);
 			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
-
 			yasoon.dialog.open(dialogOptions);
-		});
+			return;
+		} else {
+			var selection = '';
+			try {
+				selection = ribbonCtx.items[ribbonCtx.readingPaneItem].getSelection(0);
+			} catch (e) {
+				yasoon.dialog.showMessageBox('Couldn\'t determine the current email. Please switch the focus to another email and try again');
+				return;
+			}
+			if (!selection || !selection.trim()) {
+				yasoon.dialog.showMessageBox('Please select some text first!');
+				return;
+			}
+
+			yasoon.outlook.mail.renderSelection(ribbonCtx.items[ribbonCtx.readingPaneItem], 'jiraMarkup')
+			.then(function (markup) {
+				initParams.text = markup;
+				initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
+
+				yasoon.dialog.open(dialogOptions);
+			});
+		}
 	};
 
 	this.ribbonOnCloseNewIssue = function ribbonOnCloseNewIssue () {
@@ -331,7 +334,7 @@ function getJiraMarkupRenderer() {
 			if(style.isHeading)
 				result = 'h' + style.headingSize + '. ' + result;
 
-			if(style.color) 
+			if (style.color && style.color != '#1F497D') //Do not add Outlook standard blue as markup
 				result = '{color:' + style.color + '}' + result + '{color}';
 			 
 			return prefix + result + suffix; 
