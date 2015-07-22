@@ -1,6 +1,6 @@
 {
     "id": 16,
-    "versionId": 91,
+    "versionId": 120,
     "version": "0.7.1",
     "appNamespace": "com.yasoon.jira",
     "title": "JIRA",
@@ -48,7 +48,10 @@
         },
         "mainService": true
     }],
-    "authorizations": [],
+    "authorizations": [{
+			"name": "calendar",
+			"mode": "full"
+		}],
     "predeliveredConfiguration": {
         "baseUrl": "https://yasoon.atlassian.net"
     }

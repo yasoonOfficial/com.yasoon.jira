@@ -1,0 +1,54 @@
+.cssSwitch {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1.3em;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+  padding-left: 33px;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  color: #444;
+  cursor: pointer;
+  font-weight: normal;
+}
+.cssSwitch input {
+  display: none;
+}
+.cssSwitch input + hr {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  border: 0;
+  width: 28px;
+  height: 16px;
+  text-align: left;
+  margin: 0 5px 0 0;
+  padding: 0;
+  background: #646464;
+  border-radius: 8px;
+  -webkit-transition: all 0.2s ease-in-out;
+          transition: all 0.2s ease-in-out;
+  z-index: 1;
+}
+.cssSwitch input + hr:before {
+  content: '';
+  display: block;
+  width: 12px;
+  height: 12px;
+  margin: 2px;
+  border-radius: 50%;
+  background: #fff;
+  -webkit-transition: all 0.2s ease-in-out;
+          transition: all 0.2s ease-in-out;
+}
+
+.cssSwitch input:checked + hr:before {
+  margin-left: 14px;
+}
+
+.cssSwitch input:checked + hr {
+  background: #5BD303;
+}

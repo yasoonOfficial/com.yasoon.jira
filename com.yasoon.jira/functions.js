@@ -4,129 +4,84 @@ function JiraRibbonController() {
 	this.createRibbon = function createRibbon (ribbonFactory) {
 		jira.ribbonFactory = ribbonFactory;
 
+		//Add Ribbon in top toolbar Ribbon on new Item
+		var contextMenuItems = [{
+			type: 'contextMenu',
+			idMso: 'MenuMailNewItem',
+			items: [{
+				type: 'button',
+				id: 'newIssue',
+				insertAfterMso: 'NewTaskCompact',
+				label: 'New Issue',
+				image: 'logo_icon1.png',
+				onAction: self.ribbonOnNewIssue
+			}]
+		},
+		{
+		type: 'contextMenu',
+		idMso: 'ContextMenuMailItem',
+		items: [{
+				id: 'newIssueFullMail',
+				type: 'button',
+				image: 'logo_icon1.png',
+				label: 'New Issue',
+				onAction: self.ribbonOnNewIssue
+			}, {
+				id: 'addToIssueFullMail',
+				type: 'button',
+				image: 'logo_icon1.png',
+				label: 'Add to Issue',
+				onAction: self.ribbonOnNewIssue
+			}]
+		}];
+
+		//Add New Issue Ribbons in email
+		var newIssueRibbons = self.createEmailItems('New Issue', 'newIssueFromText', self.ribbonOnNewIssue);
+		contextMenuItems = contextMenuItems.concat(newIssueRibbons);
+		
+		var addToIssueRibbons = self.createEmailItems('Add to Issue', 'addToIssueFromText', self.ribbonOnAddToIssue);
+		contextMenuItems = contextMenuItems.concat(addToIssueRibbons);
+
+		console.log(contextMenuItems);
 		ribbonFactory.create({
 			type: 'contextMenus',
 			renderTo: [
 				'Microsoft.Outlook.Explorer',
 				'Microsoft.Outlook.Mail.Read'
 			],
-			items: [
-			//	{
-			//	type: 'contextMenu',
-			//	idMso: 'ContextMenuMailItem',
-			//	items: [
-			//		{
-			//			id: 'newIssueFullMail',
-			//			type: 'button',
-			//			image: 'logo_icon1.png',
-			//			label: 'New Issue',
-			//			onAction: self.ribbonOnNewIssue
-			//		}
-			//	]
-			//},
-			{
-				type: 'contextMenu',
-				idMso: 'MenuMailNewItem',
-				items: [{
-					type: 'button',
-					id: 'newIssue',
-					insertAfterMso: 'NewTaskCompact',
-					label: 'New Issue',
-					image: 'logo_icon1.png',
-					onAction: self.ribbonOnNewIssue
-				}]
-			}, {
-				type: 'contextMenu',
-				idMso: 'ContextMenuReadOnlyMailText',
-				items: [{
-					type: 'button',
-					id: 'newIssueFromText',
-					label: 'New Issue',
-					image: 'logo_icon1.png',
-					onAction: self.ribbonOnNewIssue
-				}]
-			}, {
-				type: 'contextMenu',
-				idMso: 'ContextMenuReadOnlyMailTable',
-				items: [{
-					type: 'button',
-					id: 'newIssueFromText2',
-					label: 'New Issue',
-					image: 'logo_icon1.png',
-					onAction: self.ribbonOnNewIssue
-				}]
-			}, {
-				type: 'contextMenu',
-				idMso: 'ContextMenuReadOnlyMailTableCell',
-				items: [{
-					type: 'button',
-					id: 'newIssueFromText3',
-					label: 'New Issue',
-					image: 'logo_icon1.png',
-					onAction: self.ribbonOnNewIssue
-				}]
-			}, {
-				type: 'contextMenu',
-				idMso: 'ContextMenuReadOnlyMailListTable',
-				items: [{
-					type: 'button',
-					id: 'newIssueFromText4',
-					label: 'New Issue',
-					image: 'logo_icon1.png',
-					onAction: self.ribbonOnNewIssue
-				}]
-			}, {
-				type: 'contextMenu',
-				idMso: 'ContextMenuReadOnlyMailPictureTable',
-				items: [{
-					type: 'button',
-					id: 'newIssueFromText5',
-					label: 'New Issue',
-					image: 'logo_icon1.png',
-					onAction: self.ribbonOnNewIssue
-				}]
-			}, {
-				type: 'contextMenu',
-				idMso: 'ContextMenuReadOnlyMailTextTable',
-				items: [{
-					type: 'button',
-					id: 'newIssueFromText6',
-					label: 'New Issue',
-					image: 'logo_icon1.png',
-					onAction: self.ribbonOnNewIssue
-				}]
-			}, {
-				type: 'contextMenu',
-				idMso: 'ContextMenuReadOnlyMailTableWhole',
-				items: [{
-					type: 'button',
-					id: 'newIssueFromText7',
-					label: 'New Issue',
-					image: 'logo_icon1.png',
-					onAction: self.ribbonOnNewIssue
-				}]
-			}, {
-				type: 'contextMenu',
-				idMso: 'ContextMenuReadOnlyMailList',
-				items: [{
-					type: 'button',
-					id: 'newIssueFromText8',
-					label: 'New Issue',
-					image: 'logo_icon1.png',
-					onAction: self.ribbonOnNewIssue
-				}]
-			}, {
-				type: 'contextMenu',
-				idMso: 'ContextMenuReadOnlyMailHyperlink',
-				items: [{
-					type: 'button',
-					id: 'newIssueFromText9',
-					label: 'New Issue',
-					image: 'logo_icon1.png',
-					onAction: self.ribbonOnNewIssue
-				}]
-			}]
+			items: contextMenuItems
 		});
+	};
+
+	this.createEmailItems = function (label,id, action) {
+		var result = [];
+		var mailContextMenuMso = [
+			'ContextMenuReadOnlyMailText',
+			'ContextMenuReadOnlyMailList',
+			'ContextMenuReadOnlyMailTable',
+			'ContextMenuReadOnlyMailTableCell',
+			'ContextMenuReadOnlyMailListTable',
+			'ContextMenuReadOnlyMailPictureTable',
+			'ContextMenuReadOnlyMailTableWhole',
+			'ContextMenuReadOnlyMailTextTable',
+			'ContextMenuReadOnlyMailHyperlink'
+		];
+		
+		mailContextMenuMso.forEach(function (mso,i) {
+			result.push({
+				type: 'contextMenu',
+				idMso: mso,
+				items: [{
+					type: 'button',
+					id: id+''+i,
+					label: label,
+					image: 'logo_icon1.png',
+					onAction: action
+				}]
+			});
+		});
+
+		return result;
 	};
 
 	this.ribbonOnNewIssue = function ribbonOnNewIssue (ribbonId, ribbonCtx) {
@@ -138,7 +93,7 @@ function JiraRibbonController() {
 
 		var dialogOptions = {
 			width: 900,
-			height: 650,
+			height: 680,
 			title: 'New Jira Issue',
 			resizable: true,
 			htmlFile: 'Dialogs/newIssueDialog.html',
@@ -161,13 +116,20 @@ function JiraRibbonController() {
 			yasoon.dialog.open(dialogOptions);
 			return;
 		} else {
-			var selection = ribbonCtx.items[ribbonCtx.readingPaneItem].getSelection(0);
+			var selection = '';
+			try {
+				selection = ribbonCtx.items[ribbonCtx.readingPaneItem].getSelection(0);
+			} catch (e) {
+				alert('Couldn\'t determine the current email. Please switch the focus to another email and try again');
+				return;
+			}
 			if (!selection || !selection.trim()) {
 					yasoon.dialog.showMessageBox('Please select some text first!');
 					return;
 			}
 			
-			yasoon.outlook.mail.renderSelection(ribbonCtx.items[ribbonCtx.readingPaneItem], 'jiraMarkup').then(function(markup) {
+			yasoon.outlook.mail.renderSelection(ribbonCtx.items[ribbonCtx.readingPaneItem], 'jiraMarkup')
+			.then(function (markup) {
 				initParams.text = markup;
 				initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
 				
@@ -178,7 +140,44 @@ function JiraRibbonController() {
 		}
 	};
 
+	this.ribbonOnAddToIssue = function ribbonOnAddToIssue(ribbonId, ribbonCtx) {
+		var initParams = { 'settings': jira.settings, 'ownUser': jira.data.ownUser };
+
+		var dialogOptions = {
+			width: 750,
+			height: 610,
+			title: 'Add Comment',
+			resizable: true,
+			htmlFile: 'Dialogs/AddCommentDialog.html',
+			initParameter: initParams,
+			closeCallback: self.ribbonOnCloseAddToIssue
+		};
+		var selection = '';
+		try {
+			 selection = ribbonCtx.items[ribbonCtx.readingPaneItem].getSelection(0);
+		} catch(e) {
+			yasoon.dialog.showMessageBox('Couldn\'t determine the current email. Please switch the focus to another email and try again');
+			return;
+		}
+		if (!selection || !selection.trim()) {
+			yasoon.dialog.showMessageBox('Please select some text first!');
+			return;
+		}
+
+		yasoon.outlook.mail.renderSelection(ribbonCtx.items[ribbonCtx.readingPaneItem], 'jiraMarkup')
+		.then(function (markup) {
+			initParams.text = markup;
+			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
+
+			yasoon.dialog.open(dialogOptions);
+		});
+	};
+
 	this.ribbonOnCloseNewIssue = function ribbonOnCloseNewIssue () {
+		jira.sync();
+	};
+
+	this.ribbonOnCloseAddToIssue = function ribbonOnCloseAddToIssue() {
 		jira.sync();
 	};
 }

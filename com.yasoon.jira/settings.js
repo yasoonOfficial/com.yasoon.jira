@@ -10,7 +10,8 @@ function JiraSettingController() {
 		showFeedProjectLead: false,
 		showFeedReporter: true,
 		showFeedCreator: true,
-		showFeedComment: true
+		showFeedComment: true,
+		syncCalendar: false
 	};
 
 	self.renderSettingsContainer = function renderSettingsContainer (container) {
@@ -53,7 +54,7 @@ function JiraSettingController() {
 
 		} else {
 			html = '<p>Choose your settings. Only logout if you like to stop the service or like to connect to another Jira system</p>' +
-				  '<form class="form-horizontal" role="form">' +
+			'<form class="form-horizontal" role="form">' +
 			//Desktop Notification
 			'   <div class="form-group" style="position:relative; margin-top:20px;">' +
 			'       <div class="col-sm-4 checkbox">' +
@@ -109,6 +110,16 @@ function JiraSettingController() {
 			'           </div>' +
 			'       </div>' +
 			'   </div>' +
+			//'   <div class="form-group" style="position:relative; margin-top:20px;">' +
+			//'       <div class="col-sm-4 checkbox">' +
+			//'           <b class="pull-right">Enable Calendar Integration</b>' +
+			//'       </div>' +
+			//'		<div class="col-sm-8">' +
+			//'           <label>' +
+			//'               <input class="formValue" type="checkbox" id="syncCalendar" name="syncCalendar">' +
+			//'           </label>' +
+			//'		</div>' +
+			//'	</div>'+
 			'	<div class="form-group" style="position:relative;margin-top:20px;">' +
 			'       <div class="col-sm-4">' +
 			'           <button class="btn btn-default" id="jiraLogout">Logout</button>' +

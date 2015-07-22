@@ -451,7 +451,18 @@ function JiraIssueNotification(issue) {
 				self.issue.childrenLoaded = JSON.parse(yEvent.externalData).childrenLoaded; // Take over childrenLoaded flag from old Entity
 			}
 
-			yEvent.content = (self.issue.fields.description) ? self.issue.fields.description : 'no content';
+			//Description is sometimes an object. WTF?! check for it and log so we can probably figure out what's inside
+			var content = 'no content';
+			if (typeof self.issue.fields.description != 'string') {
+				try {
+					yasoon.util.log('Description Object found:' + JSON.stringify(self.issue.fields.description) + ' --> Rendered Description: ' + JSON.stringify(self.issue.renderedFields.description));
+				}catch(e) {
+					//Should't dump
+				}
+			} else {
+				content = self.issue.fields.description || content;
+			}
+			yEvent.content = content;
 			yEvent.title = self.issue.fields.summary;
 			yEvent.type = 1;
 			yEvent.createdAt = new Date(self.issue.fields.updated);
@@ -477,11 +488,11 @@ function JiraIssueNotification(issue) {
 				.then(function (newNotif) {
 					jira.notifications.queueChildren(self.issue); // Trigger Sync of all children. If successfull it will set childrenLoaded!
 
-					return newNotif;
-					//return new JiraIssueAppointment(self.issue).save()
-					//.then(function () {
-					//	return newNotif;
-					//});
+					//return newNotif;
+					return new JiraIssueAppointment(self.issue).save()
+					.then(function () {
+						return newNotif;
+					});
 				});
 			} else {
 				return jiraSaveNotification(yEvent)
@@ -489,11 +500,11 @@ function JiraIssueNotification(issue) {
 					if (!self.issue.childrenLoaded)
 						jira.notifications.queueChildren(self.issue); // Trigger Sync of all children. If successfull it will set childrenLoaded!
 
-					return newNotif;
-					//return new JiraIssueAppointment(self.issue).save()
-					//.then(function () {
-					//	return newNotif;
-					//});
+					//return newNotif;
+					return new JiraIssueAppointment(self.issue).save()
+					.then(function () {
+						return newNotif;
+					});
 				});
 			}
 		});
@@ -748,7 +759,7 @@ function JiraIssueActionNotification(event) {
 		yEvent.parentNotificationId = parent.notificationId;
 		yEvent.externalId = self.event.id['#text'];
 		yEvent.title = $('<div>'+ self.event.title['#text']+'</div>').text();
-		yEvent.content = (self.event.title['#text']) ? self.event.title['#text'] : 'no content';
+		yEvent.content = (yEvent.title) ? yEvent.title : 'no content';
 		yEvent.createdAt = new Date(self.event.updated['#text']);
 		yEvent.type = 2;
 
@@ -781,46 +792,67 @@ function JiraIssueActionNotification(event) {
 
 }
 
-//function JiraIssueAppointment(issue) {
-//	var self = this;
-//	this.issue = issue;
+function JiraIssueAppointment(issue) {
+	var self = this;
+	this.issue = issue;
 
-//	this.save = function () {
-//		if (!self.issue.fields.duedate)
-//			return Promise.resolve();
+	this.save = function () {
 
-//		//Check if it's an update or creation
-//		return jiraGetCalendarItem(self.issue.id)
-//		.then(function (dbItem) {
-//			var creation = false;
-//			if (!dbItem) {
-//				//Creation
-//				creation = true;
-//				dbItem = { categories: ['Jira'] };
-//			}
+		if (!jira.settings.syncCalendar)
+			return Promise.resolve();
 
-//			dbItem.subject = self.issue.fields.summary;
-//			dbItem.body = self.issue.self + ' \n\r ' + self.issue.fields.description;
+		if (!self.issue.fields.duedate)
+			return Promise.resolve();
 
-//			//Even though "normal" js date supports conversion for full dates with timezone,
-//			// it messes up dates without any time (all day events)
-//			dbItem.startDate = moment(self.issue.fields.duedate).add(16, 'hour').toDate();
-//			dbItem.endDate = moment(self.issue.fields.duedate).add(17, 'hour').toDate();
+		//Check if it's an update or creation
+		return jiraGetCalendarItem(self.issue.id)
+		.then(function (dbItem) {
+			var creation = false;
+			if (!dbItem) {
+				//Creation
+				creation = true;
+				dbItem = { categories: ['Jira', self.issue.fields.project.name] };
+			}
 
-//			dbItem.isHtmlBody = false;
-//			dbItem.externalId = self.issue.id;
+			dbItem.subject = self.issue.fields.summary;
+			dbItem.body = self.issue.self + ' \n\r ' + (self.issue.fields.description || '');
 
-//			//Really needed?!
-//			dbItem.externalData = JSON.stringify(self.issue);
-//			if(creation)
-//				return jiraAddCalendarItem(dbItem);
-//			else
-//				return jiraSaveCalendarItem(dbItem);
-//		});
+			//Even though "normal" js date supports conversion for full dates with timezone,
+			// it messes up dates without any time (all day events)
 
-//	}
+			//CustomField: customfield_10201
+			//Estimate: timtracking.remainingEstimateSeconds
+			dbItem.endDate = moment(self.issue.fields.duedate).add(17, 'hour').toDate();
 
-//}
+			//Calc Startdate
+			var startDate = moment(self.issue.fields.duedate).add(16, 'hour').toDate(); //Default 1 hour
+			if (self.issue.fields.timetracking && self.issue.fields.timetracking.remainingEstimateSeconds) {
+				//Split into full Working days (8 hours) and single hours
+				var fullDays = Math.floor(self.issue.fields.timetracking.remainingEstimateSeconds / 28800);
+				var hours = (self.issue.fields.timetracking.remainingEstimateSeconds % 28800) / 3600;
+				if (hours > 0) {
+					startDate = moment(self.issue.fields.duedate).add((17 - hours), 'hour').subtract(fullDays, 'days').toDate();
+				} else {
+					startDate = moment(self.issue.fields.duedate).add(9, 'hour').subtract(fullDays - 1, 'days').toDate();
+				}
+			} else if (self.issue.fields.customfield_10201) {
+				startDate = moment(self.issue.fields.customfield_10201).add(9, 'hour').toDate();
+			}
+			dbItem.startDate = startDate;
+
+			dbItem.isHtmlBody = false;
+			dbItem.externalId = self.issue.id;
+
+			//Really needed?!
+			dbItem.externalData = JSON.stringify(self.issue);
+			if (creation)
+				return jiraAddCalendarItem(dbItem);
+			else
+				return jiraSaveCalendarItem(dbItem);
+		});
+	};
+
+}
 
 function JiraIssueController() {
 	var self = this;
