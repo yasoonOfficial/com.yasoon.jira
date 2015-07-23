@@ -10,55 +10,56 @@
 
 
 
+<div style="padding:10px;">
+	<div style="display: block; width: 100%; min-width: 690px;" class="jira-dialog box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready" id="create-issue-dialog">
+		<div class="jira-dialog-heading">
+			<h2 class="jira-title">Create Issue</h2>
+		</div>
+		<div class="jira-dialog-content">
 
-<div style="display: block; width: 90%; margin: auto; margin-top: 30px;" class="jira-dialog box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready" id="create-issue-dialog">
-	<div class="jira-dialog-heading">
-		<h2 class="jira-title">Create Issue</h2>
-	</div>
-	<div class="jira-dialog-content">
-
-		<div class="qf-container">
-			<div class="qf-unconfigurable-form">
-				<form name="jiraform" action="#" class="aui">
-					<div class="form-body" style="height: 480px;">
-						<div id="MainAlert" class="alert alert-danger" style="display:none; margin: -20px -20px 0px -20px; border-radius: 0px;">
-							<span>Connection Error. Loading Values from Jira not possible.</span>
-						</div>
-						<div class="issue-setup-fields">
-							<div class="qf-field qf-field-project qf-required">
-								<div class="field-group " >
-									<label for="project">Project</label>
-									<select class="select input-field" id="project" name="pid" style="width: 50%">
-										<option></option>
-										<optgroup class="templates" label="" style="display:none;"></optgroup>
-										<optgroup class="recent" label="Recent Projects"></optgroup>
-										<optgroup class="all" label="All Projects"></optgroup>
-									</select>
-									<img src="Dialogs/ajax-loader.gif" style="display:none;" id="ProjectSpinner" />
+			<div class="qf-container">
+				<div class="qf-unconfigurable-form">
+					<form name="jiraform" action="#" class="aui">
+						<div class="form-body" style="height: 530px;">
+							<div id="MainAlert" class="alert alert-danger" style="display:none; margin: -20px -20px 0px -20px; border-radius: 0px;">
+								<span>Connection Error. Loading Values from Jira not possible.</span>
+							</div>
+							<div class="issue-setup-fields">
+								<div class="qf-field qf-field-project qf-required">
+									<div class="field-group ">
+										<label for="project">Project</label>
+										<select class="select input-field" id="project" name="pid" style="min-width: 350px; width: 80%;">
+											<option></option>
+											<optgroup class="templates" label="" style="display:none;"></optgroup>
+											<optgroup class="recent" label="Recent Projects"></optgroup>
+											<optgroup class="all" label="All Projects"></optgroup>
+										</select>
+										<img src="Dialogs/ajax-loader.gif" style="display:none;" id="ProjectSpinner" />
+									</div>
+								</div>
+								<div id="IssueArea" class="qf-field qf-field-issuetype qf-required" style="display:none;">
+									<div class="field-group input-field">
+										<label for="issuetype">Issue Type<span class="aui-icon icon-required">Required</span></label>
+										<select class="select input-field" id="issuetype" name="issuetype" style="min-width: 350px; width: 80%;"></select>
+									</div>
 								</div>
 							</div>
-							<div id="IssueArea" class="qf-field qf-field-issuetype qf-required" style="display:none;">
-								<div class="field-group input-field">
-									<label for="issuetype">Issue Type<span class="aui-icon icon-required">Required</span></label>
-									<select class="select input-field" id="issuetype" name="issuetype" style="width: 50%"></select>
-								</div>
+							<div id="ContentArea" class="content" style="display:none;">
+								<div id="ContainerFields"></div>
+							</div>
+							<div id="LoaderArea" style="display: none; background: url(Dialogs/ajax-loader.gif) no-repeat center center; width: 600px; height: 350px;">
 							</div>
 						</div>
-						<div id="ContentArea" class="content" style="display:none;">
-							<div id="ContainerFields"></div>
+						<div class="buttons-container form-footer">
+							<div class="buttons">
+								<img src="Dialogs/ajax-loader.gif" style="display:none;" id="JiraSpinner">
+								<label for="qf-create-another" class="qf-create-another" style="font-weight:normal;"><input id="qf-create-another" type="checkbox" /> Create another</label>
+								<a accesskey="s" title="" class="button" id="create-issue-submit"> Create </a>
+								<a href="#" accesskey="`" title="" id="create-issue-cancel" class="cancel">Cancel</a>
+							</div>
 						</div>
-						<div id="LoaderArea" style="display: none; background: url(Dialogs/ajax-loader.gif) no-repeat center center; width: 600px; height: 350px;">
-						</div>
-					</div>
-					<div class="buttons-container form-footer">
-						<div class="buttons">
-							<img src="Dialogs/ajax-loader.gif" style="display:none;" id="JiraSpinner">
-							<label for="qf-create-another" class="qf-create-another" style="font-weight:normal;"><input id="qf-create-another" type="checkbox" /> Create another</label>
-							<a accesskey="s" title="" class="button" id="create-issue-submit" > Create </a>
-							<a href="#" accesskey="`" title="" id="create-issue-cancel" class="cancel">Cancel</a>
-						</div>
-					</div>
-				</form>
+					</form>
+				</div>
 			</div>
 		</div>
 	</div>

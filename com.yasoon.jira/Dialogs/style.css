@@ -23,7 +23,7 @@
 .qf-form-operations.toolbar-group .toolbar-trigger{border:1px solid #555;background:#fff;}
 .qf-form-operations .icon-tools{background:url("/s/en_USq5x01d-1988229788/6162/21/1.0.82/_/download/resources/com.atlassian.jira.jira-quick-edit-plugin:quick-form/images/icon-cog.png") 0 0 no-repeat;height:18px;width:18px;margin:-2px 5px 0 0;padding-left:0;}
 .qf-form-operations .toolbar-group .toolbar-item .toolbar-trigger{border:1px solid #999;}
-.qf-field{padding:5px 30px 5px 0;margin-bottom:1px;clear:left;}
+.qf-field{/*padding:5px 30px 5px 0;*/margin-bottom:1px;clear:left;}
 .qf-field.qf-field-has-retain-feature{padding-right:50px;}
 .qf-field-dragging,.qf-field-dragging:hover{background:#ebf1fd;-moz-box-shadow:3px 3px 5px rgba(0, 0, 0, 0.5);-webkit-box-shadow:3px 3px 5px rgba(0, 0, 0, 0.5);box-shadow:3px 3px 5px rgba(0, 0, 0, 0.5);}
 .qf-field.qf-field-transitioning{background:#ebf1fd;}
@@ -1937,7 +1937,7 @@ form.aui {
 		color: #333;
 		font-size: inherit;
 		margin: 0;
-		max-width: 250px;
+		/*max-width: 250px;*/
 		vertical-align: baseline;
 		width: 100%;
 	}
@@ -2015,7 +2015,8 @@ form.aui {
 	}
 
 	form.aui .long-field {
-		max-width: 500px;
+		min-width: 350px;
+		width: 80%;
 	}
 
 	form.aui .full-width-field {
@@ -2076,14 +2077,14 @@ form.aui {
 		padding-top: 0;
 	}
 
-		form.aui .field-group:before, form.aui .field-group:after, form.aui .group:before, form.aui .group:after, form.aui .date-select:before, form.aui .date-select:after {
-			content: " ";
-			display: table;
-		}
+	form.aui .field-group:before, form.aui .field-group:after, form.aui .group:before, form.aui .group:after, form.aui .date-select:before, form.aui .date-select:after {
+		content: " ";
+		display: table;
+	}
 
-		form.aui .field-group:after, form.aui .group:after, form.aui .date-select:after {
-			clear: both;
-		}
+	form.aui .field-group:after, form.aui .group:after, form.aui .date-select:after {
+		clear: both;
+	}
 
 	form.aui legend, form.aui .field-group > label {
 		float: left;
@@ -2801,4 +2802,13 @@ form#issue-filter .multi-select.check-list-select{width:100%;}
 
 body {
 	font-family: 'open_sansregular',Arial, Helvetica, Wingdings, Calibri, Cambria,Consolas,sans-serif !important; 
+}
+
+.addToIssue form.aui .field-group {
+	padding: 4px 0 4px 95px !important;
+}
+
+.addToIssue form.aui .field-group > label {
+	margin-left: -95px !important;
+	width: 80px !important;
 }

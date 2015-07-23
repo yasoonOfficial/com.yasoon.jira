@@ -364,7 +364,7 @@ function renderCheckboxes(id, field, container) {
 function renderDatePicker(id, field, container) {
 	var html = '<div class="field-group aui-field-datepicker"> ' +
 				'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ' +
-				'    <input style="width:50%;" class="text" id="' + id + '" name="' + id + '" placeholder="yyyy/mm/dd" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
+				'    <input style="height: 28px;" class="text long-field" id="' + id + '" name="' + id + '" placeholder="yyyy/mm/dd" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
 				'    <a href="#" id="' + id + '-trigger" title="Select a date" tabindex="-1"><span class="aui-icon icon-date">Select a date</span></a> ' +
 				'</div>';
 	$(container).append(html);
@@ -388,7 +388,7 @@ function renderDateTimePicker(id, field, container) {
 function renderLabels(id, field, container) {
 	var html = '<div class="field-group aui-field-componentspicker frother-control-renderer">' +
 				'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-				'       <select style="width:50%;" class="select input-field" id="' + id + '" multiple="" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:labels"></select>' +
+				'       <select style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" multiple="" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:labels"></select>' +
 				'	<div class="description">Start typing to get a list of possible matches or press down to select.</div>' +
 				'</div>';
 
@@ -437,7 +437,7 @@ function renderNumber(id, field, container) {
 function renderSelectList(id, field, container) {
 	var html = '<div class="field-group input-field">' +
 				'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-				'    <select class="select input-field" id="' + id + '" name="' + id + '" style="width: 50%" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
+				'    <select class="select input-field" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
 				'		<option value="">' + ((field.hasDefaultValue) ? 'Default' : 'None') +'</option>';
 
 	$.each(field.allowedValues, function (i, option) {
@@ -464,7 +464,7 @@ function renderSelectList(id, field, container) {
 function renderMultiSelectList(id, field, container) {
 	var html = '<div class="field-group input-field">' +
 				'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-				'    <select data-container-class="issuetype-ss" class="select text input-field" id="' + id + '" name="' + id + '" style="width: 50%" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">';
+				'    <select data-container-class="issuetype-ss" class="select text" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">';
 			$.each(field.allowedValues, function (i, option) {
 				var text = option.name || option.value;
 				html += '<option value="' + option.id + '">' + text + '</option>';
@@ -514,7 +514,7 @@ function renderTextarea(id, field, container) {
 		'   <label for="' + id + '">' + field.name +
 		'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
 		'   </label>' +
-		'    <textarea class="form-control" id="' + id + '" name="' + id + '" rows="'+ ((isDescription) ? 8 : 5) +'" data-type="com.atlassian.jira.plugin.system.customfieldtypes:textarea"></textarea>' +
+		'    <textarea class="form-control" id="' + id + '" name="' + id + '" rows="' + ((isDescription) ? 8 : 5) + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:textarea"></textarea>' +
 		descriptionHtml + //Is only filled if nessecary
 		'</div>');
 
@@ -606,7 +606,7 @@ function renderUserPicker(id, field, container) {
 		'	<label for="' + id + '"><span class="descr">' + field.name +
 		'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
 		'	</label>' +
-		'	<select id="' + id + '" name="' + id + '" style="width: 50%;" class="select input-field" data-type="com.atlassian.jira.plugin.system.customfieldtypes:userpicker"></select>' +
+		'	<select id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" class="select input-field" data-type="com.atlassian.jira.plugin.system.customfieldtypes:userpicker"></select>' +
 		'	<span style="display:block; padding: 5px 0px;">'+
 		'	<a href="#' + id + '" class="assign-to-me-trigger">Assign to me</a>';
 
@@ -693,7 +693,7 @@ function renderUserPicker(id, field, container) {
 function renderEpicLink(id, field, container) {
 	var html = '<div class="field-group input-field">' +
 		'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-		'    <select data-container-class="issuetype-ss" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.pyxis.greenhopper.jira:gh-epic-link">' +
+		'    <select data-container-class="issuetype-ss" style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.pyxis.greenhopper.jira:gh-epic-link">' +
 		'        <option value="">None</option>'+
 		'    </select>' +
 		'</div>';
@@ -729,7 +729,7 @@ function renderEpicLink(id, field, container) {
 function renderSprintLink(id, field, container) {
 	var html = '<div class="field-group input-field">' +
 		'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-		'    <select data-container-class="issuetype-ss" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.pyxis.greenhopper.jira:gh-sprint">' +
+		'    <select data-container-class="issuetype-ss" style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.pyxis.greenhopper.jira:gh-sprint">' +
 		'        <option value="">None</option>'+
 		'    </select>' +
 		'</div>';
@@ -790,8 +790,10 @@ function renderTimeTracking(id, field, container) {
 						'   <label for="'+ id +'_originalestimate"> Original Estimate'+
 						'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
 						'   </label>' +
-						'   <input class="text long-field" style="width:50%;" id="' + id + '_originalestimate" name="' + id + '_originalestimate" value="" type="text">' +
-						'	<span class="aui-form example">(eg. 3w 4d 12h)</span>' +
+						'	<span style="min-width: 350px; width: 80%;">'+
+						'		<input class="text" style="min-width: 350px; width: 60%;" id="' + id + '_originalestimate" name="' + id + '_originalestimate" value="" type="text">' +
+						'		<span class="aui-form example">(eg. 3w 4d 12h)</span>' +
+						'	</span>'+
 						'	<div class="description">The original estimate of how much work is involved in resolving this issue.</div>'+
 						'</div>');
 
@@ -799,8 +801,10 @@ function renderTimeTracking(id, field, container) {
 						'   <label for="' + id + '_remainingestimate"> Remaining Estimate' +
 						'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
 						'   </label>' +
-						'   <input class="text long-field" style="width:50%;" id="' + id + '_remainingestimate" name="' + id + '_remainingestimate" value="" type="text">' +
-						'	<span class="aui-form example">(eg. 3w 4d 12h)</span>' +
+						'	<span style="min-width: 350px; width: 80%;">' +
+						'		<input class="text" style="min-width: 350px; width: 60%;" id="' + id + '_remainingestimate" name="' + id + '_remainingestimate" value="" type="text">' +
+						'		<span class="aui-form example">(eg. 3w 4d 12h)</span>' +
+						'	</span>' +
 						'	<div class="description">An estimate of how much work remains until this issue will be resolved.</div>' +
 						'</div>');
 }

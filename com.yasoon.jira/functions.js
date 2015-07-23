@@ -92,8 +92,8 @@ function JiraRibbonController() {
 		var initParams = { 'settings': jira.settings, 'ownUser': jira.data.ownUser };
 
 		var dialogOptions = {
-			width: 900,
-			height: 680,
+			width: 725,
+			height: 700,
 			title: 'New Jira Issue',
 			resizable: true,
 			htmlFile: 'Dialogs/newIssueDialog.html',
@@ -139,8 +139,8 @@ function JiraRibbonController() {
 		var initParams = { 'settings': jira.settings, 'ownUser': jira.data.ownUser };
 
 		var dialogOptions = {
-			width: 750,
-			height: 610,
+			width: 600,
+			height: 575,
 			title: 'Add Comment',
 			resizable: true,
 			htmlFile: 'Dialogs/AddCommentDialog.html',
