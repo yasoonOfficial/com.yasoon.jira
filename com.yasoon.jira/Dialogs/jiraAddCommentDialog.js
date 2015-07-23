@@ -74,7 +74,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			.then(function (markup) {
 				jira.mailAsMarkup = markup;
 				//If there is no selection, set this as description;
-				$('#description').val(markup);
+				if (!self.selectedText) {
+					$('#description').val(markup);
+				}
 			});
 		}
 

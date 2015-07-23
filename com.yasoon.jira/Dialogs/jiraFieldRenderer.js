@@ -364,7 +364,7 @@ function renderCheckboxes(id, field, container) {
 function renderDatePicker(id, field, container) {
 	var html = '<div class="field-group aui-field-datepicker"> ' +
 				'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ' +
-				'    <input class="text medium-field" id="' + id + '" name="' + id + '" placeholder="yyyy/mm/dd" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
+				'    <input style="width:50%;" class="text" id="' + id + '" name="' + id + '" placeholder="yyyy/mm/dd" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
 				'    <a href="#" id="' + id + '-trigger" title="Select a date" tabindex="-1"><span class="aui-icon icon-date">Select a date</span></a> ' +
 				'</div>';
 	$(container).append(html);
@@ -483,7 +483,7 @@ function renderTextarea(id, field, container) {
 	var descriptionHtml = '';
 	if(isDescription && jira.mail){
 		descriptionHtml = '<div style="margin-top:5px; position:relative;">' +
-			'<span id="DescriptionOptionToolbar" class="' + ((jira.mail) ? '' : 'hidden') + '" style="background-color:#EEEEEE; padding: 3px; border-radius: 3px;">' +
+			'<span id="DescriptionOptionToolbar" class="' + ((jira.mail) ? '' : 'hidden') + '" style="padding: 3px;">' +
 			'	<span title="Toggle Jira Markup of recently inserted markup"><input id="DescriptionUseJiraMarkup" class="toggle-checkbox" type="checkbox" checked="checked"/>Toggle Jira Markup</span>' +
 			'	<a style="cursor:pointer;" class="hidden" id="DescriptionUndoAction"><i class="fa fa-undo"></i> Undo </a>' +
 			'</span>' +
@@ -562,6 +562,7 @@ function renderTextarea(id, field, container) {
 			backup = $('#description').val();
 			lastAction = 'selectedText';
 			$('#DescriptionOptionToolbar').removeClass('hidden');
+			$('#DescriptionUseJiraMarkup').checked = useMarkup;
 			$('#DescriptionUndoAction').removeClass('hidden');
 
 			if (useMarkup)
@@ -575,6 +576,7 @@ function renderTextarea(id, field, container) {
 			backup = $('#description').val();
 			lastAction = 'wholeMail';
 			$('#DescriptionOptionToolbar').removeClass('hidden');
+			$('#DescriptionUseJiraMarkup').checked = useMarkup;
 			$('#DescriptionUndoAction').removeClass('hidden');
 
 			if (useMarkup) {

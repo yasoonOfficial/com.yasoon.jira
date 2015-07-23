@@ -2799,3 +2799,6 @@ form#issue-filter .multi-select.check-list-select{width:100%;}
 }
 
 
+body {
+	font-family: 'open_sansregular',Arial, Helvetica, Wingdings, Calibri, Cambria,Consolas,sans-serif !important; 
+}

@@ -453,7 +453,7 @@ function JiraIssueNotification(issue) {
 
 			//Description is sometimes an object. WTF?! check for it and log so we can probably figure out what's inside
 			var content = 'no content';
-			if (typeof self.issue.fields.description != 'string') {
+			if (self.issue.fields.description || typeof self.issue.fields.description != 'string') {
 				try {
 					yasoon.util.log('Description Object found:' + JSON.stringify(self.issue.fields.description) + ' --> Rendered Description: ' + JSON.stringify(self.issue.renderedFields.description));
 				}catch(e) {

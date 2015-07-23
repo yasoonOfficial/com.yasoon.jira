@@ -477,14 +477,15 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			//Description
 			if (self.selectedText) {
 				$('#description').val(self.selectedText);
-			} else {
-				yasoon.outlook.mail.renderBody(self.mail, 'jiraMarkup')
-				.then(function (markup) {
-					jira.mailAsMarkup = markup;
-					//If there is no selection, set this as description;
-					$('#description').val(markup);
-				});
 			}
+
+			yasoon.outlook.mail.renderBody(self.mail, 'jiraMarkup')
+			.then(function (markup) {
+				jira.mailAsMarkup = markup;
+				//If there is no selection, set this as description;
+				if(!self.selectedText)
+					$('#description').val(markup);
+			});
 		}
 
 		//Set all Values in edit case
