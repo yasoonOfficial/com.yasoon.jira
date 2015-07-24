@@ -533,8 +533,8 @@ function JiraIssueNotification(issue) {
 
 	self.editIssue = function () {
 		yasoon.dialog.open({
-			width: 900,
-			height: 650,
+			width: 725,
+			height: 700,
 			title: 'Edit Jira Issue',
 			resizable: true,
 			htmlFile: 'Dialogs/newIssueDialog.html',

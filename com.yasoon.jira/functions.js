@@ -176,11 +176,13 @@ function JiraRibbonController() {
 		}
 	};
 
-	this.ribbonOnCloseNewIssue = function ribbonOnCloseNewIssue () {
+	this.ribbonOnCloseNewIssue = function ribbonOnCloseNewIssue() {
+		console.log('Close new Issue');
 		jira.sync();
 	};
 
 	this.ribbonOnCloseAddToIssue = function ribbonOnCloseAddToIssue() {
+		console.log('Close add Issue');
 		jira.sync();
 	};
 }

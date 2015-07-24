@@ -31,6 +31,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		self.settings = initParams.settings;
 		self.selectedText = initParams.text;
 
+		//Register Close Handler
+		yasoon.dialog.onClose(self.cleanup);
 
 		//Add attachments to clipboard
 		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
@@ -140,6 +142,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	}; 
 
 	this.close = function (params) {
+		yasoon.dialog.close(params);
+	};
+
+	this.cleanup = function () {
 		//Invalidate dialog events, so that the following won't throw any events => will lead to errors
 		// due to pending dialog.close
 		yasoon.dialog.clearEvents();
@@ -150,8 +156,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				yasoon.clipboard.remove(handleId);
 			});
 		}
-
-		yasoon.dialog.close(params);
 	};
 
 	this.submitForm = function (e) {

@@ -60,6 +60,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		self.assigneeCommonValues = JSON.parse(JSON.stringify(self.userCommonValues));
 
+		//Register Close Handler
+		yasoon.dialog.onClose(self.cleanup);
+
 		//Load Recent Projects from DB
 		var projectsString = yasoon.setting.getAppParameter('recentProjects');
 		if (projectsString) {
@@ -212,18 +215,20 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			$('#AttachmentContainer').html('');
 			self.selectedAttachments = [];
 		} else {
-			//Invalidate dialog events, so that the following won't throw any events => will lead to errors
-			// due to pending dialog.close
-			yasoon.dialog.clearEvents();
-
-			//If there has been attachments loaded into yasoon clipboard, we need to remove them
-			if (self.addedAttachmentIds.length > 0) {
-				$.each(self.addedAttachmentIds, function (i, handleId) {
-					yasoon.clipboard.remove(handleId);
-				});
-			}
-
 			yasoon.dialog.close(params);
+		}
+	};
+
+	this.cleanup = function () {
+		//Invalidate dialog events, so that the following won't throw any events => will lead to errors
+		// due to pending dialog.close
+		yasoon.dialog.clearEvents();
+
+		//If there has been attachments loaded into yasoon clipboard, we need to remove them
+		if (self.addedAttachmentIds.length > 0) {
+			$.each(self.addedAttachmentIds, function (i, handleId) {
+				yasoon.clipboard.remove(handleId);
+			});
 		}
 	};
 
