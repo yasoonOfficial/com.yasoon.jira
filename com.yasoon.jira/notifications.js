@@ -73,7 +73,7 @@ function JiraNotificationController() {
 	};
 
 	self.addDesktopNotification = function (notif, event) {
-		if (jira.settings.showDesktopNotif) {
+		if (jira.settings.showDesktopNotif && notif.contactId != jira.data.ownUser.key) {
 			notificationCounter++;
 			notification = notif;
 			notificationEvent = event;

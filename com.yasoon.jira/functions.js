@@ -56,6 +56,8 @@ function JiraRibbonController() {
 	this.createEmailItems = function (label,id, action) {
 		var result = [];
 		var mailContextMenuMso = [
+			'ContextMenuHeading',
+			'ContextMenuHeadingLinked',
 			'ContextMenuReadOnlyMailText',
 			'ContextMenuReadOnlyMailList',
 			'ContextMenuReadOnlyMailTable',
@@ -115,7 +117,7 @@ function JiraRibbonController() {
 			try {
 				selection = ribbonCtx.items[ribbonCtx.readingPaneItem].getSelection(0);
 			} catch (e) {
-				alert('Couldn\'t determine the current email. Please switch the focus to another email and try again');
+				yasoon.dialog.showMessageBox('Couldn\'t determine the current email. Please switch the focus to another email and try again');
 				return;
 			}
 			if (!selection || !selection.trim()) {

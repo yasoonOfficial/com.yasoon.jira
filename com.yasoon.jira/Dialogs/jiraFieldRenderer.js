@@ -773,12 +773,12 @@ function renderAttachmentLink(id, field, container) {
 
 	$('#'+id+'-container').find('.AddAttachmentLink').click(function () {
 		yasoon.view.fileChooser.open(function (selectedFiles) {
-			jira.selectedAttachments = selectedFiles;
+			jira.selectedAttachments = jira.selectedAttachments.concat(selectedFiles);
 
 			$('#' + id + '-selected-container').html('');
 			//Render Attachments
 			$.each(jira.selectedAttachments, function (i, fileHandle) {
-				$('#' + id + '-selected-container').append('<div><span><img style="width:16px;" src="' + fileHandle.getFileIconPath() + '">' + fileHandle.getFileName() + '</span></div>');
+				$('#' + id + '-selected-container').append('<div class="jiraAttachmentLink"><span><img style="width:16px;" src="' + fileHandle.getFileIconPath() + '" />' + fileHandle.getFileName() + '</span></div>');
 			});
 		});
 	});
