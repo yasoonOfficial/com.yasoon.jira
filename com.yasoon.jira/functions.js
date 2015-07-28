@@ -55,27 +55,41 @@ function JiraRibbonController() {
 
 	this.createEmailItems = function (label,id, action) {
 		var result = [];
+		//var mailContextMenuMso = [
+		//	'ContextMenuHeading',
+		//	'ContextMenuHeadingLinked',
+		//	'ContextMenuReadOnlyMailText',
+		//	'ContextMenuReadOnlyMailList',
+		//	'ContextMenuReadOnlyMailTable',
+		//	'ContextMenuReadOnlyMailTableCell',
+		//	'ContextMenuReadOnlyMailListTable',
+		//	'ContextMenuReadOnlyMailPictureTable',
+		//	'ContextMenuReadOnlyMailTableWhole',
+		//	'ContextMenuReadOnlyMailTextTable',
+		//	'ContextMenuReadOnlyMailHyperlink'
+		//];
 		var mailContextMenuMso = [
-			'ContextMenuHeading',
-			'ContextMenuHeadingLinked',
 			'ContextMenuReadOnlyMailText',
-			'ContextMenuReadOnlyMailList',
 			'ContextMenuReadOnlyMailTable',
 			'ContextMenuReadOnlyMailTableCell',
 			'ContextMenuReadOnlyMailListTable',
 			'ContextMenuReadOnlyMailPictureTable',
-			'ContextMenuReadOnlyMailTableWhole',
 			'ContextMenuReadOnlyMailTextTable',
-			'ContextMenuReadOnlyMailHyperlink'
+			'ContextMenuReadOnlyMailTableWhole',
+			'ContextMenuReadOnlyMailList',
+			'ContextMenuReadOnlyMailHyperlink',
+			'ContextMenuHeading',
+			'ContextMenuHeadingLinked',
 		];
-		
-		mailContextMenuMso.forEach(function (mso,i) {
+
+		mailContextMenuMso.forEach(function (mso, i) {
+			var counter = i + 1;
 			result.push({
 				type: 'contextMenu',
 				idMso: mso,
 				items: [{
 					type: 'button',
-					id: id+''+i,
+					id: id+''+((counter != 1) ? counter  : ''), //Don't ask! compatibility with old ribbon updater
 					label: label,
 					image: 'logo_icon1.png',
 					onAction: action
