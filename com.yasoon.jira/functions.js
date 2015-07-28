@@ -151,7 +151,6 @@ function JiraRibbonController() {
 		};
 
 		if (ribbonId == 'addToIssueFullMail') {
-			console.log('Emails',ribbonCtx.items[ribbonCtx.readingPaneItem]);
 			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
 			yasoon.dialog.open(dialogOptions);
 			return;
@@ -179,12 +178,10 @@ function JiraRibbonController() {
 	};
 
 	this.ribbonOnCloseNewIssue = function ribbonOnCloseNewIssue() {
-		console.log('Close new Issue');
 		jira.sync();
 	};
 
 	this.ribbonOnCloseAddToIssue = function ribbonOnCloseAddToIssue() {
-		console.log('Close add Issue');
 		jira.sync();
 	};
 }

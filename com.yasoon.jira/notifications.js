@@ -659,15 +659,20 @@ function JiraIssueActionNotification(event) {
 						return self.event.commentId === c.id;
 					} else {
 						//Standard ones only have them in the URL!
-						if (self.event['activity:object'].link['@attributes'].href.indexOf('comment-' + c.id) > -1) {
-							return true;
-						} else {
-							return false;
-						}
+						return (self.event['activity:object'].link['@attributes'].href.indexOf('comment-' + c.id) > -1);
 					}
 				})[0];
 			}
-			var externalId = (comment && comment.id) ? 'c' + comment.id : self.event.id['#text'];
+			//self.event.id can be null :o 
+			var externalId = '';
+			if (comment && comment.id) {
+				externalId = 'c' + comment.id;
+			} else if(self.event.id) {
+				externalId = self.event.id['#text'];
+			} else {
+				yasoon.util.log('Action found that is neither an comment, nor an normal activity:' + JSON.stringify(self.event), yasoon.util.severity.error);
+				return;
+			}
 
 			return jiraGetNotification(externalId)
 			.then(function (yEvent) {
@@ -862,7 +867,10 @@ function JiraIssueController() {
 		var lastSync = moment(jira.settings.lastSync).format('YYYY/MM/DD HH:mm');
 		var jql = encodeURIComponent('updated > "' + lastSync + '"');
 		return jiraGet('/rest/api/2/search?jql=' + jql + '&fields=*all&expand=transitions,renderedFields')
-		.then(function(issueData) {
+		.then(function (issueData) {
+			//This is one of the first calls. We may have a proxy (like starbucks) returning an XML.
+			jiraCheckProxyError(issueData);
+
 			var result = JSON.parse(issueData);
 			if (result.total > 0) {
 				issues = result.issues;

@@ -113,8 +113,8 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 
 		jiraLog('Sync starts: ' + new Date().toISOString());
 		return self.initData()
+		.then(jira.issues.refreshBuffer)
 		.then(function () {
-			jira.issues.refreshBuffer();
 			return self.syncStream('/activity?streams=update-date+BETWEEN+' + oldTs + '+' + currentTs);
 		})
 		.then(function () {
@@ -137,6 +137,10 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		})
 		.catch(jiraSyncError, function (error) {
 			jiraLog('Sync Error:', error);
+		})
+		.catch(jiraProxyError, function () {
+			//Do nothing - just for dev information
+			console.log('Proxy error');
 		})
 		.catch(function (e) {
 			yasoon.util.log(e.message, yasoon.util.severity.error, getStackTrace(e));
@@ -182,11 +186,11 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			//Only for jira!
 			if (feedEntry['atlassian:application'] && feedEntry['atlassian:application']['#text'].toLowerCase().indexOf('jira') > -1) {
 				var notif = jira.notifications.createNotification(feedEntry);
-				
-				if(jira.firstTime) 
+
+				if (jira.firstTime)
 					jira.firstSyncedNotifications++;
-				
-				if(notif)
+
+				if (notif)
 					return notif.save();
 			}
 		})
@@ -209,12 +213,14 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		jiraLog('Get Own Data');
 		if (jira.firstTime) {
 			return jiraGetWithHeaders('/rest/api/2/serverInfo')
-			.spread(function(serverInfo, headers) {
+			.spread(function (serverInfo, headers) {
+				//This is one of the first calls. We may have a proxy (like starbucks) returning an XML.
+				jiraCheckProxyError(serverInfo);
 				serverInfo = JSON.parse(serverInfo);
-				if(serverInfo.versionNumbers[0] === 6 && serverInfo.versionNumbers[1] < 1)
+				if (serverInfo.versionNumbers[0] === 6 && serverInfo.versionNumbers[1] < 1)
 					return jiraGet('/rest/api/2/user?username=' + headers['X-AUSERNAME']);
 				else
-					return jiraGet('/rest/api/2/myself');				
+					return jiraGet('/rest/api/2/myself');
 			})
 			.then(function (ownUserData) {
 				jira.data.ownUser = JSON.parse(ownUserData);
@@ -246,32 +252,29 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 					jira.settings.updateData();
 					jira.firstTime = false;
 				});
-			})
-			.catch(function(e) {
-				console.log(e);
 			});
 		} else {
 			return Promise.resolve();
 		}
 	};
 
-	this.handleError = function (data, statusCode, result, errorText, cbkParam) {
-		self.handleErrorSoft(data, statusCode, result, errorText, cbkParam);
-		jira.SyncInProcess = false;
-	};
+	//this.handleError = function (data, statusCode, result, errorText, cbkParam) {
+	//	self.handleErrorSoft(data, statusCode, result, errorText, cbkParam);
+	//	jira.SyncInProcess = false;
+	//};
 
-	this.handleErrorSoft = function (data, statusCode, result, errorText, cbkParam) {
-		console.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data);
+	//this.handleErrorSoft = function (data, statusCode, result, errorText, cbkParam) {
+	//	console.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data);
 
-		//Detect if oAuth token has become invalid
-		if (statusCode == 401 && result == 'oauth_problem=token_rejected') {
-			yasoon.app.invalidateOAuthToken(jira.settings.currentService);
-		}
+	//	//Detect if oAuth token has become invalid
+	//	if (statusCode == 401 && result == 'oauth_problem=token_rejected') {
+	//		yasoon.app.invalidateOAuthToken(jira.settings.currentService);
+	//	}
 
-		if (cbkParam && cbkParam.fail) {
-			cbkParam.fail();
-		}
-	};
+	//	if (cbkParam && cbkParam.fail) {
+	//		cbkParam.fail();
+	//	}
+	//};
 
 }); //jshint ignore:line
 //@ sourceURL=http://Jira/jira.js

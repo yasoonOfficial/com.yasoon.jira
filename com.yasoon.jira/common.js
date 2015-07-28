@@ -99,6 +99,11 @@ function jiraGet(relativeUrl) {
 			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
 			type: yasoon.ajaxMethod.Get,
 			error: function jiraGetError(data, statusCode, result, errorText, cbkParam) {
+				//Detect if oAuth token has become invalid
+				if (statusCode == 401 && result == 'oauth_problem=token_rejected') {
+					yasoon.app.invalidateOAuthToken(jira.settings.currentService);
+				}
+
 				reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText, data, result));
 			},
 			success: function jiraGetSuccess(data) {
@@ -145,6 +150,11 @@ function jiraAjax(relativeUrl, method, data, formData) {
 	});
 }
 
+function jiraCheckProxyError(input) {
+	if (input.indexOf('<!') === 0 || input.indexOf('<html') === 0) {
+		throw new jiraProxyError();
+	}
+}
 function jiraSyncError(message, statusCode, errorText, data, result) {
 	var self = this;
 
@@ -179,6 +189,11 @@ function jiraSyncError(message, statusCode, errorText, data, result) {
 		}
 	};
 }
-
 jiraSyncError.prototype = Object.create(Error.prototype);
+
+function jiraProxyError() {
+	var self = this;
+}
+jiraProxyError.prototype = Object.create(Error.prototype);
+
 //@ sourceURL=http://Jira/common.js
