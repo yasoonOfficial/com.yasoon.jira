@@ -4,6 +4,26 @@ $(function () {
 	$('body').css('overflow-y', 'hidden');
 });
 
+$(window).resize(function () {
+	var bodyHeight = $('body').height();
+	if (bodyHeight > 535) {
+		$('body').css('overflow-y', 'hidden');
+		$('.form-body').height(bodyHeight - 185);
+		//185 => Difference between Body und form-body
+		//270 => Space for project, issue and attachment field (in maximum)
+		//155 => Min height of comment field
+
+		//If the rest has 270 pixel, only increase the comment field
+		if ((bodyHeight - 185 - 270 - 155) > 0) 
+			$('#description').height((bodyHeight - 185 - 270));
+
+	} else {
+		$('body').css('overflow-y', 'scroll');
+		$('.form-body').height(350);
+		$('#description').height(155);
+	}
+});
+
 yasoon.dialog.load(new function () { //jshint ignore:line
 	var self = this;
    
@@ -354,8 +374,8 @@ function (select, Utils) {
 
 	CustomIssueData.prototype.query = function (params, callback) {
 		if (params && params.term) {
-			//Get Issues matching the criteria			
-			jiraGet('/rest/api/2/search?jql=Summary%20~%20%22' + encodeURIComponent(params.term) + '%22&maxResults=20&fields=summary')
+			//Get Issues matching the criteria
+			jiraGet('/rest/api/2/search?jql=Summary%20~%20%22' + encodeURIComponent(params.term) + '%22%20OR%20key%20%3D%20%22' + encodeURIComponent(params.term) + '%22&maxResults=20&fields=summary&validateQuery=false')
 			.then(function (data) {
 				var jqlResult = JSON.parse(data);
 				var result = [];

@@ -590,9 +590,9 @@ function renderTextarea(id, field, container) {
 			backup = $('#description').val();
 			var senderTemplate = '';
 			if(useMarkup)
-				senderTemplate = '\n*From:* ' + jira.mail.senderName + ' <[mailto:' + jira.mail.senderEmail + ']> \n*Sent:* ' + moment(jira.mail.receivedAt).format('MMMM Do YYYY, h:mm a') + '\n*'+ ((jira.mail.recipients.length > 0) ? 'To:* [mailto:' + jira.mail.recipients.join('],[mailto:') + ']\n' : '');
+				senderTemplate = '*From:* ' + jira.mail.senderName + ' <[mailto:' + jira.mail.senderEmail + ']> \n*Sent:* ' + moment(jira.mail.receivedAt).format('MMMM Do YYYY, h:mm a') + '\n*'+ ((jira.mail.recipients.length > 0) ? 'To:* [mailto:' + jira.mail.recipients.join('],[mailto:') + ']\n----\n' : '');
 			else
-				senderTemplate = '\n From: ' + jira.mail.senderName + ' <' + jira.mail.senderEmail + '> \n Sent: '+ moment(jira.mail.receivedAt).format('MMMM Do YYYY, h:mm a') +' \n To: ' + jira.mail.recipients.join(',')+'\n';
+				senderTemplate = 'From: ' + jira.mail.senderName + ' <' + jira.mail.senderEmail + '> \n Sent: ' + moment(jira.mail.receivedAt).format('MMMM Do YYYY, h:mm a') + ' \n To: ' + jira.mail.recipients.join(',') + '\n----\n';
 
 			insertAtCursor($('#description')[0], senderTemplate);
 		});
@@ -991,6 +991,9 @@ function insertAtCursor(myField, myValue) {
 	if (myField.selectionStart || myField.selectionStart == '0') {
 		var startPos = myField.selectionStart;
 		var endPos = myField.selectionEnd;
+		if (startPos > 0)
+			myValue = '\n' + myValue;
+
 		myField.value = myField.value.substring(0, startPos) +
 			myValue +
 			myField.value.substring(endPos, myField.value.length);

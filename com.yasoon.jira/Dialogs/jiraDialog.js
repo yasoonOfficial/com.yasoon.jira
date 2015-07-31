@@ -4,6 +4,17 @@ $(function () {
 	$('body').css('overflow-y', 'hidden');
 });
 
+$(window).resize(function () {
+	var bodyHeight = $('body').height();
+	if (bodyHeight > 460) {
+		$('body').css('overflow-y', 'hidden');
+		$(".form-body").height(bodyHeight - 170);
+	} else {
+		$('body').css('overflow-y', 'scroll');
+		$(".form-body").height(290);
+	}
+});
+
 yasoon.dialog.load(new function () { //jshint ignore:line
 	var self = this;
    

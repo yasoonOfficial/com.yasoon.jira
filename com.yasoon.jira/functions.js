@@ -108,7 +108,7 @@ function JiraRibbonController() {
 		var initParams = { 'settings': jira.settings, 'ownUser': jira.data.ownUser };
 
 		var dialogOptions = {
-			width: 725,
+			width: 735,
 			height: 700,
 			title: 'New Jira Issue',
 			resizable: true,
@@ -152,10 +152,14 @@ function JiraRibbonController() {
 	};
 
 	this.ribbonOnAddToIssue = function ribbonOnAddToIssue(ribbonId, ribbonCtx) {
+		if (!jira.settings.currentService || !yasoon.app.isOAuthed(jira.settings.currentService)) {
+			yasoon.dialog.showMessageBox('Please login to Jira in settings menu first!');
+			return;
+		}
 		var initParams = { 'settings': jira.settings, 'ownUser': jira.data.ownUser };
 
 		var dialogOptions = {
-			width: 600,
+			width: 610,
 			height: 575,
 			title: 'Add Comment',
 			resizable: true,
