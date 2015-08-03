@@ -320,7 +320,7 @@ function UIFormHandler() {
 								$('#' + key)
 								.data('id', issue.fields[key].name)
 								.data('text', issue.fields[key].displayName)
-								.data('type', '')
+								.data('icon', '')
 								.val(issue.fields[key].name)
 								.trigger('change');
 							}

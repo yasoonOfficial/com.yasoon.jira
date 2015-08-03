@@ -265,6 +265,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			id: $('#issuetype').val()
 		};
 
+		//Incremnt transaction for Greenhopper API
+		jira.transaction.currentCallCounter++;
 		//Get Generated Fields
 		self.UIFormHandler.getFormData(result);
 
@@ -295,7 +297,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			url = url + '/' + self.editIssue.key;
 			method = yasoon.ajaxMethod.Put;
 		}
-		jira.transaction.currentCallCounter++;
+		
 		yasoon.oauth({
 			url: url,
 			oauthServiceName: jira.settings.currentService,
