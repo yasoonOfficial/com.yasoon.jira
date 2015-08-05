@@ -159,27 +159,15 @@ function JiraSettingController() {
 				yasoon.setting.setAppParameter('baseUrl', newService.appParams.url);
 				jira.settings.baseUrl = newService.appParams.url;
 
-				//if (newService.accessToken) {
+				yasoon.app.getOAuthUrlAsync('com.yasoon.jira', selectedServiceName, function (url) {
+					window.open(url);
+				},
+				function () {
+					//Setting new currentService is done in jira.handleOauthSuccess()
 
-				//	//Set new currentService
-				//	self.currentService = selectedServiceName;
-				//	yasoon.setting.setAppParameter('settings', JSON.stringify(self));
-
-				//	//Refresh UI
-				//	oAuthSuccess();
-				//} else {
-					yasoon.app.getOAuthUrlAsync('com.yasoon.jira', selectedServiceName, function (url) {
-						window.open(url);
-					},
-					function () {
-						//Set new currentService
-						self.currentService = selectedServiceName;
-						yasoon.setting.setAppParameter('settings', JSON.stringify(self));
-
-						//Refresh UI
-						oAuthSuccess();
-					});
-				//}
+					//Refresh UI --> standard yasoon Function
+					oAuthSuccess();
+				});
 
 				return false;
 			});
@@ -195,17 +183,42 @@ function JiraSettingController() {
 				return false;
 			});
 
-			$('#jiraReloadOAuth').unbind().click(function () {
-				yasoon.app.downloadManifest(null, function (path) {
-					if (path) {
-						yasoon.app.update(null, null, function () {
-							yasoon.view.settings.renderOptionPane(yasoon.view.settings.currentApp());
-						});
-						
+			function reloadOAuthHandler(e) {
+				e.preventDefault();
+				
+				//We have a few checks to do.
+				//This button shouldn't be used if
+				// - it has already been clicked and processing is not finished yet
+				// - it's currently an version running from a shadow folder 
+				// - Or the downloaded app is newer (prevent implicit updates)
+				$('#jiraReloadOAuth').unbind();
+				var app = yasoon.model.apps.get('com.yasoon.jira');
+				yasoon.store.getLatestVersions(function (storeApp) {
+					if (storeApp.id != app.origin.versionId) {
+						yasoon.dialog.showMessageBox('There are pending updates which prevent this action. Please check for latest updates in the Outlook menu: File --> yasoon, restart Outlook and try again');
+						$('#jiraReloadOAuth').unbind().click(reloadOAuthHandler);
+						return;
 					}
+					if (app.origin.basePath.indexOf('update') > -1) {
+						yasoon.dialog.showMessageBox('There are pending updates which prevent this action. Please restart Outlook and try again');
+						$('#jiraReloadOAuth').unbind().click(reloadOAuthHandler);
+						return;
+					}
+
+					yasoon.app.downloadManifest(null, function (path) {
+						if (path) {
+							yasoon.app.update(null, null, function () {
+								yasoon.view.settings.renderOptionPane(yasoon.view.settings.currentApp());
+							});
+						}
+					});
 				});
+
+
 				return false;
-			});
+
+			}
+			$('#jiraReloadOAuth').unbind().click(reloadOAuthHandler);
 		};
 		container.setContent(elem.html());
 	};
@@ -221,6 +234,10 @@ function JiraSettingController() {
 				self[param.key] = param.value;
 			}
 		});
+		self.save();
+	};
+
+	self.save = function () {
 		yasoon.setting.setAppParameter('settings', JSON.stringify(self));
 	};
 
@@ -251,16 +268,11 @@ function JiraSettingController() {
 		//Initial Settings
 		settings = defaults;
 
-		var oAuthServices = yasoon.app.getOAuthServices();
-		if (oAuthServices.length === 1) {
-			settings.currentService = oAuthServices[0].serviceName;
-		}
 		yasoon.setting.setAppParameter('settings', JSON.stringify(settings));
 	} else {
 		//Load Settings
 		settings = JSON.parse(settingsString);
 		settings = $.extend(defaults, settings);
-		
 	}
 
 	$.each(settings, function (key, value) {

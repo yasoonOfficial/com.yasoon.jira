@@ -102,6 +102,8 @@ function jiraGet(relativeUrl) {
 				//Detect if oAuth token has become invalid
 				if (statusCode == 401 && result == 'oauth_problem=token_rejected') {
 					yasoon.app.invalidateOAuthToken(jira.settings.currentService);
+					jira.settings.currentService = '';
+					jira.settings.save();
 				}
 
 				reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText, data, result));

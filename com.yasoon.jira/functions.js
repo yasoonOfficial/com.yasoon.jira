@@ -42,7 +42,6 @@ function JiraRibbonController() {
 		var addToIssueRibbons = self.createEmailItems('Add to Issue', 'addToIssueFromText', self.ribbonOnAddToIssue);
 		contextMenuItems = contextMenuItems.concat(addToIssueRibbons);
 
-		console.log(contextMenuItems);
 		ribbonFactory.create({
 			type: 'contextMenus',
 			renderTo: [

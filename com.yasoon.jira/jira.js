@@ -150,7 +150,9 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		});
 	};
 
-	this.handleOAuthSuccess = function () {
+	this.handleOAuthSuccess = function (serviceName) {
+		jira.settings.currentService = serviceName;
+		yasoon.setting.setAppParameter('settings', JSON.stringify(jira.settings));
 		oAuthSuccess = true;
 		self.sync();
 	};
