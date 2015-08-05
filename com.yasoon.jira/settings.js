@@ -159,15 +159,15 @@ function JiraSettingController() {
 				yasoon.setting.setAppParameter('baseUrl', newService.appParams.url);
 				jira.settings.baseUrl = newService.appParams.url;
 
-				if (newService.accessToken) {
+				//if (newService.accessToken) {
 
-					//Set new currentService
-					self.currentService = selectedServiceName;
-					yasoon.setting.setAppParameter('settings', JSON.stringify(self));
+				//	//Set new currentService
+				//	self.currentService = selectedServiceName;
+				//	yasoon.setting.setAppParameter('settings', JSON.stringify(self));
 
-					//Refresh UI
-					oAuthSuccess();
-				} else {
+				//	//Refresh UI
+				//	oAuthSuccess();
+				//} else {
 					yasoon.app.getOAuthUrlAsync('com.yasoon.jira', selectedServiceName, function (url) {
 						window.open(url);
 					},
@@ -179,7 +179,7 @@ function JiraSettingController() {
 						//Refresh UI
 						oAuthSuccess();
 					});
-				}
+				//}
 
 				return false;
 			});
