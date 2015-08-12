@@ -2,6 +2,10 @@ var jira = {};
 
 $(function () {
 	$('body').css('overflow-y', 'hidden');
+	$('form').on('submit', function(e) {
+		e.preventDefault();
+		return false;
+	});
 });
 
 $(window).resize(function () {

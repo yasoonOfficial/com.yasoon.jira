@@ -17,22 +17,6 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	var oAuthSuccess = false;
 
 	this.lifecycle = function(action, oldVersion, newVersion) {
-		if (action === yasoon.lifecycle.Upgrade) {
-			if (newVersion == "0.6.1") {
-				var oAuthServices = yasoon.app.getOAuthServices();
-				if (oAuthServices.length > 0) {
-					var authedServices = oAuthServices.filter(function (element) { return !!element.accessToken; });
-					if (authedServices.length > 0) {
-						var data = yasoon.setting.getAppParameter('settings');
-						if (data) {
-							data = JSON.parse(data);
-							data.currentService = authedServices[0].serviceName;
-							yasoon.setting.setAppParameter('settings', JSON.stringify(data));
-						}
-					}
-				}
-			}
-		}
 	};
 
 	this.init = function init () {
@@ -189,7 +173,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			if (feedEntry['atlassian:application'] && feedEntry['atlassian:application']['#text'].toLowerCase().indexOf('jira') > -1) {
 				var notif = jira.notifications.createNotification(feedEntry);
 
-				if (jira.firstTime)
+				if (oAuthSuccess)
 					jira.firstSyncedNotifications++;
 
 				if (notif)
@@ -259,24 +243,5 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			return Promise.resolve();
 		}
 	};
-
-	//this.handleError = function (data, statusCode, result, errorText, cbkParam) {
-	//	self.handleErrorSoft(data, statusCode, result, errorText, cbkParam);
-	//	jira.SyncInProcess = false;
-	//};
-
-	//this.handleErrorSoft = function (data, statusCode, result, errorText, cbkParam) {
-	//	console.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data);
-
-	//	//Detect if oAuth token has become invalid
-	//	if (statusCode == 401 && result == 'oauth_problem=token_rejected') {
-	//		yasoon.app.invalidateOAuthToken(jira.settings.currentService);
-	//	}
-
-	//	if (cbkParam && cbkParam.fail) {
-	//		cbkParam.fail();
-	//	}
-	//};
-
 }); //jshint ignore:line
 //@ sourceURL=http://Jira/jira.js

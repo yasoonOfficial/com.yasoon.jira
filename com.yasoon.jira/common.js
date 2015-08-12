@@ -68,8 +68,11 @@ function JiraIconController() {
 		}
 
 		//Only map if mappping to local URL exist
-		if (result.length === 1 && result[0].fileName.indexOf('http') !== 0) {
-			return yasoon.io.getLinkPath(result[0].fileName);
+		if (result.length === 1) {
+			if (result[0].fileName.indexOf('http') !== 0)
+				return yasoon.io.getLinkPath(result[0].fileName);
+			else
+				return url;
 		} else {
 			//Does file exist on DB?
 			var fileName = 'Images\\' + jiraCreateHash(url) + '.png';

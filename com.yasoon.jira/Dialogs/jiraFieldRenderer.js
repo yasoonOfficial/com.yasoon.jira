@@ -648,6 +648,10 @@ function renderUserPicker(id, field, container) {
 
 		jiraAjax('/rest/api/2/user', yasoon.ajaxMethod.Post, JSON.stringify(newUser))
 		.then(function (user) {
+			return jiraAjax('/rest/api/2/group/user?groupname=jira-users&username=' + encodeURI(user.name), yasoon.ajaxMethod.Delete)
+			.return(user);			
+		})
+		.then(function(user) {
 			user = JSON.parse(user);
 			//New user successfully created
 			console.log('Successfull:', user);
@@ -771,14 +775,116 @@ function renderAttachmentLink(id, field, container) {
 						'	</div>'+
 						'</div>');
 
-	$('#'+id+'-container').find('.AddAttachmentLink').click(function () {
+	function renderMoreActions() {
+		return '<span class="dropup" style="position:relative;">' +
+				'	<span class="attachmentMore dropdown-toggle" data-toggle="dropdown" title="more Actions" style="cursor: pointer; color:grey;"><span style="font-size:6px;"> <i class="fa fa-circle-o" /><i class="fa fa-circle-o" style="margin-left: 1px;"/><i class="fa fa-circle-o" style="margin-left: 1px;"/></span>&nbsp;</span>' +
+				'	<ul class="dropdown-menu" style="cursor:pointer;">' +
+				'		<li class="attachmentRename"><a>Rename</a></li>' +
+				'		<li class="attachmentAddRef"><a>Add Reference to Text</a></li>' +
+				'		<li class="attachmentDelete"><a>Delete</a></li>' +
+				'	</ul>' +
+				'</span>';
+	}
+	$('#' + id + '-container').find('.AddAttachmentLink').click(function (e) {
+		e.preventDefault();
 		yasoon.view.fileChooser.open(function (selectedFiles) {
 			jira.selectedAttachments = jira.selectedAttachments.concat(selectedFiles);
 
 			$('#' + id + '-selected-container').html('');
 			//Render Attachments
 			$.each(jira.selectedAttachments, function (i, fileHandle) {
-				$('#' + id + '-selected-container').append('<div class="jiraAttachmentLink"><span><img style="width:16px;" src="' + fileHandle.getFileIconPath() + '" />' + fileHandle.getFileName() + '</span></div>');
+				//To support references to this file, [ ] and ^ are not supported by JIRA --> replace them and change FileName if nessecary
+				var oldFileName = fileHandle.getFileName();
+				var newFileName = oldFileName.replace(/\[/g, '(').replace(/\]/g, ')').replace(/\^/g, '_');
+				if (oldFileName != newFileName)
+					fileHandle.setFileName(newFileName);
+
+				$('#' + id + '-selected-container').append('<div class="jiraAttachmentLink" data-id="' + fileHandle.id + '"><div style="display:inline-block; margin-top:-10px;"><img style="width:16px;" src="' + fileHandle.getFileIconPath() + '" /><span class="attachmentName">' + newFileName + '</span><div style="display:inline-block" class="attachmentNewName hidden">  <div class="input-group" style="width:300px;display:inline-table;margin-top:10px;"><input class="text input-sm form-control" /><div class="input-group-addon attachmentExtension">.txt</div></div></div> </div>' + renderMoreActions() + '</div>');
+			});
+
+			//Hook EventHandler
+			$('.attachmentRename').unbind().click(function (e) {
+				e.preventDefault();
+				//Save DOM References
+				var domAttachmentLink = $(this).closest('.jiraAttachmentLink');
+				var domAttachmentName = domAttachmentLink.find('.attachmentName');
+				var domAttachmentNewName = domAttachmentLink.find('.attachmentNewName');
+				var domAttachmentNewNameInput = domAttachmentNewName.find('input');
+
+				//Hide Standard Stuff
+				domAttachmentName.addClass('hidden');
+				domAttachmentLink.find('.attachmentMore').addClass('hidden');
+
+				//Split FileName into pure name and extension
+				var attachmentName = domAttachmentName.text();
+				var nameParts = attachmentName.split('.');
+				var extension = '.' + nameParts[nameParts.length - 1];
+				delete nameParts[nameParts.length - 1];
+
+				attachmentName = nameParts.join('.').slice(0, -1); //Remove last .
+
+				//Add Change Input Fields
+				domAttachmentNewName.removeClass('hidden');
+				domAttachmentNewNameInput.val(attachmentName).focus();
+				domAttachmentNewName.find('.attachmentExtension').text(extension);
+				domAttachmentNewName.after('<span class="attachmentRenameActions" style="font-size: 20px; margin-left: 5px; cursor: pointer;"><i class="fa fa-check attachmentRenameConfirm" /> <i class="fa fa-times attachmentRenameCancel" style="margin-left: 5px;" /></span>');
+
+				var closeHandler = function () {
+					domAttachmentName.removeClass('hidden');
+					domAttachmentLink.find('.attachmentMore').removeClass('hidden');
+
+					domAttachmentNewName.addClass('hidden');
+					domAttachmentLink.find('.attachmentRenameActions').remove();
+				};
+
+				//Create Click Handler
+				domAttachmentLink.find('.attachmentRenameConfirm').click(function (e) {
+					e.preventDefault();
+					var newName = domAttachmentNewNameInput.val();
+					if (attachmentName != newName) {
+						domAttachmentName.text(newName + extension);
+						var handleId = domAttachmentLink.data('id');
+						var currentHandle = jira.selectedAttachments.filter(function (item) { return item.id == handleId; })[0];
+						currentHandle.setFileName(newName + extension);
+
+					}
+					closeHandler();
+				});
+
+				domAttachmentLink.find('.attachmentRenameCancel').click(function (e) {
+					e.preventDefault();
+					closeHandler();
+				});
+
+				domAttachmentLink.on('keyup', function (e) {
+					e.preventDefault();
+					if (e.keyCode == 13) {
+						domAttachmentLink.unbind();
+						var newName = domAttachmentNewNameInput.val();
+						if (attachmentName != newName) {
+							domAttachmentName.text(newName + extension);
+							var handleId = domAttachmentLink.data('id');
+							var currentHandle = jira.selectedAttachments.filter(function (item) { return item.id == handleId; })[0];
+							currentHandle.setFileName(newName + extension);
+
+						}
+						closeHandler();
+					}
+				});
+			});
+
+			$('.attachmentAddRef').unbind().click(function (e) {
+				e.preventDefault();
+				var attachmentName = $(this).closest('.jiraAttachmentLink').find('.attachmentName').text();
+				insertAtCursor($('#description')[0], '\n[^'+attachmentName+']');
+			});
+
+			$('.attachmentDelete').unbind().click(function (e) {
+				e.preventDefault();
+				var domAttachmentLink = $(this).closest('.jiraAttachmentLink');
+				var handleId = domAttachmentLink.data('id');
+				jira.selectedAttachments = jira.selectedAttachments.filter(function (item) { return item.id != handleId; });
+				domAttachmentLink.remove();
 			});
 		});
 	});
@@ -988,7 +1094,7 @@ function (select, Utils) {
 
 function insertAtCursor(myField, myValue) {
 	//IE Support has been removed
-	if (myField.selectionStart || myField.selectionStart == '0') {
+	if (myField.selectionStart) {
 		var startPos = myField.selectionStart;
 		var endPos = myField.selectionEnd;
 		if (startPos > 0)
