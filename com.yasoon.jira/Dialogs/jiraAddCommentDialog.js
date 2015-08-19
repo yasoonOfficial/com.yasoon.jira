@@ -153,6 +153,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				$('#ProjectSpinner').css('display', 'none');
 
 				$('#project').change(self.selectProject);
+
+				$('#project').next().find('.select2-selection').first().focus();
 			})
 			.catch(jira.handleError);
 		}

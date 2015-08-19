@@ -16,7 +16,10 @@ function JiraNotificationController() {
 		yasoon.alert.add({ type: yasoon.alert.alertType.error, message: 'Could not upload Attachment(s): ' + errorMessage });
 	};
 
-	self.addComment = function addComment (parent, comment, successCbk, attachments, errorCbk) {
+	self.addComment = function addComment(parent, comment, successCbk, attachments, errorCbk) {
+		if (!jiraIsLicensed(true)) {
+			return errorCbk();
+		}
 		try {
 			//check comment for mention
 			comment = comment.replace(/@\[[\w\s]+\]\(user:([^\)]+)\)/g, '[~$1]');
@@ -239,7 +242,7 @@ function JiraIssueNotification(issue) {
 		}
 
 		//Am I watcher?
-		if (self.issue.fields.watches.isWatching && jira.settings.showFeedWatcher) {
+		if (self.issue.fields.watches && self.issue.fields.watches.isWatching && jira.settings.showFeedWatcher) {
 			jiraLog('Found in Watchers');
 			return true;
 		}
@@ -385,6 +388,10 @@ function JiraIssueNotification(issue) {
 		feed.setIconHtml('<img src="' + icon_url + '" title="Issue" ></i>');
 		feed.afterRenderScript(function () {
 			$('.jiraStatusChangeLink').unbind().click(function () {
+				if (!jiraIsLicensed(true)) {
+					return;
+				}
+
 				var transitionId = $(this).data('transition');
 				var bodyObj = {
 					"transition": {
@@ -475,7 +482,8 @@ function JiraIssueNotification(issue) {
 			delete tempIssue.fields.comment;
 			delete tempIssue.fields.worklog;
 			delete tempIssue.fields.workratio; //Lead to a dump in JSON Convert due to Int64 Overflow
-			delete tempIssue.fields.watches.watchers;
+			if (tempIssue.fields.watches)
+				delete tempIssue.fields.watches.watchers;
 
 			delete tempIssue.renderedFields.comment;
 			delete tempIssue.renderedFields.worklog;
@@ -511,6 +519,10 @@ function JiraIssueNotification(issue) {
 	};
 
 	self.addAttachment = function () {
+		if (!jiraIsLicensed(true)) {
+			return;
+		}
+
 		yasoon.view.fileChooser.open(function (selectedFiles) {
 			var formData = [];
 			jiraLog('Jira: ', selectedFiles);
@@ -532,6 +544,9 @@ function JiraIssueNotification(issue) {
 	};
 
 	self.editIssue = function () {
+		if (!jiraIsLicensed(true)) {
+			return;
+		}
 		yasoon.dialog.open({
 			width: 725,
 			height: 700,
@@ -652,7 +667,7 @@ function JiraIssueActionNotification(event) {
 			//Save Activity Notification
 			var isComment = (self.event.category && self.event.category['@attributes'].term === 'comment');
 			var comment = null;
-			if (isComment) {
+			if (isComment && self.event.issue.fields.comment) {
 				comment = $.grep(self.event.issue.fields.comment.comments, function (c) {
 					//Fake Action has commentId Attribute
 					if (self.event.commentId) {

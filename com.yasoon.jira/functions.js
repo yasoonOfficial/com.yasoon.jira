@@ -99,7 +99,10 @@ function JiraRibbonController() {
 		return result;
 	};
 
-	this.ribbonOnNewIssue = function ribbonOnNewIssue (ribbonId, ribbonCtx) {
+	this.ribbonOnNewIssue = function ribbonOnNewIssue(ribbonId, ribbonCtx) {
+		if (!jiraIsLicensed(true)) {
+			return;
+		}
 		if (!jira.settings.currentService || !yasoon.app.isOAuthed(jira.settings.currentService)) {
 			yasoon.dialog.showMessageBox('Please login to Jira in settings menu first!');
 			return;
@@ -151,10 +154,15 @@ function JiraRibbonController() {
 	};
 
 	this.ribbonOnAddToIssue = function ribbonOnAddToIssue(ribbonId, ribbonCtx) {
+		if (!jiraIsLicensed(true)) {
+			return;
+		}
+
 		if (!jira.settings.currentService || !yasoon.app.isOAuthed(jira.settings.currentService)) {
 			yasoon.dialog.showMessageBox('Please login to Jira in settings menu first!');
 			return;
 		}
+
 		var initParams = { 'settings': jira.settings, 'ownUser': jira.data.ownUser };
 
 		var dialogOptions = {
@@ -321,6 +329,39 @@ function jiraQueue() {
 	deferred.resolve();
 
 	return promise;
+}
+
+function jiraIsLicensed(openDialog) {
+	//Add 1 day bonus
+	var tomorrow = new Date();
+	tomorrow.setDate(tomorrow.getDate() + 1);
+
+	if (!jira.license.isFullyLicensed && jira.license.validUntil < tomorrow) {
+		if (openDialog) {
+			//Open Dialog
+			jiraOpenPurchaseDialog();
+		}
+		return false;
+	}
+	return true;
+}
+
+var isLicenseDialogOpen = false;
+function jiraOpenPurchaseDialog() {
+	if (isLicenseDialogOpen)
+		return;
+
+	isLicenseDialogOpen = true;
+	yasoon.dialog.open({
+		width: 720,
+		height: 510,
+		title: 'Your trial has expired',
+		resizable: false,
+		htmlFile: 'Dialogs/purchase.html',
+		closeCallback: function () {
+			isLicenseDialogOpen = false;
+		}
+	});
 }
 
 function getJiraMarkupRenderer() {
@@ -497,5 +538,19 @@ function jiraSaveCalendarItem(item) {
 			reject(e);
 		}
 	});
+}
+
+function jiraGetProducts() {
+	return new Promise(function (resolve, reject) {
+		try {
+			yasoon.license.getActiveProducts(resolve, reject);
+		} catch (e) {
+			reject(e);
+		}
+	});
+}
+
+function jiraEndsWith(str, suffix) {
+	return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
 //@ sourceURL=http://Jira/functions.js

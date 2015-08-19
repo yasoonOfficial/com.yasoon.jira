@@ -261,6 +261,16 @@ function JiraSettingController() {
 		jira.data = JSON.parse(dataString);
 	}
 
+	//Load License
+	var licenseString = yasoon.setting.getAppParameter('license');
+	if (licenseString) {
+		jira.license = JSON.parse(licenseString);
+		jira.license.validUntil = new Date(jira.license.validUntil);
+	} else {
+		jira.license = { comment: 'Please play fair and pay for your software.', isFullyLicensed: false, validUntil: new Date(2099, 11, 01)};
+		yasoon.setting.setAppParameter('license', JSON.stringify(jira.license));
+	}
+
 	//Determine settings to load:
 	var settingsString = yasoon.setting.getAppParameter('settings');
 	var settings = null;

@@ -28,62 +28,91 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		jira.queue = new jiraSyncQueue();
 		jira.issues = new JiraIssueController();
 
+		 var isLicensed = jiraIsLicensed(false);
+
 		yasoon.addHook(yasoon.setting.HookCreateRibbon, jira.ribbons.createRibbon);
 		yasoon.addHook(yasoon.notification.HookRenderNotificationAsync, jira.notifications.renderNotification);
 		yasoon.addHook(yasoon.feed.HookCreateUserComment, jira.notifications.addComment);
 		yasoon.addHook(yasoon.setting.HookRenderSettingsContainer, jira.settings.renderSettingsContainer);
 		yasoon.addHook(yasoon.setting.HookSaveSettings, jira.settings.saveSettings);
 
-		yasoon.outlook.mail.registerRenderer("jiraMarkup", getJiraMarkupRenderer());
+		
+		if (isLicensed) {
+			yasoon.outlook.mail.registerRenderer("jiraMarkup", getJiraMarkupRenderer());
 
-		yasoon.feed.addFilter([
-			{
-				name: 'By Project',
-				jsonPath: 'fields.project.id',
-				label: function (name, id) {
-					if (jira.data.projects) {
-						var proj = $.grep(jira.data.projects, function (p) { return p.id === id; })[0];
-						if (proj) {
-							return proj.name;
+			yasoon.feed.addFilter([
+				{
+					name: 'By Project',
+					jsonPath: 'fields.project.id',
+					label: function (name, id) {
+						if (jira.data.projects) {
+							var proj = $.grep(jira.data.projects, function (p) { return p.id === id; })[0];
+							if (proj) {
+								return proj.name;
+							}
 						}
+						return id;
 					}
-					return id;
-				}
-			},
-			{
-				name: 'By Type',
-				jsonPath: 'fields.issuetype.id',
-				label: function (name, id) {
-					if (jira.data.issueTypes) {
-						var issueType = $.grep(jira.data.issueTypes, function (i) { return i.id === id; })[0];
-						if (issueType) {
-							return issueType.name;
+				},
+				{
+					name: 'By Type',
+					jsonPath: 'fields.issuetype.id',
+					label: function (name, id) {
+						if (jira.data.issueTypes) {
+							var issueType = $.grep(jira.data.issueTypes, function (i) { return i.id === id; })[0];
+							if (issueType) {
+								return issueType.name;
+							}
 						}
+						return id;
 					}
-					return id;
+				},
+				{
+					name: 'By Reporter',
+					jsonPath: 'fields.reporter.emailAddress',
+					label: function (name, id) {
+						//if (jira.data.issueTypes) {
+						//	var issueType = $.grep(jira.data.issueTypes, function (i) { return i.id === id; })[0];
+						//	if (issueType) {
+						//		return issueType.name;
+						//	}
+						//}
+						return id;
+					}
 				}
-			},
-			{
-				name: 'By Reporter',
-				jsonPath: 'fields.reporter.emailAddress',
-				label: function (name, id) {
-					//if (jira.data.issueTypes) {
-					//	var issueType = $.grep(jira.data.issueTypes, function (i) { return i.id === id; })[0];
-					//	if (issueType) {
-					//		return issueType.name;
-					//	}
-					//}
-					return id;
+			]);
+			
+			yasoon.app.on("oAuthSuccess", jira.handleOAuthSuccess);
+			yasoon.periodicCallback(300, jira.sync);
+			yasoon.on("sync", jira.sync);
+		} else {
+			setTimeout(function () {
+				jiraOpenPurchaseDialog();
+			}, 1000);
+		}
+
+		if (jira.firstTime && !jira.license.isFullyLicensed) {
+			//Check License Information
+			jiraGetProducts()
+			.then(function (products) {
+				if (products && products.length > 0) {
+					jira.license.validUntil = products[0].validUntil;
 				}
-			}
-		]);
-		yasoon.on("sync", jira.sync);
-		yasoon.app.on("oAuthSuccess", jira.handleOAuthSuccess);
-		yasoon.periodicCallback(300, jira.sync);
+
+				//Check if it's valid forever and if it's a Server instance (url does not ends with jira.com or atlassian.net) 
+				if (jira.license.validUntil > new Date(2099, 0, 1) && !jiraEndsWith(jira.settings.baseUrl, 'jira.com') && !jiraEndsWith(jira.settings.baseUrl, 'atlassian.net')) {
+					jira.license.isFullyLicensed = true; //No need to check license again
+
+				}
+				yasoon.setting.setAppParameter('license', JSON.stringify(jira.license));
+			})
+			.catch(function (e) {
+
+			});
+		}
 	};
 
-	this.sync = function sync () {
-
+	this.sync = function sync() {
 		if (!jira.settings.currentService || !yasoon.app.isOAuthed(jira.settings.currentService)) {
 			return;
 		}

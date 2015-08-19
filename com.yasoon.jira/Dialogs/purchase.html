@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+	<link href="dialogs/purchase.css" rel="stylesheet" type="text/css">
+	<script src="Dialogs/purchaseDialog.js"></script>
+	<title></title>
+</head>
+
+<body style="background-image: url('Dialogs/background1.jpg')">
+	<div style="overflow:hidden;">
+		<div class="dialog" id="wunderlist-base" style="overflow:hidden; margin: auto; top:0px; bottom: 0px; left: 0px; right: 0px; height: 425px; width: 620px;">
+			<div class="settings-content-inner-wrapper">
+				<div class="settings-content-inner">
+					<div class="separator" style="height: 100px;">
+						<!-- Language -->
+
+						<div class="center">
+							<h2 id="CentralHeader" style="margin:0px;">Jira for Outlook Trial expired</h2>
+						</div>
+						<div class="cols">
+							<div class="col-5 text-left" style="margin-top: 14px;"></div>                       
+							<div id="text" class="col-90 text-left" style="margin-top: 14px;">
+								Hi <span id="FirstName"> Firstname </span>, <br /><br />
+								Thanks for using JIRA for Outlook. We hope, it saved you a lot of time and it has been useful for you. 
+								<br />
+								However, your JIRA for Outlook is currently running in a trial and it has come to an end. 
+								<div class="isAdmin hidden">
+									<div> You are maintained as company admin so you are able to purchase the required licenses for your company directly. </div>
+									<button class="btn btn-primary" id="buyLicenses"> Get Licenses </button>
+								</div>
+								<div class="isNoAdmin hidden">
+									If you like to continue to use, please ask your JIRA admin to get a full license for you. <br />
+									Here is some help who to contact: <br />
+									<div id="isAdminKnown hidden">
+										<span id="AdminName" style="font-weight:bold"></span><br />
+										<span>E-Mail: <a id="AdminEmail"></a></span>
+									</div>
+									<div class="separator"></div>
+									<div class="cols" style="margin-bottom: 2px !important;">
+										<div class="col-100" style="padding-left: 217px; margin-top: 5px; ">
+											<a id="submit" class="button big left green go-pro" style="margin-right: 20px; width: 200px" tabindex="0"><strong>Contact your JIRA Admin</strong></a>
+										</div>
+									</div>
+								</div> 
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

@@ -160,6 +160,7 @@ function jiraCheckProxyError(input) {
 		throw new jiraProxyError();
 	}
 }
+
 function jiraSyncError(message, statusCode, errorText, data, result) {
 	var self = this;
 
