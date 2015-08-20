@@ -19,50 +19,55 @@ function UIFormHandler() {
 			}
 		},
 
-		getValue: function(field) {
+		getValue: function(id,field) {
 			var type = getFieldType(field);
 			if (type) {
 				var responsibleRenderer = renderer[type];
 				if (responsibleRenderer)
-					return responsibleRenderer.getValue(id, field, container);
+					return responsibleRenderer.getValue(id);
 			}
 		},
 
 		getFormData: function (result) {
-			result = result || { fields: []};
+			result = result || { fields: {} };
+			var self = this;
 			//Find Meta for current Issue Type
 			if (jira.currentMeta) {
 				$.each(jira.currentMeta.fields, function (key, field) {
-					result.fields[key] = this.getValue(field);
+					var newValue = self.getValue(key,field);
+					if (newValue)
+						result.fields[key] = newValue;
 				});
 			}
 		},
 
-		setValue: function(field, value) {
+		setValue: function(id,field, value) {
 			var type = getFieldType(field);
 			if (type) {
 				var responsibleRenderer = renderer[type];
 				if (responsibleRenderer)
-					return responsibleRenderer.setValue(field.id, value);
+					return responsibleRenderer.setValue(id, value);
 			}
 		},
 
-		setFormData: function(issue) {
+		setFormData: function (issue) {
+			var self = this;
 			if (jira.currentMeta) {
 				$.each(jira.currentMeta.fields, function (key, field) {
-					this.setValue(field, issue.fields[key]);
+					self.setValue(key,field, issue.fields[key]);
 				});
 			}
 		},
 
-		triggerEvent: function (type) {
+		triggerEvent: function (type, data) {
 			if (jira.currentMeta) {
 				$.each(jira.currentMeta.fields, function (key, field) {
 					var type = getFieldType(field);
 					if (type) {
 						var responsibleRenderer = renderer[type];
-						if(responsibleRenderer)
-							responsibleRenderer.handleEvent(type, issue.fields[key], field);
+						if (responsibleRenderer && responsibleRenderer.hasOwnProperty('handleEvent')) {
+							responsibleRenderer.handleEvent(type, field, data);
+						}
 					}
 				});
 			}
@@ -293,9 +298,9 @@ function LabelRenderer() {
 	};
 
 	this.setValue = function (id, value) {
-		if (value) {
-			$('#' + key).val(value).trigger('change');
-			$('#' + key).data('value', value);
+		if (value && value.length > 0) {
+			$('#' + id).val(value).trigger('change');
+			$('#' + id).data('value', value);
 		}
 	};
 
@@ -435,7 +440,7 @@ function MultiSelectListRenderer() {
 function UserPickerRenderer() {
 	this.getValue = function (id) {
 		if ($('#'+id).data('id')) {
-			return { name: elem.data('id')};
+			return { name: $('#' + id).data('id') };
 		}
 	};
 
@@ -539,7 +544,7 @@ function UserPickerRenderer() {
 			templateResult: formatUser,
 			templateSelection: formatUser,
 			dataAdapter: jira.CustomDataSet,
-			minimumInputLength: 0
+			minimumInputLength: 0,
 		});
 	};
 }
@@ -767,7 +772,7 @@ function EpicLinkRenderer() {
 		});
 	};
 
-	this.handleEvent = function (type, data, field) {
+	this.handleEvent = function (type, field, data) {
 		var newEpicLink = $('#'+field.key).val();
 		if (type === 'save' && jira.editIssue && jira.editIssue.fields[field.key] != newEpicLink) {
 			jira.transaction.currentCallCounter++;
@@ -841,7 +846,7 @@ function SprintLinkRenderer() {
 		});
 	};
 
-	this.handleEvent = function (type, data, field) {
+	this.handleEvent = function (type, field, data) {
 		if (type === 'save' && jira.editIssue) {
 			var sprintId = '';
 			if (jira.editIssue.fields[field.key])
@@ -919,8 +924,8 @@ function formatUser(user) {
 
 // Custom Data Provider for SELECT2  User retrieval
 
-$.fn.select2.amd.require(['select2/data/select', 'select2/utils'],
-function (select, Utils) {
+$.fn.select2.amd.require(['select2/data/select', 'select2/utils','select2/selection/allowClear'],
+function (select, Utils, allowClear) {
 	function CustomData($element, options) {
 		CustomData.__super__.constructor.call(this, $element, options);
 	}
@@ -1053,6 +1058,7 @@ function (select, Utils) {
 	};
 
 	jira.CustomDataSet = CustomData;
+
 });
 
 

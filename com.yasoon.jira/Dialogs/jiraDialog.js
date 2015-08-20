@@ -277,7 +277,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		self.UIFormHandler.getFormData(result);
 
 		//Inform Fields that save is going to start.
-		self.UIFormHandler.triggerEvent('save');
+		self.UIFormHandler.triggerEvent('save', result);
 
 		//Save Template if created by Email
 		if (self.mail) {
