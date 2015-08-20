@@ -590,9 +590,9 @@ function renderTextarea(id, field, container) {
 			backup = $('#description').val();
 			var senderTemplate = '';
 			if(useMarkup)
-				senderTemplate = '*From:* ' + jira.mail.senderName + ' <[mailto:' + jira.mail.senderEmail + ']> \n*Sent:* ' + moment(jira.mail.receivedAt).format('MMMM Do YYYY, h:mm a') + '\n*'+ ((jira.mail.recipients.length > 0) ? 'To:* [mailto:' + jira.mail.recipients.join('],[mailto:') + ']\n----\n' : '');
+				senderTemplate = '*From:* ' + jira.mail.senderName + ' <[mailto:' + jira.mail.senderEmail + ']> \n*Sent:* ' + moment(jira.mail.receivedAt).format('MMMM Do YYYY, h:mm a') + '\n'+ ((jira.mail.recipients.length > 0) ? '*To:* [mailto:' + jira.mail.recipients.join('],[mailto:') + ']\n *Subject*: '+ jira.mail.subject + '\n----\n' : '');
 			else
-				senderTemplate = 'From: ' + jira.mail.senderName + ' <' + jira.mail.senderEmail + '> \n Sent: ' + moment(jira.mail.receivedAt).format('MMMM Do YYYY, h:mm a') + ' \n To: ' + jira.mail.recipients.join(',') + '\n----\n';
+				senderTemplate = 'From: ' + jira.mail.senderName + ' <' + jira.mail.senderEmail + '> \n Sent: ' + moment(jira.mail.receivedAt).format('MMMM Do YYYY, h:mm a') + ' \n To: ' + jira.mail.recipients.join(',') + '\n Subject: ' + jira.mail.subject + '\n';
 
 			insertAtCursor($('#description')[0], senderTemplate);
 		});
@@ -648,11 +648,11 @@ function renderUserPicker(id, field, container) {
 
 		jiraAjax('/rest/api/2/user', yasoon.ajaxMethod.Post, JSON.stringify(newUser))
 		.then(function (user) {
+			user = JSON.parse(user);
 			return jiraAjax('/rest/api/2/group/user?groupname=jira-users&username=' + encodeURI(user.name), yasoon.ajaxMethod.Delete)
 			.return(user);			
 		})
 		.then(function(user) {
-			user = JSON.parse(user);
 			//New user successfully created
 			console.log('Successfull:', user);
 			//1. Set it as value for current field
@@ -876,7 +876,7 @@ function renderAttachmentLink(id, field, container) {
 			$('.attachmentAddRef').unbind().click(function (e) {
 				e.preventDefault();
 				var attachmentName = $(this).closest('.jiraAttachmentLink').find('.attachmentName').text();
-				insertAtCursor($('#description')[0], '\n[^'+attachmentName+']');
+				insertAtCursor($('#description')[0], '[^'+attachmentName+']');
 			});
 
 			$('.attachmentDelete').unbind().click(function (e) {
@@ -1093,19 +1093,15 @@ function (select, Utils) {
 });
 
 function insertAtCursor(myField, myValue) {
-	//IE Support has been removed
-	if (myField.selectionStart) {
-		var startPos = myField.selectionStart;
-		var endPos = myField.selectionEnd;
-		if (startPos > 0)
-			myValue = '\n' + myValue;
+	var startPos = myField.selectionStart;
+	var endPos = myField.selectionEnd;
+	if (startPos > 0)
+		myValue = '\n' + myValue;
 
-		myField.value = myField.value.substring(0, startPos) +
-			myValue +
-			myField.value.substring(endPos, myField.value.length);
-	} else {
-		myField.value += myValue;
-	}
+	myField.value = myField.value.substring(0, startPos) +
+		myValue +
+		myField.value.substring(endPos, myField.value.length);
+	
 }
 
 
