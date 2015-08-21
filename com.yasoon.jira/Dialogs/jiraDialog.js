@@ -26,7 +26,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	jira.CONST_HEADER = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
 	
 
-	this.UIFormHandler = UIFormHandler();
+	this.UIFormHandler = UIRenderer;
 	this.icons = new JiraIconController();
 	this.fromTemplate = false;
 
@@ -276,6 +276,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		//Get Generated Fields
 		self.UIFormHandler.getFormData(result);
 
+		//Inform Fields that save is going to start.
+		self.UIFormHandler.triggerEvent('save', result);
+
 		//Save Template if created by Email
 		if (self.mail) {
 			var newTemplate = new createTemplate(self.mail.senderEmail, self.mail.senderName, self.selectedProject, result);
@@ -444,6 +447,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		$('#ContainerFields').html('');
 		$('#LoaderArea').show();
 		$('#ContentArea').hide();
+		$('#MainAlert').hide();
 
 		//Order of Fields in the form. Fields not part of the array will be rendered afterwards
 		//This can be customized later on by JIRA admin?!
@@ -478,6 +482,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				self.UIFormHandler.render(key, value, $('#ContainerFields'));
 			}
 		});
+
+		//self.UIFormHandler.triggerEvent('afterRender'); //Not needed yet!
 
 		//Fill with intial Values
 		self.insertValues();
