@@ -36,10 +36,9 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		yasoon.addHook(yasoon.setting.HookRenderSettingsContainer, jira.settings.renderSettingsContainer);
 		yasoon.addHook(yasoon.setting.HookSaveSettings, jira.settings.saveSettings);
 
-		
-		if (isLicensed) {
-			yasoon.outlook.mail.registerRenderer("jiraMarkup", getJiraMarkupRenderer());
+		yasoon.outlook.mail.registerRenderer("jiraMarkup", getJiraMarkupRenderer());
 
+		if (isLicensed) {
 			yasoon.feed.addFilter([
 				{
 					name: 'By Project',
@@ -83,12 +82,13 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			]);
 			
 			yasoon.app.on("oAuthSuccess", jira.handleOAuthSuccess);
+			//yasoon.app.on("oAuthError", jira.handleOAuthError);
 			yasoon.periodicCallback(300, jira.sync);
 			yasoon.on("sync", jira.sync);
 		} else {
 			setTimeout(function () {
 				jiraOpenPurchaseDialog();
-			}, 1000);
+			}, 10);
 		}
 
 		if (jira.firstTime && !jira.license.isFullyLicensed) {
@@ -100,7 +100,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				}
 
 				//Check if it's valid forever and if it's a Server instance (url does not ends with jira.com or atlassian.net) 
-				if (jira.license.validUntil > new Date(2099, 0, 1) && !jiraEndsWith(jira.settings.baseUrl, 'jira.com') && !jiraEndsWith(jira.settings.baseUrl, 'atlassian.net')) {
+				if (jira.license.validUntil > new Date(2099, 0, 1) && !jiraIsCloud(jira.settings.baseUrl)) {
 					jira.license.isFullyLicensed = true; //No need to check license again
 
 				}
@@ -169,6 +169,35 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		oAuthSuccess = true;
 		self.sync();
 	};
+
+	//this.handleOAuthError = function (serviceName, statusCode, error) {
+	//	if (statusCode == 500) {
+
+	//	} else if (error.indexOf('oauth_problem') === 0) {
+	//		//Standard OAuth Messages => http://wiki.oauth.net/w/page/12238543/ProblemReporting
+	//		error = error.split('=')[1];
+	//		if (error) {
+	//			switch (error) {
+	//				case 'consumer_key_unknown':
+	//					yasoon.dialog.showMessageBox("The application link is unknown. Please make sure you have an application link in JIRA called: yasoonjira");
+	//					break;
+	//				case 'timestamp_refused':
+	//					yasoon.dialog.showMessageBox("Jira refuses the request because of time differences. Either your local time is not set correctly or the JIRA server has a wrong time. (different timezones are ok)");
+	//					break;
+	//				case 'signature_invalid':
+	//					yasoon.dialog.showMessageBox("The certificate you are using is invalid. Please make sure you have setup JIRA correctly. Afterwards visit the JIRA settings and click on \"Reload System Information\"");
+	//					break;
+	//				default:
+	//					yasoon.alert.add({ type: yasoon.alert.alertType.error, message: result });
+	//			}
+
+	//			return;
+	//		}
+	//	} else {
+
+	//	}
+	//};
+
 	//Handle Sync Event
 	this.syncStream = function (url, maxResults, currentPage) {
 		//Defaults

@@ -354,10 +354,13 @@ function jiraOpenPurchaseDialog() {
 	isLicenseDialogOpen = true;
 	yasoon.dialog.open({
 		width: 720,
-		height: 510,
+		height: 610,
 		title: 'Your trial has expired',
 		resizable: false,
 		htmlFile: 'Dialogs/purchase.html',
+		initParameter: {
+			baseUrl: jira.settings.baseUrl
+		},
 		closeCallback: function () {
 			isLicenseDialogOpen = false;
 		}
@@ -548,9 +551,5 @@ function jiraGetProducts() {
 			reject(e);
 		}
 	});
-}
-
-function jiraEndsWith(str, suffix) {
-	return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
 //@ sourceURL=http://Jira/functions.js
