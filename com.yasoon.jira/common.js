@@ -202,4 +202,11 @@ function jiraProxyError() {
 }
 jiraProxyError.prototype = Object.create(Error.prototype);
 
+function jiraIsCloud(url) {
+	return jiraEndsWith(url, 'jira.com') || jiraEndsWith(url, 'atlassian.net');
+}
+
+function jiraEndsWith(str, suffix) {
+	return str.indexOf(suffix, str.length - suffix.length) !== -1;
+}
 //@ sourceURL=http://Jira/common.js

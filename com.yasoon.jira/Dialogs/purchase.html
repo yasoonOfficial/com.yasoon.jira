@@ -3,13 +3,14 @@
 <head>
 	<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
 	<link href="dialogs/purchase.css" rel="stylesheet" type="text/css">
+	<script src="common.js"></script>
 	<script src="Dialogs/purchaseDialog.js"></script>
 	<title></title>
 </head>
 
 <body style="background-image: url('Dialogs/background1.jpg')">
 	<div style="overflow:hidden;">
-		<div class="dialog" id="wunderlist-base" style="overflow:hidden; margin: auto; top:0px; bottom: 0px; left: 0px; right: 0px; height: 425px; width: 620px;">
+		<div class="dialog" id="wunderlist-base" style="overflow:hidden; margin: auto; top:0px; bottom: 0px; left: 0px; right: 0px; height: 525px; width: 620px;">
 			<div class="settings-content-inner-wrapper">
 				<div class="settings-content-inner">
 					<div class="separator" style="height: 100px;">
@@ -23,25 +24,75 @@
 							<div id="text" class="col-90 text-left" style="margin-top: 14px;">
 								Hi <span id="FirstName"> Firstname </span>, <br /><br />
 								Thanks for using JIRA for Outlook. We hope, it saved you a lot of time and it has been useful for you. 
-								<br />
-								However, your JIRA for Outlook is currently running in a trial and it has come to an end. 
-								<div class="isAdmin hidden">
-									<div> You are maintained as company admin so you are able to purchase the required licenses for your company directly. </div>
-									<button class="btn btn-primary" id="buyLicenses"> Get Licenses </button>
+								Unfortunately your JIRA for Outlook is currently running in a trial and it has come to an end. 
+
+								<div class="isAdminServer hidden">
+									<div class="separator"></div>
+									<div> Don't worry, it's not too late to take advantage of JIRA for Outlook and make it absolutely easy to work with JIRA issues.</div>
+									<div> Simply follow these steps to proceed. If you have any questions, just send us a mail to <a class="mailSupport">our support team</a>.</div>
+									<div style="margin: 20px;">
+										<div class="clearfix">
+											<div class="pull-left"><img src="Images/icon1.png" style="width: 45px;" /></div>
+											<div style="margin-left: 50px; margin-top: 3px;"><b>Get a license</b> for your company. You don't need to buy licenses for all JIRA users at once. Choose the tier that fits best for you.</div> 
+										</div>
+										<div class="clearfix" style="margin-top: 10px;">
+											<div class="pull-left"><img src="Images/icon2.png" style="width: 45px;" /></div>
+											<div style="margin-left: 50px; margin-top: 3px;">Setup a <b>personal welcome message</b> <a id="openSettings">in the admin panel</a> to have the best experience for your users.</div>
+										</div>
+										<div class="clearfix" style="margin-top: 10px;">
+											<div class="pull-left"><img src="Images/icon3.png" style="width: 45px;" /></div>
+											<div style="margin-left: 50px; margin-top: 3px;"><b>Share the setup</b> with all users. If you need help for the rollout, <a class="mailSupport">our support team</a> will help you out.</div>
+										</div>
+									</div>
+									<div class="separator"></div>
+									<div class="cols" style="margin-bottom: 2px !important;">
+										<div class="col-100" style="padding-left: 217px; margin-top: 5px; ">
+											<a id="buyLicenses" class="button big left green go-pro" style="margin-right: 20px; width: 200px" tabindex="0"><strong>Get Licenses</strong></a>
+										</div>
+									</div>
 								</div>
+
+								<div class="isAdminCloud hidden">
+									<div class="separator"></div>
+									<div> Don't worry, it's not too late to take advantage of JIRA for Outlook and make it absolutely easy to work with JIRA issues.</div>
+									<div> Simply follow these steps to proceed. If you have any questions, just send us a mail to <a class="mailSupport">our support team</a>.</div>
+									<div style="margin: 20px;">
+										<div class="clearfix">
+											<div class="pull-left"><img src="Images/icon1.png" style="width: 45px;" /></div>
+											<div style="margin-left: 50px; margin-top: 3px;"><b>Activate the JIRA addon</b> <a id="OpenAddonPage">here</a>. If you have a big difference between JIRA and Outlook users, please <a class="mailSupport">contact our support</a> to find a solution.</div>
+										</div>
+										<div class="clearfix" style="margin-top: 10px;">
+											<div class="pull-left"><img src="Images/icon2.png" style="width: 45px;" /></div>
+											<div style="margin-left: 50px; margin-top: 3px;">Setup a <b>personal welcome message</b> <a id="openSettings">in the admin panel</a> to have the best experience for your users.</div>
+										</div>
+										<div class="clearfix" style="margin-top: 10px;">
+											<div class="pull-left"><img src="Images/icon3.png" style="width: 45px;" /></div>
+											<div style="margin-left: 50px; margin-top: 3px;"><b>Share the setup</b> with all users. If you need help for the rollout, <a class="mailSupport">our support team</a> will help you out.</div>
+										</div>
+									</div>
+									<div class="separator"></div>
+									<div class="cols" style="margin-bottom: 2px !important;">
+										<div class="col-100" style="padding-left: 217px; margin-top: 5px; ">
+											<a id="buyLicenses" class="button big left green go-pro" style="margin-right: 20px; width: 200px" tabindex="0"><strong>Get Licenses</strong></a>
+										</div>
+									</div>
+								</div>
+
 								<div class="isNoAdmin hidden">
+									<div class="separator"></div>
 									If you like to continue to use, please ask your JIRA admin to get a full license for you. <br />
 									Here is some help who to contact: <br />
 									<div id="isAdminKnown hidden">
 										<span id="AdminName" style="font-weight:bold"></span><br />
 										<span>E-Mail: <a id="AdminEmail"></a></span>
-									</div>
-									<div class="separator"></div>
-									<div class="cols" style="margin-bottom: 2px !important;">
-										<div class="col-100" style="padding-left: 217px; margin-top: 5px; ">
-											<a id="submit" class="button big left green go-pro" style="margin-right: 20px; width: 200px" tabindex="0"><strong>Contact your JIRA Admin</strong></a>
+										<div class="separator"></div>
+										<div class="cols" style="margin-bottom: 2px !important;">
+											<div class="col-100" style="padding-left: 217px; margin-top: 5px; ">
+												<a id="SendMailAdmin" class="button big left green go-pro" style="margin-right: 20px; width: 200px" tabindex="0"><strong>Send your admin a mail</strong></a>
+											</div>
 										</div>
 									</div>
+									
 								</div> 
 							</div>
 						</div>
