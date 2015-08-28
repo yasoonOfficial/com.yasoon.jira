@@ -49,7 +49,13 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				} else if(isAdmin && !isAdminServer) {
 					$('.isAdminCloud').removeClass('hidden');
 					$('#OpenAddonPage').click(function () {
-						yasoon.openBrowser(baseUrl + '/plugins/servlet/ac/com.yasoon.jira.cloud/admin');
+						yasoon.openBrowser(baseUrl + '/plugins/servlet/upm');
+					});
+					$('#openSettings').click(function () {
+						yasoon.openBrowser('https://store.yasoon.com/#/main/company/own/tabSettings');
+					});
+					$('#buyLicensesCloud').click(function () {
+						yasoon.openBrowser(baseUrl + '/plugins/servlet/upm');
 					});
 				} else if (admin) {
 					$('.isNoAdmin').removeClass('hidden');

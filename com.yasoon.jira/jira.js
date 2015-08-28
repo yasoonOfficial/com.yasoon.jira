@@ -16,7 +16,10 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	var currentPage = 1;
 	var oAuthSuccess = false;
 
-	this.lifecycle = function(action, oldVersion, newVersion) {
+	this.lifecycle = function (action, oldVersion, newVersion) {
+		if (action === yasoon.lifecycle.Upgrade) {
+			yasoon.setting.setAppParameter('icons', '[]');
+		}
 	};
 
 	this.init = function init () {
