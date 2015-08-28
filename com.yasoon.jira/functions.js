@@ -368,7 +368,7 @@ function jiraOpenPurchaseDialog() {
 }
 
 function getJiraMarkupRenderer() {
-	var inTable = false;
+	var inTableCount = 0;
 	var lastOp = '';
 	
 	return new MailRenderer({
@@ -393,12 +393,13 @@ function getJiraMarkupRenderer() {
 			if(style.isStrikethrough)
 				result = '-' + result + '-';
 				
-			if(style.isHeading)
-				result = 'h' + style.headingSize + '. ' + result;
-
 			if (style.color && style.color != '#1F497D') //Do not add Outlook standard blue as markup
 				result = '{color:' + style.color + '}' + result + '{color}';
 			 
+			if (style.isHeading) { //Heading needs to be the first element in line. 
+				result = 'h' + style.headingSize + '. ' + result;
+			}
+
 			return prefix + result + suffix; 
 		},
 		renderHyperlink: function(url, label, style) {
@@ -409,34 +410,42 @@ function getJiraMarkupRenderer() {
 			else
 				return '[' + url + ']';
 		},
-		renderTable: function(time) {
+		renderTable: function (time) {
+			//JIRA does not support nested tables
+			//So we count how often renderTable has been called and only render rows & cells if inTableCount = 1.
 			lastOp = 'renderTable';
 			
-			if(time === 0)
-				inTable = true;
+			if (time === 0)
+				inTableCount++;
 			else
-				inTable = false;
+				inTableCount--;
 		},
-		renderTableRow: function(time, type) {
+		renderTableRow: function (time, type) {
+			if (inTableCount > 1)
+				return '';
+
 			lastOp = 'renderTableRow';
-			
-			if(time === 1)
+			if (time === 0)
+				return '|';
+			else if(time === 1)
 				return '\n';
 				
 			return '';
 		},
-		renderTableCell: function(time, rowType, colType) {
+		renderTableCell: function (time, rowType, colType) {
+			if (inTableCount > 1)
+				return '';
+
 			lastOp = 'renderTableCell';
-			
-			if(time === 0 && colType === 1)
-				return '|';
-			else if(time === 1)
+			if(time === 1)
 				return '|'; 
 		},
-		renderNewLine: function() {
-			if(inTable && lastOp === 'newLine')
+		renderNewLine: function () {
+			if(inTableCount > 0 && lastOp === 'newLine')
 				return '';
-			
+			if (inTableCount > 1 && lastOp === 'renderTable') //We ignore nested tables, so ignore their linebreaks as well.
+				return '';
+
 			lastOp = 'newLine';
 			return '\n';
 		},

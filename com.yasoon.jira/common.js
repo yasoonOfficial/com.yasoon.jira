@@ -38,15 +38,17 @@ function JiraIconController() {
 
 	var saveIcon = function (url) {
 		//generate unique FileName
-		var fileName = 'Images\\' + jiraCreateHash(url) + '.png';
-		console.log(url + ' : ' + fileName);
+		var fileName = 'Images\\' + jiraCreateHash(url);
+		console.log('Download Icon - URL: ' + url + ' : FileName: ' + fileName);
 		//Download File
-		yasoon.io.download(url, fileName, false, function () {
+		yasoon.io.download(url, fileName, false, function (handle) {
 			//Success Handler --> update IconBuffer to local URL
 			var result = iconBuffer.filter(function (elem) { return elem.url == url; });
 			if (result.length === 1) {
-				result[0].fileName = fileName;
+				result[0].fileName = 'Images\\' + handle.getFileName();
+				saveSettings();
 			}
+			
 		});
 
 		//Temporary save URL in Buffer
@@ -54,8 +56,13 @@ function JiraIconController() {
 		return url;
 	};
 
+	var saveSettings = function () {
+		yasoon.setting.setAppParameter('icons', JSON.stringify(iconBuffer));
+	};
+
 	this.mapIconUrl = function (url) {
 		//Avoid mapping local URLs
+		
 		if (url.indexOf('http') !== 0) {
 			return url;
 		}
@@ -68,22 +75,12 @@ function JiraIconController() {
 		}
 
 		//Only map if mappping to local URL exist
-		if (result.length === 1) {
-			if (result[0].fileName.indexOf('http') !== 0)
-				return yasoon.io.getLinkPath(result[0].fileName);
-			else
-				return url;
-		} else {
-			//Does file exist on DB?
-			var fileName = 'Images\\' + jiraCreateHash(url) + '.png';
-			if (yasoon.io.exists(fileName)) {
-				iconBuffer.push({ url: url, fileName: fileName });
-				return yasoon.io.getLinkPath(fileName);
-			} else {
-				return saveIcon(url);
-			}
-			
+		if (result.length === 1 && result[0].fileName.indexOf('http') !== 0) {
+			return yasoon.io.getLinkPath(result[0].fileName);	
+		} else if (result.length === 0) {
+			return saveIcon(url);
 		}
+		return url;
 	};
 
 	this.addIcon = function (url) {
@@ -92,6 +89,24 @@ function JiraIconController() {
 			saveIcon(url);
 		}
 	};
+
+	//Init - load data
+	var settingString = yasoon.setting.getAppParameter('icons');
+	if (settingString) {
+		iconBuffer = JSON.parse(settingString);
+
+		//Check consistency of buffer
+		iconBUffer = iconBuffer.filter(function (entry) {
+			if (entry.fileName.indexOf('http') === 0) {
+				//http links should be in index only temporary --> download newly this time
+				return false;
+			}
+			//Remove link if file does not exist
+			return yasoon.io.exists('Images\\' + entry.fileName);
+		});
+
+		console.log('Initial Icon Buffer', iconBuffer);
+	}
 }
 
 function jiraGet(relativeUrl) {
