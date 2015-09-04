@@ -107,7 +107,13 @@ function JiraRibbonController() {
 			yasoon.dialog.showMessageBox('Please login to Jira in settings menu first!');
 			return;
 		}
-		var initParams = { 'settings': jira.settings, 'ownUser': jira.data.ownUser };
+		var initParams = {
+			'settings': jira.settings,
+			'ownUser': jira.data.ownUser,
+			'userMeta': jira.cache.userMeta,
+			'createMetas': jira.cache.createMetas,
+			'projects': jira.data.projects
+		};
 
 		var dialogOptions = {
 			width: 735,
