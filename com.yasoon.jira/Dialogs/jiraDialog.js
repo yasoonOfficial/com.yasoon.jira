@@ -164,7 +164,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				//Select Issue Type
 				$('#issuetype').append('<option data-icon="' + jira.currentIssue.fields.issuetype.iconUrl + '" value="' + jira.currentIssue.fields.issuetype.id + '">' + jira.currentIssue.fields.issuetype.name + '</option>');
 
-				$("#issuetype").select2({
+				$('#issuetype').select2("destroy");
+				$('#issuetype').select2({
 					templateResult: formatIcon,
 					templateSelection: formatIcon
 				});
@@ -182,9 +183,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			$('#project').select2({
 				placeholder: "Select a Project"
 			});
+			$("#issuetype").select2({
+				placeholder: "Select an Issue type"
+			});
 			$('#ProjectSpinner').css('display', 'inline');
 
-			jiraGet('/rest/api/2/project')
+			jiraGet('/rest/api/2/project?expand=issueTypes')
 			.then(function (data) {
 				//Populate Project Dropdown
 				self.projects = JSON.parse(data);
@@ -205,7 +209,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 				$('#ProjectSpinner').css('display', 'none');
 
-				$('#project').change(self.selectProject);
+				$('#project').on('change', function () { self.selectProject(); });
 
 				$('#project').next().find('.select2-selection').first().focus();
 			})
@@ -218,11 +222,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		$('#create-issue-cancel').unbind().click(function () {
 			self.close({ action: 'cancel' });
-		});
-
-		//Scroll Handler
-		$('.form-body').scroll(function () {
-			console.log('scrolling');
 		});
 	}; 
 
@@ -398,13 +397,23 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				self.addRecentProject(jira.selectedProject);
 			}
 			//Show Loader!
-			$('#ContentArea').hide();
+			$('#ContentArea').css('visibility','hidden');
 			$('#LoaderArea').show();
 
-			$.when(
+			if (self.editIssue) {
+				promise = jiraGet('/secure/QuickEditIssue!default.jspa?issueId=' + jira.editIssue.id + '&decorator=none').catch(function() {});
+			} else {
+				promise = jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + jira.selectedProject.id + '&issuetype=1').catch(function () { });
+			}
+			Promise.all([
+				promise,
 				self.getProjectValues(),
 				self.getMetaData()
-			).done(function () {
+			])
+			.spread(function (renderData) {
+				if(renderData)
+					renderData = JSON.parse(renderData);
+
 				//Sort Issue Types
 				self.selectedProject.issueTypes.sort(function (a, b) {
 					if (a.id > b.id)
@@ -414,14 +423,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				});
 
 				//Render Issue Types
-				$('#issuetype').html(' ');
+				$('#issuetype').html('').unbind();
 				$.each(self.selectedProject.issueTypes, function (i, type) {
 					if (!type.subtask) {
 						type.iconUrl = jira.icons.mapIconUrl(type.iconUrl);
 						$('#issuetype').append('<option data-icon="' + type.iconUrl + '" value="' + type.id + '">' + type.name + '</option>');
 					}
 				});
-
+				$('#issuetype').select2("destroy");
 				$("#issuetype").select2({
 					templateResult: formatIcon,
 					templateSelection: formatIcon
@@ -430,49 +439,58 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				$('#issuetype').change(function () {
 					var meta = $.grep(self.projectMeta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
 					console.log('New Meta', meta);
-					jira.renderIssue(meta);
+					$('#LoaderArea').show();
+					$('#ContentArea').css('visibility', 'hidden');
+
+					//Load User Meta
+					if (self.editIssue) {
+						promise = jiraGet('/secure/QuickEditIssue!default.jspa?issueId=' + jira.editIssue.id + '&decorator=none');
+					} else {
+						promise = jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + jira.selectedProject.id + '&issuetype=' + jira.currentMeta.id);
+					}
+					promise.then(function (renderData) {
+						renderData = JSON.parse(renderData);
+						jira.renderIssue(meta, renderData);
+					})
+					.catch(function () {
+						jira.renderIssue(meta);
+					});
+
+					
 				});
 				$('#IssueArea').show();
 
 				var meta = $.grep(self.projectMeta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
-				jira.renderIssue(meta);
-			});
-
+				jira.renderIssue(meta, renderData);
+			})
+			.catch(jira.handleError);
 		}
 	};
 
-	this.renderIssue = function (meta) {
+	this.renderIssue = function (meta, renderData) {
 		//Set this as current meta
 		jira.currentMeta = meta;
 
-		//First clean up everything
-		$('#ContainerFields').html('');
-		$('#tab-list').html('');
-		$('#LoaderArea').show();
-		$('#ContentArea').hide();
-		$('#MainAlert').hide();
-
-		//self.renderIssueUser()
-		//.catch(function() {
-		//	$('#ContainerFields').html('');
-		//	$('#tab-list').html('');
-		//	console.log('Error in new renderLogic - switch to old one');
+		if(!self.renderIssueUser(renderData)) {
+			console.log('Error in new renderLogic - switch to old one');
 			self.renderIssueFixed(meta);
-		//})
-		//.then(function () {
-			//self.UIFormHandler.triggerEvent('afterRender'); //Not needed yet!
+		}
+		//self.UIFormHandler.triggerEvent('afterRender'); //Not needed yet!
 
-			//Fill with intial Values
-			self.insertValues();
+		//Fill with intial Values
+		self.insertValues();
 
-			//Show Area again and hide loader
-			$('#LoaderArea').hide();
-			$('#ContentArea').show();
-		//});
+		//Show Area again and hide loader
+		$('#LoaderArea').hide();
+			
+		$('#ContentArea').css('visibility', 'visible');
 
 	};
 
 	this.renderIssueFixed = function (meta) {
+		$('#ContainerFields').html('');
+		$('#tab-list').html('');
+
 		//Order of Fields in the form. Fields not part of the array will be rendered afterwards
 		//This can be customized later on by JIRA admin?!
 		var fieldOrder = [
@@ -507,20 +525,17 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			}
 		});
 
-		return Promise.resolve();
+		return true;
 	};
 
-	this.renderIssueUser = function () {
-		var promise = null;
-		if (self.editIssue) {
-			promise = jiraGet('/secure/QuickEditIssue!default.jspa?issueId='+ jira.editIssue.id +'&decorator=none');
-		} else {
-			promise = jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + jira.selectedProject.id + '&issuetype=' + jira.currentMeta.id);
-		}
-
-		return promise.then(function (data) {
-			var renderData = JSON.parse(data);
-			console.log(renderData);
+	this.renderIssueUser = function (renderData) {
+		if(!renderData)
+			return false;
+		try {
+			//First clean up everything
+			$('#ContainerFields').html('');
+			$('#tab-list').html('');
+			$('#MainAlert').hide();
 
 			//Tabs nessecary?
 			if (renderData.sortedTabs.length < 2) {
@@ -556,9 +571,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					jira.UIFormHandler.render(field.id, jira.currentMeta.fields[field.id], containerId );
 				}
 			});
-			
-		});
-		
+			return true;
+		} catch(e) {
+			return false;
+		}
 	};
 
 	this.insertValues = function () {
@@ -593,40 +609,44 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 
 	this.getProjectValues = function () {
-		var dfd = $.Deferred();
-		//Get Values of a single project
-		yasoon.oauth({
-			url: self.settings.baseUrl + '/rest/api/2/project/' + jira.selectedProject.key,
-			oauthServiceName: jira.settings.currentService,
-			headers: jira.CONST_HEADER,
-			type: yasoon.ajaxMethod.Get,
-			error: jira.handleError,
-			success: function (data) {
-				jira.selectedProject = JSON.parse(data);
-				dfd.resolve();
-			}
+		return new Promise(function (resolve, reject) {
+			//Get Values of a single project
+			yasoon.oauth({
+				url: self.settings.baseUrl + '/rest/api/2/project/' + jira.selectedProject.key,
+				oauthServiceName: jira.settings.currentService,
+				headers: jira.CONST_HEADER,
+				type: yasoon.ajaxMethod.Get,
+				error: function () {
+					reject.apply(this, arguments);
+				},
+				success: function (data) {
+					jira.selectedProject = JSON.parse(data);
+					resolve();
+				}
+			});
 		});
-		return dfd.promise();
 	};
 
 	this.getMetaData = function () {
-		var dfd = $.Deferred();
-		//Meta Data for custom fields
-		yasoon.oauth({
-			url: self.settings.baseUrl + '/rest/api/2/issue/createmeta?projectIds=' + jira.selectedProject.id + '&expand=projects.issuetypes.fields',
-			oauthServiceName: jira.settings.currentService,
-			headers: jira.CONST_HEADER,
-			type: yasoon.ajaxMethod.Get,
-			error: jira.handleError,
-			success: function (data) {
-				var meta = JSON.parse(data);
-				//Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
-				self.projectMeta = $.grep(meta.projects, function (p) { return p.id === jira.selectedProject.id; })[0];
-				dfd.resolve();
-			}
-		});
+		return new Promise(function (resolve, reject) {
+			//Meta Data for custom fields
+			yasoon.oauth({
+				url: self.settings.baseUrl + '/rest/api/2/issue/createmeta?projectIds=' + jira.selectedProject.id + '&expand=projects.issuetypes.fields',
+				oauthServiceName: jira.settings.currentService,
+				headers: jira.CONST_HEADER,
+				type: yasoon.ajaxMethod.Get,
+				error: function () {
+					reject.apply(this, arguments);
+				},
+				success: function (data) {
+					var meta = JSON.parse(data);
+					//Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
+					self.projectMeta = $.grep(meta.projects, function (p) { return p.id === jira.selectedProject.id; })[0];
+					resolve();
+				}
+			});
 
-		return dfd.promise();
+		});
 	};
 
 	this.setDefaultReporter = function () {
