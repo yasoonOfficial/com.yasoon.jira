@@ -83,6 +83,11 @@ $(document).ready(function () {
                         $('#emailaddress').parent().addClass('has-error');
                         return;
                     }
+                    if (formData.emailAddress.indexOf("@") < 0) {
+                        $('#emailaddress').parent().addClass('has-error');
+                        alert('Please enter a valid e-mail address, it necessary for your account.');
+                        return;
+                    }                    
                     if (!formData.password) {
                         $('#password').parent().addClass('has-error');
                         return;
@@ -91,7 +96,7 @@ $(document).ready(function () {
                         $('#password1').parent().addClass('has-error');
                         return;
                     }
-                    if (formData.password != formData.password1) {
+                    if (formData.password !== formData.password1) {
                         $('#password1').parent().addClass('has-error');
                         $('.help-block').css('visibility', 'visible');
                         return;
@@ -117,7 +122,8 @@ $(document).ready(function () {
                             description: 'Jira on Premise',
                             productType: 'jira',
                             serverVersion: systemInfo.version,
-                            licenseInfo: systemInfo.licenses
+                            licenseInfo: systemInfo.licenses,
+                            eventType: 'installed'
                         };
                         
                         $.ajax({
@@ -329,8 +335,22 @@ function checkProduct() {
         type: 'GET'
     }).done(function (data) {
         var product = null;
-        if (data.length === 1) {
-            product = data[0];
+        if (data.length > 0) {
+            //Find correct product
+            var products = data.filter(function(el) { return el.product === 5; });
+            
+            if (products.length === 1) {
+                product = data[0];
+            }
+            else if (products.length > 1) {
+                var newestDate = new Date();
+                for(var i = 0; i < products.length; i++) {
+                    if (products[i].validUntil > newestDate){
+                        newestDate = products[i].validUntil;
+                        product = products[i];
+                    }
+                }
+            }
         }
         
         if (!product || new Date(product.validUntil).getTime() < new Date().getTime()) {
