@@ -219,6 +219,11 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		$('#create-issue-cancel').unbind().click(function () {
 			self.close({ action: 'cancel' });
 		});
+
+		//Scroll Handler
+		$('.form-body').scroll(function () {
+			console.log('scrolling');
+		});
 	}; 
 
 	this.close = function (params) {
@@ -447,14 +452,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		$('#ContentArea').hide();
 		$('#MainAlert').hide();
 
-		self.renderIssueUser()
-		.catch(function() {
-			$('#ContainerFields').html('');
-			$('#tab-list').html('');
-			console.log('Error in new renderLogic - switch to old one');
-			self.renderIssueFixed();
-		})
-		.then(function () {
+		//self.renderIssueUser()
+		//.catch(function() {
+		//	$('#ContainerFields').html('');
+		//	$('#tab-list').html('');
+		//	console.log('Error in new renderLogic - switch to old one');
+			self.renderIssueFixed(meta);
+		//})
+		//.then(function () {
 			//self.UIFormHandler.triggerEvent('afterRender'); //Not needed yet!
 
 			//Fill with intial Values
@@ -463,11 +468,11 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			//Show Area again and hide loader
 			$('#LoaderArea').hide();
 			$('#ContentArea').show();
-		});
+		//});
 
 	};
 
-	this.renderIssueFixed = function () {
+	this.renderIssueFixed = function (meta) {
 		//Order of Fields in the form. Fields not part of the array will be rendered afterwards
 		//This can be customized later on by JIRA admin?!
 		var fieldOrder = [
