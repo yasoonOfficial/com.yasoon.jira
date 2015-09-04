@@ -1,3 +1,5 @@
+var jiraFields = {};
+
 function UIFormHandler() {
 	function getFieldType(field) {
 		return field.schema.custom || field.schema.system;
@@ -261,9 +263,46 @@ function CheckboxRenderer() {
 	};
 }
 
+function RadioButtonRenderer() {
+	this.getValue = function (id) {
+		var checkedValue = { id: $('#' + id).find('input:checked').first().val() };
+		return checkedValue;
+	};
+
+	this.setValue = function (id, value) {
+		if (value) {
+			var elem = $('#' + id).find('[value=' + value.id + ']').prop('checked', true);
+		}
+	};
+
+	this.render = function (id, field, container) {
+		var html = '<div class="field-group" id="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:radiobuttons">' +
+					'    <label>' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ';
+		if (!field.required) {
+			// Show None option only if it's not mandatory
+			html += '   <div class="radio">' +
+			'		<input name="' + id + '" type="radio" value="" checked>' +
+			'       <label>None</label>' +
+			'   </div>';
+		}
+		$.each(field.allowedValues, function (i, option) {
+			html += '   <div class="radio">' +
+					'		<input name="'+ id +'" type="radio" value="' + option.id + '">' +
+					'       <label>' + option.value + '</label>' +
+					'   </div>';
+		});
+
+		html += '</div>';
+		$(container).append(html);
+	};
+}
+
 function DateRenderer() {
 	this.getValue = function (id) {
-		return $('#' + id).val();
+		var value = $('#' + id).val();
+		if (value) {
+			return moment(new Date(value)).format('YYYY-MM-DD');
+		}
 	};
 
 	this.setValue = function (id, value) {
@@ -298,6 +337,7 @@ function LabelRenderer() {
 	};
 
 	this.setValue = function (id, value) {
+		console.log('Label Renderer ' + id, value);
 		if (value && value.length > 0) {
 			$('#' + id).val(value).trigger('change');
 			$('#' + id).data('value', value);
@@ -328,11 +368,16 @@ function LabelRenderer() {
 					labelArray.push(label.label);
 				});
 			}
+			
 			$('#' + id).select2({
 				tags: true,
 				data: labelArray,
 				tokenSeparators: [" "]
 			});
+			var values = $('#' + id).data('value') || [];
+			if (values.length > 0) {
+				$('#' + id).val(values).trigger('change');
+			}
 		});
 	};
 }
@@ -368,11 +413,7 @@ function SelectListRenderer() {
 
 	this.setValue = function (id, value) {
 		if (value) {
-			var selectedValues = [];
-			$.each(value, function (i, item) {
-				selectedValues.push(item.id);
-			});
-			$('#' + id).val(selectedValues).trigger('change');
+			$('#' + id).val(value.id).trigger('change');
 		}
 	};
 
@@ -416,7 +457,11 @@ function MultiSelectListRenderer() {
 
 	this.setValue = function (id, value) {
 		if (value) {
-			$('#' + id).val(value.id).trigger('change');
+			var selectedValues = [];
+			$.each(value, function (i, item) {
+				selectedValues.push(item.id);
+			});
+			$('#' + id).val(selectedValues).trigger('change');
 		}
 	};
 
@@ -544,7 +589,7 @@ function UserPickerRenderer() {
 		$('#' + id).select2({
 			templateResult: formatUser,
 			templateSelection: formatUser,
-			dataAdapter: jira.CustomDataSet,
+			dataAdapter: jiraFields.CustomDataSet,
 			minimumInputLength: 0,
 		});
 	};
@@ -767,7 +812,7 @@ function EpicLinkRenderer() {
 				});
 			}
 			$('#' + id).select2();
-			$('#' + id).select2('val', oldValue);
+			$('#' + id).val(oldValue).trigger('change');
 		}).catch(function (e) {
 			jira.handleError(e.data, e.statusCode, e.result, e.errorText);
 		});
@@ -841,7 +886,7 @@ function SprintLinkRenderer() {
 				});
 			}
 			$('#' + id).select2();
-			$('#' + id).select2('val', oldValue);
+			$('#' + id).val(oldValue).trigger('change');
 		}).catch(function (e) {
 			jira.handleError(e.data, e.statusCode, e.result, e.errorText);
 		});
@@ -1058,10 +1103,9 @@ function (select, Utils, allowClear) {
 		}
 	};
 
-	jira.CustomDataSet = CustomData;
+	jiraFields.CustomDataSet = CustomData;
 
 });
-
 
 function insertAtCursor(myField, myValue) {
 	var startPos = myField.selectionStart;
@@ -1084,6 +1128,7 @@ UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:textarea'
 UIRenderer.register('description', new MultilineTextRenderer());
 UIRenderer.register('environment', new MultilineTextRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes', new CheckboxRenderer());
+UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:radiobuttons', new RadioButtonRenderer());
 UIRenderer.register('duedate', new DateRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:datepicker', new DateRenderer());
 UIRenderer.register('labels', new LabelRenderer());

@@ -168,7 +168,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					templateResult: formatIcon,
 					templateSelection: formatIcon
 				});
-				$('#issuetype').select2('val', jira.currentIssue.fields.issuetype.id);
+				$('#issuetype').val(jira.currentIssue.fields.issuetype.id).trigger('change');
 				$('#issuetype').select2("enable", false);
 				$('#IssueArea').show();
 
@@ -431,9 +431,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 				var meta = $.grep(self.projectMeta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
 				jira.renderIssue(meta);
-
-				$('#LoaderArea').hide();
-				$('#ContentArea').show();
 			});
 
 		}
@@ -445,10 +442,32 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		//First clean up everything
 		$('#ContainerFields').html('');
+		$('#tab-list').html('');
 		$('#LoaderArea').show();
 		$('#ContentArea').hide();
 		$('#MainAlert').hide();
 
+		self.renderIssueUser()
+		.catch(function() {
+			$('#ContainerFields').html('');
+			$('#tab-list').html('');
+			console.log('Error in new renderLogic - switch to old one');
+			self.renderIssueFixed();
+		})
+		.then(function () {
+			//self.UIFormHandler.triggerEvent('afterRender'); //Not needed yet!
+
+			//Fill with intial Values
+			self.insertValues();
+
+			//Show Area again and hide loader
+			$('#LoaderArea').hide();
+			$('#ContentArea').show();
+		});
+
+	};
+
+	this.renderIssueFixed = function () {
 		//Order of Fields in the form. Fields not part of the array will be rendered afterwards
 		//This can be customized later on by JIRA admin?!
 		var fieldOrder = [
@@ -475,7 +494,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				addedFields.push(name);
 			}
 		});
-				
+
 		//Render all other fields (ordered by id - aka random :))
 		$.each(meta.fields, function (key, value) {
 			if (addedFields.indexOf(key) === -1) {
@@ -483,14 +502,58 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			}
 		});
 
-		//self.UIFormHandler.triggerEvent('afterRender'); //Not needed yet!
+		return Promise.resolve();
+	};
 
-		//Fill with intial Values
-		self.insertValues();
+	this.renderIssueUser = function () {
+		var promise = null;
+		if (self.editIssue) {
+			promise = jiraGet('/secure/QuickEditIssue!default.jspa?issueId='+ jira.editIssue.id +'&decorator=none');
+		} else {
+			promise = jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + jira.selectedProject.id + '&issuetype=' + jira.currentMeta.id);
+		}
 
-		//Show Area again and hide loader
-		$('#LoaderArea').hide();
-		$('#ContentArea').show();
+		return promise.then(function (data) {
+			var renderData = JSON.parse(data);
+			console.log(renderData);
+
+			//Tabs nessecary?
+			if (renderData.sortedTabs.length < 2) {
+				$('#tab-list').addClass('hidden');
+			}
+			//Render each field
+			var renderedTabs = {};
+			renderData.fields.forEach(function (field) {
+				if(field.id === 'project' || field.id === 'issuetype')
+					return;
+
+				//Check if userPrefences allow current field
+				if (renderData.userPreferences.useQuickForm && renderData.userPreferences.fields.indexOf(field.id) == -1) {
+					return;
+				}
+
+				//Render tab if nessecary
+				var containerId = '#ContainerFields';
+				if (renderData.sortedTabs.length > 1) {
+					if (!renderedTabs[field.tab.position]) {
+						$('#tab-list').append('<li role="presentation" class="' + ((field.tab.position === 0) ? 'active' : '') + '"><a href="#tab-content' + field.tab.position + '" role="tab" data-toggle="tab">' + field.tab.label + '</a></li>');
+						$('#ContainerFields').addClass('tab-content');
+						$('#ContainerFields').append('<div role="tabpanel" class="tab-pane" id="tab-content' + field.tab.position + '"></div>');
+						if (field.tab.position === 0) {
+							$('#tab-content' + field.tab.position).addClass('active');
+
+						}
+						renderedTabs[field.tab.position] = true;
+					}
+					containerId = '#tab-content' + field.tab.position;
+				}
+				if (jira.currentMeta.fields[field.id]) {
+					jira.UIFormHandler.render(field.id, jira.currentMeta.fields[field.id], containerId );
+				}
+			});
+			
+		});
+		
 	};
 
 	this.insertValues = function () {
