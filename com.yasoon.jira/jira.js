@@ -30,6 +30,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		jira.icons = new JiraIconController();
 		jira.queue = new jiraSyncQueue();
 		jira.issues = new JiraIssueController();
+		jira.cache = {};
 
 		 var isLicensed = jiraIsLicensed(false);
 
@@ -85,7 +86,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			]);
 			
 			yasoon.app.on("oAuthSuccess", jira.handleOAuthSuccess);
-			//yasoon.app.on("oAuthError", jira.handleOAuthError);
+			yasoon.app.on("oAuthError", jira.handleOAuthError);
 			yasoon.periodicCallback(300, jira.sync);
 			yasoon.on("sync", jira.sync);
 		} else {
@@ -173,33 +174,33 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		self.sync();
 	};
 
-	//this.handleOAuthError = function (serviceName, statusCode, error) {
-	//	if (statusCode == 500) {
+	this.handleOAuthError = function (serviceName, statusCode, error) {
+		if (statusCode == 500) {
 
-	//	} else if (error.indexOf('oauth_problem') === 0) {
-	//		//Standard OAuth Messages => http://wiki.oauth.net/w/page/12238543/ProblemReporting
-	//		error = error.split('=')[1];
-	//		if (error) {
-	//			switch (error) {
-	//				case 'consumer_key_unknown':
-	//					yasoon.dialog.showMessageBox("The application link is unknown. Please make sure you have an application link in JIRA called: yasoonjira");
-	//					break;
-	//				case 'timestamp_refused':
-	//					yasoon.dialog.showMessageBox("Jira refuses the request because of time differences. Either your local time is not set correctly or the JIRA server has a wrong time. (different timezones are ok)");
-	//					break;
-	//				case 'signature_invalid':
-	//					yasoon.dialog.showMessageBox("The certificate you are using is invalid. Please make sure you have setup JIRA correctly. Afterwards visit the JIRA settings and click on \"Reload System Information\"");
-	//					break;
-	//				default:
-	//					yasoon.alert.add({ type: yasoon.alert.alertType.error, message: result });
-	//			}
+		} else if (error.indexOf('oauth_problem') === 0) {
+			//Standard OAuth Messages => http://wiki.oauth.net/w/page/12238543/ProblemReporting
+			error = error.split('=')[1];
+			if (error) {
+				switch (error) {
+					case 'consumer_key_unknown':
+						yasoon.dialog.showMessageBox("The application link is unknown. Please make sure you have an application link in JIRA called: yasoonjira");
+						break;
+					case 'timestamp_refused':
+						yasoon.dialog.showMessageBox("Jira refuses the request because of time differences. Either your local time is not set correctly or the JIRA server has a wrong time. (different timezones are ok)");
+						break;
+					case 'signature_invalid':
+						yasoon.dialog.showMessageBox("The certificate you are using is invalid. Please make sure you have setup JIRA correctly. Afterwards visit the JIRA settings and click on \"Reload System Information\"");
+						break;
+					default:
+						yasoon.alert.add({ type: yasoon.alert.alertType.error, message: result });
+				}
 
-	//			return;
-	//		}
-	//	} else {
+				return;
+			}
+		} else {
 
-	//	}
-	//};
+		}
+	};
 
 	//Handle Sync Event
 	this.syncStream = function (url, maxResults, currentPage) {
@@ -290,6 +291,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 					});
 				});
 			})
+			.tap(self.loadProjectCache) //async but not blocking. next then will be executed
 			.then(function () {
 				//Third get all issue types
 				jiraLog('Get Issuetypes');
@@ -304,5 +306,80 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			return Promise.resolve();
 		}
 	};
+
+	this.loadProjectCache = function () {
+		console.log('Start loading Cache', new Date());
+		var cacheProjects = [];
+		return Promise.resolve()
+		.then(function () {
+			//First determine Projects for which we create a cache
+
+			var recentProjectsString = yasoon.setting.getAppParameter('recentProjects') || '[]';
+			var recentProjects = JSON.parse(recentProjectsString);
+			
+
+			recentProjects.forEach(function (project) {
+				cacheProjects.push(project);
+			});
+
+			//If we haven't a full recent items list --> add a few random projects. Maybe we have luck :D
+			if (cacheProjects.length < 10) {
+				jira.data.projects.forEach(function (project) {
+					if (cacheProjects.length >= 10)
+						return false;
+
+					var r = recentProjects.filter(function (rec) { return rec.key === project.key; });
+					if (r.length === 0)
+						cacheProjects.push(project);
+				});
+			}
+
+		})
+		.then(function () {
+			var promises = [];
+			//Get Create Meta for each project (and automatically for each issuetype)
+			cacheProjects.forEach(function (project) {
+				promises.push(jiraGet('/rest/api/2/issue/createmeta?projectIds=' + project.id + '&expand=projects.issuetypes.fields'));
+			});
+			return Promise.all(promises)
+			.then(function (metas) {
+				//
+				for (var i = 0; i < metas.length; i++)
+					metas[i] = JSON.parse(metas[i]);
+
+				console.log('Loading Cache Pt2', new Date(), metas);
+				//Transform data structure
+				var result = [];
+				metas.forEach(function (meta) {
+					meta.projects.forEach(function (project) {
+						result.push(project);
+					});
+				});
+				jira.cache.createMetas = result;
+			});
+		})
+		.then(function () {
+			//Get user Preferences for each project and each issue type
+			var promises = [];
+			jira.cache.userMeta = {};
+			jira.data.projects.forEach(function (project) {
+				jira.cache.userMeta[project.id] = {};
+				project.issueTypes.forEach(function (issueType) {
+					promises.push(jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + project.id + '&issuetype=' + issueType.id)
+									.then(function (data) {
+										var userMeta = JSON.parse(data);
+										jira.cache.userMeta[project.id][issueType.id] = userMeta;
+									}).catch(function () { })
+					);
+				});
+			});
+
+			return Promise.all(promises);
+		})
+		.then(function () {
+			console.log('Cache loading finshed', new Date());
+		});
+	};
+
 }); //jshint ignore:line
 //@ sourceURL=http://Jira/jira.js
