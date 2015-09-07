@@ -124,17 +124,36 @@ public class ApplicationLinkServlet extends HttpServlet {
         return false;
     }    
     
-    private void createAppLink(String cert) throws ManifestNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException, CertificateException, java.security.cert.CertificateException {
-        ApplicationLinkDetails.Builder builder = ApplicationLinkDetails.builder();
-        ApplicationLinkDetails details = builder.name("JIRA for Outlook").displayUrl(URI.create("http://jira.yasoon.com")).build();
-        ApplicationType generic = this.accessor.getApplicationType(GenericApplicationType.class);
-        ApplicationLink link = this.appLinkService.createApplicationLink(generic, details);
+    private ApplicationLink TryGetApplicationLink() {
+        try {
+            Iterable<ApplicationLink> links = this.appLinkService.getApplicationLinks();
+            for(ApplicationLink link : links) {
+                if (link.getDisplayUrl().getHost().equals("jira.yasoon.com"))
+                    return link;
+            }
+        }
+        catch(Exception ex) {                
+        }
         
+        return null;
+    }
+    
+    private void createAppLink(String cert) throws ManifestNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException, CertificateException, java.security.cert.CertificateException {
+        //Handle broken links
+        ApplicationLink existingLink = TryGetApplicationLink();
+        
+        if(existingLink == null) {        
+            ApplicationLinkDetails.Builder builder = ApplicationLinkDetails.builder();
+            ApplicationLinkDetails details = builder.name("JIRA for Outlook").displayUrl(URI.create("http://jira.yasoon.com")).build();
+            ApplicationType generic = this.accessor.getApplicationType(GenericApplicationType.class);
+            existingLink = this.appLinkService.createApplicationLink(generic, details);
+        }
+
         PublicKey key = RSAKeys.fromEncodedCertificateToPublicKey(cert);
         Consumer con = Consumer.key("yasoonjira").name("JIRA for Outlook").publicKey(key).callback(URI.create("http://oauth.yasoon/v1/com.yasoon.jira/auth")).build();
         
         this.storeService.put(con);
-        link.putProperty("oauth.incoming.consumerkey", con.getKey());
+        existingLink.putProperty("oauth.incoming.consumerkey", con.getKey());
     }
     
     private void redirectToLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {

@@ -34,9 +34,11 @@
     <component-import key="typeAccessor" interface="com.atlassian.applinks.spi.util.TypeAccessor"/>
     <component-import key="storeService" interface="com.atlassian.oauth.serviceprovider.ServiceProviderConsumerStore"/>
 
+    <!--
     <component key="eventListener" class="com.yasoon.jira.LifecycleListener">
        <description>Class that processes the incoming JIRA issue events.</description>
     </component>
+    -->
     
     <web-item key="jira-menu-item" name="Outlook App" section="admin_plugins_menu/integrations_section" weight="10" application="jira">
         <description>Link to Jira for Outlook admin page.</description> 

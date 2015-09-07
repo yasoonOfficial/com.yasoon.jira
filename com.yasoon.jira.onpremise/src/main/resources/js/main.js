@@ -1,5 +1,5 @@
 var authToken = '';
-var serverUrl = 'https://store.yasoon.com';
+var serverUrl = 'http://localhost:1337';
 var isInstanceRegistered = false;
 
 $(document).ready(function () {
@@ -22,7 +22,10 @@ $(document).ready(function () {
 
         $.ajax({
                 url: serverUrl + '/jira/isInstanceRegistered',
-                data: { serverId: serverId },
+                data: { 
+                    serverId: serverId,
+                    baseUrl: systemInfo.baseUrl
+                },
                 type: 'GET'
         }).done(function (data) {
         	isInstanceRegistered = data.registered;
@@ -149,7 +152,10 @@ $(document).ready(function () {
                                 $.ajax({
                                     url: serverUrl + '/jira/assigncompany',
                                     contentType: 'application/json',
-                                    data: JSON.stringify({ serverId: serverId }),
+                                    data: JSON.stringify({ 
+                                        serverId: serverId,
+                                        baseUrl: systemInfo.baseUrl
+                                    }),
                                     headers: { userAuthToken: authToken },
                                     processData: false,
                                     type: 'POST'
@@ -202,7 +208,8 @@ $(document).ready(function () {
                                 contentType: 'application/json',
                                 data: JSON.stringify({ 
                                     clientCertificate: data.pkcs12,
-                                    serverId: serverId
+                                    serverId: serverId,
+                                    baseUrl: systemInfo.baseUrl
                                 }),
                                 headers: { userAuthToken: authToken },
                                 processData: false,
@@ -250,13 +257,30 @@ $(document).ready(function () {
                         licenseInfo: systemInfo.licenses
                     };
                         
-                	//Login
+                    //Login
                     if (isInstanceRegistered) {
-                    	$('#RegisteredArea').show();
-                    	$('#LoginArea').hide();
-                    	checkAppLink();
-                    	checkDownloadLink();
-                    	checkProduct();
+                        $.ajax({
+                    		url: serverUrl + '/api/user/auth',
+                    		contentType: 'application/json',
+                    		data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
+                    		processData: false,
+                    		type: 'POST'
+                    	})
+                        .done(function (auth) {
+                                authToken = auth;
+                                $.cookie('yasoonAuthToken', authToken);
+                                $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
+                                
+                                $('#RegisteredArea').show();
+                                $('#LoginArea').hide();
+                                checkAppLink();
+                                checkDownloadLink();
+                                checkProduct();
+                        })
+                        .fail(function (jxqr, e) {
+                            Raven.captureMessage('Error during login: ' + e);
+                            alert('Login failed, probably invalid credentials.');
+                        });
                     } else {
                     	$.ajax({
                     		url: serverUrl + '/api/user/auth',
@@ -265,46 +289,49 @@ $(document).ready(function () {
                     		processData: false,
                     		type: 'POST'
                     	})
-						.done(function (auth) {
-							authToken = auth;
-							$.cookie('yasoonAuthToken', authToken);
-							$('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
+                        .done(function (auth) {
+                                authToken = auth;
+                                $.cookie('yasoonAuthToken', authToken);
+                                $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
 
-							$.ajax({
-								url: serverUrl + '/jira/install',
-								contentType: 'application/json',
-								data: JSON.stringify(instanceData),
-								processData: false,
-								type: 'POST'
-							})
-							.done(function (result) {
-								$.ajax({
-									url: serverUrl + '/jira/assigncompany',
-									contentType: 'application/json',
-									data: JSON.stringify({ serverId: serverId }),
-									headers: { userAuthToken: authToken },
-									processData: false,
-									type: 'POST'
-								}).done(function () {
-									$('#RegisteredArea').show();
-									$('#LoginArea').hide();
-									checkAppLink();
-									checkDownloadLink();
-									checkProduct();
-								}).fail(function (jxqr, e) {
-									Raven.captureMessage('Error during assignCompany: ' + e);
-									alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
-								});
-							})
-							.fail(function (jxqr, e) {
-								Raven.captureMessage('Error during install: ' + e);
-								alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
-							});
-						})
-						.fail(function (jxqr, e) {
-							Raven.captureMessage('Error during login: ' + e);
-							alert('Login failed, probably invalid credentials.');
-						});
+                                $.ajax({
+                                        url: serverUrl + '/jira/install',
+                                        contentType: 'application/json',
+                                        data: JSON.stringify(instanceData),
+                                        processData: false,
+                                        type: 'POST'
+                                })
+                                .done(function (result) {
+                                        $.ajax({
+                                                url: serverUrl + '/jira/assigncompany',
+                                                contentType: 'application/json',
+                                                data: JSON.stringify({ 
+                                                    serverId: serverId,
+                                                    baseUrl: systemInfo.baseUrl
+                                                }),
+                                                headers: { userAuthToken: authToken },
+                                                processData: false,
+                                                type: 'POST'
+                                        }).done(function () {
+                                                $('#RegisteredArea').show();
+                                                $('#LoginArea').hide();
+                                                checkAppLink();
+                                                checkDownloadLink();
+                                                checkProduct();
+                                        }).fail(function (jxqr, e) {
+                                                Raven.captureMessage('Error during assignCompany: ' + e);
+                                                alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
+                                        });
+                                })
+                                .fail(function (jxqr, e) {
+                                        Raven.captureMessage('Error during install: ' + e);
+                                        alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
+                                });
+                        })
+                        .fail(function (jxqr, e) {
+                                Raven.captureMessage('Error during login: ' + e);
+                                alert('Login failed, probably invalid credentials.');
+                        });
                     }
                 });
         })
@@ -330,7 +357,7 @@ function getUrlParameterByName(name) {
 
 function checkProduct() {
     $.ajax({
-        url: serverUrl + '/api/company/product',
+        url: serverUrl + '/api/company/activeproducts',
         headers: { userAuthToken: authToken },
         type: 'GET'
     }).done(function (data) {

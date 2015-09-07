@@ -57,129 +57,129 @@ public class LifecycleListener implements InitializingBean, DisposableBean {
         eventPublisher.unregister(this);
     }
     
-    @EventListener
-    public void onPluginEnabledEvent(PluginEnabledEvent pluginEvent) {
-        if(pluginEvent.getPlugin().getKey().equals("com.yasoon.jira.cloud")) {
-            ApplicationProperties props = ComponentAccessor.getApplicationProperties();
-            SystemData data = new SystemData();
-            
-            if (props != null)
-                data.setBaseUrl(props.getString(APKeys.JIRA_BASEURL));
-            
-            data.setClientKey(licenseManager.getServerId());
-            data.setEventType("enabled");
-            updateSystem(new Gson().toJson(data));
-        }
-    }
-    
-    @EventListener
-    public void onPluginDisabledEvent(PluginDisabledEvent disabledEvent) {
-        if(disabledEvent.getPlugin().getKey().equals("com.yasoon.jira.cloud")) {
-            ApplicationProperties props = ComponentAccessor.getApplicationProperties();
-            SystemData data = new SystemData();
-            
-            if (props != null)
-                data.setBaseUrl(props.getString(APKeys.JIRA_BASEURL));
-            
-            data.setClientKey(licenseManager.getServerId());
-            data.setEventType("disabled");
-            updateSystem(new Gson().toJson(data));
-        }
-    }
-    
-    @EventListener
-    public void onPluginUninstalledEvent(PluginUninstalledEvent uninstalledEvent) {
-        if(uninstalledEvent.getPlugin().getKey().equals("com.yasoon.jira.cloud")) {
-            ApplicationProperties props = ComponentAccessor.getApplicationProperties();
-            SystemData data = new SystemData();
-            
-            if (props != null)
-                data.setBaseUrl(props.getString(APKeys.JIRA_BASEURL));
-            
-            data.setClientKey(licenseManager.getServerId());
-            data.setEventType("uninstalled");
-            updateSystem(new Gson().toJson(data));
-        }
-    }
-    
-    @EventListener
-    public void onPluginUpgradedEvent(PluginUpgradedEvent upgradedEvent) {
-        if(upgradedEvent.getPlugin().getKey().equals("com.yasoon.jira.cloud")) {
-            ApplicationProperties props = ComponentAccessor.getApplicationProperties();
-            SystemData data = new SystemData();
-            
-            if (props != null)
-                data.setBaseUrl(props.getString(APKeys.JIRA_BASEURL));
-            
-            data.setClientKey(licenseManager.getServerId());
-            data.setPluginsVersion(upgradedEvent.getPlugin().getPluginsVersion() + "");
-            updateSystem(new Gson().toJson(data));
-        }
-    }
-    
-    private void updateSystem(String data) {
-        try {
-
-            URL url = new URL("https://store.yasoon.com/jira/change");
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json");
-
-            OutputStream os = conn.getOutputStream();
-            os.write(data.getBytes());
-            os.flush();
-
-            if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                log.error("Received non-OK http response from update: " + conn.getResponseMessage());
-                return;
-            }
-
-            conn.disconnect();
-            
-        } catch (MalformedURLException e) {
-            log.error("Error while updating JIRA data", e);
-        } catch (IOException e) {
-            log.error("Error while updating JIRA data", e);
-       }
-    }
-
-    private class SystemData {
-        private String clientKey;
-        private String pluginsVersion;
-        private String baseUrl;
-        private String eventType;
-
-        public String getClientKey() {
-            return clientKey;
-        }
-
-        public void setClientKey(String clientKey) {
-            this.clientKey = clientKey;
-        }
-
-        public String getPluginsVersion() {
-            return pluginsVersion;
-        }
-
-        public void setPluginsVersion(String pluginsVersion) {
-            this.pluginsVersion = pluginsVersion;
-        }
-
-        public String getBaseUrl() {
-            return baseUrl;
-        }
-
-        public void setBaseUrl(String baseUrl) {
-            this.baseUrl = baseUrl;
-        }
-
-        public String getEventType() {
-            return eventType;
-        }
-
-        public void setEventType(String eventType) {
-            this.eventType = eventType;
-        }
-    }
+//    @EventListener
+//    public void onPluginEnabledEvent(PluginEnabledEvent pluginEvent) {
+//        if(pluginEvent.getPlugin().getKey().equals("com.yasoon.jira.cloud")) {
+//            ApplicationProperties props = ComponentAccessor.getApplicationProperties();
+//            SystemData data = new SystemData();
+//            
+//            if (props != null)
+//                data.setBaseUrl(props.getString(APKeys.JIRA_BASEURL));
+//            
+//            data.setClientKey(licenseManager.getServerId());
+//            data.setEventType("enabled");
+//            updateSystem(new Gson().toJson(data));
+//        }
+//    }
+//    
+//    @EventListener
+//    public void onPluginDisabledEvent(PluginDisabledEvent disabledEvent) {
+//        if(disabledEvent.getPlugin().getKey().equals("com.yasoon.jira.cloud")) {
+//            ApplicationProperties props = ComponentAccessor.getApplicationProperties();
+//            SystemData data = new SystemData();
+//            
+//            if (props != null)
+//                data.setBaseUrl(props.getString(APKeys.JIRA_BASEURL));
+//            
+//            data.setClientKey(licenseManager.getServerId());
+//            data.setEventType("disabled");
+//            updateSystem(new Gson().toJson(data));
+//        }
+//    }
+//    
+//    @EventListener
+//    public void onPluginUninstalledEvent(PluginUninstalledEvent uninstalledEvent) {
+//        if(uninstalledEvent.getPlugin().getKey().equals("com.yasoon.jira.cloud")) {
+//            ApplicationProperties props = ComponentAccessor.getApplicationProperties();
+//            SystemData data = new SystemData();
+//            
+//            if (props != null)
+//                data.setBaseUrl(props.getString(APKeys.JIRA_BASEURL));
+//            
+//            data.setClientKey(licenseManager.getServerId());
+//            data.setEventType("uninstalled");
+//            updateSystem(new Gson().toJson(data));
+//        }
+//    }
+//    
+//    @EventListener
+//    public void onPluginUpgradedEvent(PluginUpgradedEvent upgradedEvent) {
+//        if(upgradedEvent.getPlugin().getKey().equals("com.yasoon.jira.cloud")) {
+//            ApplicationProperties props = ComponentAccessor.getApplicationProperties();
+//            SystemData data = new SystemData();
+//            
+//            if (props != null)
+//                data.setBaseUrl(props.getString(APKeys.JIRA_BASEURL));
+//            
+//            data.setClientKey(licenseManager.getServerId());
+//            data.setPluginsVersion(upgradedEvent.getPlugin().getPluginsVersion() + "");
+//            updateSystem(new Gson().toJson(data));
+//        }
+//    }
+//    
+//    private void updateSystem(String data) {
+//        try {
+//
+//            URL url = new URL("http://localhost:1337/jira/change");
+//            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+//            conn.setDoOutput(true);
+//            conn.setRequestMethod("POST");
+//            conn.setRequestProperty("Content-Type", "application/json");
+//
+//            OutputStream os = conn.getOutputStream();
+//            os.write(data.getBytes());
+//            os.flush();
+//
+//            if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+//                log.error("Received non-OK http response from update: " + conn.getResponseMessage());
+//                return;
+//            }
+//
+//            conn.disconnect();
+//            
+//        } catch (MalformedURLException e) {
+//            log.error("Error while updating JIRA data", e);
+//        } catch (IOException e) {
+//            log.error("Error while updating JIRA data", e);
+//       }
+//    }
+//
+//    private class SystemData {
+//        private String clientKey;
+//        private String pluginsVersion;
+//        private String baseUrl;
+//        private String eventType;
+//
+//        public String getClientKey() {
+//            return clientKey;
+//        }
+//
+//        public void setClientKey(String clientKey) {
+//            this.clientKey = clientKey;
+//        }
+//
+//        public String getPluginsVersion() {
+//            return pluginsVersion;
+//        }
+//
+//        public void setPluginsVersion(String pluginsVersion) {
+//            this.pluginsVersion = pluginsVersion;
+//        }
+//
+//        public String getBaseUrl() {
+//            return baseUrl;
+//        }
+//
+//        public void setBaseUrl(String baseUrl) {
+//            this.baseUrl = baseUrl;
+//        }
+//
+//        public String getEventType() {
+//            return eventType;
+//        }
+//
+//        public void setEventType(String eventType) {
+//            this.eventType = eventType;
+//        }
+//    }
 }
