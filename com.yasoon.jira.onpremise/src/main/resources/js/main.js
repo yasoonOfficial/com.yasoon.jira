@@ -1,5 +1,5 @@
 var authToken = '';
-var serverUrl = 'http://localhost:1337';
+var serverUrl = 'https://store.yasoon.com';
 var isInstanceRegistered = false;
 
 $(document).ready(function () {
