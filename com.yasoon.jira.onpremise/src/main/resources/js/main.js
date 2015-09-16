@@ -72,36 +72,44 @@ $(document).ready(function () {
                     //Make checks
                     if (!formData.company) {
                         $('#company').parent().addClass('has-error');
+                        $('#RegisterCompanyButton').prop("disabled", false);
                         return;
                     }
                     if (!formData.firstName) {
                         $('#firstname').parent().addClass('has-error');
+                        $('#RegisterCompanyButton').prop("disabled", false);
                         return;
                     }
                     if (!formData.lastName) {
                         $('#lastname').parent().addClass('has-error');
+                        $('#RegisterCompanyButton').prop("disabled", false);
                         return;
                     }
                     if (!formData.emailAddress) {
                         $('#emailaddress').parent().addClass('has-error');
+                        $('#RegisterCompanyButton').prop("disabled", false);
                         return;
                     }
-                    if (formData.emailAddress.indexOf("@") < 0) {
-                        $('#emailaddress').parent().addClass('has-error');
+                    if (formData.emailAddress.indexOf("@") < 0) {                        
                         alert('Please enter a valid e-mail address, it necessary for your account.');
+                        $('#emailaddress').parent().addClass('has-error');
+                        $('#RegisterCompanyButton').prop("disabled", false);
                         return;
                     }                    
                     if (!formData.password) {
                         $('#password').parent().addClass('has-error');
+                        $('#RegisterCompanyButton').prop("disabled", false);
                         return;
                     }
                     if (!formData.password1) {
                         $('#password1').parent().addClass('has-error');
+                        $('#RegisterCompanyButton').prop("disabled", false);
                         return;
                     }
                     if (formData.password !== formData.password1) {
                         $('#password1').parent().addClass('has-error');
                         $('.help-block').css('visibility', 'visible');
+                        $('#RegisterCompanyButton').prop("disabled", false);
                         return;
                     }
                     //Send Data

@@ -15,7 +15,7 @@
     </organization>
 
     <name>JIRA for Outlook</name>
-    <description>JIRA for Outlook 2010 and 2013. Outlook app can be downloaded on the configuration page after the initial setup.</description>
+    <description>JIRA for Outlook 2010, 2013 and 2016. Outlook app can be downloaded on the configuration page after the initial setup.</description>
     <packaging>atlassian-plugin</packaging>
 
     <dependencies>
