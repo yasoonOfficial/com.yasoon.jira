@@ -62,8 +62,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
 			$.each(self.mail.attachments, function (i, attachment) {
 				var handle = attachment.getFileHandle();
-				var id = yasoon.clipboard.addFile(handle);
-				self.addedAttachmentIds.push(id);
+				
+				if (self.settings.addAttachmentsOnNewAddIssue) {				
+					self.selectedAttachments.push(handle);
+				}
+				else {
+					var id = yasoon.clipboard.addFile(handle);
+					self.addedAttachmentIds.push(id);
+				}
 			});
 		}
 

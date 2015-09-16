@@ -4,6 +4,7 @@ function JiraSettingController() {
 		currentService: '',
 		lastSync: new Date( new Date().getTime() - (1000 * 60* 60* 24 * 30) ),// If nothing in db, set it to 30 days ago
 		showDesktopNotif: true,
+		addAttachmentsOnNewAddIssue: false,
 		showFeedAssignee: true,
 		showFeedMentioned: true,
 		showFeedWatcher: true,
@@ -64,6 +65,19 @@ function JiraSettingController() {
 			'           <div class="checkbox">' +
 			'               <label>' +
 			'                   <input class="formValue" type="checkbox" id="showDesktopNotif" name="showDesktopNotif">' +
+			'               </label>' +
+			'           </div>' +
+			'       </div>' +
+			'   </div>' +
+			//Auto Add Attachments
+			'   <div class="form-group" style="position:relative; margin-top:20px;">' +
+			'       <div class="col-sm-4 checkbox">' +
+			'           <b class="pull-right">Automatically add attachments in issue dialogs</b>' +
+			'       </div>' +
+			'       <div class="col-sm-8">' +
+			'           <div class="checkbox">' +
+			'               <label>' +
+			'                   <input class="formValue" type="checkbox" id="addAttachmentsOnNewAddIssue" name="addAttachmentsOnNewAddIssue">' +
 			'               </label>' +
 			'           </div>' +
 			'       </div>' +
