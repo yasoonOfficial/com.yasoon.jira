@@ -1,82 +1,3 @@
-var jiraFields = {};
-
-function UIFormHandler() {
-	function getFieldType(field) {
-		return field.schema.custom || field.schema.system;
-	}
-
-	renderer = {};
-
-	return {
-		register: function(key, newRenderer) {
-			renderer[key] = newRenderer;
-		},
-
-		render: function (id, field, container) {
-			var type = getFieldType(field);
-			if (type) {
-				var responsibleRenderer = renderer[type];
-				if (responsibleRenderer)
-					responsibleRenderer.render(id, field, container);
-			}
-		},
-
-		getValue: function(id,field) {
-			var type = getFieldType(field);
-			if (type) {
-				var responsibleRenderer = renderer[type];
-				if (responsibleRenderer)
-					return responsibleRenderer.getValue(id);
-			}
-		},
-
-		getFormData: function (result) {
-			result = result || { fields: {} };
-			var self = this;
-			//Find Meta for current Issue Type
-			if (jira.currentMeta) {
-				$.each(jira.currentMeta.fields, function (key, field) {
-					var newValue = self.getValue(key,field);
-					if (newValue)
-						result.fields[key] = newValue;
-				});
-			}
-		},
-
-		setValue: function(id,field, value) {
-			var type = getFieldType(field);
-			if (type) {
-				var responsibleRenderer = renderer[type];
-				if (responsibleRenderer)
-					return responsibleRenderer.setValue(id, value);
-			}
-		},
-
-		setFormData: function (issue) {
-			var self = this;
-			if (jira.currentMeta) {
-				$.each(jira.currentMeta.fields, function (key, field) {
-					self.setValue(key,field, issue.fields[key]);
-				});
-			}
-		},
-
-		triggerEvent: function (type, data) {
-			if (jira.currentMeta) {
-				$.each(jira.currentMeta.fields, function (key, field) {
-					var type = getFieldType(field);
-					if (type) {
-						var responsibleRenderer = renderer[type];
-						if (responsibleRenderer && responsibleRenderer.hasOwnProperty('handleEvent')) {
-							responsibleRenderer.handleEvent(type, field, data);
-						}
-					}
-				});
-			}
-		},
-	};
-}
-
 function SingleTextRenderer() {
 	this.getValue = function (id) {
 		return $('#' + id).val();
@@ -474,6 +395,56 @@ function MultiSelectListRenderer() {
 			html += '<option value="' + option.id + '">' + text + '</option>';
 		});
 		html += '      </select>' +
+				'</div>';
+
+		$(container).append(html);
+
+		$('#' + id).select2();
+	};
+}
+
+function VersionMultiSelectListRenderer() {
+	this.getValue = function (id) {
+		if ($('#' + id).val()) {
+			var selectedValues = [];
+			$.each($('#' + id).val(), function (i, id) {
+				selectedValues.push({ id: id });
+			});
+			return selectedValues;
+		}
+	};
+
+	this.setValue = function (id, value) {
+		if (value) {
+			var selectedValues = [];
+			$.each(value, function (i, item) {
+				selectedValues.push(item.id);
+			});
+			$('#' + id).val(selectedValues).trigger('change');
+		}
+	};
+
+	this.render = function (id, field, container) {
+		var html = '<div class="field-group input-field">' +
+				'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+				'    <select data-container-class="issuetype-ss" class="select text" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">' +
+				'		<optgroup label="Released Versions">';
+		$.each(field.allowedValues, function (i, option) {
+			if (option.released) {
+				var text = option.name || option.value;
+				html += '<option value="' + option.id + '">' + text + '</option>';
+			}
+		});
+		html += '		</optgroup>' + 
+				'		<optgroup label="Unreleased Versions">';
+		$.each(field.allowedValues, function (i, option) {
+			if (!option.released) {
+				var text = option.name || option.value;
+				html += '<option value="' + option.id + '">' + text + '</option>';
+			}
+		});
+		html += '		</optgroup>' +
+				'    </select>' +
 				'</div>';
 
 		$(container).append(html);
@@ -978,8 +949,19 @@ function formatUser(user) {
 	}
 }
 
-// Custom Data Provider for SELECT2  User retrieval
+function insertAtCursor(myField, myValue) {
+	var startPos = myField.selectionStart;
+	var endPos = myField.selectionEnd;
+	if (startPos > 0)
+		myValue = '\n' + myValue;
 
+	myField.value = myField.value.substring(0, startPos) +
+		myValue +
+		myField.value.substring(endPos, myField.value.length);
+
+}
+
+// Custom Data Provider for SELECT2  User retrieval
 $.fn.select2.amd.require(['select2/data/select', 'select2/utils','select2/selection/allowClear'],
 function (select, Utils, allowClear) {
 	function CustomData($element, options) {
@@ -1117,20 +1099,8 @@ function (select, Utils, allowClear) {
 
 });
 
-function insertAtCursor(myField, myValue) {
-	var startPos = myField.selectionStart;
-	var endPos = myField.selectionEnd;
-	if (startPos > 0)
-		myValue = '\n' + myValue;
 
-	myField.value = myField.value.substring(0, startPos) +
-		myValue +
-		myField.value.substring(endPos, myField.value.length);
-	
-}
-
-
-var UIRenderer = new UIFormHandler();
+//Register Components for each supported type
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:textfield', new SingleTextRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:url', new SingleTextRenderer());
 UIRenderer.register('summary', new SingleTextRenderer());
@@ -1147,8 +1117,8 @@ UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:float', n
 UIRenderer.register('priority', new SelectListRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:select', new SelectListRenderer());
 UIRenderer.register('components', new MultiSelectListRenderer());
-UIRenderer.register('fixVersions', new MultiSelectListRenderer());
-UIRenderer.register('versions', new MultiSelectListRenderer());
+UIRenderer.register('fixVersions', new VersionMultiSelectListRenderer());
+UIRenderer.register('versions', new VersionMultiSelectListRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:multiselect', new MultiSelectListRenderer());
 UIRenderer.register('reporter', new UserPickerRenderer());
 UIRenderer.register('assignee', new UserPickerRenderer());

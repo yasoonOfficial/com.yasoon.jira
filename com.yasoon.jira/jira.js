@@ -20,6 +20,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		if (action === yasoon.lifecycle.Upgrade) {
 			yasoon.setting.setAppParameter('icons', '[]');
 		}
+		jira.downloadScript = true;
 	};
 
 	this.init = function init () {
@@ -74,21 +75,18 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 					name: 'By Reporter',
 					jsonPath: 'fields.reporter.emailAddress',
 					label: function (name, id) {
-						//if (jira.data.issueTypes) {
-						//	var issueType = $.grep(jira.data.issueTypes, function (i) { return i.id === id; })[0];
-						//	if (issueType) {
-						//		return issueType.name;
-						//	}
-						//}
 						return id;
 					}
 				}
 			]);
-			
+			//yasoon.view.header.addTab('jiraIssues', 'Issues', self.renderIssueTab);
 			yasoon.app.on("oAuthSuccess", jira.handleOAuthSuccess);
 			yasoon.app.on("oAuthError", jira.handleOAuthError);
 			yasoon.periodicCallback(300, jira.sync);
 			yasoon.on("sync", jira.sync);
+
+			//Download custom script
+			self.downloadCustomScript();
 		} else {
 			setTimeout(function () {
 				jiraOpenPurchaseDialog();
@@ -175,10 +173,12 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 
 	this.handleOAuthError = function (serviceName, statusCode, error) {
+		console.log('OAuth Error', error, statusCode);
 		if (statusCode == 500) {
 
 		} else if (error.indexOf('oauth_problem') === 0) {
 			//Standard OAuth Messages => http://wiki.oauth.net/w/page/12238543/ProblemReporting
+			error = error.split('&')[0];
 			error = error.split('=')[1];
 			if (error) {
 				switch (error) {
@@ -189,7 +189,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 						yasoon.dialog.showMessageBox("Jira refuses the request because of time differences. Either your local time is not set correctly or the JIRA server has a wrong time. (different timezones are ok)");
 						break;
 					case 'signature_invalid':
-						yasoon.dialog.showMessageBox("The certificate you are using is invalid. Please make sure you have setup JIRA correctly. Afterwards visit the JIRA settings and click on \"Reload System Information\"");
+						yasoon.dialog.showMessageBox("The certificate you are using in the application link is invalid. Please make sure you have setup JIRA correctly. Afterwards visit the JIRA settings and click on \"Reload System Information\"");
 						break;
 					default:
 						yasoon.alert.add({ type: yasoon.alert.alertType.error, message: result });
@@ -202,6 +202,10 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		}
 	};
 
+	this.renderIssueTab = function (tabContainer) {
+		console.log(tabContainer);
+		tabContainer.setTemplate('templates/issueSearch.hbs');
+	};
 	//Handle Sync Event
 	this.syncStream = function (url, maxResults, currentPage) {
 		//Defaults
@@ -379,6 +383,15 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		.then(function () {
 			console.log('Cache loading finshed', new Date());
 		});
+	};
+
+
+	this.downloadCustomScript = function () {
+		var customScriptUrl = yasoon.setting.getAppParameter('customScript');
+		if (customScriptUrl)
+			yasoon.io.download(customScriptUrl, 'Dialogs\\customScript.js', true);
+
+		jira.downloadScript = false;
 	};
 
 }); //jshint ignore:line

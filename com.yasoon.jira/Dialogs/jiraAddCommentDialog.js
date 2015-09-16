@@ -35,7 +35,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	jira.CONST_HEADER = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
 	
 
-	this.UIFormHandler = UIFormHandler();
+	this.UIFormHandler = UIRenderer;
 	this.icons = new JiraIconController();
 	this.settings = null;
 
@@ -92,8 +92,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		}
 
 		//Render fields
-		renderTextarea('description', { name: 'Comment' }, $('#ContentArea'));
-		renderAttachmentLink('attachment', null, $('#ContentArea'));
+		self.UIFormHandler.render('description', { name: 'Comment', schema: { system: 'description' }}, $('#ContentArea'));
+		self.UIFormHandler.render('attachment', { name: 'Attachment', schema: { system: 'attachment' }}, $('#ContentArea'));
 
 		//Add Default Data
 		if (self.selectedText) {

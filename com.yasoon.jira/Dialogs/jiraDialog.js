@@ -47,6 +47,38 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.savedTemplates = [];
 	this.userCommonValues = {};
 
+	//Order of Fields in the form. Fields not part of the array will be rendered afterwards
+	//This can be customized by JIRA admin
+	var fieldOrder = [
+		'summary',
+		'priority',
+		'duedate',
+		'components',
+		'versions',
+		'fixVersions',
+		'assignee',
+		'reporter',
+		'environment',
+		'description',
+		'attachment',
+		'labels',
+		'timetracking'
+	];
+
+	//Which email field maps to which JIRA field
+	var fieldMapping = {
+		subject: 'subject',
+		body: 'description',
+		sender: 'reporter',
+		sentAt: ''
+	};
+
+	//If custom script is specified, load it as well.
+	var customScriptUrl = yasoon.setting.getAppParameter('customScript');
+	if (customScriptUrl) {
+		$.getScript('Dialogs/customScript.js');
+	}
+
 	this.init = function (initParams) {
 		//Parameter taken over from Main JIRA
 		self.settings = initParams.settings;
@@ -232,6 +264,18 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		$('#create-issue-cancel').unbind().click(function () {
 			self.close({ action: 'cancel' });
 		});
+
+		setTimeout(function () {
+			var fieldOrderString = yasoon.setting.getAppParameter('fieldOrder');
+			if (fieldOrderString) {
+				fieldOrder = JSON.parse(fieldOrderString);
+			}
+
+			var fieldMappingString = yasoon.setting.getAppParameter('fieldOrder');
+			if (fieldMappingString) {
+				fieldMapping = JSON.parse(fieldMappingString);
+			}
+		}, 1);
 	}; 
 
 	this.close = function (params) {
@@ -461,9 +505,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		//Set this as current meta
 		jira.currentMeta = meta;
 
+		console.log('Settings', jira.settings);
 		self.renderIssueUser()
-		.catch(function () {
-			console.log('Error in new renderLogic - switch to old one');
+		.catch(function (e) {
+			console.log('Error in new renderLogic - switch to old one', e);
 			self.renderIssueFixed(meta);
 		})
 		.then(function () {
@@ -477,31 +522,13 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 			$('#ContentArea').css('visibility', 'visible');
 		});
-
-
 	};
 
 	this.renderIssueFixed = function (meta) {
 		$('#ContainerFields').html('');
 		$('#tab-list').html('');
+		$('#tab-list').addClass('hidden');
 
-		//Order of Fields in the form. Fields not part of the array will be rendered afterwards
-		//This can be customized later on by JIRA admin?!
-		var fieldOrder = [
-			'summary',
-			'priority',
-			'duedate',
-			'components',
-			'versions',
-			'fixVersions',
-			'assignee',
-			'reporter',
-			'environment',
-			'description',
-			'attachment',
-			'labels',
-			'timetracking'
-		];
 		var addedFields = [];
 
 		//Render Standard Fields on a predefined order if they are in the current meta. (We do not get any order from JIRA, so we assume one for standard fields)
@@ -576,21 +603,26 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		//Values if created by mail
 		if (self.mail) {
 			//Subject
-			if (self.mail.subject) {
-				$('#summary').val(self.mail.subject);
+			if (self.mail.subject && fieldMapping.subject) {
+				var subjectType = $('#' + fieldMapping.subject).data('type');
+				jira.UIFormHandler.setValue(fieldMapping.subject, { schema: { custom: subjectType }}, self.mail.subject);
+
 			}
 
 			//Description
-			if (self.selectedText) {
-				$('#description').val(self.selectedText);
+			if (self.selectedText && fieldMapping.body) {
+				var bodyType = $('#' + fieldMapping.body).data('type');
+				jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, self.selectedText);
 			}
 
 			yasoon.outlook.mail.renderBody(self.mail, 'jiraMarkup')
 			.then(function (markup) {
 				jira.mailAsMarkup = markup;
 				//If there is no selection, set this as description;
-				if(!self.selectedText)
-					$('#description').val(markup);
+				if (!self.selectedText && fieldMapping.body) {
+					bodyType = $('#' + fieldMapping.body).data('type');
+					jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, markup);
+				}
 			});
 		}
 
@@ -663,43 +695,43 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		if (!jira.currentMeta)
 			return Promise.reject();
 
+		if (!jira.settings.newCreationScreen)
+			return Promise.reject();
+
 		//Check Cache
 		if (jira.cacheUserMeta && jira.cacheUserMeta[jira.selectedProject.id] && jira.cacheUserMeta[jira.selectedProject.id][jira.currentMeta.id]) {
 			return Promise.resolve(jira.cacheUserMeta[jira.selectedProject.id][jira.currentMeta.id]);
 		}
 
 		if (self.editIssue) {
-			return jiraGet('/secure/QuickEditIssue!default.jspa?issueId=' + jira.editIssue.id + '&decorator=none').catch(function () { });
+			return jiraGet('/secure/QuickEditIssue!default.jspa?issueId=' + jira.editIssue.id + '&decorator=none').then(function (data) { return JSON.parse(data); }).catch(function () { });
 		} else {
-			return jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + jira.selectedProject.id + '&issuetype=' + jira.currentMeta.id).catch(function () { });
+			return jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + jira.selectedProject.id + '&issuetype=' + jira.currentMeta.id).then(function (data) { return JSON.parse(data); }).catch(function () { });
 		}
 	};
 
 	this.setDefaultReporter = function () {
-		if (jira.mail) {
-			//In Creation case based on a mail, we need to wait for the senderUser.
-			if (!jira.senderUser)
-				return;
-
-			if (jira.senderUser.name !== -1) {
-				//Sender user is known --> Set it as default
-				$('#reporter')
-				.data('id', jira.senderUser.name)
-				.data('text', jira.senderUser.displayName)
-				.data('icon', 'emailSender')
-				.val(jira.senderUser.name)
-				.trigger('change');
+		//Only if there is a fieldMaping for sender and it's an creation case.
+		if (fieldMapping.sender && !jira.editIssue) {
+			var senderType = $('#' + fieldMapping.sender).data('type');
+			var senderValue = '';
+			if (jira.mail) {
+				//If senderField Mapping is set to an UserField and sender is an known user 
+				if (senderType === 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker' && jira.senderUser && jira.senderUser.name !== -1) {
+					senderValue = jira.senderUser;
+				} else {
+					senderValue = jira.mail.senderEmail;
+				}
+			} else {
+				//Default to own user
+				if (senderType === 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker') {
+					senderValue = jira.ownUser;
+				} else {
+					senderValue = jira.ownUser.emailAddress;
+				}
 			}
-		} else if (!jira.editIssue) {
-			//All other creation cases
-			$('#reporter')
-			.data('id', jira.ownUser.name)
-			.data('text', jira.ownUser.displayName)
-			.data('icon', 'ownUser')
-			.val(jira.ownUser.name)
-			.trigger('change');
+			jira.UIFormHandler.setValue(fieldMapping.sender, { schema: { custom: senderType } }, senderValue);
 		}
-
 	};
 }); //jshint ignore:line
 

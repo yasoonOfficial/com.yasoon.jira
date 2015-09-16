@@ -12,6 +12,7 @@ function JiraSettingController() {
 		showFeedReporter: true,
 		showFeedCreator: true,
 		showFeedComment: true,
+		newCreationScreen: true,
 		syncCalendar: false
 	};
 
@@ -124,6 +125,16 @@ function JiraSettingController() {
 			'           </div>' +
 			'       </div>' +
 			'   </div>' +
+			'   <div class="form-group" style="position:relative; margin-top:20px;">' +
+			'       <div class="col-sm-4 checkbox">' +
+			'           <b class="pull-right">Enable User Configuration <br /> in Edit & Create Screens </b>' +
+			'       </div>' +
+			'		<div class="col-sm-8">' +
+			'           <label>' +
+			'               <input class="formValue" type="checkbox" id="newCreationScreen" name="newCreationScreen">' +
+			'           </label>' +
+			'		</div>' +
+			'	</div>'+
 			//'   <div class="form-group" style="position:relative; margin-top:20px;">' +
 			//'       <div class="col-sm-4 checkbox">' +
 			//'           <b class="pull-right">Enable Calendar Integration</b>' +
@@ -208,7 +219,7 @@ function JiraSettingController() {
 				$('#jiraReloadOAuth').unbind();
 				var app = yasoon.model.apps.get('com.yasoon.jira');
 				yasoon.store.getLatestVersions(function (storeApp) {
-					if (storeApp.id != app.origin.versionId) {
+					if (storeApp.id > app.origin.versionId) {
 						yasoon.dialog.showMessageBox('There are pending updates which prevent this action. Please check for latest updates in the Outlook menu: File --> yasoon, restart Outlook and try again');
 						$('#jiraReloadOAuth').unbind().click(reloadOAuthHandler);
 						return;
@@ -221,6 +232,7 @@ function JiraSettingController() {
 
 					yasoon.app.downloadManifest(null, function (path) {
 						if (path) {
+							jira.downloadScript = true;
 							yasoon.app.update(null, null, function () {
 								yasoon.view.settings.renderOptionPane(yasoon.view.settings.currentApp());
 							});
@@ -285,18 +297,24 @@ function JiraSettingController() {
 		yasoon.setting.setAppParameter('license', JSON.stringify(jira.license));
 	}
 
+
+	//Server Default Settings
+	var defSettingsString = yasoon.setting.getAppParameter('defaultSettings');
+	if (defSettingsString) {
+		jira.defaultSettings = JSON.parse(defSettingsString);
+	}
+
 	//Determine settings to load:
 	var settingsString = yasoon.setting.getAppParameter('settings');
 	var settings = null;
 	if (!settingsString) {
 		//Initial Settings
-		settings = defaults;
-
+		settings = $.extend(defaults, jira.defaultSettings);
 		yasoon.setting.setAppParameter('settings', JSON.stringify(settings));
 	} else {
 		//Load Settings
 		settings = JSON.parse(settingsString);
-		settings = $.extend(defaults, settings);
+		settings = $.extend(defaults, jira.defaultSettings, settings);
 	}
 
 	$.each(settings, function (key, value) {

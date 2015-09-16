@@ -382,6 +382,7 @@ function JiraIssueNotification(issue) {
 		feed.properties.customActions.push({ description: changeStatusHtml, eventHandler: $.noop });
 		feed.properties.customActions.push({ description: '<span><i class="fa fa-paperclip"></i> Add file</span>', eventHandler: self.addAttachment });
 		feed.properties.customActions.push({ description: '<span><i class="fa fa-pencil"></i> Edit</span>', eventHandler: self.editIssue });
+		feed.properties.baseUrl = jira.settings.baseUrl;
 		feed.setProperties(feed.properties);
 
 		var icon_url = yasoon.io.getLinkPath('Task-03.png');
