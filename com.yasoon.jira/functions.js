@@ -42,6 +42,42 @@ function JiraRibbonController() {
 		var addToIssueRibbons = self.createEmailItems('Add to Issue', 'addToIssueFromText', self.ribbonOnAddToIssue);
 		contextMenuItems = contextMenuItems.concat(addToIssueRibbons);
 
+		//Add main menu ribbon
+		ribbonFactory.create({
+            type: 'ribbon',
+            renderTo: [
+                'Microsoft.Outlook.Explorer',
+            ],
+            items: [{
+                type: 'tabs',
+                items: [{
+                    type: 'tab',
+                    idMso: 'TabMail',
+                    items: [{
+						type: 'group',
+						id: 'jiraMailExplorerGroup',
+						insertAfterMso: 'GroupMailRespond',
+						label: 'JIRA',
+						items: [{
+							type: 'button',
+							id: 'newIssueFromMailMain',
+							size: 'large',
+							label: 'New Issue',
+							image: 'images/ribbonNew.png',
+							onAction: self.ribbonOnNewIssue
+						}, {
+							type: 'button',
+							id: 'addToIssueFromMailMain',
+							size: 'large',
+							label: 'Add To Issue',
+							image: 'images/ribbonAdd.png',
+							onAction: self.ribbonOnAddToIssue
+						}]
+					}]
+                }]
+            }]
+        });
+
 		ribbonFactory.create({
 			type: 'contextMenus',
 			renderTo: [
