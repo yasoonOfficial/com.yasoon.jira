@@ -115,6 +115,7 @@ function JiraRibbonController() {
 			'ContextMenuReadOnlyMailHyperlink',
 			'ContextMenuHeading',
 			'ContextMenuHeadingLinked',
+			'ContextMenuFieldDisplay'
 		];
 
 		mailContextMenuMso.forEach(function (mso, i) {
@@ -690,6 +691,9 @@ function getJiraMarkupRenderer() {
 
 			return prefix + result + suffix; 
 		},
+		renderImage: function(image) {
+			return '!' + image + '!';
+		},		
 		renderHyperlink: function(url, label, style) {
 			lastOp = 'renderHyperlink';
 			

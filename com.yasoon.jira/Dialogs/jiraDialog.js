@@ -151,8 +151,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			if (self.mail.attachments && self.mail.attachments.length > 0) {
 				$.each(self.mail.attachments, function (i, attachment) {
 					var handle = attachment.getFileHandle();
-					
-					if (self.settings.addAttachmentsOnNewAddIssue) {				
+										
+					if (self.settings.addAttachmentsOnNewAddIssue || (self.selectedText && self.selectedText.indexOf('!' + handle.getFileName() + '!') > -1)) {				
 						self.selectedAttachments.push(handle);
 					}
 					else {
@@ -611,7 +611,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				var bodyType = $('#' + fieldMapping.body).data('type');
 				jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, self.selectedText);
 			}
-
+			
 			yasoon.outlook.mail.renderBody(self.mail, 'jiraMarkup')
 			.then(function (markup) {
 				jira.mailAsMarkup = markup;
@@ -619,6 +619,20 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				if (!self.selectedText && fieldMapping.body) {
 					bodyType = $('#' + fieldMapping.body).data('type');
 					jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, markup);
+					var handles = yasoon.clipboard.all();
+											
+					for (var id in handles) {
+						if (handles.hasOwnProperty(id)) {
+							var fileHandle = handles[id];
+							if (markup.indexOf('!' + fileHandle.getFileName() + '!') > -1) {
+								self.selectedAttachments.push(fileHandle);
+								var index = self.addedAttachmentIds.indexOf(id);
+								self.addedAttachmentIds.splice(index, 1);
+								fileHandle.setInUse();
+								yasoon.clipboard.remove(id);
+							}
+						}
+					}
 				}
 			});
 		}
