@@ -60,11 +60,11 @@ function JiraNotificationController() {
 			}
 		} else {
 			if (event['activity:target']) {
-				if (event['activity:target']['activity:object-type']['#text'] === 'http://streams.atlassian.com/syndication/types/issue') {
+				if (event['activity:target']['activity:object-type'] && event['activity:target']['activity:object-type']['#text'] === 'http://streams.atlassian.com/syndication/types/issue') {
 					result = new JiraIssueActionNotification(event);
 				}
 			} else if (event['activity:object']) {
-				if (event['activity:object']['activity:object-type']['#text'] === 'http://streams.atlassian.com/syndication/types/issue') {
+				if (event['activity:object']['activity:object-type'] && event['activity:object']['activity:object-type']['#text'] === 'http://streams.atlassian.com/syndication/types/issue') {
 					result = new JiraIssueActionNotification(event);
 				}
 			} else if (event.fields) {
@@ -492,6 +492,7 @@ function JiraIssueNotification(issue) {
 
 			yEvent.externalData = JSON.stringify(tempIssue);
 
+			jira.filter.addNotif(self.issue);
 			if (creation) {
 				return jiraAddNotification(yEvent)
 				.then(function (newNotif) {

@@ -19,6 +19,12 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	this.lifecycle = function (action, oldVersion, newVersion) {
 		if (action === yasoon.lifecycle.Upgrade) {
 			yasoon.setting.setAppParameter('icons', '[]');
+
+			//Clear license information. We had invalid user products, so make sure we pull again the latest ones
+			var validUntil = new Date();
+			validUntil.setDate(validUntil.getDate() + 1);
+			jira.license = { comment: 'Please play fair and pay for your software.', isFullyLicensed: false, validUntil: validUntil };
+			yasoon.setting.setAppParameter('license', JSON.stringify(jira.license));
 		}
 		jira.downloadScript = true;
 	};
@@ -30,10 +36,9 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		jira.contacts = new JiraContactController();
 		jira.icons = new JiraIconController();
 		jira.queue = new jiraSyncQueue();
+		jira.filter = new JiraFilterController();
 		jira.issues = new JiraIssueController();
 		jira.cache = {};
-
-		 var isLicensed = jiraIsLicensed(false);
 
 		yasoon.addHook(yasoon.setting.HookCreateRibbon, jira.ribbons.createRibbon);
 		yasoon.addHook(yasoon.notification.HookRenderNotificationAsync, jira.notifications.renderNotification);
@@ -43,42 +48,10 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 
 		yasoon.outlook.mail.registerRenderer("jiraMarkup", getJiraMarkupRenderer());
 
-		if (isLicensed) {
-			yasoon.feed.addFilter([
-				{
-					name: 'By Project',
-					jsonPath: 'fields.project.id',
-					label: function (name, id) {
-						if (jira.data.projects) {
-							var proj = $.grep(jira.data.projects, function (p) { return p.id === id; })[0];
-							if (proj) {
-								return proj.name;
-							}
-						}
-						return id;
-					}
-				},
-				{
-					name: 'By Type',
-					jsonPath: 'fields.issuetype.id',
-					label: function (name, id) {
-						if (jira.data.issueTypes) {
-							var issueType = $.grep(jira.data.issueTypes, function (i) { return i.id === id; })[0];
-							if (issueType) {
-								return issueType.name;
-							}
-						}
-						return id;
-					}
-				},
-				{
-					name: 'By Reporter',
-					jsonPath: 'fields.reporter.emailAddress',
-					label: function (name, id) {
-						return id;
-					}
-				}
-			]);
+		jira.filter.load();
+		jira.filter.register();
+
+		if (jiraIsLicensed(false)) {
 			//yasoon.view.header.addTab('jiraIssues', 'Issues', self.renderIssueTab);
 			yasoon.app.on("oAuthSuccess", jira.handleOAuthSuccess);
 			yasoon.app.on("oAuthError", jira.handleOAuthError);
@@ -93,7 +66,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			}, 10);
 		}
 
-		if (jira.firstTime && !jira.license.isFullyLicensed) {
+		if (!jira.license.isFullyLicensed) {
 			//Check License Information
 			jiraGetProducts()
 			.then(function (products) {
@@ -118,7 +91,6 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		if (!jira.settings.currentService || !yasoon.app.isOAuthed(jira.settings.currentService)) {
 			return;
 		}
-
 		return jira.queue.add(self.syncData);
 	};
 
@@ -175,7 +147,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	this.handleOAuthError = function (serviceName, statusCode, error) {
 		console.log('OAuth Error', error, statusCode);
 		if (statusCode == 500) {
-
+			yasoon.dialog.showMessageBox("Couldn\'t reach JIRA server. Either the system does not exist anymore you is currently not reachable. (e.g. because VPN is missing)");
 		} else if (error.indexOf('oauth_problem') === 0) {
 			//Standard OAuth Messages => http://wiki.oauth.net/w/page/12238543/ProblemReporting
 			error = error.split('&')[0];
@@ -276,7 +248,9 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			})
 			.then(function (ownUserData) {
 				jira.data.ownUser = JSON.parse(ownUserData);
+				jira.contacts.updateOwn(jira.data.ownUser);
 			})
+			.then(jira.filter.reIndex)
 			.then(function () {
 				//Second get all projects
 				jiraLog('Get Projects');
@@ -295,17 +269,20 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 					});
 				});
 			})
-			.tap(self.loadProjectCache) //async but not blocking. next then will be executed
 			.then(function () {
-				//Third get all issue types
-				jiraLog('Get Issuetypes');
-				return jiraGet('/rest/api/2/issuetype')
-				.then(function (issueTypes) {
-					jira.data.issueTypes = JSON.parse(issueTypes);
-					jira.settings.updateData();
-					jira.firstTime = false;
-				});
-			});
+				jira.firstTime = false;
+			})
+			.tap(self.loadProjectCache); //async but not blocking. next then will be executed
+			//.then(function () {
+			//	//Third get all issue types
+			//	jiraLog('Get Issuetypes');
+			//	return jiraGet('/rest/api/2/issuetype')
+			//	.then(function (issueTypes) {
+			//		jira.data.issueTypes = JSON.parse(issueTypes);
+			//		jira.settings.updateData();
+			//		jira.firstTime = false;
+			//	});
+			//});
 		} else {
 			return Promise.resolve();
 		}
@@ -385,13 +362,15 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		});
 	};
 
-
 	this.downloadCustomScript = function () {
-		var customScriptUrl = yasoon.setting.getAppParameter('customScript');
-		if (customScriptUrl)
-			yasoon.io.download(customScriptUrl, 'Dialogs\\customScript.js', true);
-
-		jira.downloadScript = false;
+		if (jira.downloadScript) {
+			var customScriptUrl = yasoon.setting.getAppParameter('customScript');
+			if (customScriptUrl) {
+				yasoon.io.download(customScriptUrl, 'Dialogs\\customScript.js', true, function () {
+					jira.downloadScript = false;
+				});
+			}
+		}
 	};
 
 }); //jshint ignore:line

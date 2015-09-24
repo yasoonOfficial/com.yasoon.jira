@@ -119,6 +119,17 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			self.recentProjects = JSON.parse(projectsString);
 		}
 
+		//Load DB settings
+		var fieldOrderString = yasoon.setting.getAppParameter('fieldOrder');
+		if (fieldOrderString) {
+			fieldOrder = JSON.parse(fieldOrderString);
+		}
+
+		var fieldMappingString = yasoon.setting.getAppParameter('fieldMapping');
+		if (fieldMappingString) {
+			fieldMapping = JSON.parse(fieldMappingString);
+		}
+
 		//If created by email, check for templates and attachments
 		if (self.mail) {
 			//Check if we have templates on db for current sender.
@@ -205,7 +216,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				//Select Issue Type
 				$('#issuetype').append('<option data-icon="' + jira.currentIssue.fields.issuetype.iconUrl + '" value="' + jira.currentIssue.fields.issuetype.id + '">' + jira.currentIssue.fields.issuetype.name + '</option>');
 
-				$('#issuetype').select2("destroy");
 				$('#issuetype').select2({
 					templateResult: formatIcon,
 					templateSelection: formatIcon
@@ -264,18 +274,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		$('#create-issue-cancel').unbind().click(function () {
 			self.close({ action: 'cancel' });
 		});
-
-		setTimeout(function () {
-			var fieldOrderString = yasoon.setting.getAppParameter('fieldOrder');
-			if (fieldOrderString) {
-				fieldOrder = JSON.parse(fieldOrderString);
-			}
-
-			var fieldMappingString = yasoon.setting.getAppParameter('fieldOrder');
-			if (fieldMappingString) {
-				fieldMapping = JSON.parse(fieldMappingString);
-			}
-		}, 1);
 	}; 
 
 	this.close = function (params) {
@@ -505,7 +503,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		//Set this as current meta
 		jira.currentMeta = meta;
 
-		console.log('Settings', jira.settings);
 		self.renderIssueUser()
 		.catch(function (e) {
 			console.log('Error in new renderLogic - switch to old one', e);
@@ -740,16 +737,28 @@ function submitErrorHandler(data, statusCode, result, errorText, cbkParam) {
 	$('#create-issue-submit').removeAttr("disabled");
 	result = JSON.parse(result);
 
-	//Parse different error messages
+	//Parse different error messages summary --> errorMessages --> errors --> plain JSON
 	var error = '';
-	if (result.errors && result.errors.summary)
+	if (result.errors && result.errors.summary) {
 		error = result.errors.summary;
-	else if (result.errorMessages && result.errorMessages.length > 0)
-		error = result.errorMessages[0];
-	else
+	} else if (result.errorMessages && result.errorMessages.length > 0) {
+		result.errorMessages.forEach(function (msg) {
+			if (error)
+				error += '\n';
+			error += msg;
+		});
+	} else if (result.errors) {
+		for (var key in result.errors) {
+			var msg = result.errors[key];
+			if (error)
+				error += '\n';
+			error += msg;
+		}
+	} else {
 		error = JSON.stringify(result);
+	}
 
-	alert('Sorry, that did not work. Check your input and try again. ' + error);
+	yasoon.dialog.showMessageBox('Sorry, that did not work. Check your input and try again.  \n' + error);
 	jira.transaction.currentCallCounter = -1;
 }
 

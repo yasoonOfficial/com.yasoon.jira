@@ -174,8 +174,9 @@ function CheckboxRenderer() {
 		var html = '<div class="field-group" id="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes">' +
 					'    <label>' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ';
 		$.each(field.allowedValues, function (i, option) {
-			html += '   <div class="checkbox">' +
-					'       <label><input type="checkbox" value="' + option.id + '">' + option.value +
+			html += '   <div class="checkbox awesome">' +
+					'		<input type="checkbox" id="'+id+'_'+option.id+'" value="' + option.id + '">'+
+					'       <label for="' + id + '_' + option.id + '">' + option.value + '</label>'+
 					'   </div>';
 		});
 
@@ -578,7 +579,7 @@ function AttachmentLinkRenderer() {
 	};
 	
 	
-	this.renderMoreAction = function renderMoreActions() {
+	this.renderMoreActions = function renderMoreActions() {
 		return '<span class="dropup" style="position:relative;">' +
 				'	<span class="attachmentMore dropdown-toggle" data-toggle="dropdown" title="more Actions" style="cursor: pointer; color:grey;"><span style="font-size:6px;"> <i class="fa fa-circle-o" /><i class="fa fa-circle-o" style="margin-left: 1px;"/><i class="fa fa-circle-o" style="margin-left: 1px;"/></span>&nbsp;</span>' +
 				'	<ul class="dropdown-menu" style="cursor:pointer;">' +
@@ -589,7 +590,7 @@ function AttachmentLinkRenderer() {
 				'</span>';
 	};
 	
-	this.renderAttachments = function() {
+	this.renderAttachments = function(id) {
 		$('#' + id + '-selected-container').html('');
 		//Render Attachments
 		$.each(jira.selectedAttachments, function (i, fileHandle) {
@@ -698,13 +699,13 @@ function AttachmentLinkRenderer() {
 								'</div>');
 		
 		if (jira.selectedAttachments.length > 0)
-			self.renderAttachments();
+			self.renderAttachments(id);
 		
 		$('#' + id + '-container').find('.AddAttachmentLink').click(function (e) {
 			e.preventDefault();
 			yasoon.view.fileChooser.open(function (selectedFiles) {
 				jira.selectedAttachments = jira.selectedAttachments.concat(selectedFiles);
-				self.renderAttachments();
+				self.renderAttachments(id);
 			});
 		});
 	};

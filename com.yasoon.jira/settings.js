@@ -13,10 +13,11 @@ function JiraSettingController() {
 		showFeedCreator: true,
 		showFeedComment: true,
 		newCreationScreen: true,
-		syncCalendar: false
+		syncCalendar: false,
+		activeFilters: 'fields.project.id,fields.issuetype.id,fields.assignee.emailAddress,fields.status.id,fields.priority.id'
 	};
 
-	self.renderSettingsContainer = function renderSettingsContainer (container) {
+	self.renderSettingsContainer = function renderSettingsContainer(container) {
 		if (!container) {
 			return;
 		}
@@ -55,7 +56,7 @@ function JiraSettingController() {
 
 
 		} else {
-			html = '<p>Choose your settings. Only logout if you like to stop the service or like to connect to another Jira system</p>' +
+			html = '<p>Please choose your settings. Only logout if you like to stop the service or like to connect to another Jira system</p>' +
 			'<form class="form-horizontal" role="form">' +
 			//Desktop Notification
 			'   <div class="form-group" style="position:relative; margin-top:20px;">' +
@@ -63,9 +64,9 @@ function JiraSettingController() {
 			'           <b class="pull-right">Show Desktop Notification</b>' +
 			'       </div>' +
 			'       <div class="col-sm-8">' +
-			'           <div class="checkbox">' +
-			'               <label>' +
-			'                   <input class="formValue" type="checkbox" id="showDesktopNotif" name="showDesktopNotif">' +
+			'           <div class="checkbox awesome">' +
+			'				<input class="formValue" type="checkbox" id="showDesktopNotif" name="showDesktopNotif">' +
+			'               <label for="showDesktopNotif">' +
 			'               </label>' +
 			'           </div>' +
 			'       </div>' +
@@ -76,9 +77,9 @@ function JiraSettingController() {
 			'           <b class="pull-right">Automatically add attachments in issue dialogs</b>' +
 			'       </div>' +
 			'       <div class="col-sm-8">' +
-			'           <div class="checkbox">' +
-			'               <label>' +
-			'                   <input class="formValue" type="checkbox" id="addAttachmentsOnNewAddIssue" name="addAttachmentsOnNewAddIssue">' +
+			'           <div class="checkbox awesome">' +
+			'				<input class="formValue" type="checkbox" id="addAttachmentsOnNewAddIssue" name="addAttachmentsOnNewAddIssue">' +
+			'               <label for="addAttachmentsOnNewAddIssue">' +
 			'               </label>' +
 			'           </div>' +
 			'       </div>' +
@@ -88,39 +89,46 @@ function JiraSettingController() {
 			'           <b class="pull-right">Show feed entry for issue if</b>' +
 			'       </div>' +
 			'       <div class="col-sm-8">' +
-			'           <div class="checkbox">' +
-			'               <label>' +
-			'                   <input class="formValue" type="checkbox" id="showFeedAssignee" name="showFeedAssignee" disabled checked> I am the assignee' +
+			'           <div class="checkbox awesome">' +
+			'				<input class="formValue" type="checkbox" id="showFeedAssignee" name="showFeedAssignee" disabled checked>' +
+			'               <label for="showFeedAssignee">' +
+			'                   I am the assignee' +
 			'               </label>' +
 			'           </div>' +
-			'           <div class="checkbox">' +
-			'               <label>' +
-			'                   <input class="formValue" type="checkbox" id="showFeedMentioned" name="showFeedMentioned" disabled checked> I have been mentioned' +
+			'           <div class="checkbox awesome">' +
+			'				<input class="formValue" type="checkbox" id="showFeedMentioned" name="showFeedMentioned" disabled checked>' +
+			'               <label for="showFeedMentioned">' +
+			'                   I have been mentioned' +
 			'               </label>' +
 			'           </div>' +
-			'           <div class="checkbox">' +
-			'               <label>' +
-			'                   <input class="formValue" type="checkbox" id="showFeedWatcher" name="showFeedWatcher"> I am watching the issue' +
+			'           <div class="checkbox awesome">' +
+			'				<input class="formValue" type="checkbox" id="showFeedWatcher" name="showFeedWatcher">' +
+			'               <label for="showFeedWatcher">' +
+			'                   I am watching the issue' +
 			'               </label>' +
 			'           </div>' +
-			'           <div class="checkbox">' +
-			'               <label>' +
-			'                   <input class="formValue" type="checkbox" id="showFeedProjectLead" name="showFeedProjectLead"> I am the project lead' +
+			'           <div class="checkbox awesome">' +
+			'				 <input class="formValue" type="checkbox" id="showFeedProjectLead" name="showFeedProjectLead">' +
+			'               <label for="showFeedProjectLead">' +
+			'                   I am the project lead' +
 			'               </label>' +
 			'           </div>' +
-			'           <div class="checkbox">' +
-			'               <label>' +
-			'                   <input class="formValue" type="checkbox" id="showFeedReporter" name="showFeedReporter"> I am the reporter' +
+			'           <div class="checkbox awesome">' +
+			'				<input class="formValue" type="checkbox" id="showFeedReporter" name="showFeedReporter">' +
+			'               <label for="showFeedReporter">' +
+			'                   I am the reporter' +
 			'               </label>' +
 			'           </div>' +
-			'           <div class="checkbox">' +
-			'               <label>' +
-			'                   <input class="formValue" type="checkbox" id="showFeedCreator" name="showFeedCreator"> I am the creator' +
+			'           <div class="checkbox awesome">' +
+			'				<input class="formValue" type="checkbox" id="showFeedCreator" name="showFeedCreator">' +
+			'               <label for="showFeedCreator">' +
+			'                    I am the creator' +
 			'               </label>' +
 			'           </div>' +
-			'           <div class="checkbox">' +
-			'               <label>' +
-			'                   <input class="formValue" type="checkbox" id="showFeedComment" name="showFeedComment"> I commented on the issue' +
+			'           <div class="checkbox awesome">' +
+			'				<input class="formValue" type="checkbox" id="showFeedComment" name="showFeedComment">' +
+			'               <label for="showFeedComment">' +
+			'                   I commented on the issue' +
 			'               </label>' +
 			'           </div>' +
 			'       </div>' +
@@ -130,11 +138,27 @@ function JiraSettingController() {
 			'           <b class="pull-right">Enable User Configuration <br /> in Edit & Create Screens </b>' +
 			'       </div>' +
 			'		<div class="col-sm-8">' +
-			'           <label>' +
-			'               <input class="formValue" type="checkbox" id="newCreationScreen" name="newCreationScreen">' +
-			'           </label>' +
+			'           <div class="checkbox awesome">' +
+			'				<input class="formValue" type="checkbox" id="newCreationScreen" name="newCreationScreen">' +
+			'               <label for="newCreationScreen">' +
+			'               </label>' +
+			'           </div>' +
 			'		</div>' +
-			'	</div>'+
+			'	</div>' +
+			'   <div class="form-group" style="position:relative; margin-top:20px;">' +
+			'       <div class="col-sm-4 checkbox">' +
+			'           <b class="pull-right">Configure Filter</b>' +
+			'       </div>' +
+			'		<div class="col-sm-8">' +
+			'			<select multiple id="activeFilters" class="formValue">';
+			jira.filter.filterObj.forEach(function (f) {
+				//Is in selected?!
+				var selected = jira.filter.getSelectedFilters().filter(function (key) { return key === f.key; }).length > 0;
+				html += '<option ' + ((selected) ? 'selected' : '') + ' value="' + f.key + '">' + f.name + '</option>';
+			});
+			html += '	</select>'+
+			'		</div>' +
+			'	</div>' +
 			//'   <div class="form-group" style="position:relative; margin-top:20px;">' +
 			//'       <div class="col-sm-4 checkbox">' +
 			//'           <b class="pull-right">Enable Calendar Integration</b>' +
@@ -166,6 +190,8 @@ function JiraSettingController() {
 		});
 		//Add JS
 		container.afterRender = function () {
+			$('#activeFilters').multiSelect();
+
 			$('#jiraLogin').unbind().click(function () {
 				var selectedServiceName = $('#currentService').val();
 				var newService = $.grep(oAuthServices, function (s) { return s.serviceName == selectedServiceName; })[0];
@@ -188,7 +214,8 @@ function JiraSettingController() {
 					window.open(url);
 				},
 				function () {
-					//Setting new currentService is done in jira.handleOauthSuccess()
+					//Setting new currentService also set in jira.handleOauthSuccess() because of automated oAuth popups
+					jira.settings.currentService = selectedServiceName;
 
 					//Refresh UI --> standard yasoon Function
 					oAuthSuccess();
@@ -198,11 +225,12 @@ function JiraSettingController() {
 			});
 
 			$('#jiraLogout').unbind().click(function () {
+				yasoon.app.invalidateOAuthToken(self.currentService);
 				self.baseUrl = '';
 				self.currentService = '';
 				yasoon.setting.setAppParameter('baseUrl', '');
 				yasoon.setting.setAppParameter('settings', JSON.stringify(self));
-
+				yasoon.view.header.triggerOAuthStatus.valueHasMutated();
 
 				yasoon.view.settings.renderOptionPane(yasoon.view.settings.currentApp());
 				return false;
@@ -252,6 +280,11 @@ function JiraSettingController() {
 	self.saveSettings = function saveSettings (form) {
 		//Create deep copy
 		$.each(form, function (i, param) {
+			//Special Case for activeFilters
+			if (param.key === 'activeFilters' && self[param.key] != param.value ) {
+				yasoon.dialog.showMessageBox('Changes to filters will be available with the next Outlook restart.');
+			}
+
 			if (param.value == "true") {
 				self[param.key] = true;
 			} else if (param.value == "false") {
@@ -293,7 +326,9 @@ function JiraSettingController() {
 		jira.license = JSON.parse(licenseString);
 		jira.license.validUntil = new Date(jira.license.validUntil);
 	} else {
-		jira.license = { comment: 'Please play fair and pay for your software.', isFullyLicensed: false, validUntil: new Date(2099, 11, 01)};
+		var validUntil = new Date();
+		validUntil.setDate(validUntil.getDate() + 1);
+		jira.license = { comment: 'Please play fair and pay for your software.', isFullyLicensed: false, validUntil: validUntil };
 		yasoon.setting.setAppParameter('license', JSON.stringify(jira.license));
 	}
 
