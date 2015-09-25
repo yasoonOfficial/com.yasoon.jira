@@ -183,12 +183,16 @@ function JiraRibbonController() {
 					yasoon.dialog.showMessageBox('Please select some text first!');
 					return;
 			}
-			
+						
+			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
+						
 			yasoon.outlook.mail.renderSelection(ribbonCtx.items[ribbonCtx.readingPaneItem], 'jiraMarkup')
 			.then(function (markup) {
 				initParams.text = markup;
-				initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
-				
+				yasoon.dialog.open(dialogOptions);
+			})
+			.catch(function () {
+				initParams.text = 'Could not render the selected text as JIRA markup. Please switch to plain text or contact us to get this fixed!';
 				yasoon.dialog.open(dialogOptions);
 			});
 			
@@ -235,11 +239,15 @@ function JiraRibbonController() {
 				return;
 			}
 
+			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
+
 			yasoon.outlook.mail.renderSelection(ribbonCtx.items[ribbonCtx.readingPaneItem], 'jiraMarkup')
 			.then(function (markup) {
 				initParams.text = markup;
-				initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
-
+				yasoon.dialog.open(dialogOptions);
+			})
+			.catch(function () {
+				initParams.text = 'Could not render the selected text as JIRA markup. Please switch to plain text or contact us to get this fixed!';
 				yasoon.dialog.open(dialogOptions);
 			});
 		}
