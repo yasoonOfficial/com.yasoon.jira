@@ -190,7 +190,10 @@ function JiraSettingController() {
 		});
 		//Add JS
 		container.afterRender = function () {
-			$('#activeFilters').multiSelect();
+			$('#activeFilters').multiSelect({
+				selectableHeader: 'Available',
+				selectionHeader: 'Active'
+			});
 
 			$('#jiraLogin').unbind().click(function () {
 				var selectedServiceName = $('#currentService').val();

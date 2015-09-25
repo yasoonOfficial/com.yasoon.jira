@@ -351,8 +351,8 @@ function JiraIssueNotification(issue) {
 
 		//Add Components
 		if (self.issue.fields.components) {
-			$.each(self.issue.fields.components, function (i, label) {
-				feed.properties.customLabels.push({ description: label.name, labelColor: '#0B96AA', url: jira.settings.baseUrl + '/browse/' + self.issue.fields.project.key + '/component/' + label.id });
+			$.each(self.issue.fields.components, function (i, comp) {
+				feed.properties.customLabels.push({ description: comp.name, labelColor: '#0B96AA', url: jira.settings.baseUrl + '/browse/' + self.issue.fields.project.key + '/component/' + comp.id });
 			});
 		}
 
@@ -574,10 +574,7 @@ function JiraIssueActionNotification(event) {
 		var html;
 		if (self.event.type === 'IssueComment') {
 			html = '<span>' + self.event.renderedComment.body + '</span>';
-		} else if (self.event.category && self.event.category['@attributes'].term === 'comment') {
-			//Legacy code!! Nov 2014
-			html = '<span>' + self.event.content['#text'] + '</span>';
-		} else {
+		} else if(self.event.title) {
 			html = '<span>' + self.event.title['#text'] + '</span>';
 			var title = null;
 			if (self.event.content) {
@@ -600,6 +597,8 @@ function JiraIssueActionNotification(event) {
 			}
 			if(title)
 				html += '<span class="small yasoon-tooltip" style="cursor:pointer;" data-toggle="tooltip" data-html="true" title="' + title + '">( <i class="fa fa-exclamation-circle"></i> more)</span>';
+		} else {
+			yasoon.util.log('Coulnd\'t determine title for:' + JSON.stringify(self.event), yasoon.util.severity.error);
 		}
 		feed.setContent(html);
 	};
