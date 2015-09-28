@@ -328,7 +328,6 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				for (var i = 0; i < metas.length; i++)
 					metas[i] = JSON.parse(metas[i]);
 
-				console.log('Loading Cache Pt2', new Date(), metas);
 				//Transform data structure
 				var result = [];
 				metas.forEach(function (meta) {

@@ -8,25 +8,7 @@ $(function () {
 	});
 });
 
-$(window).resize(function () {
-	var bodyHeight = $('body').height();
-	if (bodyHeight > 535) {
-		$('body').css('overflow-y', 'hidden');
-		$('.form-body').height(bodyHeight - 185);
-		//185 => Difference between Body und form-body
-		//270 => Space for project, issue and attachment field (in maximum)
-		//155 => Min height of comment field
-
-		//If the rest has 270 pixel, only increase the comment field
-		if ((bodyHeight - 185 - 270 - 155) > 0) 
-			$('#description').height((bodyHeight - 185 - 270));
-
-	} else {
-		$('body').css('overflow-y', 'scroll');
-		$('.form-body').height(350);
-		$('#description').height(155);
-	}
-});
+$(window).resize(resizeWindow);
 
 yasoon.dialog.load(new function () { //jshint ignore:line
 	var self = this;
@@ -57,7 +39,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		//Register Close Handler
 		yasoon.dialog.onClose(self.cleanup);
-
+		// Resize Window if nessecary (sized are optimized for default Window - user may have changed that)
+		resizeWindow();
 		//Add attachments to clipboard
 		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
 			$.each(self.mail.attachments, function (i, attachment) {
@@ -395,11 +378,11 @@ function (select, Utils) {
 				jqlResult.issues.forEach(function (issue) {
 					result.push({ id: issue.id, text: issue.fields.summary + ' (' + issue.key + ')' });
 				});
-				
+
 				callback({
 					results: [{
 						id: 'Results',
-						text: 'Results for "'+ params.term +'"',
+						text: 'Results for "' + params.term + '"',
 						children: result
 					}]
 				});
@@ -424,4 +407,24 @@ function (select, Utils) {
 		minimumInputLength: 2
 	});
 });
+
+function resizeWindow() {
+	var bodyHeight = $('body').height();
+	if (bodyHeight > 535) {
+		$('body').css('overflow-y', 'hidden');
+		$('.form-body').height(bodyHeight - 185);
+		//185 => Difference between Body und form-body
+		//270 => Space for project, issue and attachment field (in maximum)
+		//155 => Min height of comment field
+
+		//If the rest has 270 pixel, only increase the comment field
+		if ((bodyHeight - 185 - 270 - 155) > 0) 
+			$('#description').height((bodyHeight - 185 - 270));
+
+	} else {
+		$('body').css('overflow-y', 'scroll');
+		$('.form-body').height(350);
+		$('#description').height(155);
+	}
+}
 //@ sourceURL=http://Jira/Dialog/jiraAddCommentDialog.js

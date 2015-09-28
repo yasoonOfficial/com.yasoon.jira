@@ -554,7 +554,7 @@ function JiraFilterController() {
 					});
 
 					if (page.CurrentPage < page.TotalPages) {
-						indexPage(page.nextPage())
+						indexPages(page.nextPage())
 						.then(function () {
 							resolve();
 						});

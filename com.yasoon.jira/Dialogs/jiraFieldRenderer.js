@@ -259,7 +259,6 @@ function LabelRenderer() {
 	};
 
 	this.setValue = function (id, value) {
-		console.log('Label Renderer ' + id, value);
 		if (value && value.length > 0) {
 			$('#' + id).val(value).trigger('change');
 			$('#' + id).data('value', value);

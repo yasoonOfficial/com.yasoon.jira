@@ -8,20 +8,11 @@ $(function () {
 	});
 });
 
-$(window).resize(function () {
-	var bodyHeight = $('body').height();
-	if (bodyHeight > 460) {
-		$('body').css('overflow-y', 'hidden');
-		$(".form-body").height(bodyHeight - 170);
-	} else {
-		$('body').css('overflow-y', 'scroll');
-		$(".form-body").height(290);
-	}
-});
+$(window).resize(resizeWindow);
 
 yasoon.dialog.load(new function () { //jshint ignore:line
 	var self = this;
-   
+
 	jira = this;
 	jira.CONST_HEADER = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
 	
@@ -112,6 +103,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		//Register Close Handler
 		yasoon.dialog.onClose(self.cleanup);
+
+		// Resize Window if nessecary (sized are optimized for default Window - user may have changed that)
+		resizeWindow();
 
 		//Load Recent Projects from DB
 		var projectsString = yasoon.setting.getAppParameter('recentProjects');
@@ -518,6 +512,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			$('#LoaderArea').hide();
 
 			$('#ContentArea').css('visibility', 'visible');
+
 		});
 	};
 
@@ -633,6 +628,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 							}
 						}
 					}
+
+					jira.UIFormHandler.getRenderer('attachment').renderAttachments('attachment');
 				}
 			});
 		}
@@ -794,5 +791,16 @@ function createTemplate(email, sender, project, values) {
 	delete values.fields.summary;
 	delete values.fields.description;
 	this.values = values;
+}
+
+function resizeWindow () {
+	var bodyHeight = $('body').height();
+	if (bodyHeight > 460) {
+		$('body').css('overflow-y', 'hidden');
+		$(".form-body").height(bodyHeight - 170);
+	} else {
+		$('body').css('overflow-y', 'scroll');
+		$(".form-body").height(290);
+	}
 }
 //@ sourceURL=http://Jira/Dialog/jiraDialog.js
