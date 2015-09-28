@@ -605,6 +605,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			if (self.selectedText && fieldMapping.body) {
 				var bodyType = $('#' + fieldMapping.body).data('type');
 				jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, self.selectedText);
+				self.handleAttachments(self.selectedText);
 			}
 			
 			yasoon.outlook.mail.renderBody(self.mail, 'jiraMarkup')
@@ -614,22 +615,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				if (!self.selectedText && fieldMapping.body) {
 					bodyType = $('#' + fieldMapping.body).data('type');
 					jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, markup);
-					var handles = yasoon.clipboard.all();
-											
-					for (var id in handles) {
-						if (handles.hasOwnProperty(id)) {
-							var fileHandle = handles[id];
-							if (markup.indexOf('!' + fileHandle.getFileName() + '!') > -1) {
-								self.selectedAttachments.push(fileHandle);
-								var index = self.addedAttachmentIds.indexOf(id);
-								self.addedAttachmentIds.splice(index, 1);
-								fileHandle.setInUse();
-								yasoon.clipboard.remove(id);
-							}
-						}
-					}
-
-					jira.UIFormHandler.getRenderer('attachment').renderAttachments('attachment');
+					self.handleAttachments(markup);
+				}
+			})
+			.catch(function () {
+				jira.mailAsMarkup = 'Could not render the selected text as JIRA markup. Please switch to plain text or contact us to get this fixed!';
+				if (!self.selectedText && fieldMapping.body) {
+					bodyType = $('#' + fieldMapping.body).data('type');
+					jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, jira.mailAsMarkup);
 				}
 			});
 		}
@@ -725,8 +718,11 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			var senderValue = '';
 			if (jira.mail) {
 				//If senderField Mapping is set to an UserField and sender is an known user 
-				if (senderType === 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker' && jira.senderUser && jira.senderUser.name !== -1) {
-					senderValue = jira.senderUser;
+				if (senderType === 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker') {
+					if (jira.senderUser && jira.senderUser.name !== -1)
+						senderValue = jira.senderUser;
+					else
+						senderValue = jira.ownUser;
 				} else {
 					senderValue = jira.mail.senderEmail;
 				}
@@ -739,6 +735,23 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				}
 			}
 			jira.UIFormHandler.setValue(fieldMapping.sender, { schema: { custom: senderType } }, senderValue);
+		}
+	};
+
+	this.handleAttachments = function (markup) {
+		var handles = yasoon.clipboard.all();
+		for (var id in handles) {
+			if (handles.hasOwnProperty(id)) {
+				var fileHandle = handles[id];
+				if (markup.indexOf('!' + fileHandle.getFileName() + '!') > -1) {
+					self.selectedAttachments.push(fileHandle);
+					var index = self.addedAttachmentIds.indexOf(id);
+					self.addedAttachmentIds.splice(index, 1);
+					fileHandle.setInUse();
+					yasoon.clipboard.remove(id);
+				}
+			}
+			jira.UIFormHandler.getRenderer('attachment').renderAttachments('attachment');
 		}
 	};
 }); //jshint ignore:line

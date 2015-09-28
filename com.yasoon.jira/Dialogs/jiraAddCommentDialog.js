@@ -46,7 +46,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			$.each(self.mail.attachments, function (i, attachment) {
 				var handle = attachment.getFileHandle();
 				
-				if (self.settings.addAttachmentsOnNewAddIssue) {				
+				if (self.settings.addAttachmentsOnNewAddIssue || (self.selectedText && self.selectedText.indexOf('!' + handle.getFileName() + '!') > -1)) {
 					self.selectedAttachments.push(handle);
 				}
 				else {
@@ -81,6 +81,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		//Add Default Data
 		if (self.selectedText) {
 			$('#description').val(self.selectedText);
+			self.handleAttachments(self.selectedText);
 		}
 
 		//Render current mail (just in case we need it as it probably needs some time)
@@ -91,6 +92,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				//If there is no selection, set this as description;
 				if (!self.selectedText) {
 					$('#description').val(markup);
+					self.handleAttachments(markup);
 				}
 			});
 		}
@@ -289,6 +291,23 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			}
 			self.recentIssues.push(selectedIssue);
 			yasoon.setting.setAppParameter('recentIssues', JSON.stringify(self.recentIssues));
+		}
+	};
+
+	this.handleAttachments = function (markup) {
+		var handles = yasoon.clipboard.all();
+		for (var id in handles) {
+			if (handles.hasOwnProperty(id)) {
+				var fileHandle = handles[id];
+				if (markup.indexOf('!' + fileHandle.getFileName() + '!') > -1) {
+					self.selectedAttachments.push(fileHandle);
+					var index = self.addedAttachmentIds.indexOf(id);
+					self.addedAttachmentIds.splice(index, 1);
+					fileHandle.setInUse();
+					yasoon.clipboard.remove(id);
+				}
+			}
+			jira.UIFormHandler.getRenderer('attachment').renderAttachments('attachment');
 		}
 	};
 }); //jshint ignore:line
