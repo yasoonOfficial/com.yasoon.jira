@@ -745,14 +745,16 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				var fileHandle = handles[id];
 				if (markup.indexOf('!' + fileHandle.getFileName() + '!') > -1) {
 					self.selectedAttachments.push(fileHandle);
-					var index = self.addedAttachmentIds.indexOf(id);
-					self.addedAttachmentIds.splice(index, 1);
+					var index = self.addedAttachmentIds.indexOf(fileHandle.id);
+					if (index > -1) {
+						self.addedAttachmentIds.splice(index, 1);
+					}
 					fileHandle.setInUse();
-					yasoon.clipboard.remove(id);
+					yasoon.clipboard.remove(fileHandle.id);
 				}
 			}
-			jira.UIFormHandler.getRenderer('attachment').renderAttachments('attachment');
 		}
+		jira.UIFormHandler.getRenderer('attachment').renderAttachments('attachment');
 	};
 }); //jshint ignore:line
 

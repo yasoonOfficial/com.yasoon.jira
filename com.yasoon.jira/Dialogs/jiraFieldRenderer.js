@@ -518,7 +518,7 @@ function UserPickerRenderer() {
 
 			jiraAjax('/rest/api/2/user', yasoon.ajaxMethod.Post, JSON.stringify(newUser))
 			.then(function (user) {
-			user = JSON.parse(user);
+				user = JSON.parse(user);
 				return jiraAjax('/rest/api/2/group/user?groupname=jira-users&username=' + encodeURI(user.name), yasoon.ajaxMethod.Delete)
 				.return(user);
 			})

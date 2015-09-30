@@ -60,6 +60,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 
 			//Download custom script
 			self.downloadCustomScript();
+
 		} else {
 			setTimeout(function () {
 				jiraOpenPurchaseDialog();
