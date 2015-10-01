@@ -25,7 +25,6 @@ function JiraSettingController() {
 		var oAuthServices = yasoon.app.getOAuthServices();
 		var html = '';
 		var description = '';
-
 		if (!jira.settings.currentService) {
 			html = '<p>Please choose your Jira instance and login.</p>' +
 				   '<form class="form-horizontal" role="form">' +
@@ -40,7 +39,7 @@ function JiraSettingController() {
 				description = service.serviceName;
 				if (service.appParams)
 					description = service.appParams.description;
-				html += '           <option value="' + service.serviceName + '">' + description + '</option>';
+				html += '           <option value="' + service.serviceName + '" '+ ((service.mainService) ? 'selected' : '' ) + '>' + description + '</option>';
 			});
 
 			html += '           </select>' +
