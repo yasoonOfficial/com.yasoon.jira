@@ -617,11 +617,8 @@ function AttachmentLinkRenderer() {
 
 			//Split FileName into pure name and extension
 			var attachmentName = domAttachmentName.text();
-			var nameParts = attachmentName.split('.');
-			var extension = '.' + nameParts[nameParts.length - 1];
-			delete nameParts[nameParts.length - 1];
-
-			attachmentName = nameParts.join('.').slice(0, -1); //Remove last .
+			var extension = attachmentName.substring(attachmentName.lastIndexOf('.'));
+			attachmentName = attachmentName.substring(0, attachmentName.lastIndexOf('.'));
 
 			//Add Change Input Fields
 			domAttachmentNewName.removeClass('hidden');
@@ -646,7 +643,12 @@ function AttachmentLinkRenderer() {
 					var handleId = domAttachmentLink.data('id');
 					var currentHandle = jira.selectedAttachments.filter(function (item) { return item.id == handleId; })[0];
 					currentHandle.setFileName(newName + extension);
-
+					
+					//Replace references in description (if necessary)
+					var oldText = $('#description').val();
+					var regEx = new RegExp(attachmentName + extension, 'g');
+					var newText = oldText.replace(regEx, newName + extension);
+					$('#description').val(newText);
 				}
 				closeHandler();
 			});
@@ -667,6 +669,11 @@ function AttachmentLinkRenderer() {
 						var currentHandle = jira.selectedAttachments.filter(function (item) { return item.id == handleId; })[0];
 						currentHandle.setFileName(newName + extension);
 
+						//Replace references in description (if necessary)
+						var oldText = $('#description').val();
+						var regEx = new RegExp(attachmentName + extension, 'g');
+						var newText = oldText.replace(regEx, newName + extension);
+						$('#description').val(newText);
 					}
 					closeHandler();
 				}
