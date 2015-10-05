@@ -9,6 +9,23 @@ function jiraCreateHash(input) {
 	return hash;
 }
 
+function getUniqueKey() {
+	//Use current time to get something short unique
+	var currentTime = Math.round(new Date().getTime() / 1000);
+	var buf = new ArrayBuffer(4);
+	var view = new DataView(buf);
+	view.setUint32(0, currentTime, false);
+	
+	var binary = '';
+    var bytes = new Uint8Array(buf);
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode( bytes[ i ] );
+    }
+	
+    return window.btoa( binary ).replace(/=/g, '');
+}
+
 function jiraLog(text, obj, stacktrace) {
 	if (yasoon.logLevel == 0) { //jshint ignore:line
 		var stack = '';

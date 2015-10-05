@@ -47,6 +47,16 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				var handle = attachment.getFileHandle();
 				
 				if (self.settings.addAttachmentsOnNewAddIssue || (self.selectedText && self.selectedText.indexOf('!' + handle.getFileName() + '!') > -1)) {
+					//Rename embedded images, because embedded images have generic names
+					// like image0001.png that duplicate quickly on issues
+					var uniqueKey = getUniqueKey();
+					var oldFileName = handle.getFileName();
+					var newFileName = oldFileName.substring(0, oldFileName.lastIndexOf('.'));
+					newFileName = newFileName + '_' + uniqueKey + oldFileName.substring(oldFileName.lastIndexOf('.'));
+					handle.setFileName(newFileName);
+					
+					var regEx = new RegExp('!' + oldFileName + '!', 'g');
+					self.selectedText = self.selectedText.replace(regEx, '!' + newFileName + '!');										
 					self.selectedAttachments.push(handle);
 				}
 				else {
