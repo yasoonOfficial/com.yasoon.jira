@@ -329,7 +329,7 @@ function JiraSettingController() {
 		jira.license.validUntil = new Date(jira.license.validUntil);
 	} else {
 		var validUntil = new Date();
-		validUntil.setDate(validUntil.getDate() + 1);
+		validUntil.setDate(validUntil.getDate() + 14);
 		jira.license = { comment: 'Please play fair and pay for your software.', isFullyLicensed: false, validUntil: validUntil };
 		yasoon.setting.setAppParameter('license', JSON.stringify(jira.license));
 	}

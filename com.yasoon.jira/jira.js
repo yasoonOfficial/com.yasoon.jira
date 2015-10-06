@@ -67,25 +67,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			}, 10);
 		}
 
-		if (!jira.license.isFullyLicensed) {
-			//Check License Information
-			jiraGetProducts()
-			.then(function (products) {
-				if (products && products.length > 0) {
-					jira.license.validUntil = products[0].validUntil;
-				}
-
-				//Check if it's valid forever and if it's a Server instance (url does not ends with jira.com or atlassian.net) 
-				if (jira.license.validUntil > new Date(2099, 0, 1) && !jiraIsCloud(jira.settings.baseUrl)) {
-					jira.license.isFullyLicensed = true; //No need to check license again
-
-				}
-				yasoon.setting.setAppParameter('license', JSON.stringify(jira.license));
-			})
-			.catch(function (e) {
-
-			});
-		}
+		self.checkLicense();
 	};
 
 	this.sync = function sync() {
@@ -143,6 +125,8 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		yasoon.setting.setAppParameter('settings', JSON.stringify(jira.settings));
 		oAuthSuccess = true;
 		self.sync();
+
+		self.checkLicense();
 	};
 
 	this.handleOAuthError = function (serviceName, statusCode, error) {
@@ -370,6 +354,28 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 					jira.downloadScript = false;
 				});
 			}
+		}
+	};
+
+	this.checkLicense = function () {
+		if (!jira.license.isFullyLicensed) {
+			//Check License Information
+			jiraGetProducts()
+			.then(function (products) {
+				if (products && products.length > 0) {
+					jira.license.validUntil = products[0].validUntil;
+				}
+
+				//Check if it's valid forever and if it's a Server instance (url does not ends with jira.com or atlassian.net) 
+				if (jira.license.validUntil > new Date(2099, 0, 1) && !jiraIsCloud(jira.settings.baseUrl)) {
+					jira.license.isFullyLicensed = true; //No need to check license again
+
+				}
+				yasoon.setting.setAppParameter('license', JSON.stringify(jira.license));
+			})
+			.catch(function (e) {
+
+			});
 		}
 	};
 
