@@ -3,14 +3,17 @@ function JiraNotificationController() {
 	var notificationCounter = 0;
 	var notification = null;
 	var notificationEvent = null;
-
+	
 	var childQueue = [];
+
+	self.worklogTemplateLoaded = false;
+	self.worklogTemplate = null;
 
 	self.handleCommentError = function (error) {
 		var errorMessage = (error.statusCode === 500) ? 'Connection to Jira not possible' : error.errorText;
 		yasoon.alert.add({ type: yasoon.alert.alertType.error, message: 'Could not create Comment: ' + errorMessage });
 	};
-
+	
 	self.handleAttachmentError = function (error) {
 		var errorMessage = (error.statusCode === 500) ? 'Connection to Jira not possible' : error.errorText;
 		yasoon.alert.add({ type: yasoon.alert.alertType.error, message: 'Could not upload Attachment(s): ' + errorMessage });
@@ -199,6 +202,114 @@ function JiraNotificationController() {
 			type: 'IssueComment'
 		};
 	};
+
+	self.loadWorklogTemplate = function (issueKey, cbk) {
+		if (!self.templateLoaded) {
+			var path = yasoon.io.getLinkPath('templates/addWorklog.hbs');
+			$.get(path, function (template) {
+				self.templateLoaded = true;
+				self.worklogTemplate = Handlebars.compile(template);
+				$('body').append(self.worklogTemplate());
+				$('#jiraAddWorklog').data('key', issueKey);
+
+				//Create Datetime Picker
+				$('#jiraInputDateStarted').datetimepicker({
+					allowTimes: [
+						//'00:00', '00:30', '01:00', '01:30', '02:00', '02:30', '03:00', '03:30', '04:00', '04:30', '05:00', '05:30', '06:00', '06:30',
+						'07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+						'12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00'
+						//,'20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30'
+					]
+				});
+				//Selection changed
+				$('input[name=jiraOptionsRadios]').change(function () {
+					//Make inputFields read-only
+					$('#jiraRemainingEstimateSetInput').prop('disabled', true);
+					$('#jiraRemainingEstimateReduceInput').prop('disabled', true);
+
+					if ($(this).attr('id') === 'jiraRemainingEstimateSet')
+						$('#jiraRemainingEstimateSetInput').prop('disabled', false);
+
+					if ($(this).attr('id') === 'jiraRemainingEstimateReduce')
+						$('#jiraRemainingEstimateReduceInput').prop('disabled', false);
+
+				});
+				//Submit
+				$('#jiraAddWorklog .btn-primary').click(function () {
+					//Reset UI states
+					$('#jiraAddWorklog').find('form-group').remove('has-error');
+
+					//Check Mandatory fields
+					var dataTimeSpent = $('#jiraInputTimeSpent').val();
+					var dataWorkStarted = $('#jiraInputDateStarted').val();
+
+					var dataSetTimeInput = $('#jiraRemainingEstimateSetInput').val();
+					var dataReduceTimeInput = $('#jiraRemainingEstimateReduceInput').val();
+					var dataIssueKey = $('#jiraAddWorklog').data('key');
+					var dataOptionValue = $('input[name=jiraOptionsRadios]:checked').val();
+					var dataComment = $('#jiraInputComment').val();
+
+					if (!dataWorkStarted) {
+						$('#jiraInputDateStarted').closest('.form-group').addClass('has-error');
+						return;
+					}
+
+					if (!dataTimeSpent) {
+						$('#jiraInputTimeSpent').closest('.form-group').addClass('has-error');
+						return;
+					}
+
+					if (dataOptionValue === 'new' && !dataSetTimeInput) {
+						$('#jiraRemainingEstimateSetInput').closest('.form-group').addClass('has-error');
+						return;
+					}
+
+					if (dataOptionValue === 'manual' && !dataReduceTimeInput) {
+						$('#jiraRemainingEstimateReduceInput').closest('.form-group').addClass('has-error');
+						return;
+					}
+
+					//Parse date --> it's in format YYYY/MM/DD hh:mm --> Date can parse it automcatically
+					var dateString = new Date(dataWorkStarted).toISOString();
+					//WTF... JIRA accepts 2015-09-25T09:56:18.082+0000 but not 2015-09-25T09:56:18Z
+					dateString = dateString.replace('Z', '+0000');
+
+					//Set Data
+					var data = {
+						comment: dataComment,
+						timeSpent: $('#jiraInputTimeSpent').val(),
+						started: dateString
+					};
+
+					//Build url
+					var url = '/rest/api/2/issue/' + dataIssueKey + '/worklog?adjustEstimate=' + dataOptionValue;
+
+					if (dataOptionValue === 'new')
+						url += '&newEstimate=' + dataSetTimeInput;
+
+					if (dataOptionValue === 'manual')
+						url += '&newEstimate=' + dataReduceTimeInput;
+
+					//Dirty dirty dirty
+					var token = yasoon.app.enterContext('com.yasoon.jira');
+					jiraAjax(url, yasoon.ajaxMethod.Post, JSON.stringify(data))
+					.then(function () {
+						$('#jiraAddWorklog').modal('hide');
+						jira.sync();
+					});
+					yasoon.app.leaveContext(token);
+				});
+
+				cbk();
+			});
+		} else {
+			$('#jiraAddWorklog').data('key', issueKey);
+			//Clear input fields
+			$('#jiraInputTimeSpent, #jiraInputDateStarted, #jiraRemainingEstimateSetInput, #jiraRemainingEstimateReduceInput,#jiraInputComment').val('');
+			$('input[name=jiraOptionsRadios]').first().prop('checked', true);
+			cbk();
+		}
+	};
 }
 
 function JiraNotification() {
@@ -208,6 +319,8 @@ function JiraNotification() {
 JiraIssueNotification.prototype = new JiraNotification();
 function JiraIssueNotification(issue) {
 	var self = this;
+	var worklogOpenInProgress = false;
+
 	self.issue = issue;
 
 	function isSyncNeeded() {
@@ -382,6 +495,7 @@ function JiraIssueNotification(issue) {
 		feed.properties.customActions.push({ description: changeStatusHtml, eventHandler: $.noop });
 		feed.properties.customActions.push({ description: '<span><i class="fa fa-paperclip"></i> Add file</span>', eventHandler: self.addAttachment });
 		feed.properties.customActions.push({ description: '<span><i class="fa fa-pencil"></i> Edit</span>', eventHandler: self.editIssue });
+		feed.properties.customActions.push({ description: '<span data-key="' + self.issue.key + '"><i class="fa fa-clock-o"></i> Log Work</span>', eventHandler: self.logWork, issueKey: self.issue.key });
 		feed.properties.baseUrl = jira.settings.baseUrl;
 		feed.setProperties(feed.properties);
 
@@ -559,6 +673,19 @@ function JiraIssueNotification(issue) {
 			closeCallback: jira.ribbons.ribbonOnCloseNewIssue
 		});
 	};
+
+	self.logWork = function () {
+		if (worklogOpenInProgress)
+			return;
+
+		worklogOpenInProgress = true;
+		jira.notifications.loadWorklogTemplate(self.issue.key, self.openLogWorkDialog);
+	};
+
+	self.openLogWorkDialog = function () {
+		worklogOpenInProgress = false;
+		$('#jiraAddWorklog').modal('show');
+	};
 }
 
 JiraIssueActionNotification.prototype = new JiraNotification();
@@ -578,7 +705,8 @@ function JiraIssueActionNotification(event) {
 			html = '<span>' + self.event.title['#text'] + '</span>';
 			var title = null;
 			if (self.event.content) {
-				title = $('<div></div>').html(self.event.content['#text']).text().trim();
+				title = $('<div></div>').html(self.event.content['#text']).text().trim().replace(/>/g, '&gt;');
+				console.log('Title', title);
 				if (!title && self.event['activity:object']) {
 					if ($.isArray(self.event['activity:object'])) {
 						//Can be an array (e.g. if mutiple files has been uploaded at once.

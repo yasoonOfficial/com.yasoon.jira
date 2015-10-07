@@ -58,7 +58,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 	//Which email field maps to which JIRA field
 	var fieldMapping = {
-		subject: 'subject',
+		subject: 'summary',
 		body: 'description',
 		sender: 'reporter',
 		sentAt: ''
@@ -73,7 +73,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.init = function (initParams) {
 		//Parameter taken over from Main JIRA
 		self.settings = initParams.settings;
-		self.ownUser = initParams.ownUser;
+		self.ownUser = initParams.ownUser || {};
 		self.editIssue = initParams.editIssue;
 		self.mail = initParams.mail;
 		self.selectedText = initParams.text;

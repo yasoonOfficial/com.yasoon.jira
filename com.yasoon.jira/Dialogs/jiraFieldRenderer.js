@@ -253,6 +253,44 @@ function DateRenderer() {
 	};
 }
 
+function DateTimeRenderer() {
+	this.getValue = function (id) {
+		var value = $('#' + id).val();
+		if (value) {
+			var dateString = new Date(value).toISOString();
+			return dateString.replace('Z', '+0000');
+		}
+	};
+
+	this.setValue = function (id, value) {
+		if (value) {
+			$('#' + id).val(moment(new Date(value)).format('YYYY/MM/DD hh:mm'));
+		}
+	};
+
+	this.render = function (id, field, container) {
+		var html = '<div class="field-group aui-field-datepicker"> ' +
+					'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ' +
+					'    <input style="height: 28px;" class="text long-field" id="' + id + '" name="' + id + '" placeholder="yyyy/mm/dd hh:mm" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
+					'    <a href="#" id="' + id + '-trigger" title="Select a date" tabindex="-1"><span class="aui-icon icon-date">Select a date</span></a> ' +
+					'</div>';
+		$(container).append(html);
+
+		$('#'+id).datetimepicker({
+			allowTimes: [
+				//'00:00', '00:30', '01:00', '01:30', '02:00', '02:30', '03:00', '03:30', '04:00', '04:30', '05:00', '05:30', '06:00', '06:30',
+				'07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+				'12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00'
+				//,'20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30'
+			]
+		});
+
+		$('#' + id + '-trigger').unbind().click(function (e) {
+			$('#' + id).datetimepicker("show");
+		});
+	};
+}
+
 function LabelRenderer() {
 	this.getValue = function (id) {
 		return $('#' + id).val();
@@ -520,10 +558,10 @@ function UserPickerRenderer() {
 			.then(function (user) {
 				user = JSON.parse(user);
 				return jiraAjax('/rest/api/2/group/user?groupname=jira-users&username=' + encodeURI(user.name), yasoon.ajaxMethod.Delete)
+				.catch(function() {})
 				.return(user);
 			})
 			.then(function (user) {
-				user = JSON.parse(user);
 				//New user successfully created
 				console.log('Successfull:', user);
 				//1. Set it as value for current field
@@ -545,6 +583,7 @@ function UserPickerRenderer() {
 
 			})
 			.catch(function (error) {
+				console.log(error);
 				if (error && error.statusCode == 403) {
 					yasoon.dialog.showMessageBox('You are not allowed to create new users in JIRA. Please contact your administrator to use this function');
 				} else if (error && error.statusCode == 404) {
@@ -1118,6 +1157,7 @@ UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:multichec
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:radiobuttons', new RadioButtonRenderer());
 UIRenderer.register('duedate', new DateRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:datepicker', new DateRenderer());
+UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:datetime', new DateTimeRenderer());
 UIRenderer.register('labels', new LabelRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:labels', new LabelRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:float', new NumberRenderer());
