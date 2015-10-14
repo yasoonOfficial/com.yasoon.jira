@@ -408,6 +408,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		$('#MainAlert').show();
 		$('#LoaderArea').hide();
 		console.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data);
+		yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data, yasoon.util.severity.error);
 	};
 
 	this.addRecentProject = function (project) {
