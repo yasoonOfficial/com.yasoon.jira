@@ -113,7 +113,7 @@ function JiraNotificationController() {
 	self.queueChildren = function (issue) {
 		var results = $.grep(childQueue, function (i) { return issue.key === i.key; });
 		if (results.length === 0) {
-			console.log('Queue Child - Add to Array ' + issue.key);
+			//console.log('Queue Child - Add to Array ' + issue.key);
 			childQueue.push(issue);
 		}
 	};
@@ -133,7 +133,7 @@ function JiraNotificationController() {
 				var data = JSON.parse(notif.externalData);
 				data.childrenLoaded = true;
 				notif.externalData = JSON.stringify(data);
-				console.log('Queue Successfully processed for: ' + data.key);
+				//console.log('Queue Successfully processed for: ' + data.key);
 				return jiraSaveNotification(notif);
 			});
 		})
@@ -391,10 +391,10 @@ function JiraIssueNotification(issue) {
 	}
 
 	function searchUser(mode, query, callback) {
-		console.log('Search User');
+		//console.log('Search User');
 		jiraGet('/rest/api/2/user/viewissue/search?issueKey='+ self.issue.key +'&projectKey='+ self.issue.fields.project.key +'&maxResults=10&username='+query)
 		.then(function (users) {
-			console.log('Result:',users);
+			//console.log('Result:',users);
 			var data = [];
 			users = JSON.parse(users);
 			users.forEach(function (user) {
@@ -706,7 +706,6 @@ function JiraIssueActionNotification(event) {
 			var title = null;
 			if (self.event.content) {
 				title = $('<div></div>').html(self.event.content['#text']).text().trim().replace(/>/g, '&gt;');
-				console.log('Title', title);
 				if (!title && self.event['activity:object']) {
 					if ($.isArray(self.event['activity:object'])) {
 						//Can be an array (e.g. if mutiple files has been uploaded at once.
