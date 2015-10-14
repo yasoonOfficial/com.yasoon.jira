@@ -667,7 +667,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			//Check in Cache
 			if (jira.cacheCreateMetas && jira.cacheCreateMetas.length > 0) {
 				var projectMeta = jira.cacheCreateMetas.filter(function (m) { return m.key === jira.selectedProject.key; })[0];
-				if (project) {
+				if (projectMeta) {
 					jira.projectMeta = projectMeta;
 					return resolve();
 				}
