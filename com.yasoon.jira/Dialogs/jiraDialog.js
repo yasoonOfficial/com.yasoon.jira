@@ -488,7 +488,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				$('#IssueArea').show();
 
 				var meta = $.grep(self.projectMeta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
-				jira.renderIssue(meta);
+				return jira.renderIssue(meta);
 			})
 			.catch(jira.handleError);
 		}
