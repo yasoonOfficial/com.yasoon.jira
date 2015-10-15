@@ -715,6 +715,7 @@ function AttachmentLinkRenderer() {
 						$('#description').val(newText);
 					}
 					closeHandler();
+					return false;
 				}
 			});
 		});

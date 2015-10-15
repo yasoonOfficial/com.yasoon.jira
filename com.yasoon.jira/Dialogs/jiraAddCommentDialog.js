@@ -5,6 +5,11 @@ $(function () {
 	$('form').on('submit', function(e) {
 		e.preventDefault();
 		return false;
+	})
+	.bind("keypress", function (e) {
+		if (e.keyCode == 13) {
+			e.preventDefault();
+		}
 	});
 });
 
@@ -46,7 +51,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			$.each(self.mail.attachments, function (i, attachment) {
 				var handle = attachment.getFileHandle();
 				
-				if (self.settings.addAttachmentsOnNewAddIssue || (self.selectedText && self.selectedText.indexOf('!' + handle.getFileName() + '!') > -1)) {
+				if (self.settings.addAttachmentsOnNewAddIssue || (self.selectedText && self.selectedText.indexOf('!' + attachment.contentId + '!') > -1)) {
 					//Rename embedded images, because embedded images have generic names
 					// like image0001.png that duplicate quickly on issues
 					var uniqueKey = getUniqueKey();
@@ -55,8 +60,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					newFileName = newFileName + '_' + uniqueKey + oldFileName.substring(oldFileName.lastIndexOf('.'));
 					handle.setFileName(newFileName);
 					
-					var regEx = new RegExp('!' + oldFileName + '!', 'g');
-					self.selectedText = self.selectedText.replace(regEx, '!' + newFileName + '!');										
+					//In case of embedded image, we need to rename it as well
+					if (self.selectedText && self.selectedText.indexOf('!' + attachment.contentId + '!') > -1) {
+						var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
+						self.selectedText = self.selectedText.replace(regEx, '!' + newFileName + '!');			
+					}
+												
 					self.selectedAttachments.push(handle);
 				}
 				else {

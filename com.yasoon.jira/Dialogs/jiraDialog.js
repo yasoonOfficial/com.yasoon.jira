@@ -5,6 +5,11 @@ $(function () {
 	$('form').on('submit', function(e) {
 		e.preventDefault();
 		return false;
+	})
+	.bind("keypress", function (e) {
+		if (e.keyCode == 13) {
+			e.preventDefault();
+		}
 	});
 });
 
@@ -146,8 +151,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				$.each(self.mail.attachments, function (i, attachment) {
 					var handle = attachment.getFileHandle();
 										
-					if (self.settings.addAttachmentsOnNewAddIssue || (self.selectedText && self.selectedText.indexOf('!' + handle.getFileName() + '!') > -1)) {				
+					if (self.settings.addAttachmentsOnNewAddIssue) {				
 						self.selectedAttachments.push(handle);
+					}
+					else if (self.selectedText && self.selectedText.indexOf('!' + attachment.contentId + '!') > -1) {
+						//Replace embedded attachment
+						self.selectedAttachments.push(handle);
+						var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
+						self.selectedText = self.selectedText.replace(regEx, '!' + handle.getFileName() + '!');		
 					}
 					else {
 						var id = yasoon.clipboard.addFile(handle);
