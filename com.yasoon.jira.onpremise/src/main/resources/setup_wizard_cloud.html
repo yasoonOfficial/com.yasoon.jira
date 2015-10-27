@@ -1,0 +1,168 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="css/bootstrap.css" />
+		<link rel="stylesheet" href="css/materialize.min.css" />
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">	
+		<script src="js/jquery-1.11.3.min.js"></script>
+		<script src="js/bootstrap.js"></script>
+		<script src="js/materialize.min.js"></script>
+		<script>
+			$(document).ready(function() {
+				var currentPage = 1;
+				
+				$('[data-toggle="popover"]').popover({
+					trigger: "hover",
+					placement: "right"
+				});
+				
+				$('#next').click(function() {
+					//Todo: Checks
+					
+					
+					$('ul.tabs :nth-child(' + currentPage + ')').addClass('disabled finished');
+					currentPage++;
+					$('ul.tabs :nth-child(' + currentPage + ')').removeClass('disabled');
+					$('ul.tabs').tabs('select_tab', 'tab' + currentPage);
+				});
+			});
+		</script>
+		<style>
+			.main {
+				margin-left: 100px;
+				margin-top: 50px;
+			}
+			
+			.wizard {
+				padding-bottom: 20px !important;
+				position: relative;
+			}
+			
+			.tabs .indicator {
+				background-color: #039be5;
+			}
+			
+			.tabs .disabled a {
+				color: #b3e5fc !important;
+			}
+			
+			.tab-content form {
+				margin-top: 10px;
+			}
+			
+			.row {
+				margin-bottom: 0px;
+			}
+			
+			.popover {
+				border-radius: 0px !important;
+				font-family: "Roboto", sans-serif !important;
+			}
+			
+			.popover-title {
+				border: none !important;
+				border-radius: 0px !important;
+				background-color: #039be5 !important;
+				color: white !important;
+				font-family: "Roboto", sans-serif !important;
+			}
+			
+			.finish-icon {
+				position: absolute;
+				top: 11px;
+			}
+			
+			.tab a {
+				position: relative;
+			}
+			
+			.tab.finished i {
+				display: inline !important;
+			}
+			
+			.tab i {
+				display: none;
+			}
+			
+			.logo-branding {
+				position: absolute;
+				bottom: 10px;
+				right: 10px;
+			}
+			
+			.logo-branding img {
+				height: 40px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="main row">
+			<div class="wizard col s9 z-depth-1">
+				<ul class="tabs">
+					<li class="tab col s3"><a href="#tab1" class="light-blue-text text-darken-2" data-toggle="tab">1. Basic Data <i class="material-icons finish-icon hidden" style="right: 20px">done</i></a></li>
+					<li class="tab col s3 disabled"><a href="#tab2" class="light-blue-text text-darken-2" data-toggle="tab">2. Configure JIRA <i class="material-icons finish-icon hidden"  style="right: 5px">done</i></a></li>
+					<li class="tab col s3 disabled"><a href="#tab3" class="light-blue-text text-darken-2" data-toggle="tab">3. Test Outlook App <i class="material-icons finish-icon hidden"  style="right: 0">done</i></a></li>
+					<li class="tab col s3 disabled"><a href="#tab4" class="light-blue-text text-darken-2" data-toggle="tab">4. Share with team <i class="material-icons finish-icon hidden">done</i></a></li>
+				</ul>
+				<div class="tab-content">
+					<div class="tab-pane" id="tab1">
+						<form class="col s7">
+							<div class="row bootstrap-wrapper" style="margin-top: 20px; margin-bottom: 10px">
+								This JIRA instance is not yet registered at yasoon. <br/>
+								Please sign up below or login with your existing yasoon account. <a href="#" data-toggle="popover" title="" data-content="The yasoon account allows you to quickly manage your users. In addition, we are able to provide you with a personal setup file. It's pre-configured for your JIRA, so no additional configuration will be necessary for users of the Outlook addin." data-original-title="Why do I need to register?">Why?</a>
+							</div>
+							<div class="row">
+								<div class="input-field col s6">
+									<input id="first_name" type="text" class="validate">
+									<label for="first_name">First Name</label>
+								</div>
+								<div class="input-field col s6">
+									<input id="last_name" type="text" class="validate">
+									<label for="last_name">Last Name</label>
+								</div>
+							</div>							
+							<div class="row">
+								<div class="input-field col s12">
+									<input id="email" type="email" class="validate">
+									<label for="email">Email</label>
+								</div>
+							</div>
+							<div class="row">
+								<div class="input-field col s12">
+									<input id="company" type="text" class="validate">
+									<label for="company">Company Name</label>
+								</div>
+							</div>
+							<div class="row">
+								<div class="input-field col s6">
+									<input id="password" type="password" class="validate">
+									<label for="password">Password</label>
+								</div>
+								<div class="input-field col s6">
+									<input id="password2" type="password" class="validate">
+									<label for="password2">Confirm Password</label>
+								</div>
+							</div>
+						</form>
+					</div>
+					<div class="tab-pane" id="tab2">
+					2
+					</div>
+					<div class="tab-pane" id="tab3">
+						3
+					</div>
+					<div class="tab-pane" id="tab4">
+						4
+					</div>
+					
+					<div class="col s12">
+						<a class="waves-effect waves-light btn light-blue darken-2"><i class="material-icons right">message</i>I have an issue</a>
+						<a id="next" class="waves-effect waves-light btn light-green darken-2"><i class="material-icons right">play_arrow</i>Next</a>
+					</div>
+					<div class="logo-branding">
+						<img src="images/logo_with_jira.png" />
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
