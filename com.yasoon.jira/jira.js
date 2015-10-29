@@ -131,8 +131,9 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 
 	this.handleOAuthError = function (serviceName, statusCode, error) {
 		console.log('OAuth Error', error, statusCode);
+		var initialError = error;
 		if (statusCode == 500) {
-			yasoon.dialog.showMessageBox("Couldn\'t reach JIRA server. Either the system does not exist anymore you is currently not reachable. (e.g. because VPN is missing)");
+			yasoon.dialog.showMessageBox("Couldn\'t reach JIRA server. Either the system does not exist anymore or is currently not reachable. (e.g. because VPN is missing)");
 		} else if (error.indexOf('oauth_problem') === 0) {
 			//Standard OAuth Messages => http://wiki.oauth.net/w/page/12238543/ProblemReporting
 			error = error.split('&')[0];
@@ -149,7 +150,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 						yasoon.dialog.showMessageBox("The certificate you are using in the application link is invalid. Please make sure you have setup JIRA correctly. Afterwards visit the JIRA settings and click on \"Reload System Information\"");
 						break;
 					default:
-						yasoon.alert.add({ type: yasoon.alert.alertType.error, message: result });
+						yasoon.alert.add({ type: yasoon.alert.alertType.error, message: initialError });
 				}
 
 				return;
