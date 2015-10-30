@@ -1,0 +1,201 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="css/bootstrap.css" />
+		<link rel="stylesheet" href="css/materialize.min_default.css" />
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">	
+		<script src="js/jquery-1.11.3.min.js"></script>
+		<script src="js/bootstrap.js"></script>
+		<script src="js/materialize.min.js"></script>
+		<script>
+			$(document).ready(function() {
+				var currentPage = 1;
+				
+				$('[data-toggle="popover"]').popover({
+					trigger: "hover",
+					placement: "right"
+				});
+				
+				$('.modal-trigger').leanModal();
+				
+				$('#next').click(function() {
+					//Todo: Checks
+					
+					
+					$('ul.tabs :nth-child(' + currentPage + ')').addClass('disabled finished');
+					currentPage++;
+					$('ul.tabs :nth-child(' + currentPage + ')').removeClass('disabled');
+					$('ul.tabs').tabs('select_tab', 'tab' + currentPage);
+					
+					if (currentPage === 3)
+						$('#nextText').text('It\'s working!');
+					if (currentPage === 4)
+						$('#nextText').text('Complete Setup');
+				});
+			});
+		</script>
+		<style>
+			.main {
+				margin-left: 100px;
+				margin-top: 50px;
+			}
+			
+			.wizard {
+				padding-bottom: 20px !important;
+				position: relative;
+				min-height: 510px;
+			}
+			
+			.afterSetup {
+				padding-bottom: 20px !important;
+				padding-top: 30px !important;
+				position: relative;
+				min-height: 510px;
+			}
+			
+			.afterSetup .card {
+				margin-left: 30px !important;				
+			}
+			
+			.tabs .indicator {
+				background-color: #039be5;
+			}
+			
+			.tabs .disabled a {
+				color: #b3e5fc !important;
+			}
+			
+			.tab-content form {
+				margin-top: 10px;
+			}
+			
+			.row {
+				margin-bottom: 0px;
+			}
+			
+			.popover {
+				border-radius: 0px !important;
+				font-family: "Roboto", sans-serif !important;
+			}
+			
+			.popover-title {
+				border: none !important;
+				border-radius: 0px !important;
+				background-color: #039be5 !important;
+				color: white !important;
+				font-family: "Roboto", sans-serif !important;
+			}
+			
+			.finish-icon {
+				position: absolute;
+				top: 11px;
+			}
+			
+			.tab a {
+				position: relative;
+			}
+			
+			.tab.finished i {
+				display: inline !important;
+			}
+			
+			.tab i {
+				display: none;
+			}
+			
+			.logo-branding {
+				position: absolute;
+				bottom: 10px;
+				right: 10px;
+			}
+			
+			.wizard-buttons {
+				position: absolute;
+				bottom: 20px;
+				left: 15px;
+			}
+			
+			.logo-branding img {
+				height: 40px;
+			}
+			
+			.card-screenshot {
+				max-width: 285px !important;
+				padding: 0 !important;
+				min-height: 316px;
+			}
+			
+			.card-action {
+				text-align: center;
+			}
+			
+			.collection-item {
+				min-height: 0 !important;
+				cursor: pointer;
+			}
+			
+			.secondary-content label {
+				padding-left: 25px;
+    			margin-top: 5px;
+			}
+			
+			.modal {
+				width: 40%;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="main row">
+			<div class="afterSetup col s9 z-depth-1">
+				<div class="card col s3">	
+					<div class="card-title green-text text-lighten-2" style="padding: 20px 0 0 20px">
+						License Active
+					</div>
+					<div class="card-content">
+						<p>
+							This JIRA instance is <b>licensed</b> and ready to use. Support will expire on <b><span id="JiraSupportDate"></span></b> <br /><br />
+                                If you like to change your settings, please visit our yasoon admin panel.
+						</p>
+					</div>									
+					<div class="card-action">
+						<a class="storeLink btn btn-default" style="color: white" target="_blank" href="https://store.yasoon.com"><i class="material-icons right">open_in_new</i>Admin Panel</a>
+					</div>
+				</div>
+				<div class="card col s3">	
+					<div class="card-title green-text text-lighten-2" style="padding: 20px 0 0 20px">
+						Application Link Active
+					</div>
+					<div class="card-content">
+						<p>
+							The required Application Link appears to be configured correctly, you are good to go!
+						</p>
+					</div>									
+					<div class="card-action">
+						<button type="button" id="downloadSetupButton" class="btn btn-default disabled"><i class="material-icons right">done</i>App Link Active!</button>
+					</div>
+				</div>
+				
+				<div class="card col s4">	
+					<div class="card-title green-text text-lighten-2" style="padding: 20px 0 0 20px">
+						Download Ready
+					</div>
+					<div class="card-content">
+						<p>
+							Your personalized setup is now available. Please download it below, or share the following link:
+							<div class="input-field">
+								<input value="https://store.yasoon.com/dl/jira/....." spellcheck="false" id="downloadLink" type="text" class="validate">
+							</div>
+						</p>
+					</div>									
+					<div class="card-action">
+						<button type="button" id="downloadSetupButton" class="btn btn-default"><i class="material-icons right">get_app</i>Download</button>
+						<button type="button" id="downloadSetupButton" class="btn btn-default"><i class="material-icons right">send</i>Share</button>
+					</div>
+				</div>
+									
+				<div class="logo-branding">
+					<img src="images/logo_with_jira.png" />
+				</div>
+			</div>
+		</div>		
+	</body>
+</html>

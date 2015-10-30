@@ -1,360 +1,472 @@
 var authToken = '';
-var serverUrl = 'https://store.yasoon.com';
+//var serverUrl = 'https://store.yasoon.com';
+var serverUrl = 'http://localhost:1337';
 var isInstanceRegistered = false;
+var currentPage = 1;
+var serverId = null;
+var systemInfo = null;
 
-$(document).ready(function () {
-    $.ajax({
-        url: 'sysinfo',
-        type: 'get'
-    }).done(function(systemInfo) {
+Promise.config({
+    // Enable cancellation.
+    cancellation: true
+});
 
-        if(typeof(systemInfo) === 'string')
-            systemInfo = JSON.parse(systemInfo);
-        
-        var serverId = systemInfo.serverId || systemInfo.licenses[0].serverId;    
-
+$(document).ready(function() {
+	loadSystemInfo()
+    .then(function() {
+        //Hook up Raven error logging        
         Raven.config('https://6271d99937bd403da519654c1cf47879@sentry2.yasoon.com/4', {
           tags: {
               serverId: serverId,
               key: 'onpremise'
           }
-        }).install();
-
-        $.ajax({
-                url: serverUrl + '/jira/isInstanceRegistered',
-                data: { 
-                    serverId: serverId,
-                    baseUrl: systemInfo.baseUrl
-                },
-                type: 'GET'
-        }).done(function (data) {
-        	isInstanceRegistered = data.registered;
-                if(data.registered) {
-                        if($.cookie('yasoonAuthToken')) {
-                            authToken = $.cookie('yasoonAuthToken');
-                            $('#RegisteredArea').show();
-                            $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
-                            checkDownloadLink();
-                            checkProduct();
-                        }   
-                        else {
-                            $('#LoginArea').show();
-                        }
-                        
-                        checkAppLink();
-                } else {
-                        $('#UnregisteredArea').show();
-                }
-                
-                $('[data-toggle="popover"]').popover({trigger: 'hover','placement': 'right'});
-                
-                $('#sendMessage').click(function(e) {
-                    zE(function() {
-                      zE.activate();
-                    });
-                });
-				
-                $('#RegisterCompanyButton').click(function (e) {
-                    
-                    $('#RegisterCompanyButton').prop("disabled", true);
-                    
-                    //Transform data                    
-                    var formArray = $('#RegisterCompanyForm').serializeArray();
-                    var formData = {};
-                    $.each(formArray, function (i, elem) {
-                        formData[elem.name] = elem.value;
-                    });
-
-                    //Clean all invalid states
-                    $('.form-group').removeClass('has-error');
-                    $('.help-block').css('visibility', 'hidden');
-
-                    //Make checks
-                    if (!formData.company) {
-                        $('#company').parent().addClass('has-error');
-                        $('#RegisterCompanyButton').prop("disabled", false);
-                        return;
-                    }
-                    if (!formData.firstName) {
-                        $('#firstname').parent().addClass('has-error');
-                        $('#RegisterCompanyButton').prop("disabled", false);
-                        return;
-                    }
-                    if (!formData.lastName) {
-                        $('#lastname').parent().addClass('has-error');
-                        $('#RegisterCompanyButton').prop("disabled", false);
-                        return;
-                    }
-                    if (!formData.emailAddress) {
-                        $('#emailaddress').parent().addClass('has-error');
-                        $('#RegisterCompanyButton').prop("disabled", false);
-                        return;
-                    }
-                    if (formData.emailAddress.indexOf("@") < 0) {                        
-                        alert('Please enter a valid e-mail address, it necessary for your account.');
-                        $('#emailaddress').parent().addClass('has-error');
-                        $('#RegisterCompanyButton').prop("disabled", false);
-                        return;
-                    }                    
-                    if (!formData.password) {
-                        $('#password').parent().addClass('has-error');
-                        $('#RegisterCompanyButton').prop("disabled", false);
-                        return;
-                    }
-                    if (!formData.password1) {
-                        $('#password1').parent().addClass('has-error');
-                        $('#RegisterCompanyButton').prop("disabled", false);
-                        return;
-                    }
-                    if (formData.password !== formData.password1) {
-                        $('#password1').parent().addClass('has-error');
-                        $('.help-block').css('visibility', 'visible');
-                        $('#RegisterCompanyButton').prop("disabled", false);
-                        return;
-                    }
-                    //Send Data
-                    $.ajax({
-                        url: serverUrl + '/api/company/register',
-                        contentType: 'application/json',
-                        data: JSON.stringify(formData),
-                        processData: false,
-                        type: 'POST'
-                    }).done(function (result) {
-                        if (result.success === false) {
-                            alert('Account already exists. Please login.');
-                            return;
-                        }
-                        
-                        var instanceData = {
-                            clientKey: serverId,
-                            baseUrl: systemInfo.baseUrl,
-                            key: 'com.yasoon.jira.onpremise',
-                            pluginsVersion: systemInfo.pluginVersion,
-                            description: 'Jira on Premise',
-                            productType: 'jira',
-                            serverVersion: systemInfo.version,
-                            licenseInfo: systemInfo.licenses,
-                            eventType: 'installed'
-                        };
-                        
-                        $.ajax({
-                            url: serverUrl + '/jira/install',
-                            contentType: 'application/json',
-                            data: JSON.stringify(instanceData),
-                            processData: false,
-                            type: 'POST'
-                        }).done(function (result) {
-                        
-                            //User created... Get authorization token
-                            $.ajax({
-                                url: serverUrl + '/api/user/auth',
-                                contentType: 'application/json',
-                                data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
-                                processData: false,
-                                type: 'POST'
-                            }).done(function (auth) {
-                                authToken = auth;
-                                $.cookie('yasoonAuthToken', authToken);
-                                $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
-                                
-                                $.ajax({
-                                    url: serverUrl + '/jira/assigncompany',
-                                    contentType: 'application/json',
-                                    data: JSON.stringify({ 
-                                        serverId: serverId,
-                                        baseUrl: systemInfo.baseUrl
-                                    }),
-                                    headers: { userAuthToken: authToken },
-                                    processData: false,
-                                    type: 'POST'
-                                }).done(function () {
-                                    $('#RegisteredArea').show();
-                                    $('#UnregisteredArea').hide();
-                                    checkAppLink();
-                                    checkDownloadLink();
-                                    checkProduct();
-                                }).fail(function (jxqr, e) {
-                                    Raven.captureMessage('Error during assignCompany: ' + e);
-                                    alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
-                                });
-                                
-                            }).fail(function (jxqr, e) {
-                                Raven.captureMessage('Error during userAuth: ' + e);
-                                alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
-                            });
-                            
-                        }).fail(function (jxqr, e) {
-                            Raven.captureMessage('Error during install: ' + e);
-                            alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
-                        }); 
-                        
-                    }).fail(function (jxqr, e) {
-                        Raven.captureMessage('Error during register: ' + e);
-                        alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
-                    });
-
-                    e.preventDefault();
-                });
-                
-                $('#LoginYasoon').click(function (e) {
-                    $('#UnregisteredArea').hide();
-                    $('#LoginArea').show();
-                });
-                
-                $('#AddApplicationLinkButton').click(function(e) {
-                    
-                    $('#AddApplicationLinkButton').text('Creating link...').prop("disabled",true);
-                                        
-                     //First, generate certificate
-                     $.ajax({
-                        url: serverUrl + '/api/support/genkeypair',
-                        type: 'GET'
-                     }).done(function(data) {
-                         //Create the OAuth service on yasoon side                         
-                         $.ajax({
-                                url: serverUrl + '/jira/oauth',
-                                contentType: 'application/json',
-                                data: JSON.stringify({ 
-                                    clientCertificate: data.pkcs12,
-                                    serverId: serverId,
-                                    baseUrl: systemInfo.baseUrl
-                                }),
-                                headers: { userAuthToken: authToken },
-                                processData: false,
-                                type: 'POST'
-                            }).done(function () {
-                                //Create the app link
-                                $.ajax({
-                                   url: 'applink',
-                                   contentType: 'application/json',
-                                   data: JSON.stringify({ cert: data.certificate }),
-                                   processData: false,
-                                   type: 'POST'
-                                }).done(function (auth) {
-                                    checkAppLink();
-                                })
-                                .fail(function (jxqr, e) {
-                                    Raven.captureMessage('Error during applink creation: ' + e);
-                                    alert('An error occurred while creating the application link. Please contact us via the green help button, we\'ll fix this quickly.');
-                                });
-                            })
-                            .fail(function (jxqr, e) {
-                                Raven.captureMessage('Error during oauth update: ' + e);
-                                alert('An error occurred while creating the application link. Please contact us via the green help button, we\'ll fix this quickly.');
-                            });
-                     });
-                });
-                
-                $('#LoginYasoonButton').click(function (e) {
-                    
-                    //Transform data                    
-                    var formArray = $('#LoginForm').serializeArray();
-                    var formData = {};
-                    $.each(formArray, function (i, elem) {
-                        formData[elem.name] = elem.value;
-                    });
-
-                    var instanceData = {
-                        clientKey: serverId,
-                        baseUrl: systemInfo.baseUrl,
-                        key: 'com.yasoon.jira.onpremise',
-                        pluginsVersion: systemInfo.pluginVersion,
-                        description: 'Jira on Premise',
-                        productType: 'jira',
-                        serverVersion: systemInfo.version,
-                        licenseInfo: systemInfo.licenses
-                    };
-                        
-                    //Login
-                    if (isInstanceRegistered) {
-                        $.ajax({
-                    		url: serverUrl + '/api/user/auth',
-                    		contentType: 'application/json',
-                    		data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
-                    		processData: false,
-                    		type: 'POST'
-                    	})
-                        .done(function (auth) {
-                                authToken = auth;
-                                $.cookie('yasoonAuthToken', authToken);
-                                $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
-                                
-                                $('#RegisteredArea').show();
-                                $('#LoginArea').hide();
-                                checkAppLink();
-                                checkDownloadLink();
-                                checkProduct();
-                        })
-                        .fail(function (jxqr, e) {
-                            Raven.captureMessage('Error during login: ' + e);
-                            alert('Login failed, probably invalid credentials.');
-                        });
-                    } else {
-                    	$.ajax({
-                    		url: serverUrl + '/api/user/auth',
-                    		contentType: 'application/json',
-                    		data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
-                    		processData: false,
-                    		type: 'POST'
-                    	})
-                        .done(function (auth) {
-                                authToken = auth;
-                                $.cookie('yasoonAuthToken', authToken);
-                                $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
-
-                                $.ajax({
-                                        url: serverUrl + '/jira/install',
-                                        contentType: 'application/json',
-                                        data: JSON.stringify(instanceData),
-                                        processData: false,
-                                        type: 'POST'
-                                })
-                                .done(function (result) {
-                                        $.ajax({
-                                                url: serverUrl + '/jira/assigncompany',
-                                                contentType: 'application/json',
-                                                data: JSON.stringify({ 
-                                                    serverId: serverId,
-                                                    baseUrl: systemInfo.baseUrl
-                                                }),
-                                                headers: { userAuthToken: authToken },
-                                                processData: false,
-                                                type: 'POST'
-                                        }).done(function () {
-                                                $('#RegisteredArea').show();
-                                                $('#LoginArea').hide();
-                                                checkAppLink();
-                                                checkDownloadLink();
-                                                checkProduct();
-                                        }).fail(function (jxqr, e) {
-                                                Raven.captureMessage('Error during assignCompany: ' + e);
-                                                alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
-                                        });
-                                })
-                                .fail(function (jxqr, e) {
-                                        Raven.captureMessage('Error during install: ' + e);
-                                        alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
-                                });
-                        })
-                        .fail(function (jxqr, e) {
-                                Raven.captureMessage('Error during login: ' + e);
-                                alert('Login failed, probably invalid credentials.');
-                        });
-                    }
-                });
-        })
-        .fail(function (jxqr, e) {
-            Raven.captureMessage('Error during isInstanceRegisterd: ' + e);   
-            alert('Could not retrieve system information. Please contact us via the green help button, we\'ll fix this quickly.');
-        });
+        }).install();        
+        
+        //Check if this instance is registered
+        return getIsInstanceRegistered();       
     })
-    .fail(function (a, b, error) {
-        console.log(arguments);
-        alert('Could not retrieve system information. Please contact us via the green help button, we\'ll fix this quickly.');
-        alert('Please provide the following info: ' + error);
+    .then(function(isRegistered) {
+        //Initialize the UI
+        initUI(isRegistered);
+        
+        if (isRegistered) {
+            if (authToken) {
+                checkDownloadLink();
+                checkProduct();
+            }
+            
+            checkAppLink();
+        }
+    })
+    .caught(function(e) {
+        $('#unregisteredArea').hide();
+        swal("Oops...", "Failed to load initial data, please contact us at support@yasoon.de", "error");
+        Raven.captureMessage('Error while document ready execution!');
+        Raven.captureException(e);
     });
 });
 
+function loadSystemInfo(cbk) {
+    return Promise.resolve($.ajax({
+        url: 'sysinfo',
+        type: 'get'
+    }))
+    .then(function(info) {
+        if(typeof(info) === 'string')
+            systemInfo = JSON.parse(info);
+        else
+            systemInfo = info;
+        
+        serverId = systemInfo.serverId || systemInfo.licenses[0].serverId;
+    });
+}
+
+function getIsInstanceRegistered() {
+    return Promise.resolve($.ajax({
+        url: serverUrl + '/jira/isInstanceRegistered',
+        data: { 
+            serverId: serverId,
+            baseUrl: systemInfo.baseUrl
+        },
+        type: 'GET'
+    }))
+    .then(function(data) {
+        return data.registered;
+    });
+}
+
+function onUserDialogOpen() {
+    $('#userNameSearch').val('t').trigger('change');
+    $('#userNameSearchTrigger').unbind().click(dialogSearch).trigger('click');
+}
+
+function dialogSearch() {
+    var term = $('#userNameSearch').val();
+    Promise.resolve($.get(systemInfo.baseUrl + '/rest/api/2/user/search?username=' + term))
+    .then(function(users) {
+        $('#userPickerList').html('');
+        for (var i = 0; i < users.length; i++) {
+            var user = users[i];
+            $('#userPickerList').append('<li class="collection-item avatar">' + 
+								'<img src="' + user.avatarUrls['48x48'] + '" alt="" class="circle">'+
+								'<span class="title">' + user.displayName + '</span>'+
+								'<p class="grey-text text-lighten-1">' +
+									user.emailAddress +
+								'</p>' + 
+								'<span class="secondary-content"><input type="checkbox" class="filled-in" id="filled-in-box" /><label for="filled-in-box"></label></span></li>');
+        }
+                				
+        $('.collection-item.avatar').unbind().click(function(e) {
+            $(this).find('input').prop("checked", !$(this).find('input').prop("checked"));
+            e.stopPropagation();
+        });
+    });
+}
+
+function initUI(isRegistered) {
+    
+    if (isRegistered) {
+        $('#unregisteredArea').hide();
+        
+        if($.cookie('yasoonAuthToken')) {
+            authToken = $.cookie('yasoonAuthToken');
+            $('#registeredArea').show();
+            $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);            
+        }   
+        else {
+            $('#loginArea').show();
+        }        
+    }
+        
+    //Init Modals & Tooltips
+    $('[data-toggle="popover"]').popover({
+		trigger: "hover",
+		placement: "right"
+	});
+	
+	$('.modal-trigger').leanModal({
+        ready: onUserDialogOpen
+    });
+
+    $('#sendMessage').click(function(e) {
+        zE(function() {
+            zE.activate();
+        });
+    });
+    
+    //Register Events
+    $('#loginLink').click(function (e) {
+        $('#unregisteredArea').hide();
+        $('#loginArea').show();
+    });
+    
+    $('#next').click(handleNext);
+    $('#addApplicationLinkButton').click(handleAddApplicationLink);
+    $('#loginYasoonButton').click(handleLogin);
+        
+    //Prefill Wizard
+    var userNameSplitted = systemInfo.userName.split(' ');
+    if (userNameSplitted && userNameSplitted.length > 1) {
+        $('#firstName').val(userNameSplitted[0]).trigger('change');;
+        $('#lastName').val(systemInfo.userName.replace(userNameSplitted[0] + ' ', '')).trigger('change');;
+    }
+    
+    $('#emailAddress').val(systemInfo.userEmailAddress).trigger('change');
+}
+
+function handleLogin() {
+    //Transform data                    
+    var formArray = $('#loginForm').serializeArray();
+    var formData = {};
+    $.each(formArray, function (i, elem) {
+        formData[elem.name] = elem.value;
+    });
+
+    var instanceData = {
+        clientKey: serverId,
+        baseUrl: systemInfo.baseUrl,
+        key: 'com.yasoon.jira.onpremise',
+        pluginsVersion: systemInfo.pluginVersion,
+        description: 'Jira on Premise',
+        productType: 'jira',
+        serverVersion: systemInfo.version,
+        licenseInfo: systemInfo.licenses
+    };
+        
+    //A) Login case with existing instance
+    // -----------------------------------
+    if (isInstanceRegistered) {
+        $.ajax({
+            url: serverUrl + '/api/user/auth',
+            contentType: 'application/json',
+            data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
+            processData: false,
+            type: 'POST'
+        })
+        .done(function (auth) {
+            authToken = auth;
+            $.cookie('yasoonAuthToken', authToken);
+            $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
+            
+            $('#RegisteredArea').show();
+            $('#LoginArea').hide();
+            checkAppLink();
+            checkDownloadLink();
+            checkProduct();
+        })
+        .fail(function (jxqr, e) {
+            Raven.captureMessage('Error during login: ' + e);
+            alert('Login failed, probably invalid credentials.');
+        });
+    } 
+    //B) Login case with new instance
+    // -----------------------------------
+    else {
+        var promise = Promise.resolve($.ajax({
+            url: serverUrl + '/api/user/auth',
+            contentType: 'application/json',
+            data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
+            processData: false,
+            type: 'POST'
+        }))
+        .caught(function(e) {
+            Raven.captureMessage('Error during login: ' + e);
+            swal("Oops...", "Login failed, probably invalid credentials.", "error");
+            promise.cancel();
+        })
+        .then(function (auth) {
+            authToken = auth;
+            $.cookie('yasoonAuthToken', authToken);
+            $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
+            
+            return $.ajax({
+                url: serverUrl + '/jira/install',
+                contentType: 'application/json',
+                data: JSON.stringify(instanceData),
+                processData: false,
+                type: 'POST'
+            });
+        })
+        .then(function (result) {
+            return $.ajax({
+                url: serverUrl + '/jira/assigncompany',
+                contentType: 'application/json',
+                data: JSON.stringify({ 
+                    serverId: serverId,
+                    baseUrl: systemInfo.baseUrl
+                }),
+                headers: { userAuthToken: authToken },
+                processData: false,
+                type: 'POST'
+            });
+        })
+        .then(function () {
+            $('#registeredArea').show();
+            $('#loginArea').hide();
+            checkAppLink();
+            checkDownloadLink();
+            checkProduct();                    
+        })
+        .caught(function (e) {
+            Raven.captureMessage('Error during assignCompany: ' + e);
+            alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
+        });
+    }
+}
+
+function handleAddApplicationLink() {
+    $('#addApplicationLinkButton').text('Creating link...').prop("disabled", true);
+                                
+    //First, generate certificate
+    var keyData = null;
+    
+    Promise.resolve($.ajax({
+        url: serverUrl + '/api/support/genkeypair',
+        type: 'GET'
+    }))
+    .then(function(data) {
+        //Create the OAuth service on yasoon side
+        keyData = data;                         
+        return $.ajax({
+            url: serverUrl + '/jira/oauth',
+            contentType: 'application/json',
+            data: JSON.stringify({ 
+                clientCertificate: data.pkcs12,
+                serverId: serverId,
+                baseUrl: systemInfo.baseUrl
+            }),
+            headers: { userAuthToken: authToken },
+            processData: false,
+            type: 'POST'
+        });
+    })
+    .then(function () {
+        //Create the app link
+        return $.ajax({
+            url: 'applink',
+            contentType: 'application/json',
+            data: JSON.stringify({ cert: keyData.certificate }),
+            processData: false,
+            type: 'POST'
+        });
+    })    
+    .caught(function (e) {
+        Raven.captureMessage('Error during oauth update: ' + e);
+        alert('An error occurred while creating the application link. Please contact us via the green help button, we\'ll fix this quickly.');
+    })
+    .then(function() {
+        return checkAppLink();
+    })
+    .then(function(exists) {
+        if (exists) {
+            $('#next').prop('disabled', false);
+        }
+    });
+}
+
+function handleNext() {
+    //Todo: Checks
+    if (currentPage === 1) {
+        $('#next').prop("disabled", true);            
+        
+        registerAccount(function(result) {
+           $('#next').prop("disabled", true);
+           
+           if (result.success) {
+               gotoNextPage();
+           }
+           else if (result.error) {
+               //Highlight error fields
+               $('#' + result.error).addClass('invalid');
+               
+               if (result.message)
+                   swal("Oops...", result.message, "error");     
+               else   
+                   swal("Oops...", "Please fill out all fields to continue!", "error");     
+           }
+           else if (result.message) {
+               swal("Oops...", result.message, "error");
+           }
+        });            
+    }
+    else {
+        gotoNextPage();
+    }    		
+}
+
+function gotoNextPage() {    
+    $('ul.tabs :nth-child(' + currentPage + ')').addClass('disabled finished');
+    currentPage++;
+    $('ul.tabs :nth-child(' + currentPage + ')').removeClass('disabled');
+    $('ul.tabs').tabs('select_tab', 'tab' + currentPage);
+    
+    if (currentPage === 2) 
+        $('#next').prop('disabled', true);
+    if (currentPage === 3)
+        $('#nextText').text('It\'s working!');
+    if (currentPage === 4)
+        $('#nextText').text('Complete Setup');
+}
+
+function registerAccount(cbk) {
+    
+    //Transform data                    
+    var formArray = $('#registerForm').serializeArray();
+    var formData = {};
+    $.each(formArray, function (i, elem) {
+        formData[elem.name] = elem.value;
+    });
+
+    //Clean all invalid states
+    $('.validate').removeClass('invalid');
+    
+    //Make checks
+    for (var propName in formData) {
+        if (formData.hasOwnProperty(propName)) {
+            if (!formData[propName]) {
+                return cbk({
+                    success: false,
+                    error: propName
+                });
+            }            
+        }
+    }
+    
+    if (formData.emailAddress.indexOf("@") < 0) {                        
+        return cbk({
+            success: false,
+            error: 'emailAddress',
+            message: 'Please enter a valid e-mail address, it necessary to create your account.'
+        });
+    }
+    
+    if (formData.password !== formData.password1) {
+        return cbk({
+            success: false,
+            error: 'password1',
+            message: 'Passwords do not match, please make sure that they are identical.'
+        });
+    }
+    
+    //Send Data
+    var promise = Promise.resolve($.ajax({
+        url: serverUrl + '/api/company/register',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        processData: false,
+        type: 'POST'
+    }))
+    .then(function (result) {        
+        //Means: User is already registered
+        if (!result.success) {
+            promise.cancel();        
+            return cbk({
+                success: false,
+                message: 'Account already exists. Please use login instead!'
+            });
+        }
+        
+        var instanceData = {
+            clientKey: serverId,
+            baseUrl: systemInfo.baseUrl,
+            key: 'com.yasoon.jira.onpremise',
+            pluginsVersion: systemInfo.pluginVersion,
+            description: 'Jira on Premise',
+            productType: 'jira',
+            serverVersion: systemInfo.version,
+            licenseInfo: systemInfo.licenses,
+            eventType: 'installed'
+        };
+        
+        return $.ajax({
+            url: serverUrl + '/jira/install',
+            contentType: 'application/json',
+            data: JSON.stringify(instanceData),
+            processData: false,
+            type: 'POST'
+        });
+    })
+    .then(function (result) {        
+        //User created... Get authorization token
+        return $.ajax({
+            url: serverUrl + '/api/user/auth',
+            contentType: 'application/json',
+            data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
+            processData: false,
+            type: 'POST'
+        });
+    })
+    .then(function (auth) {
+        authToken = auth;
+        $.cookie('yasoonAuthToken', authToken);
+        $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
+           
+        return $.ajax({
+            url: serverUrl + '/jira/assigncompany',
+            contentType: 'application/json',
+            data: JSON.stringify({ 
+                serverId: serverId,
+                baseUrl: systemInfo.baseUrl
+            }),
+            headers: { userAuthToken: authToken },
+            processData: false,
+            type: 'POST'
+        });
+    })
+    .then(function () {
+        cbk({
+            success: true
+        });
+    })
+    .caught(function (e) {
+        Raven.captureMessage('Error during registration: ' + e);
+        
+        cbk({
+            success: false,
+            message: 'An error occurred during your registration. Please contact us via the help button, we\'ll fix this quickly.'
+        });
+    });
+}
 
 function getUrlParameterByName(name) {
     name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
@@ -422,26 +534,35 @@ function checkDownloadLink() {
             $('#downloadLinkArea').show();
         }
     })
-    .fail(function() {
-            setTimeout(checkDownloadLink, 30000);
+    .fail(function(e) {
+        if (e.statusCode === 401) {
+            $.removeCookie('yasoonAuthToken');
+            location.reload();
+            return;
+        }
+        
+        setTimeout(checkDownloadLink, 30000);
     });
 }
 
 function checkAppLink() {
-    $.ajax({
+    return Promise.resolve($.ajax({
         url: 'applink',
         type: 'GET'
-    }).done(function(applink) {
+    }))
+    .then(function(applink) {
         if(typeof(applink) === 'string')
             applink = JSON.parse(applink);
         
         if(applink.exists) {
             $('#appLinkStatus').removeClass('panel-warning').addClass('panel-success');
-            $('#AddApplicationLinkButton').hide();
+            $('#addApplicationLinkButton').prop('disabled', true).text('Application Link Active!');
         }
         else {
             $('#appLinkStatus').removeClass('panel-success').addClass('panel-warning');
-            $('#AddApplicationLinkButton').show();
+            $('#addApplicationLinkButton').prop('disabled', false).text('Create Application Link');
         }
+        
+        return applink.exists;
     });
 }

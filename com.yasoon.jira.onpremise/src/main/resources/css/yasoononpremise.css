@@ -1,0 +1,104 @@
+.materialize-wrapper .wizard {
+	padding-bottom: 20px !important;
+	position: relative;
+	min-height: 510px !important;
+	max-width: 1200px !important;
+}
+
+.materialize-wrapper .tabs .indicator {
+	background-color: #039be5 !important;
+}
+
+.materialize-wrapper .tabs .disabled a {
+	color: #b3e5fc !important;
+}
+
+.materialize-wrapper .tab-content form {
+	margin-top: 10px !important;
+}
+
+.materialize-wrapper .row {
+	margin-bottom: 0px;
+}
+
+.materialize-wrapper .popover {
+	border-radius: 0px !important;
+	font-family: "Roboto", sans-serif !important;
+}
+
+.materialize-wrapper .popover-title {
+	border: none !important;
+	border-radius: 0px !important;
+	background-color: #039be5 !important;
+	color: white !important;
+	font-family: "Roboto", sans-serif !important;
+}
+
+.materialize-wrapper .finish-icon {
+	position: absolute;
+}
+
+.materialize-wrapper .tab a {
+	position: relative !important;
+}
+
+.materialize-wrapper .tab.finished i {
+	display: inline !important;
+}
+
+.materialize-wrapper .tab i {
+	display: none;
+}
+
+.materialize-wrapper .logo-branding {
+	position: absolute !important;
+	bottom: 10px !important;
+	right: 10px !important;
+}
+
+.materialize-wrapper .wizard-buttons {
+	position: absolute !important;
+	bottom: 20px !important;
+	left: 15px !important;
+}
+
+.materialize-wrapper .logo-branding img {
+	height: 40px !important;
+}
+
+.materialize-wrapper .card-screenshot {
+	max-width: 285px !important;
+	padding: 0 !important;
+	min-height: 316px !important;
+}
+
+.materialize-wrapper .card-action {
+	text-align: center !important;
+}
+
+.materialize-wrapper .collection-item {
+	min-height: 0 !important;
+	cursor: pointer !important;
+}
+
+.materialize-wrapper .secondary-content label {
+	padding-left: 25px !important;
+	margin-top: 5px !important;
+}
+
+.materialize-wrapper .modal {
+	width: 40% !important;
+}
+
+
+.materialize-wrapper .afterSetup {
+	padding-bottom: 20px !important;
+	padding-top: 30px !important;
+	position: relative;
+	min-height: 510px;
+}
+			
+.materialize-wrapper .afterSetup .card {
+	margin-left: 30px !important;				
+}
+			

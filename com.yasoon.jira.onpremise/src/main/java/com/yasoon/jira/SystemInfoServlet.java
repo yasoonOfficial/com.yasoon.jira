@@ -15,6 +15,7 @@ import com.atlassian.jira.config.properties.ApplicationProperties;
 import com.atlassian.jira.license.JiraLicenseManager;
 import com.atlassian.jira.license.LicenseDetails;
 import com.atlassian.extras.api.LicenseType;
+import com.atlassian.jira.user.ApplicationUser;
 import com.atlassian.jira.web.util.OutlookDate;
 import com.atlassian.jira.web.util.OutlookDateManager;
 import com.atlassian.sal.api.auth.LoginUriProvider;
@@ -81,6 +82,8 @@ public class SystemInfoServlet extends HttpServlet {
             ArrayList<JiraLicenseInfo> collectedLicenses = new ArrayList<JiraLicenseInfo>();
             SystemInfo info = new SystemInfo();
             
+            getCurrentUserAndCompany(info);
+                        
             if(licenseManager != null) {                
                 //getLicenses was introduced in 6.3, ensure compat until 6.0
                 if(supportsMultipleLicenses(licenseManager)) {                
@@ -152,6 +155,17 @@ public class SystemInfoServlet extends HttpServlet {
         return URI.create(builder.toString());
     }
     
+    private void getCurrentUserAndCompany(SystemInfo info) {
+        try {
+            ApplicationUser user = ComponentAccessor.getJiraAuthenticationContext().getUser();
+            info.setUserEmailAddress(user.getEmailAddress());
+            info.setUserName(user.getDisplayName());            
+        }
+        catch(Exception ex) {
+            
+        }
+    }
+    
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -190,7 +204,6 @@ public class SystemInfoServlet extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
-
 }
 
 final class JiraLicenseInfo {
@@ -516,10 +529,30 @@ class SystemInfo {
     public void setServerId(String serverId) {
         this.serverId = serverId;
     }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userFirstName) {
+        this.userName = userFirstName;
+    }
+
+
+    public String getUserEmailAddress() {
+        return userEmailAddress;
+    }
+
+    public void setUserEmailAddress(String userEmailAddress) {
+        this.userEmailAddress = userEmailAddress;
+    }
     
     private ArrayList<JiraLicenseInfo> licenses;
     private String baseUrl;
     private String version;
     private String pluginVersion;
     private String serverId;
+    
+    private String userName;
+    private String userEmailAddress;
 }
