@@ -169,8 +169,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 			//Add current mail to clipboard
 			var handle = self.mail.getFileHandle();
-			var id = yasoon.clipboard.addFile(handle);
-			self.addedAttachmentIds.push(id);
+			if (self.settings.addEmailOnNewAddIssue) {
+				self.selectedAttachments.push(handle);
+			} else {
+				var id = yasoon.clipboard.addFile(handle);
+				self.addedAttachmentIds.push(id);
+			}
 
 			//Find senderUser
 			jiraGet('/rest/api/2/user/search?username=' + self.mail.senderEmail)

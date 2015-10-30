@@ -5,6 +5,7 @@ function JiraSettingController() {
 		lastSync: new Date( new Date().getTime() - (1000 * 60* 60* 24 * 30) ),// If nothing in db, set it to 30 days ago
 		showDesktopNotif: true,
 		addAttachmentsOnNewAddIssue: false,
+		addEmailOnNewAddIssue: false,
 		showFeedAssignee: true,
 		showFeedMentioned: true,
 		showFeedWatcher: true,
@@ -79,6 +80,19 @@ function JiraSettingController() {
 			'           <div class="checkbox awesome">' +
 			'				<input class="formValue" type="checkbox" id="addAttachmentsOnNewAddIssue" name="addAttachmentsOnNewAddIssue">' +
 			'               <label for="addAttachmentsOnNewAddIssue">' +
+			'               </label>' +
+			'           </div>' +
+			'       </div>' +
+			'   </div>' +
+			//Auto add emails
+			'   <div class="form-group" style="position:relative; margin-top:20px;">' +
+			'       <div class="col-sm-4 checkbox">' +
+			'           <b class="pull-right">Automatically add email (.msg) in issue dialogs</b>' +
+			'       </div>' +
+			'       <div class="col-sm-8">' +
+			'           <div class="checkbox awesome">' +
+			'				<input class="formValue" type="checkbox" id="addAttachmentsOnNewAddIssue" name="addAttachmentsOnNewAddIssue">' +
+			'               <label for="addEmailOnNewAddIssue">' +
 			'               </label>' +
 			'           </div>' +
 			'       </div>' +

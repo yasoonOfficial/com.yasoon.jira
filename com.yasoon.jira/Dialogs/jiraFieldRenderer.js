@@ -759,11 +759,18 @@ function AttachmentLinkRenderer() {
 
 function TimeTrackingRenderer() {
 	this.getValue = function (id) {
-		if ($('#' + id + '_originalestimate').val() || $('#' + id + '_remainingestimate').val()) {
+		var origVal = $('#' + id + '_originalestimate').val();
+		var remainVal = $('#' + id + '_remainingestimate').val();
+
+		//JIRA timetracking legacy mode --> it's not allowed to change original estimate.
+		//Check if it has been changed and do not send if it hasn't been changed.
+		if (jira.editIssue.fields.timetracking.originalEstimate != origVal || jira.editIssue.fields.timetracking.remainingEstimate != remainVal) {
 			return {
-				originalEstimate: $('#' + id + '_originalestimate').val(),
-				remainingEstimate: $('#' + id + '_remainingestimate').val()
+				originalEstimate : origVal,
+				remainingEstimate: remainVal
 			};
+		} else {
+			return null;
 		}
 	};
 
