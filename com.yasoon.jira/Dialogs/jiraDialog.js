@@ -247,16 +247,25 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				placeholder: "Select an Issue type"
 			});
 			$('#ProjectSpinner').css('display', 'inline');
-
-			jiraGet('/rest/api/2/project')
-			.then(function (data) {
+			
+			var projectGet = Promise.resolve(jira.cacheProjects);
+			
+			if (!jira.cacheProjects || jira.cacheProjects.length <= 0) 
+				projectGet = Promise.resolve(jiraGet('/rest/api/2/project'));
+				
+			projectGet
+			.then(function (data) {				
 				//Populate Project Dropdown
-				self.projects = JSON.parse(data);
-				console.log('Projects: ', self.projects);
+				if (typeof(data) === 'string')
+					self.projects = JSON.parse(data);
+				else 
+					self.projects = data;
+								
 				var group = $('#project').find('.all');
 				$.each(self.projects, function (i, project) {
 					group.append('<option style="background-image: url(images/projectavatar.png)" value="' + project.id + '" data-key="' + project.key + '">' + project.name + '</option>');
 				});
+				
 				group = $('#project').find('.recent');
 				$.each(self.recentProjects, function (i, project) {
 					group.append('<option style="background-image: url(images/projectavatar.png)" value="' + project.id + '" data-key="' + project.key + '">' + project.name + '</option>');
@@ -268,13 +277,28 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				});
 
 				$('#ProjectSpinner').css('display', 'none');
-
-				$('#project').on('change', function () { self.selectProject(); });
-
+				$('#project').on('change', self.selectProject);
 				$('#project').next().find('.select2-selection').first().focus();
+				
+				//If mail is provided && subject contains reference to project, pre-select that
+				if (self.mail && self.mail.subject) {					
+					//Sort projects by key length descending, so we will match the following correctly:
+					// Subject: This is for DEMODD project
+					// Keys: DEMO, DEMOD, DEMODD
+					var projectsByKeyLength = self.projects.sort(function(a, b){
+						return b.key.length - a.key.length; // ASC -> a - b; DESC -> b - a
+					});
+					
+					for (var i = 0; i < projectsByKeyLength.length; i++) {
+						var curProj = projectsByKeyLength[i];
+						if (self.mail.subject.indexOf(curProj.key) >= 0) {							
+							$('#project').val(curProj.id).trigger('change');
+							break;
+						}
+					}
+				}
 			})
 			.catch(jira.handleError);
-
 		}
 
 		//Submit Button - (Create & Edit)

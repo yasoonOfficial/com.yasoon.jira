@@ -210,7 +210,11 @@ function JiraRibbonController() {
 			return;
 		}
 
-		var initParams = { 'settings': jira.settings, 'ownUser': jira.data.ownUser };
+		var initParams = { 
+			settings: jira.settings, 
+			ownUser: jira.data.ownUser,
+			projects: jira.data.projects			 
+		};
 
 		var dialogOptions = {
 			width: 610,

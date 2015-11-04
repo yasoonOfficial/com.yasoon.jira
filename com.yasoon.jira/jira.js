@@ -284,7 +284,6 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			var recentProjectsString = yasoon.setting.getAppParameter('recentProjects') || '[]';
 			var recentProjects = JSON.parse(recentProjectsString);
 			
-
 			recentProjects.forEach(function (project) {
 				cacheProjects.push(project);
 			});

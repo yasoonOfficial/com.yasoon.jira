@@ -21,7 +21,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	jira = this;
 	jira.CONST_HEADER = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
 	
-
 	this.UIFormHandler = UIRenderer;
 	this.icons = new JiraIconController();
 	this.settings = null;
@@ -30,6 +29,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.selectedIssue = null;
 	this.addedAttachmentIds = [];
 	this.selectedAttachments = [];
+	this.projects = [];
 
 	this.mailAsMarkup = '';
 	this.recentIssues = [];
@@ -44,8 +44,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		//Register Close Handler
 		yasoon.dialog.onClose(self.cleanup);
+		
 		// Resize Window if nessecary (sized are optimized for default Window - user may have changed that)
 		resizeWindow();
+		
 		//Add attachments to clipboard
 		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
 			$.each(self.mail.attachments, function (i, attachment) {
@@ -145,15 +147,24 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 			$('#ProjectSpinner').css('display', 'inline');
 
-			jiraGet('/rest/api/2/project')
+			var projectGet = Promise.resolve(jira.cacheProjects);
+			
+			if (!jira.cacheProjects || jira.cacheProjects.length <= 0) 
+				projectGet = Promise.resolve(jiraGet('/rest/api/2/project'));
+				
+			projectGet
 			.then(function (data) {
 				//Populate Project Dropdown
-				self.projects = JSON.parse(data);
-				console.log('Projects: ', self.projects);
+				if (typeof(data) === 'string')
+					self.projects = JSON.parse(data);
+				else 
+					self.projects = data;
+					
 				var group = $('#project').find('.all');
 				$.each(self.projects, function (i, project) {
 					group.append('<option style="background-image: url(images/projectavatar.png)" value="' + project.id + '" data-key="' + project.key + '">' + project.name + '</option>');
 				});
+				
 				group = $('#project').find('.recent');
 				$.each(self.recentProjects, function (i, project) {
 					group.append('<option style="background-image: url(images/projectavatar.png)" value="' + project.id + '" data-key="' + project.key + '">' + project.name + '</option>');
@@ -165,10 +176,26 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				});
 
 				$('#ProjectSpinner').css('display', 'none');
-
 				$('#project').change(self.selectProject);
-
 				$('#project').next().find('.select2-selection').first().focus();
+				
+				//If mail is provided && subject contains reference to project, pre-select that
+				if (self.mail && self.mail.subject) {
+					//Sort projects by key length descending, so we will match the following correctly:
+					// Subject: This is for DEMODD project
+					// Keys: DEMO, DEMOD, DEMODD
+					var projectsByKeyLength = self.projects.sort(function(a, b){
+						return b.key.length - a.key.length; // ASC -> a - b; DESC -> b - a
+					});
+					
+					for (var i = 0; i < projectsByKeyLength.length; i++) {
+						var curProj = projectsByKeyLength[i];
+						if (self.mail.subject.indexOf(curProj.key) >= 0) {							
+							$('#project').val(curProj.id).trigger('change');
+							break;
+						}
+					}
+				}
 			})
 			.catch(jira.handleError);
 		}
@@ -200,7 +227,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 	this.submitForm = function (e) {
 		var selectedIssue = $('#issue').val() || $('#issue').data('id');
-
 
 		if (!selectedIssue) {
 			alert('Please select the issue you want to comment!');
@@ -289,7 +315,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		jiraGet('/rest/api/2/search?jql=project%20%3D%20%22'+ selectedProject +'%22%20AND%20status%20!%3D%20%22resolved%22&maxResults=1000&fields=summary')
 		.then(function (data) {
 			data = JSON.parse(data);
-			console.log(data);
+
 			$('#issue').html('<option></option>');
 			if (data.issues.length > 0) {
 				data.issues.forEach(function (issue) {
@@ -302,8 +328,25 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			});
 
 			$('#IssueSpinner').css('display', 'none');
-		});
-		
+			
+			//If mail is provided && subject contains reference to issue, pre-select that
+			if (self.mail && self.mail.subject) {
+				//Sort issue by key length descending, so we will match the following correctly:
+				// Subject: This is for DEMO-123 issue
+				// Keys: DEMO-1, DEMO-12, DEMO-124
+				var issuesByKeyLength = data.issues.sort(function(a, b){
+					return b.key.length - a.key.length; // ASC -> a - b; DESC -> b - a
+				});
+				
+				for (var i = 0; i < issuesByKeyLength.length; i++) {
+					var curIssue = issuesByKeyLength[i];
+					if (self.mail.subject.indexOf(curIssue.key) >= 0) {							
+						$('#issue').val(curIssue.id).trigger('change');
+						break;
+					}
+				}
+			}
+		});		
 	};
 
 	this.addRecentIssue = function (selectedIssue) {
