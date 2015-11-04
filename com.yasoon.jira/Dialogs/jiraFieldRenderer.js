@@ -137,14 +137,8 @@ function MultilineTextRenderer() {
 			});
 
 			$('#DescriptionMailInformation').on('click', function (e) {
-				backup = $('#description').val();
-				var senderTemplate = '';
-				if (useMarkup)
-				senderTemplate = '*From:* ' + jira.mail.senderName + ' <[mailto:' + jira.mail.senderEmail + ']> \n*Sent:* ' + moment(jira.mail.receivedAt).format('MMMM Do YYYY, h:mm a') + '\n'+ ((jira.mail.recipients.length > 0) ? '*To:* [mailto:' + jira.mail.recipients.join('],[mailto:') + ']\n *Subject*: '+ jira.mail.subject + '\n----\n' : '');
-				else
-				senderTemplate = 'From: ' + jira.mail.senderName + ' <' + jira.mail.senderEmail + '> \n Sent: ' + moment(jira.mail.receivedAt).format('MMMM Do YYYY, h:mm a') + ' \n To: ' + jira.mail.recipients.join(',') + '\n Subject: ' + jira.mail.subject + '\n';
-
-				insertAtCursor($('#description')[0], senderTemplate);
+				backup = $('#description').val();				
+				insertAtCursor($('#description')[0], renderMailHeaderText(jira.mail, useMarkup));
 			});
 		}
 	};

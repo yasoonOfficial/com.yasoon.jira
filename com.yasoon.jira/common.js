@@ -26,6 +26,19 @@ function getUniqueKey() {
     return window.btoa( binary ).replace(/=/g, '');
 }
 
+function renderMailHeaderText(mail, useMarkup) {
+	var result = '';
+	
+	if (useMarkup) {
+		result = '*From:* ' + mail.senderName + ' <[mailto:' + mail.senderEmail + ']> \n*Sent:* ' + moment(mail.receivedAt).format('MMMM Do YYYY, h:mm a') + '\n'+ ((mail.recipients.length > 0) ? '*To:* [mailto:' + mail.recipients.join('],[mailto:') + ']\n *Subject*: '+ mail.subject + '\n----\n' : '');
+	}
+	else {
+		result = 'From: ' + mail.senderName + ' <' + mail.senderEmail + '> \n Sent: ' + moment(mail.receivedAt).format('MMMM Do YYYY, h:mm a') + ' \n To: ' + mail.recipients.join(',') + '\n Subject: ' + mail.subject + '\n';
+	}
+	
+	return result;
+}
+
 function jiraLog(text, obj, stacktrace) {
 	if (yasoon.logLevel == 0) { //jshint ignore:line
 		var stack = '';

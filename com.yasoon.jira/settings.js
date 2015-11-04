@@ -5,6 +5,7 @@ function JiraSettingController() {
 		lastSync: new Date( new Date().getTime() - (1000 * 60* 60* 24 * 30) ),// If nothing in db, set it to 30 days ago
 		showDesktopNotif: true,
 		addAttachmentsOnNewAddIssue: false,
+		addMailHeaderAutomatically: 'off',
 		addEmailOnNewAddIssue: false,
 		showFeedAssignee: true,
 		showFeedMentioned: true,
@@ -91,10 +92,23 @@ function JiraSettingController() {
 			'       </div>' +
 			'       <div class="col-sm-8">' +
 			'           <div class="checkbox awesome">' +
-			'				<input class="formValue" type="checkbox" id="addAttachmentsOnNewAddIssue" name="addAttachmentsOnNewAddIssue">' +
+			'				<input class="formValue" type="checkbox" id="addEmailOnNewAddIssue" name="addEmailOnNewAddIssue">' +
 			'               <label for="addEmailOnNewAddIssue">' +
 			'               </label>' +
 			'           </div>' +
+			'       </div>' +
+			'   </div>' +			
+			//Auto Add Mail Header
+			'   <div class="form-group" style="position:relative; margin-top:20px;">' +
+			'       <div class="col-sm-4">' +
+			'           <b class="pull-right">Automatically add email header to description</b>' +
+			'       </div>' +
+			'       <div class="col-sm-8">' +
+			'           <select class="formValue" style="width: 140px" id="addMailHeaderAutomatically" name="addMailHeaderAutomatically">' +
+			'              <option value="off">Disabled</option>' +
+			'              <option value="top">On Top</option>'+
+			'              <option value="bottom">At the Bottom</option>'+
+			'           </select>' +
 			'       </div>' +
 			'   </div>' +
 			'   <div class="form-group" style="position:relative; margin-top:20px;">' +
@@ -240,6 +254,9 @@ function JiraSettingController() {
 				return false;
 			});
 
+			$('#addMailHeaderAutomatically').select2({ minimumResultsForSearch: 5 })
+				.val(jira.settings.addMailHeaderAutomatically).trigger('change');
+
 			$('#jiraLogout').unbind().click(function () {
 				yasoon.app.invalidateOAuthToken(self.currentService);
 				self.baseUrl = '';
@@ -300,7 +317,7 @@ function JiraSettingController() {
 			if (param.key === 'activeFilters' && self[param.key] != param.value ) {
 				yasoon.dialog.showMessageBox('Changes to filters will be available with the next Outlook restart.');
 			}
-
+			
 			if (param.value == "true") {
 				self[param.key] = true;
 			} else if (param.value == "false") {

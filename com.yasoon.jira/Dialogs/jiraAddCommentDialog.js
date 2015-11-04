@@ -100,8 +100,18 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		//Add Default Data
 		if (self.selectedText) {
-			$('#description').val(self.selectedText);
-			self.handleAttachments(self.selectedText);
+			var text = self.selectedText;
+			
+			//Handle auto header add setting
+			if (self.settings.addMailHeaderAutomatically === 'top') {
+				text = renderMailHeaderText(self.mail, true) + '\n' + text;
+			}
+			else if (self.settings.addMailHeaderAutomatically === 'bottom') {
+				text = text + '\n' + renderMailHeaderText(self.mail, true);
+			}
+			
+			$('#description').val(text);
+			self.handleAttachments(text);
 		}
 
 		//Render current mail (just in case we need it as it probably needs some time)
@@ -111,6 +121,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				jira.mailAsMarkup = markup;
 				//If there is no selection, set this as description;
 				if (!self.selectedText) {
+					//Handle auto header add setting
+					if (self.settings.addMailHeaderAutomatically === 'top') {
+						markup = renderMailHeaderText(self.mail, true) + '\n' + markup;
+					}
+					else if (self.settings.addMailHeaderAutomatically === 'bottom') {
+						markup = markup + '\n' + renderMailHeaderText(self.mail, true);
+					}
+					
 					$('#description').val(markup);
 					self.handleAttachments(markup);
 				}

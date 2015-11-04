@@ -638,9 +638,19 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 			//Description
 			if (self.selectedText && fieldMapping.body) {
-				var bodyType = $('#' + fieldMapping.body).data('type');
-				jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, self.selectedText);
-				self.handleAttachments(self.selectedText);
+				var bodyType = $('#' + fieldMapping.body).data('type');				
+				var text = self.selectedText;
+				
+				//Handle auto header add setting
+				if (self.settings.addMailHeaderAutomatically === 'top') {
+					text = renderMailHeaderText(self.mail, true) + '\n' + text;
+				}
+				else if (self.settings.addMailHeaderAutomatically === 'bottom') {
+					text = text + '\n' + renderMailHeaderText(self.mail, true);
+				}
+				
+				jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, text);
+				self.handleAttachments(text);
 			}
 			
 			yasoon.outlook.mail.renderBody(self.mail, 'jiraMarkup')
@@ -649,6 +659,15 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				//If there is no selection, set this as description;
 				if (!self.selectedText && fieldMapping.body) {
 					bodyType = $('#' + fieldMapping.body).data('type');
+					
+					//Handle auto header add setting
+					if (self.settings.addMailHeaderAutomatically === 'top') {
+						markup = renderMailHeaderText(self.mail, true) + '\n' + markup;
+					}
+					else if (self.settings.addMailHeaderAutomatically === 'bottom') {
+						markup = markup + '\n' + renderMailHeaderText(self.mail, true);
+					}
+					
 					jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, markup);
 					self.handleAttachments(markup);
 				}
