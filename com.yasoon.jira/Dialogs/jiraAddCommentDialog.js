@@ -5,11 +5,6 @@ $(function () {
 	$('form').on('submit', function(e) {
 		e.preventDefault();
 		return false;
-	})
-	.bind("keypress", function (e) {
-		if (e.keyCode == 13) {
-			e.preventDefault();
-		}
 	});
 });
 

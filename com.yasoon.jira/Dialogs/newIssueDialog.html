@@ -59,6 +59,8 @@
 								<img src="Dialogs/ajax-loader.gif" style="display:none;" id="JiraSpinner">
 								<label for="qf-create-another" class="qf-create-another" style="font-weight:normal;"><input id="qf-create-another" type="checkbox" /> Create another</label>
 								<button accesskey="s" title="" class="button" id="create-issue-submit"> Create </button>
+								<!-- Keep that, prevents stupid default form behavior when only one button is present -->
+								<button class="hidden" id="invisible-cancel-button"> Cancel </button>
 								<a href="#" accesskey="`" title="" id="create-issue-cancel" class="cancel">Cancel</a>
 							</div>
 						</div>
