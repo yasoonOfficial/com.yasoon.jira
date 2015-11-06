@@ -758,7 +758,7 @@ function TimeTrackingRenderer() {
 
 		//JIRA timetracking legacy mode --> it's not allowed to change original estimate.
 		//Check if it has been changed and do not send if it hasn't been changed.
-		if (jira.editIssue.fields.timetracking.originalEstimate != origVal || jira.editIssue.fields.timetracking.remainingEstimate != remainVal) {
+		if (!jira.editIssue || (jira.editIssue.fields.timetracking && (jira.editIssue.fields.timetracking.originalEstimate != origVal || jira.editIssue.fields.timetracking.remainingEstimate != remainVal))) {
 			return {
 				originalEstimate : origVal,
 				remainingEstimate: remainVal
