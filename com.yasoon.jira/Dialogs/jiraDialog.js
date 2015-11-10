@@ -245,7 +245,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			
 			var projectGet = Promise.resolve(jira.cacheProjects);
 			
-			if (!jira.cacheProjects || jira.cacheProjects.length <= 0) 
+			if (!jira.cacheProjects || jira.cacheProjects.length === 0) 
 				projectGet = Promise.resolve(jiraGet('/rest/api/2/project'));
 				
 			projectGet

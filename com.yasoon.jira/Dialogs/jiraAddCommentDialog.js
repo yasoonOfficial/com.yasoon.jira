@@ -29,6 +29,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.mailAsMarkup = '';
 	this.recentIssues = [];
 	this.recentProjects = [];
+	this.projectIssues = [];
+	this.cacheProjects = [];
 
 	this.init = function (initParams) {
 		//Parameter taken over from Main JIRA
@@ -36,6 +38,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		self.selectedIssue = initParams.issue;
 		self.settings = initParams.settings;
 		self.selectedText = initParams.text;
+		self.cacheProjects = initParams.projects;
 
 		//Register Close Handler
 		yasoon.dialog.onClose(self.cleanup);
@@ -88,6 +91,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		if (projectsString) {
 			self.recentProjects = JSON.parse(projectsString);
 		}
+		
 		//Load Recent Issues from DB
 		var issuesString = yasoon.setting.getAppParameter('recentIssues');
 		if (issuesString) {
@@ -162,7 +166,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 			var projectGet = Promise.resolve(jira.cacheProjects);
 			
-			if (!jira.cacheProjects || jira.cacheProjects.length <= 0) 
+			if (!jira.cacheProjects || jira.cacheProjects.length === 0) 
 				projectGet = Promise.resolve(jiraGet('/rest/api/2/project'));
 				
 			projectGet
@@ -215,7 +219,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		//Submit Button - (Create & Edit)
 		$('#add-issue-submit').unbind().click(self.submitForm);
-
 		$('#add-issue-cancel').unbind().click(function () {
 			self.close({ action: 'cancel' });
 		});
@@ -325,23 +328,31 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		var selectedProject = $('#project').find(':selected').data('key');
 		$('#IssueSpinner').css('display', 'inline');
 		//Filter Issues based on selected Project
-		jiraGet('/rest/api/2/search?jql=project%20%3D%20%22'+ selectedProject +'%22%20AND%20status%20!%3D%20%22resolved%22&maxResults=1000&fields=summary')
+		jiraGet('/rest/api/2/search?jql=project%20%3D%20%22'+ selectedProject +'%22%20AND%20status%20!%3D%20%22resolved%22&maxResults=200&fields=summary')
 		.then(function (data) {
 			data = JSON.parse(data);
-
+			self.projectIssues = [];
+			
 			$('#issue').html('<option></option>');
 			if (data.issues.length > 0) {
 				data.issues.forEach(function (issue) {
+					self.projectIssues.push({
+						id: issue.id,
+						text: issue.fields.summary + ' (' + issue.key + ')'
+					});
+					
 					$('#issue').append('<option value="' + issue.id + '" data-key="' + issue.key + '">' + issue.fields.summary + ' (' + issue.key + ')' + '</option>');
 				});
 			}
 			$('#issue').select2("destroy");
 			$('#issue').select2({
-				placeholder: "Select an Issue"
+				placeholder: "Select an Issue",
+				dataAdapter: jira.CustomIssueData
 			});
 
 			$('#IssueSpinner').css('display', 'none');
 			
+			//(DEMO98.[0-9]+)
 			//If mail is provided && subject contains reference to issue, pre-select that
 			if (self.mail && self.mail.subject) {
 				//Sort issue by key length descending, so we will match the following correctly:
@@ -466,25 +477,31 @@ function (select, Utils) {
 		}
 	};
 
-	CustomIssueData.prototype.query = function (params, callback) {
+	var lastQuery = '';
+
+	CustomIssueData.prototype.query = debounce(function (params, callback) {
 		if (params && params.term) {
 			//Get Issues matching the criteria
+			lastQuery = params.term;
 			jiraGet('/rest/api/2/search?jql=Summary%20~%20%22' + encodeURIComponent(params.term) + '%22%20OR%20key%20%3D%20%22' + encodeURIComponent(params.term) + '%22&maxResults=20&fields=summary&validateQuery=false')
 			.then(function (data) {
-				var jqlResult = JSON.parse(data);
-				var result = [];
-				//Transform Data
-				jqlResult.issues.forEach(function (issue) {
-					result.push({ id: issue.id, text: issue.fields.summary + ' (' + issue.key + ')' });
-				});
-
-				callback({
-					results: [{
-						id: 'Results',
-						text: 'Results for "' + params.term + '"',
-						children: result
-					}]
-				});
+				if (params.term === lastQuery) {
+					var jqlResult = JSON.parse(data);
+					var result = [];
+					
+					//Transform Data
+					jqlResult.issues.forEach(function (issue) {
+						result.push({ id: issue.id, text: issue.fields.summary + ' (' + issue.key + ')' });
+					});
+					
+					callback({
+						results: [{
+							id: 'Results',
+							text: 'Results for "' + params.term + '"',
+							children: result
+						}]
+					});
+				}
 			});
 		} else {
 			//Add Recent Items
@@ -493,17 +510,20 @@ function (select, Utils) {
 					id: 'Recent',
 					text: 'Recent',
 					children: jira.recentIssues
+				}, {
+					id: 'ProjectIssues',
+					text: 'Project Issues',
+					children: jira.projectIssues
 				}]
 			});
 		}
-	};
+	}, 250);
 
 	jira.CustomIssueData = CustomIssueData;
 
 	$('#issue').select2({
 		placeholder: "Search for any Issue",
-		dataAdapter: jira.CustomIssueData,
-		minimumInputLength: 2
+		dataAdapter: jira.CustomIssueData
 	});
 });
 
