@@ -349,28 +349,54 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				placeholder: "Select an Issue",
 				dataAdapter: jira.CustomIssueData
 			});
-
-			$('#IssueSpinner').css('display', 'none');
 			
-			//(DEMO98.[0-9]+)
 			//If mail is provided && subject contains reference to issue, pre-select that
 			if (self.mail && self.mail.subject) {
-				//Sort issue by key length descending, so we will match the following correctly:
-				// Subject: This is for DEMO-123 issue
-				// Keys: DEMO-1, DEMO-12, DEMO-124
-				var issuesByKeyLength = data.issues.sort(function(a, b){
-					return b.key.length - a.key.length; // ASC -> a - b; DESC -> b - a
-				});
+				//Try to extract issue key from subject
+				var regEx = new RegExp(selectedProject + '.[0-9]+', 'g');
+				var match = regEx.exec(self.mail.subject);
 				
-				for (var i = 0; i < issuesByKeyLength.length; i++) {
-					var curIssue = issuesByKeyLength[i];
-					if (self.mail.subject.indexOf(curIssue.key) >= 0) {							
-						$('#issue').val(curIssue.id).trigger('change');
-						break;
+				if (match && match.length > 0) {
+					var issueKey = match[0];
+					var issue = data.issues.filter(function(i) { return i.key === issueKey; })[0];
+					
+					if (issue) {
+						$('#issue').val(issue.id).trigger('change');
+					}
+					else {
+						//Not in the list of the last 200 loaded, look up
+						return jiraGet('/rest/api/2/issue/' + issueKey)
+						.then(function(data) {
+							issue = JSON.parse(data);
+
+							//Add the issue to the dropdown
+							self.projectIssues.push({
+								id: issue.id,
+								text: issue.fields.summary + ' (' + issue.key + ')'
+							});
+							
+							$('#issue').append('<option value="' + issue.id + '" data-key="' + issue.key + '">' + issue.fields.summary + ' (' + issue.key + ')' + '</option>');
+					
+							//Rebuild select2
+							$('#issue').select2("destroy");
+							$('#issue').select2({
+								placeholder: "Select an Issue",
+								dataAdapter: jira.CustomIssueData
+							});
+							
+							//Select the issue							
+							$('#issue').val(issue.id).trigger('change');
+						})
+						.catch(function() {
+							//Issue not found? Ignore..
+						});
 					}
 				}
 			}
-		});		
+		})
+		.then(function() {
+			$('#IssueSpinner').css('display', 'none');
+		});
 	};
 
 	this.addRecentIssue = function (selectedIssue) {
