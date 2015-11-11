@@ -55,7 +55,6 @@ function JiraSettingController() {
 					'   <div> Miss a Jira System? <button id="jiraReloadOAuth" class="btn btn-link" style="padding-top: 4px; margin-left: -10px;"> Reload System Information</button></div>' +
 					'</form>';
 
-
 		} else {
 			html = '<p>Please choose your settings. Only logout if you like to stop the service or like to connect to another Jira system</p>' +
 			'<form class="form-horizontal" role="form">' +

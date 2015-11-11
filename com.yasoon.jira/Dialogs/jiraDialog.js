@@ -16,7 +16,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	jira = this;
 	jira.CONST_HEADER = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
 	
-
 	this.UIFormHandler = UIRenderer;
 	this.icons = new JiraIconController();
 	this.fromTemplate = false;
@@ -131,7 +130,22 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			if (templateString) {
 				self.savedTemplates = JSON.parse(templateString);
 			}
-			self.currentTemplates = $.grep(self.savedTemplates, function (t) { return t.senderEmail === self.mail.senderEmail; });
+			
+			self.currentTemplates = self.savedTemplates.filter(function (t) { 
+				//Check that senderEmail matches & project does still exist
+				if (t.senderEmail === self.mail.senderEmail) {
+					if (self.cacheProjects) {
+						var proj = self.cacheProjects.filter(function(p) { return p.id === t.project.id });
+						return proj.length === 1;
+					}
+					
+					//No cache there yet, check later again
+					return true;
+				}
+				
+				return false;
+			});
+			
 			if (self.currentTemplates.length > 0) {
 				var group = $('#project').find('.templates');
 				group.attr('label', 'Templates for ' + self.mail.senderName);
@@ -472,11 +486,17 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					//Legacy code 0.6 --> description and summary have been saved inside the template
 					delete self.currentIssue.summary;
 					delete self.currentIssue.description;
-
 				}
-			} else {
+				else {
+					//Project does not exist (anymore?), return
+					$('#project').val('').trigger('change');
+					return;
+				}
+			} 
+			else {
 				jira.selectedProject = $.grep(self.projects, function (proj) { return proj.id === selectedProject; })[0];
 			}
+			
 			//Show Loader!
 			$('#ContentArea').css('visibility','hidden');
 			$('#LoaderArea').show();

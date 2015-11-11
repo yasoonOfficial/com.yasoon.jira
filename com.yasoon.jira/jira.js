@@ -147,7 +147,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 						yasoon.dialog.showMessageBox("Jira refuses the request because of time differences. Either your local time is not set correctly or the JIRA server has a wrong time. (different timezones are ok)");
 						break;
 					case 'signature_invalid':
-						yasoon.dialog.showMessageBox("The certificate you are using in the application link is invalid. Please make sure you have setup JIRA correctly. Afterwards visit the JIRA settings and click on \"Reload System Information\"");
+						yasoon.dialog.showMessageBox("The certificate you are using in the application link is invalid. Please make sure you have setup JIRA correctly. Afterwards visit the settings and click on \"Reload System Information\"");
 						break;
 					default:
 						yasoon.alert.add({ type: yasoon.alert.alertType.error, message: initialError });
@@ -164,6 +164,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		console.log(tabContainer);
 		tabContainer.setTemplate('templates/issueSearch.hbs');
 	};
+	
 	//Handle Sync Event
 	this.syncStream = function (url, maxResults, currentPage) {
 		//Defaults
@@ -215,7 +216,6 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				}
 			}
 		});
-
 	};
 
 	this.initData = function () {
@@ -243,9 +243,12 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				return jiraGet('/rest/api/2/project')
 				.then(function (projectData) {
 					var projects = JSON.parse(projectData);
+					
+					//Clear detailed project data, will be filled in next step
 					jira.data.projects = [];
 					return projects;
 				})
+				.tap(self.cleanDeletedProjects)
 				.each(function (project) {
 					//Get detailed information for each project
 					return jiraGet('/rest/api/2/project/' + project.key)
@@ -274,13 +277,46 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		}
 	};
 
+	this.cleanDeletedProjects = function (projects) {		
+		//Check templates for deleted projects
+		var templateString = yasoon.setting.getAppParameter('createTemplates');
+		if (templateString) {
+			var templates = JSON.parse(templateString);
+			var newTemplates = [];
+			
+			for (var i = 0; i < templates.length; i++) {
+				var tmpl = templates[i];
+				if (projects.filter(function(p) { return p.id === tmpl.project.id; }).length > 0)
+					newTemplates.push(tmpl);
+			}
+			
+			if (templates.length !== newTemplates.length)
+				yasoon.setting.setAppParameter('createTemplates', JSON.stringify(newTemplates));
+		}
+					
+		//Check for deleted projects in recent projects		
+		var recentString = yasoon.setting.getAppParameter('recentProjects');
+		if (recentString) {
+			var recent = JSON.parse(recentString);
+			var newRecent = [];
+			
+			for (var i = 0; i < recent.length; i++) {
+				var rec = recent[i];
+				if (projects.filter(function(p) { return p.id === rec.id; }).length > 0)
+					newRecent.push(rec);
+			}
+			
+			if (recent.length !== newRecent.length)
+				yasoon.setting.setAppParameter('recentProjects', JSON.stringify(newRecent));
+		}		
+	};
+
 	this.loadProjectCache = function () {
 		console.log('Start loading Cache', new Date());
 		var cacheProjects = [];
 		return Promise.resolve()
 		.then(function () {
 			//First determine Projects for which we create a cache
-
 			var recentProjectsString = yasoon.setting.getAppParameter('recentProjects') || '[]';
 			var recentProjects = JSON.parse(recentProjectsString);
 			
