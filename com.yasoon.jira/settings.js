@@ -52,7 +52,7 @@ function JiraSettingController() {
 					'           <button class="btn btn-primary" id="jiraLogin">Login</button>' +
 					'       </div>' +
 					'   </div>' +
-					'   <div> Miss a Jira System? <a id="jiraReloadOAuth"> Reload System Information</a></div>' +
+					'   <div> Miss a Jira System? <button id="jiraReloadOAuth" class="btn btn-link" style="padding-top: 4px; margin-left: -10px;"> Reload System Information</button></div>' +
 					'</form>';
 
 
@@ -277,17 +277,17 @@ function JiraSettingController() {
 				// - it has already been clicked and processing is not finished yet
 				// - it's currently an version running from a shadow folder 
 				// - Or the downloaded app is newer (prevent implicit updates)
-				$('#jiraReloadOAuth').unbind();
+				$('#jiraReloadOAuth').prop('disabled', true).unbind();
 				var app = yasoon.model.apps.get('com.yasoon.jira');
 				yasoon.store.getLatestVersions(function (storeApp) {
 					if (storeApp.id > app.origin.versionId) {
 						yasoon.dialog.showMessageBox('There are pending updates which prevent this action. Please check for latest updates in the Outlook menu: File --> yasoon, restart Outlook and try again');
-						$('#jiraReloadOAuth').unbind().click(reloadOAuthHandler);
+						$('#jiraReloadOAuth').unbind().prop('disabled', false).click(reloadOAuthHandler);
 						return;
 					}
 					if (app.origin.basePath.indexOf('update') > -1) {
 						yasoon.dialog.showMessageBox('There are pending updates which prevent this action. Please restart Outlook and try again');
-						$('#jiraReloadOAuth').unbind().click(reloadOAuthHandler);
+						$('#jiraReloadOAuth').unbind().prop('disabled', false).click(reloadOAuthHandler);
 						return;
 					}
 
@@ -296,15 +296,15 @@ function JiraSettingController() {
 							jira.downloadScript = true;
 							yasoon.app.update(null, null, function () {
 								yasoon.view.settings.renderOptionPane(yasoon.view.settings.currentApp());
+								yasoon.alert.add({ message: 'Successfully reloaded the system information!', type: 3});
 							});
 						}
 					});
 				});
 
-
 				return false;
-
 			}
+			
 			$('#jiraReloadOAuth').unbind().click(reloadOAuthHandler);
 		};
 		container.setContent(elem.html());
