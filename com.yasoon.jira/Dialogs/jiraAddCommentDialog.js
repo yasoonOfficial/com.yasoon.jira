@@ -46,6 +46,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		// Resize Window if nessecary (sized are optimized for default Window - user may have changed that)
 		resizeWindow();
 		
+		//Render fields
+		self.UIFormHandler.render('description', { name: 'Comment', schema: { system: 'description' }}, $('#ContentArea'));
+		self.UIFormHandler.render('attachment', { name: 'Attachment', schema: { system: 'attachment' }}, $('#ContentArea'));
+		
+		var oldTime = new Date().getTime();
+		
 		//Add attachments to clipboard if requested
 		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
 			self.mail.attachments.forEach(function(attachment) {				
@@ -56,36 +62,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				}
 				else {
 					var id = yasoon.clipboard.addFile(handle);
+					console.log(id);
 					self.addedAttachmentIds.push(id);
 				}
 			});
 		}
 		
-		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
-			$.each(self.mail.attachments, function (i, attachment) {
-				var handle = attachment.getFileHandle();
-				var addEmbedded = (jira.settings.addEmbeddedImagesAutomatically !== 'off');
-				
-				if (self.settings.addAttachmentsOnNewAddIssue || (addEmbedded && self.selectedText && self.selectedText.indexOf('!' + attachment.contentId + '!') > -1)) {
-					//Rename embedded images, because embedded images have generic names
-					// like image0001.png that duplicate quickly on issues
-					var uniqueKey = getUniqueKey();
-					var oldFileName = handle.getFileName();
-					var newFileName = oldFileName.substring(0, oldFileName.lastIndexOf('.'));
-					newFileName = newFileName + '_' + uniqueKey + oldFileName.substring(oldFileName.lastIndexOf('.'));
-					handle.setFileName(newFileName);
-					
-					//In case of embedded image, we need to rename it as well
-					if (self.selectedText && self.selectedText.indexOf('!' + attachment.contentId + '!') > -1) {
-						var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
-						self.selectedText = self.selectedText.replace(regEx, '!' + newFileName + '!');			
-					}
-												
-					self.selectedAttachments.push(handle);
-				}
-			});
-		}
-
 		//Add current mail to clipboard
 		if (self.mail) {
 			var handle = self.mail.getFileHandle();
@@ -108,11 +90,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		if (issuesString) {
 			self.recentIssues = JSON.parse(issuesString);
 		}
-
-		//Render fields
-		self.UIFormHandler.render('description', { name: 'Comment', schema: { system: 'description' }}, $('#ContentArea'));
-		self.UIFormHandler.render('attachment', { name: 'Attachment', schema: { system: 'attachment' }}, $('#ContentArea'));
-
+		
 		//Add Default Data
 		if (self.selectedText) {
 			var text = self.selectedText;
@@ -125,12 +103,16 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				text = text + '\n' + renderMailHeaderText(self.mail, true);
 			}
 			
-			text = self.handleAttachments(text, false);
+			text = self.handleAttachments(text, self.mail.attachments,  false);
 			$('#description').val(text);
 		}
 
 		//Render current mail (just in case we need it as it probably needs some time)
-		if (self.mail) {
+		if (self.mail) {			
+			//Only show loader if no text is rendered yet 
+			if (!self.selectedText)
+				$('#markupLoader').show();
+								
 			yasoon.outlook.mail.renderBody(self.mail, 'jiraMarkup')
 			.then(function (markup) {
 				jira.mailAsMarkup = markup;
@@ -144,11 +126,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 						markup = markup + '\n' + renderMailHeaderText(self.mail, true);
 					}
 					
-					markup = self.handleAttachments(markup, true);
+					markup = self.handleAttachments(markup, self.mail.attachments, true);
 					$('#description').val(markup);
 				}
+			})
+			.finally(function() {
+				$('#markupLoader').hide();
 			});
-		}
+		}		
 
 		if (this.selectedIssue) {
 			//Project and Issue should be prepopulated
@@ -167,7 +152,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			$('#LoaderArea').show();
 
 			
-		} else {
+		} 
+		else {
 			//Nothing selected
 			$('#project').select2({
 				placeholder: "Filter by Project"
@@ -422,29 +408,43 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		}
 	};
 
-	this.handleAttachments = function (markup, fromFullMail) {
-		var handles = yasoon.clipboard.all();
-		for (var id in handles) {
-			if (handles.hasOwnProperty(id)) {
-				var fileHandle = handles[id];
-				if (markup.indexOf('!' + fileHandle.getFileName() + '!') > -1) {
+	this.handleAttachments = function (markup, attachments, fromFullMail) {
+		//Check each attachment if it needs to be embedded
+		var clipboardContent = yasoon.clipboard.all();
+		attachments.forEach(function(attachment) {			
+			if (markup.indexOf('!' + attachment.contentId + '!') > -1) {								
+				var handle = attachment.getFileHandle();
+				var uniqueKey = getUniqueKey();
+				var oldFileName = handle.getFileName();
+				var newFileName = oldFileName.substring(0, oldFileName.lastIndexOf('.'));
+				newFileName = newFileName + '_' + uniqueKey + oldFileName.substring(oldFileName.lastIndexOf('.'));
+				handle.setFileName(newFileName);
+				
+				//Replace the reference in the markup
+				var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
+				markup = markup.replace(regEx, '!' + newFileName + '!');		
+				
+				//May have been added earlier
+				if (self.selectedAttachments.indexOf(handle) === -1) {
+					self.selectedAttachments.push(handle);
 					
-					//Check if we should actually add embedded images (from settings)
-					// Off or full mail + selected option will just remove the references from the text
-					if (jira.settings.addEmbeddedImagesAutomatically === 'off' || 
-						(jira.settings.addEmbeddedImagesAutomatically === 'selected' && fromFullMail)) {
-						
+					//Remove it from the clipboard as well
+					var id = null;
+					
+					for (var key in clipboardContent) {
+						if (handle.contentId && clipboardContent[key].contentId === handle.contentId) {
+							id = key;
+							break;
+						}
 					}
-			
-					self.selectedAttachments.push(fileHandle);
-					var index = self.addedAttachmentIds.indexOf(id);
-					self.addedAttachmentIds.splice(index, 1);
-					fileHandle.setInUse();
-					yasoon.clipboard.remove(id);
+					
+					if (id) 
+						yasoon.clipboard.remove(id);
 				}
 			}
+				
 			jira.UIFormHandler.getRenderer('attachment').renderAttachments('attachment');
-		}
+		});
 		
 		return markup;
 	};

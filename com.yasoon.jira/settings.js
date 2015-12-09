@@ -6,7 +6,6 @@ function JiraSettingController() {
 		showDesktopNotif: true,
 		addAttachmentsOnNewAddIssue: false,
 		addMailHeaderAutomatically: 'off',
-		addEmbeddedImagesAutomatically: 'selected',
 		addEmailOnNewAddIssue: false,
 		showFeedAssignee: true,
 		showFeedMentioned: true,
@@ -108,19 +107,6 @@ function JiraSettingController() {
 			'              <option value="off">Disabled</option>' +
 			'              <option value="top">On Top</option>'+
 			'              <option value="bottom">At the Bottom</option>'+
-			'           </select>' +
-			'       </div>' +
-			'   </div>' +
-			//Auto Add Embedded Images
-			'   <div class="form-group" style="position:relative; margin-top:20px;">' +
-			'       <div class="col-sm-4">' +
-			'           <b class="pull-right">Automatically add embedded images</b>' +
-			'       </div>' +
-			'       <div class="col-sm-8">' +
-			'           <select class="formValue" style="width: 140px" id="addEmbeddedImagesAutomatically" name="addEmbeddedImagesAutomatically">' +
-			'              <option value="off">Disabled</option>' +
-			'              <option value="selected">From Selected Text</option>'+
-			'              <option value="on">Always</option>'+
 			'           </select>' +
 			'       </div>' +
 			'   </div>' +
