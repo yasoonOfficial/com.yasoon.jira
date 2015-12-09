@@ -53,6 +53,12 @@
         <link linkId="jiraforoutlook-admin-link">/plugins/servlet/jiraforoutlook/admin</link> 
     </web-item>
     
+    <web-item key="jira-user-menu-item" name="Outlook App" section="system.user.options/jira-help">
+        <description>Link to Jira for Outlook app page.</description> 
+        <label key="jiraforoutlook.user.label" /> 
+        <link linkId="jiraforoutlook-user-link">/plugins/servlet/jiraforoutlook/user</link> 
+    </web-item>
+    
     <servlet key="admin-servlet" class="com.yasoon.jira.AdminUIServlet">
         <url-pattern>/jiraforoutlook/admin</url-pattern>        
     </servlet>
