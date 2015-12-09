@@ -46,12 +46,27 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		// Resize Window if nessecary (sized are optimized for default Window - user may have changed that)
 		resizeWindow();
 		
-		//Add attachments to clipboard
+		//Add attachments to clipboard if requested
+		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
+			self.mail.attachments.forEach(function(attachment) {				
+				var handle = attachment.getFileHandle();		
+				//Skip hidden attachments (mostly embedded images)	
+				if (self.settings.addAttachmentsOnNewAddIssue && !attachment.isHidden) {
+					self.selectedAttachments.push(handle);
+				}
+				else {
+					var id = yasoon.clipboard.addFile(handle);
+					self.addedAttachmentIds.push(id);
+				}
+			});
+		}
+		
 		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
 			$.each(self.mail.attachments, function (i, attachment) {
 				var handle = attachment.getFileHandle();
+				var addEmbedded = (jira.settings.addEmbeddedImagesAutomatically !== 'off');
 				
-				if (self.settings.addAttachmentsOnNewAddIssue || (self.selectedText && self.selectedText.indexOf('!' + attachment.contentId + '!') > -1)) {
+				if (self.settings.addAttachmentsOnNewAddIssue || (addEmbedded && self.selectedText && self.selectedText.indexOf('!' + attachment.contentId + '!') > -1)) {
 					//Rename embedded images, because embedded images have generic names
 					// like image0001.png that duplicate quickly on issues
 					var uniqueKey = getUniqueKey();
@@ -67,10 +82,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					}
 												
 					self.selectedAttachments.push(handle);
-				}
-				else {
-					var id = yasoon.clipboard.addFile(handle);
-					self.addedAttachmentIds.push(id);
 				}
 			});
 		}
@@ -114,8 +125,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				text = text + '\n' + renderMailHeaderText(self.mail, true);
 			}
 			
+			text = self.handleAttachments(text, false);
 			$('#description').val(text);
-			self.handleAttachments(text);
 		}
 
 		//Render current mail (just in case we need it as it probably needs some time)
@@ -133,8 +144,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 						markup = markup + '\n' + renderMailHeaderText(self.mail, true);
 					}
 					
+					markup = self.handleAttachments(markup, true);
 					$('#description').val(markup);
-					self.handleAttachments(markup);
 				}
 			});
 		}
@@ -411,12 +422,20 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		}
 	};
 
-	this.handleAttachments = function (markup) {
+	this.handleAttachments = function (markup, fromFullMail) {
 		var handles = yasoon.clipboard.all();
 		for (var id in handles) {
 			if (handles.hasOwnProperty(id)) {
 				var fileHandle = handles[id];
 				if (markup.indexOf('!' + fileHandle.getFileName() + '!') > -1) {
+					
+					//Check if we should actually add embedded images (from settings)
+					// Off or full mail + selected option will just remove the references from the text
+					if (jira.settings.addEmbeddedImagesAutomatically === 'off' || 
+						(jira.settings.addEmbeddedImagesAutomatically === 'selected' && fromFullMail)) {
+						
+					}
+			
 					self.selectedAttachments.push(fileHandle);
 					var index = self.addedAttachmentIds.indexOf(id);
 					self.addedAttachmentIds.splice(index, 1);
@@ -426,6 +445,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			}
 			jira.UIFormHandler.getRenderer('attachment').renderAttachments('attachment');
 		}
+		
+		return markup;
 	};
 }); //jshint ignore:line
 
