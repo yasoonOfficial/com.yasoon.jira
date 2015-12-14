@@ -62,7 +62,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				}
 				else {
 					var id = yasoon.clipboard.addFile(handle);
-					console.log(id);
 					self.addedAttachmentIds.push(id);
 				}
 			});
