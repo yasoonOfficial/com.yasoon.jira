@@ -26,7 +26,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.currentMeta = null;
 	this.currentIssue = null;
 	this.selectedProject = null;
-	this.senderUser = null;
+	this.senderUser = { name: -1 };
 	this.projectMeta = null;
 
 	this.mailAsMarkup = '';
@@ -155,27 +155,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				group.show();
 			}
 
-			//Add attachments to clipboard
-			if (self.mail.attachments && self.mail.attachments.length > 0) {
-				$.each(self.mail.attachments, function (i, attachment) {
-					var handle = attachment.getFileHandle();
-										
-					if (self.settings.addAttachmentsOnNewAddIssue) {				
-						self.selectedAttachments.push(handle);
-					}
-					else if (self.selectedText && self.selectedText.indexOf('!' + attachment.contentId + '!') > -1) {
-						//Replace embedded attachment
-						self.selectedAttachments.push(handle);
-						var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
-						self.selectedText = self.selectedText.replace(regEx, '!' + handle.getFileName() + '!');		
-					}
-					else {
-						var id = yasoon.clipboard.addFile(handle);
-						self.addedAttachmentIds.push(id);
-					}
-				});
-			}
-
 			//Add current mail to clipboard
 			var handle = self.mail.getFileHandle();
 			if (self.settings.addEmailOnNewAddIssue) {
@@ -184,25 +163,20 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				var id = yasoon.clipboard.addFile(handle);
 				self.addedAttachmentIds.push(id);
 			}
-
-			//Find senderUser
-			jiraGet('/rest/api/2/user/search?username=' + self.mail.senderEmail)
-			.then(function (data) {
-				var users = JSON.parse(data);
-				if (users.length > 0) {
-					jira.senderUser = users[0];
-					jira.userCommonValues.results[0].children.push({
-						id: jira.senderUser.name,
-						text: jira.senderUser.displayName,
-						icon: 'emailSender'
-					});
-				} else {
-					jira.senderUser = { name: -1 };
-					$('.create-sender').css('display', 'inline');
+		}
+		
+		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
+			self.mail.attachments.forEach(function(attachment) {				
+				var handle = attachment.getFileHandle();		
+				//Skip hidden attachments (mostly embedded images)	
+				if (self.settings.addAttachmentsOnNewAddIssue && !attachment.isHidden) {
+					self.selectedAttachments.push(handle);
 				}
-				self.setDefaultReporter();
-			})
-			.catch(jira.handleError);
+				else {
+					var id = yasoon.clipboard.addFile(handle);
+					self.addedAttachmentIds.push(id);
+				}
+			});
 		}
 
 		if (!!initParams.editIssue) {
@@ -257,10 +231,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			});
 			$('#ProjectSpinner').css('display', 'inline');
 			
-			var projectGet = Promise.resolve(jira.cacheProjects);
+			//Please don't change, weird resize bug whatever
+			// => We need the thenable to be executed async
+			var projectGet = Promise.delay(jira.cacheProjects, 1); 
 			
 			if (!jira.cacheProjects || jira.cacheProjects.length === 0) 
-				projectGet = Promise.resolve(jiraGet('/rest/api/2/project'));
+				projectGet = jiraGet('/rest/api/2/project');
 				
 			projectGet
 			.then(function (data) {				
@@ -474,7 +450,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.selectProject = function () {
 		var selectedProject = $('#project').val();
 		$('#MainAlert').hide();
-		console.log('selected Project: ' + selectedProject);
+		
 		if (selectedProject) {
 			var isTemplate = (selectedProject.indexOf('template') > -1);
 			if (isTemplate) {
@@ -501,9 +477,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			$('#ContentArea').css('visibility','hidden');
 			$('#LoaderArea').show();
 
-			Promise.all([
+			Promise.all([								
 				self.getProjectValues(),
-				self.getMetaData()
+				self.getMetaData(),
+				self.loadSenderUser()
 			])
 			.spread(function (renderData) {
 				if(renderData)
@@ -533,7 +510,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				$('#issuetype').val(self.selectedProject.issueTypes[0].id).trigger('change');
 				$('#issuetype').change(function () {
 					var meta = $.grep(self.projectMeta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
-					console.log('New Meta', meta);
+					
 					$('#LoaderArea').show();
 					$('#ContentArea').css('visibility', 'hidden');
 
@@ -547,6 +524,29 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			.catch(jira.handleError);
 		}
 	};
+	
+	this.loadSenderUser = function() {
+		if (!jira.mail)
+			return Promise.resolve();		
+		
+		return jiraGet('/rest/api/2/user/search?username=' + self.mail.senderEmail)
+			.then(function (data) {
+				var users = JSON.parse(data);
+				if (users.length > 0) {
+					jira.senderUser = users[0];
+					jira.userCommonValues.results[0].children.push({
+						id: jira.senderUser.name,
+						text: jira.senderUser.displayName,
+						icon: 'emailSender'
+					});
+				} 
+				else {
+					$('.create-sender').css('display', 'inline');
+				}
+				
+				self.setDefaultReporter();
+			});
+	}
 
 	this.renderIssue = function (meta) {
 		//Set this as current meta
@@ -669,8 +669,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					text = text + '\n' + renderMailHeaderText(self.mail, true);
 				}
 				
-				jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, text);
-				self.handleAttachments(text);
+				text = self.handleAttachments(text, self.mail.attachments);
+				jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, text);				
 			}
 			
 			yasoon.outlook.mail.renderBody(self.mail, 'jiraMarkup')
@@ -688,8 +688,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 						markup = markup + '\n' + renderMailHeaderText(self.mail, true);
 					}
 					
-					jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, markup);
-					self.handleAttachments(markup);
+					markup = self.handleAttachments(markup, self.mail.attachments);
+					jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, markup);					
 				}
 			})
 			.catch(function () {
@@ -811,25 +811,47 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			jira.UIFormHandler.setValue(fieldMapping.sender, { schema: { custom: senderType } }, senderValue);
 		}
 	};
-
-	this.handleAttachments = function (markup) {
-		var handles = yasoon.clipboard.all();
-		for (var id in handles) {
-			if (handles.hasOwnProperty(id)) {
-				var fileHandle = handles[id];
-				if (markup.indexOf('!' + fileHandle.getFileName() + '!') > -1) {
-					self.selectedAttachments.push(fileHandle);
-					var index = self.addedAttachmentIds.indexOf(fileHandle.id);
-					if (index > -1) {
-						self.addedAttachmentIds.splice(index, 1);
+	
+	this.handleAttachments = function (markup, attachments) {
+		//Check each attachment if it needs to be embedded
+		var clipboardContent = yasoon.clipboard.all();
+		attachments.forEach(function(attachment) {			
+			if (markup.indexOf('!' + attachment.contentId + '!') > -1) {				
+				//Replace the reference in the markup								
+				var handle = attachment.getFileHandle();								
+				var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
+				markup = markup.replace(regEx, '!' + handle.getFileName() + '!');		
+				handle.setInUse();
+				
+				//May have been added earlier
+				if (self.selectedAttachments.indexOf(handle) === -1) {
+					self.selectedAttachments.push(handle);
+					
+					//Remove it from the clipboard as well
+					var id = null;
+					
+					for (var key in clipboardContent) {
+						if (handle.contentId && clipboardContent[key].contentId === handle.contentId) {
+							id = key;
+							break;
+						}
 					}
-					fileHandle.setInUse();
-					yasoon.clipboard.remove(fileHandle.id);
+					
+					if (id) {
+						var index = self.addedAttachmentIds.indexOf(id);
+						if (index > -1) {
+							self.addedAttachmentIds.splice(index, 1);
+						}
+						yasoon.clipboard.remove(id);
+					}
 				}
 			}
-		}
-		jira.UIFormHandler.getRenderer('attachment').renderAttachments('attachment');
+		});
+		
+		jira.UIFormHandler.getRenderer('attachment').renderAttachments('attachment');		
+		return markup;
 	};
+	
 }); //jshint ignore:line
 
 function submitErrorHandler(data, statusCode, result, errorText, cbkParam) {

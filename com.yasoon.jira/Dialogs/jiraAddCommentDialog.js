@@ -50,8 +50,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		self.UIFormHandler.render('description', { name: 'Comment', schema: { system: 'description' }}, $('#ContentArea'));
 		self.UIFormHandler.render('attachment', { name: 'Attachment', schema: { system: 'attachment' }}, $('#ContentArea'));
 		
-		var oldTime = new Date().getTime();
-		
 		//Add attachments to clipboard if requested
 		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
 			self.mail.attachments.forEach(function(attachment) {				
@@ -102,7 +100,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				text = text + '\n' + renderMailHeaderText(self.mail, true);
 			}
 			
-			text = self.handleAttachments(text, self.mail.attachments,  false);
+			text = self.handleAttachments(text, self.mail.attachments);
 			$('#description').val(text);
 		}
 
@@ -125,7 +123,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 						markup = markup + '\n' + renderMailHeaderText(self.mail, true);
 					}
 					
-					markup = self.handleAttachments(markup, self.mail.attachments, true);
+					markup = self.handleAttachments(markup, self.mail.attachments);
 					$('#description').val(markup);
 				}
 			})
@@ -160,7 +158,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 			$('#ProjectSpinner').css('display', 'inline');
 
-			var projectGet = Promise.resolve(jira.cacheProjects);
+			//Please don't change, weird resize bug whatever
+			// => We need the thenable to be executed async
+			var projectGet = Promise.delay(jira.cacheProjects, 1);
 			
 			if (!jira.cacheProjects || jira.cacheProjects.length === 0) 
 				projectGet = Promise.resolve(jiraGet('/rest/api/2/project'));
@@ -170,7 +170,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				//Populate Project Dropdown
 				if (typeof(data) === 'string')
 					self.projects = JSON.parse(data);
-				else 
+				else
 					self.projects = data;
 					
 				var group = $('#project').find('.all');
@@ -407,7 +407,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		}
 	};
 
-	this.handleAttachments = function (markup, attachments, fromFullMail) {
+	this.handleAttachments = function (markup, attachments) {
 		//Check each attachment if it needs to be embedded
 		var clipboardContent = yasoon.clipboard.all();
 		attachments.forEach(function(attachment) {			
@@ -418,6 +418,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				var newFileName = oldFileName.substring(0, oldFileName.lastIndexOf('.'));
 				newFileName = newFileName + '_' + uniqueKey + oldFileName.substring(oldFileName.lastIndexOf('.'));
 				handle.setFileName(newFileName);
+				handle.setInUse();
 				
 				//Replace the reference in the markup
 				var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
@@ -437,14 +438,18 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 						}
 					}
 					
-					if (id) 
+					if (id) { 
+						var index = self.addedAttachmentIds.indexOf(id);
+						if (index > -1) {
+							self.addedAttachmentIds.splice(index, 1);
+						}
 						yasoon.clipboard.remove(id);
+					}
 				}
 			}
-				
-			jira.UIFormHandler.getRenderer('attachment').renderAttachments('attachment');
 		});
 		
+		jira.UIFormHandler.getRenderer('attachment').renderAttachments('attachment');		
 		return markup;
 	};
 }); //jshint ignore:line

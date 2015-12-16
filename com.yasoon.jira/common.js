@@ -154,7 +154,7 @@ function JiraIconController() {
 			return yasoon.io.exists('Images\\' + entry.fileName);
 		});
 
-		console.log('Initial Icon Buffer', iconBuffer);
+		//console.log('Initial Icon Buffer', iconBuffer);
 	}
 }
 
