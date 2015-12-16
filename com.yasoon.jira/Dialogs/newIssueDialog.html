@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="Dialogs/request-types.css">
 <link rel="stylesheet" href="Dialogs/style.css">
 <link rel="stylesheet" href="Dialogs/select2.min.css">
 <link rel="stylesheet" href="Dialogs/jquery.datetimepicker.css">
@@ -42,7 +43,7 @@
 								</div>
 								<div id="IssueArea" class="qf-field qf-field-issuetype qf-required" style="display:none;">
 									<div class="field-group input-field">
-										<label for="issuetype">Issue Type<span class="aui-icon icon-required">Required</span></label>
+										<label for="issuetype"><span id="issueTypeLabel"> Issue Type</span><span id="requestTypeLabel" class="hidden"> Request Type</span><span class="aui-icon icon-required">Required</span></label>
 										<select class="select input-field" id="issuetype" name="issuetype" style="min-width: 350px; width: 80%;"></select>
 									</div>
 								</div>

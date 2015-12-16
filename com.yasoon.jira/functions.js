@@ -162,6 +162,12 @@ function JiraRibbonController() {
 			closeCallback: self.ribbonOnCloseNewIssue
 		};
 
+		//Testing Conversations
+
+		//var conversationString = ribbonCtx.items[ribbonCtx.readingPaneItem].getConversationData();
+		//console.log('Old Conversation Data: ' + conversationString);
+		//ribbonCtx.items[ribbonCtx.readingPaneItem].setConversationData(JSON.stringify({ type: 'test', issueId: 123, mailId: ribbonCtx.items[ribbonCtx.readingPaneItem].entryId }));
+
 		if (ribbonId == 'newIssueFullMail' || ribbonId == 'newIssueFromMailMain') {
 			//Ribbon on Mail Item
 			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];

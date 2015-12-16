@@ -10,6 +10,9 @@ function UIFormHandler() {
 		register: function(key, newRenderer) {
 			renderer[key] = newRenderer;
 		},
+		getFieldType: function(field) {
+			return getFieldType(field);
+		},
 		getRenderer: function(key) {
 			return renderer[key];
 		},

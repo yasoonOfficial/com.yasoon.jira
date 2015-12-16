@@ -175,17 +175,22 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					
 				var group = $('#project').find('.all');
 				$.each(self.projects, function (i, project) {
-					group.append('<option style="background-image: url(images/projectavatar.png)" value="' + project.id + '" data-key="' + project.key + '">' + project.name + '</option>');
+					group.append('<option value="' + project.id + '" data-icon="' + getProjectIcon(project) + '" data-key="' + project.key + '">' + project.name + '</option>');
 				});
 				
 				group = $('#project').find('.recent');
-				$.each(self.recentProjects, function (i, project) {
-					group.append('<option style="background-image: url(images/projectavatar.png)" value="' + project.id + '" data-key="' + project.key + '">' + project.name + '</option>');
+				$.each(self.recentProjects, function (i, proj) {
+					var project = self.projects.filter(function (p) { return p.key === proj.key; })[0];
+					if (project) {
+						group.append('<option value="' + project.id + '" data-icon="' + getProjectIcon(project) + '" data-key="' + project.key + '">' + project.name + '</option>');
+					}
 				});
 
 				$('#project').select2("destroy");
 				$('#project').select2({
-					placeholder: "Filter by Project"
+					placeholder: "Filter by Project",
+					templateResult: formatIcon,
+					templateSelection: formatIcon,
 				});
 
 				$('#ProjectSpinner').css('display', 'none');

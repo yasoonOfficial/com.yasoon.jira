@@ -980,8 +980,14 @@ function formatIcon(element) {
 	var icon = $(element.element).data('icon');
 	if (icon)
 		return $('<span><img style="margin-right:3px; width: 16px;" src="' + icon + '"/>' + element.text + '</span>');
-	else
-		return element.text;
+	else {
+		icon = $(element.element).data('iconclass');
+		if (icon) {
+			return $('<span><i style="margin-right:3px; float:left;" class="' + icon + '"></i><span>' + element.text + '</span></span>');
+		} else {
+			return element.text;
+		}
+	}
 }
 
 function formatUser(user) {

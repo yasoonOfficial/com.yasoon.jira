@@ -26,7 +26,7 @@ function debounce(func, wait, immediate) {
 		timeout = setTimeout(later, wait);
 		if (callNow) func.apply(context, args);
 	};
-};
+}
 
 function getUniqueKey() {
 	//Use current time to get something short unique
@@ -273,4 +273,17 @@ function jiraIsCloud(url) {
 function jiraEndsWith(str, suffix) {
 	return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
+
+function getProjectIcon(project) {
+	if (!project.projectTypeKey)
+		return '';
+
+	if (project.projectTypeKey === 'business')
+		return 'Images/project_business.svg';
+	if (project.projectTypeKey === 'service_desk')
+		return 'Images/project_service.svg';
+	if (project.projectTypeKey === 'software')
+		return 'Images/project_software.svg';
+}
+
 //@ sourceURL=http://Jira/common.js

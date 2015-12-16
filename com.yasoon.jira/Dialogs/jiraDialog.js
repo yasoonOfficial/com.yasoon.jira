@@ -135,7 +135,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				//Check that senderEmail matches & project does still exist
 				if (t.senderEmail === self.mail.senderEmail) {
 					if (self.cacheProjects) {
-						var proj = self.cacheProjects.filter(function(p) { return p.id === t.project.id });
+						var proj = self.cacheProjects.filter(function (p) { return p.id === t.project.id; });
 						return proj.length === 1;
 					}
 					
@@ -150,7 +150,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				var group = $('#project').find('.templates');
 				group.attr('label', 'Templates for ' + self.mail.senderName);
 				$.each(self.currentTemplates, function (i, template) {
-					group.append('<option style="background-image: url(images/projectavatar.png)" value="template' + template.project.id + '">' + template.project.name + '</option>');
+					group.append('<option value="template' + template.project.id + '" data-icon="' + getProjectIcon(template.project) + '">' + template.project.name + '</option>');
 				});
 				group.show();
 			}
@@ -192,7 +192,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			self.projects.push(proj);
 			self.selectedProject = proj;
 
-			all.append('<option style="background-image: url(images/projectavatar.png)" value="' + proj.id + '" data-key="' + proj.key + '">' + proj.name + '</option>');
+			all.append('<option data-icon="' + getProjectIcon(project) +'"  value="' + proj.id + '" data-key="' + proj.key + '">' + proj.name + '</option>');
 			$('#project').select2();
 			$('#project').val(proj.id).trigger('change');
 			$('#project').prop("disabled", true);
@@ -248,17 +248,22 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 								
 				var group = $('#project').find('.all');
 				$.each(self.projects, function (i, project) {
-					group.append('<option style="background-image: url(images/projectavatar.png)" value="' + project.id + '" data-key="' + project.key + '">' + project.name + '</option>');
+					group.append('<option value="' + project.id + '" data-icon="' + getProjectIcon(project) + '" data-key="' + project.key + '">' + project.name + '</option>');
 				});
 				
 				group = $('#project').find('.recent');
-				$.each(self.recentProjects, function (i, project) {
-					group.append('<option style="background-image: url(images/projectavatar.png)" value="' + project.id + '" data-key="' + project.key + '">' + project.name + '</option>');
+				$.each(self.recentProjects, function (i, proj) {
+					var project = self.projects.filter(function (p) { return p.key === proj.key; })[0];
+					if (project) {
+						group.append('<option value="' + project.id + '" data-icon="' + getProjectIcon(project) + '" data-key="' + project.key + '">' + project.name + '</option>');
+					}
 				});
 
 				$('#project').select2("destroy");
 				$('#project').select2({
-					placeholder: "Select a Project"
+					placeholder: "Select a Project",
+					templateResult: formatIcon,
+					templateSelection: formatIcon,
 				});
 
 				$('#ProjectSpinner').css('display', 'none');
@@ -343,6 +348,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		result.fields.issuetype = {
 			id: $('#issuetype').val()
 		};
+		//3. Check if Request type is needed and add it
+		if (jira.selectedProject.projectTypeKey == 'service_desk') {
+			var requestType = $('#issuetype').find(":selected").data('requesttype');
+			var requestTypeFieldName = self.getRequestTypeField(jira.currentMeta);
+			if (requestType && requestTypeFieldName) {
+				result.fields[requestTypeFieldName] = requestType;
+			}
+		}
 
 		//Incremnt transaction for Greenhopper API
 		jira.transaction.currentCallCounter++;
@@ -478,39 +491,57 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			$('#LoaderArea').show();
 
 			Promise.all([								
+				self.getRequestTypes(jira.selectedProject),
 				self.getProjectValues(),
 				self.getMetaData(),
 				self.loadSenderUser()
 			])
-			.spread(function (renderData) {
-				if(renderData)
-					renderData = JSON.parse(renderData);
-
-				//Sort Issue Types
-				self.selectedProject.issueTypes.sort(function (a, b) {
-					if (a.id > b.id)
-						return 1;
-					else
-						return -1;
-				});
-
-				//Render Issue Types
+			.spread(function (requestTypes) {
+				//New with JIRA 7: Depending on the project type, we render a little bit differently.
+				//Common stuff
 				$('#issuetype').html('').unbind();
-				$.each(self.selectedProject.issueTypes, function (i, type) {
-					if (!type.subtask) {
-						type.iconUrl = jira.icons.mapIconUrl(type.iconUrl);
-						$('#issuetype').append('<option data-icon="' + type.iconUrl + '" value="' + type.id + '">' + type.name + '</option>');
-					}
-				});
-				$('#issuetype').select2("destroy");
-				$("#issuetype").select2({
-					templateResult: formatIcon,
-					templateSelection: formatIcon
-				});
-				$('#issuetype').val(self.selectedProject.issueTypes[0].id).trigger('change');
+
+				if (jira.selectedProject.projectTypeKey == 'service_desk' && requestTypes) {
+					//Render Request Types if it's an service project
+					requestTypes.groups.forEach(function (group) {
+						$('#issuetype').append('<optgroup label="' + group.name + '"></optgroup>');
+						var currentGroup = $('#issuetype').find('optgroup').last();
+						requestTypes.forEach(function (rt) {
+							if (rt.groups.filter(function (g) { return g.id === group.id; }).length > 0) {
+								//This request type is assigned to current group --> display.
+								currentGroup.append('<option data-iconclass = "vp-rq-icon vp-rq-icon-' + rt.icon + '" data-requesttype="' + jira.selectedProject.key.toLowerCase() + '/' + rt.key +'" value="' + rt.issueType + '">' + rt.name + '</option>');
+							}
+						});
+					});
+					$('#issuetype').select2("destroy");
+					$("#issuetype").select2({
+						templateResult: formatIcon,
+						templateSelection: formatIcon
+					});
+
+					$('#issueTypeLabel').addClass('hidden');
+					$('#requestTypeLabel').removeClass('hidden');
+				} else {
+					//Else Render Issue Types
+					$.each(self.selectedProject.issueTypes, function (i, type) {
+						if (!type.subtask) {
+							type.iconUrl = jira.icons.mapIconUrl(type.iconUrl);
+							$('#issuetype').append('<option data-icon="' + type.iconUrl + '" value="' + type.id + '">' + type.name + '</option>');
+						}
+					});
+					$('#issuetype').select2("destroy");
+					$("#issuetype").select2({
+						templateResult: formatIcon,
+						templateSelection: formatIcon
+					});
+					$('#issuetype').val(self.selectedProject.issueTypes[0].id).trigger('change');
+
+					$('#issueTypeLabel').removeClass('hidden');
+					$('#requestTypeLabel').addClass('hidden');
+				}
+
 				$('#issuetype').change(function () {
-					var meta = $.grep(self.projectMeta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
-					
+					var meta = $.grep(self.projectMeta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];					
 					$('#LoaderArea').show();
 					$('#ContentArea').css('visibility', 'hidden');
 
@@ -729,6 +760,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				},
 				success: function (data) {
 					jira.selectedProject = JSON.parse(data);
+
+					//Sort Issue Types
+					jira.selectedProject.issueTypes.sort(function (a, b) {
+						if (a.id > b.id)
+							return 1;
+						else
+							return -1;
+					});
 					resolve();
 				}
 			});
@@ -764,6 +803,51 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			});
 
 		});
+	};
+
+	this.getRequestTypes = function (project) {
+		if (!project || project.projectTypeKey != 'service_desk' ) {
+			return;
+		}
+
+		//Only call for service desk projects
+		return jiraGet('/rest/servicedesk/1/servicedesk/' + project.key.toLowerCase() + '/request-types')
+		.then(function (data) {
+			var requestTypes = JSON.parse(data);
+
+			//Get all Groups to make rendering easier
+			var groups = [];
+			requestTypes.forEach(function (rt) {
+				//a request type can be assigned to multiple groups:
+				if (!rt.groups) {
+					return;
+				}
+
+				rt.groups.forEach(function (group) {
+					if (groups.filter(function (g) { return g.id == group.id; }).length === 0) {
+						groups.push(group);
+					}
+				});
+			});
+
+			//Sort groups by name
+			groups.sort(function (a, b) { return a.name > b.name; });
+
+			requestTypes.groups = groups;
+
+			return requestTypes;
+		});
+	};
+
+	this.getRequestTypeField = function (meta) {
+		if (!meta)
+			return;
+
+		for (var key in meta.fields) {
+			var type = self.UIFormHandler.getFieldType(meta.fields[key]);
+			if (type === 'com.atlassian.servicedesk:vp-origin')
+				return key;
+		}
 	};
 
 	this.getUserPreferences = function () {

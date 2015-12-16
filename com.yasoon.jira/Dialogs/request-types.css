@@ -1,0 +1,277 @@
+@font-face {
+  font-family: 'atl-vp-request-types';
+  src: url('/assets/atl-vp-request-types.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+/*  Request types icons, example code:
+    <span aria-hidden="true" class="vp-rq-icon vp-rq-icon-0"></span>
+*/
+.vp-rq-icon {
+  display: inline-block;
+ /* width: 48px;
+  height: 48px; */
+  overflow: hidden;
+}
+.vp-rq-icon:before {
+  display: block;
+  /*margin-bottom: 100px;*/
+  margin-left: -3px;
+  font-family: 'atl-vp-request-types';
+  font-style: normal;
+  font-weight: normal;
+  font-size: 24px;
+  line-height: 0.9;
+  -webkit-font-smoothing: antialiased;
+  speak: none;
+}
+.page-title .vp-rq-icon {
+  width: 72px;
+  height: 72px;
+  margin-left: -10px;
+}
+.page-title .vp-rq-icon:before {
+  font-size: 72px;
+}
+.sd-recent-rt.vp-rq-icon {
+  width: 26px;
+  height: 24px;
+  vertical-align: middle;
+}
+.sd-recent-rt.vp-rq-icon:before {
+  font-size: 27px;
+}
+.vp-rq-icon.sd-portal-preview-icon:before {
+  font-size: 30px;
+  margin-top: -2px;
+}
+.sd-recent-rt-link.active .sd-recent-rt.vp-rq-icon:before {
+  color: #fff;
+}
+.request-list-item .vp-rq-icon {
+  position: absolute;
+  left: -60px;
+  top: 15px;
+}
+/**
+ * Small size request type icons
+ */
+.vp-rq-icon.vp-rq-icon-small {
+  width: 22px;
+  height: 20px;
+}
+.vp-rq-icon.vp-rq-icon-small:before {
+  font-size: 23px;
+}
+/*
+    Green       #14892c
+    Warm red    #d04437
+    Yellow      #ffd351
+    Blue-gray   #4a6785
+    Brown       #815b3a
+    TODO work out what the new colours are called, then make them all use less variables
+
+    IMPORTANT: The IDs and names for these icons are represented in the
+    back-end code base in RequestTypeIcon.java. If you change anything here make sure to change it there
+    too.
+*/
+.vp-rq-icon-0:before {
+  content: "\e000";
+  color: #14892c;
+}
+/*plus*/
+.vp-rq-icon-1:before {
+  content: "\e001";
+  color: #d04437;
+}
+/*present*/
+.vp-rq-icon-2:before {
+  content: "\e002";
+  color: #ea632b;
+}
+/*calendar*/
+.vp-rq-icon-3:before {
+  content: "\e003";
+  color: #f15c75;
+}
+/*open book*/
+.vp-rq-icon-4:before {
+  content: "\e004";
+  color: #7bc1a1;
+}
+/*two people*/
+.vp-rq-icon-5:before {
+  content: "\e005";
+  color: #654982;
+}
+/*camera*/
+.vp-rq-icon-6:before {
+  content: "\e006";
+  color: #d04437;
+}
+/*heart*/
+.vp-rq-icon-7:before {
+  content: "\e007";
+  color: #d39c3f;
+}
+/*light bulb*/
+.vp-rq-icon-8:before {
+  content: "\e008";
+  color: #f15c75;
+}
+/*house*/
+.vp-rq-icon-9:before {
+  content: "\e009";
+  color: #14892c;
+}
+/*chair*/
+.vp-rq-icon-10:before {
+  content: "\e00a";
+  color: #205081;
+}
+/*robot*/
+.vp-rq-icon-11:before {
+  content: "\e00b";
+  color: #7bc1a1;
+}
+/*swipe card*/
+.vp-rq-icon-12:before {
+  content: "\e00c";
+  color: #654982;
+}
+/*dollar*/
+.vp-rq-icon-13:before {
+  content: "\e00d";
+  color: #d04437;
+}
+/*marker*/
+.vp-rq-icon-14:before {
+  content: "\e00e";
+  color: #d39c3f;
+}
+/*car*/
+.vp-rq-icon-15:before {
+  content: "\e00f";
+  color: #14892c;
+}
+/*aeroplane*/
+.vp-rq-icon-16:before {
+  content: "\e010";
+  color: #ea632b;
+}
+/*database*/
+.vp-rq-icon-17:before {
+  content: "\e011";
+  color: #654982;
+}
+/*volume*/
+.vp-rq-icon-18:before {
+  content: "\e012";
+  color: #14892c;
+}
+/*smartphone*/
+.vp-rq-icon-19:before {
+  content: "\e013";
+  color: #f15c75;
+}
+/*keyboard*/
+.vp-rq-icon-20:before {
+  content: "\e014";
+  color: #d04437;
+}
+/*code*/
+.vp-rq-icon-21:before {
+  content: "\e015";
+  color: #d39c3f;
+}
+/*workflow*/
+.vp-rq-icon-22:before {
+  content: "\e016";
+  color: #f15c75;
+}
+/*up cloud*/
+.vp-rq-icon-23:before {
+  content: "\e017";
+  color: #14892c;
+}
+/*power button*/
+.vp-rq-icon-24:before {
+  content: "\e018";
+  color: #ea632b;
+}
+/*headset*/
+.vp-rq-icon-25:before {
+  content: "\e019";
+  color: #654982;
+}
+/*gears*/
+.vp-rq-icon-26:before {
+  content: "\e01a";
+  color: #14892c;
+}
+/*loop*/
+.vp-rq-icon-27:before {
+  content: "\e01b";
+  color: #7bc1a1;
+}
+/*question*/
+.vp-rq-icon-28:before {
+  content: "\e01c";
+  color: #ea632b;
+}
+/*signal tower*/
+.vp-rq-icon-29:before {
+  content: "\e01d";
+  color: #d04437;
+}
+/*down cloud*/
+.vp-rq-icon-30:before {
+  content: "\e01e";
+  color: #7bc1a1;
+}
+/*wrench*/
+.vp-rq-icon-31:before {
+  content: "\e01f";
+  color: #ea632b;
+}
+/*add person*/
+.vp-rq-icon-32:before {
+  content: "\e020";
+  color: #654982;
+}
+/*monitor*/
+.vp-rq-icon-33:before {
+  content: "\e021";
+  color: #d39c3f;
+}
+/*envelope*/
+.vp-rq-icon-34:before {
+  content: "\e022";
+  color: #d04437;
+}
+/*padlock*/
+.vp-rq-icon-35:before {
+  content: "\e023";
+  color: #7bc1a1;
+}
+/*printer*/
+.vp-rq-icon-36:before {
+  content: "\e024";
+  color: #f15c75;
+}
+/*share*/
+.vp-rq-icon-37:before {
+  content: "\e025";
+  color: #ea632b;
+}
+/*cd*/
+.vp-rq-icon-38:before {
+  content: "\e026";
+  color: #d39c3f;
+}
+/*warning*/
+.vp-rq-icon-39:before {
+  content: "\e027";
+  color: #654982;
+}
+/*thunder*/
