@@ -496,6 +496,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				self.getMetaData(),
 				self.loadSenderUser()
 			])
+			.delay(1)
 			.spread(function (requestTypes) {
 				//New with JIRA 7: Depending on the project type, we render a little bit differently.
 				//Common stuff
@@ -556,11 +557,15 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		}
 	};
 	
-	this.loadSenderUser = function() {
+	this.loadingSenderUser = null;
+	this.loadSenderUser = function() {		
+		if (self.loadingSenderUser)
+			return self.loadingSenderUser;		
+		
 		if (!jira.mail)
 			return Promise.resolve();		
 		
-		return jiraGet('/rest/api/2/user/search?username=' + self.mail.senderEmail)
+		self.loadingSenderUser = jiraGet('/rest/api/2/user/search?username=' + self.mail.senderEmail)
 			.then(function (data) {
 				var users = JSON.parse(data);
 				if (users.length > 0) {
@@ -577,7 +582,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				
 				self.setDefaultReporter();
 			});
-	}
+		return self.loadingSenderUser;
+	};
 
 	this.renderIssue = function (meta) {
 		//Set this as current meta
@@ -596,9 +602,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 			//Show Area again and hide loader
 			$('#LoaderArea').hide();
-
 			$('#ContentArea').css('visibility', 'visible');
-
 		});
 	};
 
@@ -674,6 +678,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		});
 	};
 
+	this.markupRenderProcess = null;
 	this.insertValues = function () {
 		//Always default Reporter
 		self.setDefaultReporter();
@@ -684,12 +689,11 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			if (self.mail.subject && fieldMapping.subject) {
 				var subjectType = $('#' + fieldMapping.subject).data('type');
 				jira.UIFormHandler.setValue(fieldMapping.subject, { schema: { custom: subjectType }}, self.mail.subject);
-
 			}
 
-			//Description
-			if (self.selectedText && fieldMapping.body) {
-				var bodyType = $('#' + fieldMapping.body).data('type');				
+			//Description			
+			var bodyType = $('#' + fieldMapping.body).data('type');	
+			if (self.selectedText && fieldMapping.body) {			
 				var text = self.selectedText;
 				
 				//Handle auto header add setting
@@ -704,32 +708,34 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, text);				
 			}
 			
-			yasoon.outlook.mail.renderBody(self.mail, 'jiraMarkup')
-			.then(function (markup) {
-				jira.mailAsMarkup = markup;
-				//If there is no selection, set this as description;
-				if (!self.selectedText && fieldMapping.body) {
-					bodyType = $('#' + fieldMapping.body).data('type');
-					
-					//Handle auto header add setting
-					if (self.settings.addMailHeaderAutomatically === 'top') {
-						markup = renderMailHeaderText(self.mail, true) + '\n' + markup;
+			if (jira.mailAsMarkup) {
+				jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, jira.mailAsMarkup);	
+			}
+			else if (!self.markupRenderProcess) {
+				self.markupRenderProcess = yasoon.outlook.mail.renderBody(self.mail, 'jiraMarkup')
+				.then(function (markup) {				
+					//If there is no selection, set this as description;
+					if (!self.selectedText && fieldMapping.body) {
+						//Handle auto header add setting
+						if (self.settings.addMailHeaderAutomatically === 'top') {
+							markup = renderMailHeaderText(self.mail, true) + '\n' + markup;
+						}
+						else if (self.settings.addMailHeaderAutomatically === 'bottom') {
+							markup = markup + '\n' + renderMailHeaderText(self.mail, true);
+						}
+						
+						markup = self.handleAttachments(markup, self.mail.attachments);
+						jira.mailAsMarkup = markup;
+						jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, markup);					
 					}
-					else if (self.settings.addMailHeaderAutomatically === 'bottom') {
-						markup = markup + '\n' + renderMailHeaderText(self.mail, true);
+				})
+				.catch(function () {
+					jira.mailAsMarkup = 'Could not render the selected text as JIRA markup. Please switch to plain text or contact us to get this fixed!';
+					if (!self.selectedText && fieldMapping.body) {
+						jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, jira.mailAsMarkup);
 					}
-					
-					markup = self.handleAttachments(markup, self.mail.attachments);
-					jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, markup);					
-				}
-			})
-			.catch(function () {
-				jira.mailAsMarkup = 'Could not render the selected text as JIRA markup. Please switch to plain text or contact us to get this fixed!';
-				if (!self.selectedText && fieldMapping.body) {
-					bodyType = $('#' + fieldMapping.body).data('type');
-					jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, jira.mailAsMarkup);
-				}
-			});
+				});
+			}
 		}
 
 		//Set all Values in edit case
