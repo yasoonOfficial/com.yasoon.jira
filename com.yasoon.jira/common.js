@@ -36,13 +36,13 @@ function getUniqueKey() {
 	view.setUint32(0, currentTime, false);
 	
 	var binary = '';
-    var bytes = new Uint8Array(buf);
-    var len = bytes.byteLength;
-    for (var i = 0; i < len; i++) {
-        binary += String.fromCharCode( bytes[ i ] );
-    }
+	var bytes = new Uint8Array(buf);
+	var len = bytes.byteLength;
+	for (var i = 0; i < len; i++) {
+		binary += String.fromCharCode( bytes[ i ] );
+	}
 	
-    return window.btoa( binary ).replace(/=/g, '');
+	return window.btoa( binary ).replace(/=/g, '');
 }
 
 function renderMailHeaderText(mail, useMarkup) {

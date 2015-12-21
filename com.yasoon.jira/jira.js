@@ -234,6 +234,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			})
 			.then(function (ownUserData) {
 				jira.data.ownUser = JSON.parse(ownUserData);
+				yasoon.setting.setAppParameter('ownUser', JSON.stringify(jira.data.ownUser));
 				jira.contacts.updateOwn(jira.data.ownUser);
 			})
 			.then(jira.filter.reIndex)
@@ -286,7 +287,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			
 			for (var i = 0; i < templates.length; i++) {
 				var tmpl = templates[i];
-				if (projects.filter(function(p) { return p.id === tmpl.project.id; }).length > 0)
+				if (projects.filter(function (p) { return p.id === tmpl.project.id; }).length > 0) //jshint ignore:line
 					newTemplates.push(tmpl);
 			}
 			
@@ -300,9 +301,9 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			var recent = JSON.parse(recentString);
 			var newRecent = [];
 			
-			for (var i = 0; i < recent.length; i++) {
-				var rec = recent[i];
-				if (projects.filter(function(p) { return p.id === rec.id; }).length > 0)
+			for (var a = 0; a < recent.length; a++) {
+				var rec = recent[a];
+				if (projects.filter(function (p) { return p.id === rec.id; }).length > 0) //jshint ignore:line
 					newRecent.push(rec);
 			}
 			

@@ -348,9 +348,10 @@ function JiraSettingController() {
 		self.baseUrl = urlString;
 	}
 
-	var dataString = yasoon.setting.getAppParameter('data');
+	var dataString = yasoon.setting.getAppParameter('ownUser');
 	if (dataString) {
-		jira.data = JSON.parse(dataString);
+		jira.data = {};
+		jira.data.ownUser = JSON.parse(dataString);
 	}
 
 	//Load License
