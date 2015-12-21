@@ -831,14 +831,27 @@ function EpicLinkRenderer() {
 		jiraGet('/rest/greenhopper/1.0/epics?maxResults=100&projectKey=' + jira.selectedProject.key)
 		.then(function (data) {
 			//{"epicNames":[{"key":"SSP-24","name":"Epic 1"},{"key":"SSP-25","name":"Epic 2"}],"total":2}
+			// JIRA 7+: {"epicLists":[{"listDescriptor":"All epics","epicNames":[{"key":"SSP-24","name":"Epic 1","isDone":false},{"key":"SSP-25","name":"Epic 2","isDone":false},{"key":"SSP-28","name":"Epic New","isDone":false}]}],"total":3}
 			var epics = JSON.parse(data);
 			var result = [];
-			var oldValue = $('#' + id).data('value');
-			if (epics && epics.total > 0) {
-				$(container).find('#' + id).html('<option value="">None</option>');
-				$.each(epics.epicNames, function (i, epic) {
-					$(container).find('#' + id).append('<option value="' + epic.key + '"> ' + epic.name + ' ( ' + epic.key + ' )</option>');
-				});
+			var oldValue = $('#' + id).data('value');						
+			var elem = $(container).find('#' + id);
+			elem.html('<option value="">None</option>');
+			
+			if (epics && epics.total > 0) {				
+				if (epics.epicLists) {
+					epics.epicLists.forEach(function(epicList) {
+						var optGroup = $('<optgroup label="' + epicList.listDescriptor + '"></optgroup>').appendTo(elem);
+						epicList.epicNames.forEach(function (epic) {
+							optGroup.append('<option value="' + epic.key + '"> ' + epic.name + ' ( ' + epic.key + ' )</option>');
+						});
+					})
+				}
+				else {				
+					epics.epicNames.forEach(function (epic) {
+						elem.append('<option value="' + epic.key + '"> ' + epic.name + ' ( ' + epic.key + ' )</option>');
+					});
+				}
 			}
 			$('#' + id).select2();
 			$('#' + id).val(oldValue).trigger('change');
