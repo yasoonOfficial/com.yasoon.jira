@@ -2813,3 +2813,19 @@ body {
 	margin-left: -95px !important;
 	width: 80px !important;
 }
+
+.hidePortal {
+	display: none;
+}
+
+.active .hidePortal {
+	display: inline;
+}
+
+.active .showPortal {
+	display: none;
+}
+
+#behalfReporter-container{
+	padding:0px;
+}

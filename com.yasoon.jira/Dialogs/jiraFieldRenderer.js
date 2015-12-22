@@ -487,8 +487,9 @@ function VersionMultiSelectListRenderer() {
 
 function UserPickerRenderer() {
 	this.getValue = function (id) {
-		if ($('#'+id).data('id')) {
-			return { name: $('#' + id).data('id') };
+		var name = $('#'+id).data('id');
+		if (name) {
+			return { name: name };
 		}
 	};
 
@@ -510,7 +511,7 @@ function UserPickerRenderer() {
 				'	</label>' +
 				'	<select id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" class="select input-field" data-type="com.atlassian.jira.plugin.system.customfieldtypes:userpicker"></select>' +
 				'	<span style="display:block; padding: 5px 0px;">' +
-				'	<a href="#' + id + '" class="assign-to-me-trigger">Assign to me</a>';
+				'	<a href="#' + id + '" class="assign-to-me-trigger" title="Assign this issue to yourself!">Assign to me</a>';
 
 		//Create User link is a little tricky. It should only be visible if it's based on an email and senderUser does not exist in system. 
 		// But we cannot be sure when user has been loaded.
@@ -537,11 +538,18 @@ function UserPickerRenderer() {
 					.data('icon', 'ownUser')
 					.val(jira.ownUser.name)
 					.trigger('change');
+
+				//If created by service assignment, set flag for "On Behalf of"
+				if (id === 'behalfReporter') {
+					$('#behalfOfUserCheckbox').prop('checked', true).trigger('change');
+				}
 			}
 			e.preventDefault();
 		});
 
 		$('#' + id + '-container').find('.create-sender').unbind().click(function (e) {
+			var elem = $(this);
+			elem.prop('disabled', true);
 			var newUser = {
 				"name": jira.mail.senderEmail,
 				"emailAddress": jira.mail.senderEmail,
@@ -573,10 +581,10 @@ function UserPickerRenderer() {
 					icon: 'emailSender'
 				});
 
-				$('#' + id + '-container').find('.create-sender').css('display', 'none');
-
+				elem.css('display', 'none');
 			})
 			.catch(function (error) {
+				elem.prop('disabled', false);
 				console.log(error);
 				if (error && error.statusCode == 403) {
 					yasoon.dialog.showMessageBox('You are not allowed to create new users in JIRA. Please contact your administrator to use this function');

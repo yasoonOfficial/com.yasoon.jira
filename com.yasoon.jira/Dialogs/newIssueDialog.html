@@ -28,7 +28,7 @@
 							<div id="MainAlert" class="alert alert-danger" style="display:none; margin: -20px -20px 0px -20px; border-radius: 0px;">
 								<span>Connection Error. Loading Values from Jira not possible.</span>
 							</div>
-							<div class="issue-setup-fields">
+							<div class="">
 								<div class="qf-field qf-field-project qf-required">
 									<div class="field-group ">
 										<label for="project">Project</label>
@@ -41,10 +41,28 @@
 										<img src="Dialogs/ajax-loader.gif" style="display:none;" id="ProjectSpinner" />
 									</div>
 								</div>
-								<div id="IssueArea" class="qf-field qf-field-issuetype qf-required" style="display:none;">
+								<div id="IssueArea" class="qf-field qf-field-issuetype issue-setup-fields qf-required" style="display:none;">
 									<div class="field-group input-field">
-										<label for="issuetype"><span id="issueTypeLabel"> Issue Type</span><span id="requestTypeLabel" class="hidden"> Request Type</span><span class="aui-icon icon-required">Required</span></label>
+										<label for="issuetype"><span id="issueTypeLabel"> Issue Type</span><span class="aui-icon icon-required">Required</span></label>
 										<select class="select input-field" id="issuetype" name="issuetype" style="min-width: 350px; width: 80%;"></select>
+										<br />
+										<a id="switchServiceMode"  class="hidden" style="cursor:pointer;" title="">
+											<span class="showPortal"><i class="fa fa-plus"></i> Service Desk assignment</span>
+											<span class="hidePortal"><i class="fa fa-minus"></i> Service Desk assignment</span>
+										</a>
+									</div>
+								</div>
+								<div id="ServiceArea" class="qf-field qf-field-issuetype issue-setup-fields qf-required hidden">
+									<div style="color: darkgray; font-size: 12px;">Service Desk assignments make the issue visible for the reporter in the Service Desk as "Own Request"</div>
+									<div class="field-group input-field">
+										<label for="requestType"><span id="requestTypeLabel">Request Type</span><span class="aui-icon icon-required">Required</span></label>
+										<select class="select input-field" id="requestType" name="requestType" style="min-width: 350px; width: 80%;"></select>
+									</div>
+									<div class="field-group input-field" id="behalfOfUserDiv">
+										<label for="behalfReporter">On behalf of</label>
+										<div id="behalfOfUserReporter" style="min-width: 350px; width: 100%; overflow: hidden;">
+
+										</div>
 									</div>
 								</div>
 							</div>
