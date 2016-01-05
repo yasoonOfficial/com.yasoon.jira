@@ -9,6 +9,10 @@
         <link href="//fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css">
         <link href="//fonts.googleapis.com/css?family=Roboto:400,500,700,300,100" rel="stylesheet" type="text/css">
         <script src="//cdn.ravenjs.com/1.2.0/jquery,native/raven.min.js"></script>
+		
+		<!--[if lte IE 9]>
+			<script type='text/javascript' src='//cdnjs.cloudflare.com/ajax/libs/jquery-ajaxtransport-xdomainrequest/1.0.3/jquery.xdomainrequest.min.js'></script>
+		<![endif]-->
                 
         <!-- Start of yasoon Zendesk Widget script -->
         <script>/*<![CDATA[*/window.zEmbed||function(e,t){var n,o,d,i,s,a=[],r=document.createElement("iframe");window.zEmbed=function(){a.push(arguments)},window.zE=window.zE||window.zEmbed,r.src="javascript:false",r.title="",r.role="presentation",(r.frameElement||r).style.cssText="display: none",d=document.getElementsByTagName("script"),d=d[d.length-1],d.parentNode.insertBefore(r,d),i=r.contentWindow,s=i.document;try{o=s}catch(c){n=document.domain,r.src='javascript:var d=document.open();d.domain="'+n+'";void(0);',o=s}o.open()._l=function(){var o=this.createElement("script");n&&(this.domain=n),o.id="js-iframe-async",o.src=e,this.t=+new Date,this.zendeskHost=t,this.zEQueue=a,this.body.appendChild(o)},o.write('<body onload="document._l();">'),o.close()}("//assets.zendesk.com/embeddable_framework/main.js","yasoon.zendesk.com");/*]]>*/</script>
@@ -20,7 +24,10 @@
         </script>
     </head>
     <body>
-	    <div id="unregisteredArea" class="materialize-wrapper">       
+		<div id="pageLoading" class="materialize-wrapper">
+			<img src="https://www.yasoon.com/jira_admin/loader_small.gif">
+		</div>
+	    <div id="unregisteredArea" class="materialize-wrapper" style="display: none;">       
 			<div class="main row">
 				<div class="wizard col s12 z-depth-1">
 					<ul class="tabs">
@@ -88,27 +95,29 @@
 								<div class="row" style="margin-top: 30px; margin-bottom: 10px">
 									Your JIRA system has been configured. You can now test if the connection between Outlook and JIRA is working, by downloading and installing
 									the Outlook addin. When you have tested this successfully, please continue to the next step. <br/>
-									<div id="downloadLoading" style="display: none">
-										<div class="card col s6">	
+									<div id="downloadLoading">
+										<div class="card col s9">	
 											<div class="card-content">
 												<p>
 													Your JIRA for Outlook setup file is being prepared. This may take a few minutes.
 												</p>
 											</div>									
 											<div class="card-action">
-												<img src="images/loader_small.gif">
+												<img src="https://www.yasoon.com/jira_admin/loader_small.gif">
 											</div>
 										</div>									
 									</div>
-									<div id="downloadReady">									
-										<div class="card col s6">	
+									<div id="downloadReady" style="display: none">									
+										<div class="card col s9">	
 											<div class="card-content">
 												<p>
 													Your personalized setup is now available for download.
 												</p>
 											</div>									
 											<div class="card-action">
-												<button type="button" id="downloadSetupButton" class="btn btn-default"><i class="material-icons right">get_app</i>Download Setup</button>
+												<a id="downloadSetupButton" target="_blank">
+													<button type="button" class="btn btn-default"><i class="material-icons right">get_app</i>Download Setup</button>
+												</a>
 											</div>
 										</div>
 									</div>
@@ -116,18 +125,20 @@
 							</div> 
 						</div>
 						<div class="tab-pane" id="tab4">
-							<div class="col s7">
+							<div class="col s9">
 								<div class="row" style="margin-top: 30px; margin-bottom: 10px">
-									Please share this with your users now! 
+									We recommend to share the addon with a few users of your team. Please use the form below to select some JIRA users.
 								</div>
 								<div class="card col s10">
-									<div class="card-content">
+									<div id="userChips" class="card-content" style="min-height: 115px">
+										<!-- Template
 										<div class="chip">
 											<img src="https://secure.gravatar.com/avatar/fe42ba5599bd39608fcdb9373e7bbb7f?d=mm&s=48" />
 											Tom Riddle
 											<i class="material-icons">close</i>
 										</div>
-										<a href="#userPicker" class="modal-trigger btn-floating btn-large waves-effect waves-light light-blue darken-2" style="display:block; margin-top: 10px; margin-bottom: 10px"><i class="material-icons">add</i></a>										
+										-->
+										<a href="#userPicker" class="modal-trigger btn-floating btn-large waves-effect waves-light light-blue darken-2" style="display:block; margin-top: 10px; margin-bottom: 10px; float: left; margin-right: 20px;"><i class="material-icons">add</i></a>										
 									</div>
 									<div class="card-action">
 										<button type="button" id="manualInviteButton" class="btn btn-default"><i class="material-icons right">open_in_new</i>Preview E-Mail Invite</button>
@@ -137,7 +148,7 @@
 						</div>
 						
 						<div class="col s12 wizard-buttons">
-							<a id="sendMessage" class="waves-effect waves-light btn light-blue darken-2"><i class="material-icons right">message</i>I have an issue</a>
+							<a class="waves-effect waves-light btn light-blue darken-2 send-message"><i class="material-icons right">message</i>I have an issue</a>
 							<button id="next" class="waves-effect waves-light btn light-green darken-2"><i class="material-icons right">play_arrow</i><span id="nextText">Next</span></a>
 						</div>
 						<div class="logo-branding">
@@ -163,6 +174,7 @@
 					</div>
 					<div class="row">
 						<ul id="userPickerList" class="collection">
+							<!--
 							<li class="collection-item avatar">
 								<img src="https://secure.gravatar.com/avatar/fe42ba5599bd39608fcdb9373e7bbb7f?d=mm&s=48" alt="" class="circle">
 								<span class="title">Andreas Schmidt</span>
@@ -174,51 +186,22 @@
 									<label for="filled-in-box"></label>   							
 								</span>
 							</li>
-							<li class="collection-item avatar">
-								<i class="material-icons circle">folder</i>
-								<span class="title">Title</span>
-								<p>First Line
-								</p>
-								<span class="secondary-content">
-									<input type="checkbox" class="filled-in" id="filled-in-box" checked="checked" />
-									<label for="filled-in-box"></label>   							
-								</span>
-							</li>
-							<li class="collection-item avatar">
-								<i class="material-icons circle green">insert_chart</i>
-								<span class="title">Title</span>
-								<p>First Line
-								</p>
-								<span class="secondary-content">
-									<input type="checkbox" class="filled-in" id="filled-in-box" checked="checked" />
-									<label for="filled-in-box"></label>   							
-								</span>
-							</li>
-							<li class="collection-item avatar">
-								<i class="material-icons circle red">play_arrow</i>
-								<span class="title">Title</span>
-								<p>First Line
-								</p>
-								<span class="secondary-content">
-									<input type="checkbox" class="filled-in" id="filled-in-box" checked="checked" />
-									<label for="filled-in-box"></label>   							
-								</span>
-							</li>
+							-->
 						</ul>
 					</div>
 				</div>
 				<div class="modal-footer">
-					<a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Select</a>
+					<a href="#!" id="selectUsers" class="modal-action modal-close waves-effect waves-green btn-flat ">Select</a>
 				</div>
 			</div>      
         </div>
 		
         <!-- After Setup -->
-		<div id="registeredArea" class="materialize-wrapper">
+		<div id="registeredArea" class="materialize-wrapper" style="display: none;">
 			<div class="main row">
-				<div class="afterSetup col s9 z-depth-1">
+				<div class="afterSetup col s12 z-depth-1">
 					<!-- Account Status -->
-					<div id="purchasedStatus" class="card col s3">	
+					<div id="purchasedStatus" class="card col s3" style="display: none;">	
 						<div class="card-title green-text text-lighten-2" style="padding: 20px 0 0 20px">
 							License Active
 						</div>
@@ -233,7 +216,7 @@
 						</div>
 					</div>
 					
-					<div id="trialStatus" class="card col s3">	
+					<div id="trialStatus" class="card col s3"  style="display: none;">	
 						<div class="card-title yellow-text text-darken-2" style="padding: 20px 0 0 20px">
 							Trial License
 						</div>
@@ -248,13 +231,13 @@
 						</div>
 					</div>
 					
-					<div id="trialExpired" class="card col s3">	
+					<div id="trialExpired" class="card col s3"  style="display: none;">	
 						<div class="card-title red-text text-lighten-2" style="padding: 20px 0 0 20px">
 							Trial Expired
 						</div>
 						<div class="card-content">
 							<p>
-								The instance is <b>not licensed</b> anymore. All Outlook apps will be disabled soon (or are already disabled).<br />
+								The instance is <b>not licensed</b> anymore. All Outlook apps will be disabled soon (or are already disabled).<br /><br />
 								If you like to continue to use JIRA for Outlook, please please purchase licenses through our yasoon admin panel.
 							</p>
 						</div>									
@@ -264,7 +247,7 @@
 					</div>
 					
 					<!-- Application Link -->
-					<div class="card col s3">	
+					<div id="applicationLinkActive" class="card col s3" style="display: none;">	
 						<div class="card-title green-text text-lighten-2" style="padding: 20px 0 0 20px">
 							Application Link Active
 						</div>
@@ -274,12 +257,29 @@
 							</p>
 						</div>									
 						<div class="card-action">
-							<button type="button" id="downloadSetupButton" class="btn btn-default disabled"><i class="material-icons right">done</i>App Link Active!</button>
+							<button type="button" class="btn btn-default disabled"><i class="material-icons right">done</i>Active</button>
+						</div>
+					</div>
+					
+					<div id="applicationLinkInactive" class="card col s3" style="display: none;">	
+						<div class="card-title red-text text-lighten-2" style="padding: 20px 0 0 20px">
+							Application Link Missing
+						</div>
+						<div class="card-content">
+							<p>
+								JIRA for Outlook requires an application link to access your JIRA from Outlook. Please click the button below to configure this automatically.
+								<div style="margin-top: 20px; margin-bottom: 20px">
+									In case something is not working as expected, please <a href="#" class="send-message">contact us</a> or follow our <a target="_blank" href="https://yasoon.zendesk.com/hc/en-us/articles/202740381-Technical-Admin-Guide-Server">manual configuration guide</a>.
+								</div>
+							</p>
+						</div>									
+						<div class="card-action">
+							<button type="button" id="addApplicationLinkButtonMain" class="btn btn-default">Create Link</button>
 						</div>
 					</div>
 					
 					<!-- Download/Share Area -->
-					<div id="downloadLinkArea" class="card col s4">	
+					<div id="downloadLinkReady" class="card col s4" style="display: none;">	
 						<div class="card-title green-text text-lighten-2" style="padding: 20px 0 0 20px">
 							Download Ready
 						</div>
@@ -287,16 +287,17 @@
 							<p>
 								Your personalized setup is now available. Please download it below, or share the following link:
 								<div class="input-field">
-									<input value="https://store.yasoon.com/dl/jira/....." spellcheck="false" id="downloadLink" type="text" class="validate">
+									<input spellcheck="false" id="downloadLink" type="text" class="validate">
 								</div>
 							</p>
 						</div>									
 						<div class="card-action">
-							<button type="button" id="downloadSetupButton" class="btn btn-default"><i class="material-icons right">get_app</i>Download</button>
-							<button type="button" id="downloadSetupButton" class="btn btn-default"><i class="material-icons right">send</i>Share</button>
+							<a target="_blank" id="downloadSetupButtonMain"><button type="button" class="btn btn-default" style="margin-bottom: 10px;"><i class="material-icons right">get_app</i>Download</button></a>
+							<button type="button" id="downloadShareButton" class="btn btn-default" style="margin-bottom: 10px;"><i class="material-icons right">send</i>Share</button>
 						</div>
 					</div>
-					<div id="downloadLinkWaiting" class="card col s4">	
+					
+					<div id="downloadLinkWaiting" class="card col s3" style="display: none;">	
 						<div class="card-title red-text text-lighten-2" style="padding: 20px 0 0 20px">
 							Preparing Download
 						</div>
@@ -311,7 +312,7 @@
 					</div>
 										
 					<div class="logo-branding">
-						<img src="images/logo_with_jira.png" />
+						<img src="https://www.yasoon.com/jira_admin/logo_with_jira.png" />
 					</div>
 				</div>
 			</div>

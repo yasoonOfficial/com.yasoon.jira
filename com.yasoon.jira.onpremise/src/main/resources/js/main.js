@@ -5,6 +5,8 @@ var isInstanceRegistered = false;
 var currentPage = 1;
 var serverId = null;
 var systemInfo = null;
+var shareUserList = {};
+var foundUsers = {};
 
 Promise.config({
     // Enable cancellation.
@@ -12,6 +14,12 @@ Promise.config({
 });
 
 $(document).ready(function() {
+    //IE9 and lower do not support cross origin requests with mixed protocols (see #7 @ http://blogs.msdn.com/b/ieinternals/archive/2010/05/13/xdomainrequest-restrictions-limitations-and-workarounds.aspx)
+    if (isIE() && isIE() <= 9 && document.location.protocol === 'http:') {
+        swal("Browser issue..", "You are using Internet Explorer 9 or lower and are accessing JIRA via a non-SSL connection. Unfortunately this is not supported. Please try to register via a newer browser or contact us at support@yasoon.de", "error");
+        return;
+    } 
+    
 	loadSystemInfo()
     .then(function() {
         //Hook up Raven error logging        
@@ -20,7 +28,7 @@ $(document).ready(function() {
               serverId: serverId,
               key: 'onpremise'
           }
-        }).install();        
+        }).install();
         
         //Check if this instance is registered
         return getIsInstanceRegistered();       
@@ -45,6 +53,11 @@ $(document).ready(function() {
         Raven.captureException(e);
     });
 });
+
+function isIE () {
+  var myNav = navigator.userAgent.toLowerCase();
+  return (myNav.indexOf('msie') != -1) ? parseInt(myNav.split('msie')[1]) : false;
+}
 
 function loadSystemInfo(cbk) {
     return Promise.resolve($.ajax({
@@ -78,6 +91,30 @@ function getIsInstanceRegistered() {
 function onUserDialogOpen() {
     $('#userNameSearch').val('t').trigger('change');
     $('#userNameSearchTrigger').unbind().click(dialogSearch).trigger('click');
+    $('#selectUsers').unbind().click(selectUsers);
+}
+
+function renderUserChip(userKey, userName, profilePicUrl) {
+    return '<div id="' + userKey + '" class="chip">' +
+		'<img src="' + profilePicUrl + '" />' +
+        userName + '<i class="material-icons">close</i></div>';
+}
+
+function removeUserChip(e) {
+    delete shareUserList[e.target.parentNode.id];
+}
+
+function selectUsers() {
+    var users = $('#userPickerList > li > span > input:checked');
+
+    for (var i = 0; i < users.length; i++) {
+        var key = users[i].id;
+        shareUserList[key] = foundUsers[key];        
+        var html = renderUserChip(key, shareUserList[key].displayName, shareUserList[key].avatarUrls['48x48']);
+        $(html).appendTo('#userChips').children('i').click(removeUserChip);
+    }
+    
+    $('#userPicker').closeModal();
 }
 
 function dialogSearch() {
@@ -85,15 +122,18 @@ function dialogSearch() {
     Promise.resolve($.get(systemInfo.baseUrl + '/rest/api/2/user/search?username=' + term))
     .then(function(users) {
         $('#userPickerList').html('');
+        foundUsers = [];
         for (var i = 0; i < users.length; i++) {
             var user = users[i];
+            foundUsers[user.key] = user;
             $('#userPickerList').append('<li class="collection-item avatar">' + 
 								'<img src="' + user.avatarUrls['48x48'] + '" alt="" class="circle">'+
 								'<span class="title">' + user.displayName + '</span>'+
 								'<p class="grey-text text-lighten-1">' +
 									user.emailAddress +
 								'</p>' + 
-								'<span class="secondary-content"><input type="checkbox" class="filled-in" id="filled-in-box" /><label for="filled-in-box"></label></span></li>');
+								'<span class="secondary-content"><input type="checkbox" class="filled-in" id="' + user.key +
+                                '" /><label for="' + user.key + '"></label></span></li>');
         }
                 				
         $('.collection-item.avatar').unbind().click(function(e) {
@@ -103,19 +143,29 @@ function dialogSearch() {
     });
 }
 
-function initUI(isRegistered) {
+function loadRegisteredUIState() {
+    checkAppLink();
+    checkDownloadLink();
+    checkProduct();
+}
+
+function initUI(isRegistered) {    
+    //Hide page loader first
+    $('#pageLoading').hide();
     
     if (isRegistered) {
-        $('#unregisteredArea').hide();
-        
         if($.cookie('yasoonAuthToken')) {
             authToken = $.cookie('yasoonAuthToken');
             $('#registeredArea').show();
-            $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);            
-        }   
+            $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
+            loadRegisteredUIState();
+        }
         else {
             $('#loginArea').show();
-        }        
+        }
+    }
+    else {        
+        $('#unregisteredArea').show();        
     }
         
     //Init Modals & Tooltips
@@ -128,7 +178,7 @@ function initUI(isRegistered) {
         ready: onUserDialogOpen
     });
 
-    $('#sendMessage').click(function(e) {
+    $('.send-message').click(function(e) {
         zE(function() {
             zE.activate();
         });
@@ -141,14 +191,14 @@ function initUI(isRegistered) {
     });
     
     $('#next').click(handleNext);
-    $('#addApplicationLinkButton').click(handleAddApplicationLink);
+    $('#addApplicationLinkButton, #addApplicationLinkButtonMain').click(handleAddApplicationLink);
     $('#loginYasoonButton').click(handleLogin);
         
     //Prefill Wizard
     var userNameSplitted = systemInfo.userName.split(' ');
     if (userNameSplitted && userNameSplitted.length > 1) {
-        $('#firstName').val(userNameSplitted[0]).trigger('change');;
-        $('#lastName').val(systemInfo.userName.replace(userNameSplitted[0] + ' ', '')).trigger('change');;
+        $('#firstName').val(userNameSplitted[0]).trigger('change');
+        $('#lastName').val(systemInfo.userName.replace(userNameSplitted[0] + ' ', '')).trigger('change');
     }
     
     $('#emailAddress').val(systemInfo.userEmailAddress).trigger('change');
@@ -190,9 +240,7 @@ function handleLogin() {
             
             $('#RegisteredArea').show();
             $('#LoginArea').hide();
-            checkAppLink();
-            checkDownloadLink();
-            checkProduct();
+            loadRegisteredUIState();
         })
         .fail(function (jxqr, e) {
             Raven.captureMessage('Error during login: ' + e);
@@ -243,9 +291,7 @@ function handleLogin() {
         .then(function () {
             $('#registeredArea').show();
             $('#loginArea').hide();
-            checkAppLink();
-            checkDownloadLink();
-            checkProduct();                    
+            loadRegisteredUIState();
         })
         .caught(function (e) {
             Raven.captureMessage('Error during assignCompany: ' + e);
@@ -256,7 +302,8 @@ function handleLogin() {
 
 function handleAddApplicationLink() {
     $('#addApplicationLinkButton').text('Creating link...').prop("disabled", true);
-                                
+    $('#addApplicationLinkButtonMain').text('Creating...').prop("disabled", true);
+
     //First, generate certificate
     var keyData = null;
     
@@ -307,13 +354,13 @@ function handleAddApplicationLink() {
 function handleNext() {
     //Todo: Checks
     if (currentPage === 1) {
-        $('#next').prop("disabled", true);            
+        $('#next').prop("disabled", true);
         
         registerAccount(function(result) {
-           $('#next').prop("disabled", true);
+           $('#next').prop("disabled", false);
            
            if (result.success) {
-               gotoNextPage();
+                gotoNextPage();
            }
            else if (result.error) {
                //Highlight error fields
@@ -329,6 +376,11 @@ function handleNext() {
            }
         });            
     }
+    else if (currentPage === 5) {
+        $('#unregisteredArea').hide();
+        $('#registeredArea').show();
+        loadRegisteredUIState();
+    }
     else {
         gotoNextPage();
     }    		
@@ -340,12 +392,21 @@ function gotoNextPage() {
     $('ul.tabs :nth-child(' + currentPage + ')').removeClass('disabled');
     $('ul.tabs').tabs('select_tab', 'tab' + currentPage);
     
-    if (currentPage === 2) 
+    if (currentPage === 2) {
         $('#next').prop('disabled', true);
-    if (currentPage === 3)
+        checkAppLink().then(function(appLinkExists) {
+            if (appLinkExists) {
+                $('#next').prop("disabled", false);
+            }
+        });       
+    }
+    else if (currentPage === 3) {
         $('#nextText').text('It\'s working!');
-    if (currentPage === 4)
+        checkDownloadLink();
+    }
+    else if (currentPage === 4) {
         $('#nextText').text('Complete Setup');
+    }
 }
 
 function registerAccount(cbk) {
@@ -502,18 +563,18 @@ function checkProduct() {
         
         if (!product || new Date(product.validUntil).getTime() < new Date().getTime()) {
             //License Outdated
-            $('#licenseStatus').removeClass('panel-success').removeClass('panel-warning').addClass('panel-danger');
+            $('#trialExpired').show();
         } else if (new Date(product.validUntil).getTime() < new Date(2099, 10, 1).getTime()) {
             $('#JiraExpirationDate').text(new Date(product.validUntil).toLocaleDateString());
-            $('#licenseStatus').removeClass('panel-success').removeClass('panel-danger').addClass('panel-warning');
+            $('#trialStatus').show();
         } else {
             //License Ok
             $('#JiraSupportDate').text(new Date(product.parameters.supportUntil).toLocaleDateString());
-            $('#licenseStatus').removeClass('panel-danger').removeClass('panel-warning').addClass('panel-success');
+            $('#purchasedStatus').show();
         }
     })
     .fail(function () {
-        $('#licenseStatus').removeClass('panel-danger').removeClass('panel-warning').removeClass('panel-success').addClass('panel-info');
+        
     }); 
 }
 
@@ -526,12 +587,15 @@ function checkDownloadLink() {
     .done(function(infos) {
         if(infos.state !== 5) {
             setTimeout(checkDownloadLink, 30000);
+            $('#downloadLinkReady, #downloadReady').hide();
+            $('#downloadLinkWaiting, #downloadLoading').show();
         }                
         else {
-            $('#downloadLink').append('<a class="bootstrap-wrapper btn btn-default" target="_blank" style="float: left; margin-right: 20px" href="' + infos.downloadUrl + '">Download</a> <input type="text" style="width: 400px" class="form-control" value="' + infos.downloadUrl + '" />');
+            $('#downloadSetupButton, #downloadSetupButtonMain').prop('href', infos.downloadUrl);
+            $('#downloadLink').val(infos.downloadUrl);
             $('#downloadLinkStatus').removeClass('panel-warning').addClass('panel-success');
-            $('#downloadLinkWaiting').hide();
-            $('#downloadLinkArea').show();
+            $('#downloadLinkWaiting, #downloadLoading').hide();
+            $('#downloadLinkReady, #downloadReady').show();
         }
     })
     .fail(function(e) {
@@ -557,10 +621,14 @@ function checkAppLink() {
         if(applink.exists) {
             $('#appLinkStatus').removeClass('panel-warning').addClass('panel-success');
             $('#addApplicationLinkButton').prop('disabled', true).text('Application Link Active!');
+            $('#applicationLinkActive').show();
+            $('#applicationLinkInactive').hide();
         }
         else {
             $('#appLinkStatus').removeClass('panel-success').addClass('panel-warning');
             $('#addApplicationLinkButton').prop('disabled', false).text('Create Application Link');
+            $('#applicationLinkInactive').show();
+            $('#applicationLinkActive').hide();
         }
         
         return applink.exists;
