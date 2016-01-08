@@ -853,7 +853,7 @@ function EpicLinkRenderer() {
 						epicList.epicNames.forEach(function (epic) {
 							optGroup.append('<option value="' + epic.key + '"> ' + epic.name + ' ( ' + epic.key + ' )</option>');
 						});
-					})
+					});
 				}
 				else {				
 					epics.epicNames.forEach(function (epic) {
@@ -1178,6 +1178,7 @@ function (select, Utils, allowClear) {
 //Register Components for each supported type
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:textfield', new SingleTextRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:url', new SingleTextRenderer());
+UIRenderer.register('com.pyxis.greenhopper.jira:gh-epic-label', new SingleTextRenderer());
 UIRenderer.register('summary', new SingleTextRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:textarea', new MultilineTextRenderer());
 UIRenderer.register('description', new MultilineTextRenderer());
