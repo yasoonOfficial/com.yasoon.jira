@@ -421,29 +421,22 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			success: function (data) {
 				var issue = JSON.parse(data);
 				//Save issueId in conversation data and in mail category
-				//if (jira.mail) {
-				//	//Set Conversation Data
-				//	var conversationString = jira.mail.getConversationData();
-				//	var conversation = {
-				//		issues: []
-				//	};
+				if (jira.mail) {
+					//Set Conversation Data
+					var conversationString = yasoon.outlook.mail.getConversationData(jira.mail); //That derives wrong appNamespace, since the object wsa created in main window context: jira.mail.getConversationData();
+					var conversation = {
+						issues: []
+					};
 
-				//	if (conversationString)
-				//		conversation = JSON.parse(conversationString);
+					if (conversationString)
+						conversation = JSON.parse(conversationString);
 
-				//	conversation.issues.push({ id: issue.id, key: issue.key, summary: result.fields.summary });
-
-				//	jira.mail.setConversationData(JSON.stringify(conversation));
-
-				//	//Add Category
-				//	var categories = jira.mail.categories;
-				//	categories.push('[' + issue.key + ']');
-
-				//	if (categories.filter(function (c) { c === 'jira'; }).length === 0)
-				//		categories.push('jira');
-
-				//	jira.mail.setCategories(categories);
-				//}
+					conversation.issues.push({ id: issue.id, key: issue.key, summary: result.fields.summary });
+					yasoon.outlook.mail.setConversationData(jira.mail, JSON.stringify(conversation)); //jira.mail.setConversationData(JSON.stringify(conversation));
+					
+					//Set new message class to switch icon
+					jira.mail.setMessageClass('IPM.Note.Jira');
+				}
 
 				if (self.selectedAttachments.length > 0) {
 					

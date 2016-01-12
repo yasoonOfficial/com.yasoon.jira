@@ -55,9 +55,10 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			//yasoon.view.header.addTab('jiraIssues', 'Issues', self.renderIssueTab);
 			yasoon.app.on("oAuthSuccess", jira.handleOAuthSuccess);
 			yasoon.app.on("oAuthError", jira.handleOAuthError);
+			yasoon.outlook.on("selectionChange", jira.handleSelectionChange);
 			yasoon.periodicCallback(300, jira.sync);
 			yasoon.on("sync", jira.sync);
-
+			
 			//Download custom script
 			self.downloadCustomScript();
 
@@ -68,6 +69,26 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		}
 
 		self.checkLicense();
+	};
+	
+	this.handleSelectionChange = function handleSelectionChange(item) {
+		if (!item)
+			return;
+			
+		var convData = item.getConversationData();
+		
+		if (convData) {
+			convData = JSON.parse(convData);
+			jira.ribbonFactory.update('addToIssueFromMailMain', {
+				label: 'Add To ' + convData.issues[0].key
+			}, true);
+		}
+		else {
+			jira.ribbonFactory.update('addToIssueFromMailMain', {
+				label: 'Add To Issue'
+			}, true);
+		}
+		
 	};
 
 	this.sync = function sync() {
