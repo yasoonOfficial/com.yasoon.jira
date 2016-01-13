@@ -72,6 +72,14 @@ function JiraRibbonController() {
 							label: 'Add To Issue',
 							image: 'images/ribbonAdd.png',
 							onAction: self.ribbonOnAddToIssue
+						}, {
+							type: 'button',
+							enabled: false,
+							id: 'openIssueFromMailMain',
+							size: 'large',
+							label: 'View Issue',
+							image: 'images/ribbonOpen.png',
+							onAction: self.ribbonOpenIssue
 						}]
 					}]
 				}]
@@ -134,6 +142,10 @@ function JiraRibbonController() {
 		});
 
 		return result;
+	};
+	
+	this.ribbonOpenIssue = function ribbonOpenIssue(ribbonId, ribbonCtx) {
+		yasoon.openBrowser(jira.settings.baseUrl + '/browse/' + ribbonCtx.externalData);
 	};
 
 	this.ribbonOnNewIssue = function ribbonOnNewIssue(ribbonId, ribbonCtx) {

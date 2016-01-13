@@ -79,14 +79,17 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		
 		if (convData) {
 			convData = JSON.parse(convData);
-			
-			jira.ribbonFactory.update('addToIssueFromMailMain', {
-				label: 'Add To ' + convData.issues[Object.keys(convData.issues)[0]].key
+			var key = convData.issues[Object.keys(convData.issues)[0]].key;
+			jira.ribbonFactory.update('openIssueFromMailMain', {
+				label: 'View Issue ' + key,
+				externalData: key,
+				enabled: true
 			}, true);
 		}
 		else {
-			jira.ribbonFactory.update('addToIssueFromMailMain', {
-				label: 'Add To Issue'
+			jira.ribbonFactory.update('openIssueFromMailMain', {
+				label: 'View Issue',
+				enabled: false
 			}, true);
 		}
 		
