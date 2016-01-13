@@ -116,20 +116,26 @@ function JiraIconController() {
 			return url;
 		}
 
-		var result = iconBuffer.filter(function (elem) { return elem.url == url; });
-		if (result.length > 1) {
-			//Should never happen --> remove both elements from buffer
-			iconBuffer = iconBuffer.filter(function (elem) { return elem.url != url; });
-			result = [];
-		}
+		try  {
+			var result = iconBuffer.filter(function (elem) { return elem.url == url; });
+			if (result.length > 1) {
+				//Should never happen --> remove both elements from buffer
+				iconBuffer = iconBuffer.filter(function (elem) { return elem.url != url; });
+				result = [];
+			}
 
-		//Only map if mappping to local URL exist
-		if (result.length === 1 && result[0].fileName.indexOf('http') !== 0) {
-			return yasoon.io.getLinkPath(result[0].fileName);	
-		} else if (result.length === 0) {
-			return saveIcon(url);
+			//Only map if mappping to local URL exist
+			if (result.length === 1 && result[0].fileName.indexOf('http') !== 0) {
+				return yasoon.io.getLinkPath(result[0].fileName);	
+			} else if (result.length === 0) {
+				return saveIcon(url);
+			}
+		} catch (e) {
+			//Can dump ... e.g. it seems to be possible to add font awesome icons without valid URL
+			//This method should never dump completely as it may prevents everything from working. just return the input url
 		}
 		return url;
+		
 	};
 
 	this.addIcon = function (url) {

@@ -539,8 +539,26 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				//Render Issue Types
 				$.each(self.selectedProject.issueTypes, function (i, type) {
 					if (!type.subtask) {
-						type.iconUrl = jira.icons.mapIconUrl(type.iconUrl);
-						$('#issuetype').append('<option data-icon="' + type.iconUrl + '" value="' + type.id + '">' + type.name + '</option>');
+						//Check if iconUrl contains html class
+						var cssClass = null;
+						try {
+							var decodedUrl = decodeURIComponent(type.iconUrl);
+							var regex = /class=\"([\-\w\s]+)\"/gi;
+							var matches = regex.exec(regex);
+							if (matches.length > 0) {
+								cssClass = matches[0];
+							}
+
+						} catch (e) {
+
+						}
+
+						if(cssClass) {
+							$('#issuetype').append('<option data-iconclass="' + cssClass + '" value="' + type.id + '">' + type.name + '</option>');
+						} else {
+							type.iconUrl = jira.icons.mapIconUrl(type.iconUrl);
+							$('#issuetype').append('<option data-icon="' + type.iconUrl + '" value="' + type.id + '">' + type.name + '</option>');
+						}
 					}
 				});
 				$('#issuetype').select2("destroy");

@@ -109,6 +109,21 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			return self.syncStream('/activity?streams=update-date+BETWEEN+' + oldTs + '+' + currentTs);
 		})
 		.then(function () {
+			//Only on first sync, make sure there are at least some own issues.
+			if (oAuthSuccess) {
+				var ownUserKey = jira.data.ownUser.key || jira.data.ownUser.name; //Depending on version >.<
+				return jiraGet('/rest/api/2/search?jql=assignee%20%3D%20%22' + ownUserKey + '%22%20AND%20status%20!%3D%20%22resolved%22%20ORDER%20BY%20created%20DESC&maxResults=200&fields=summary')
+				.then(function (data) {
+					var ownIssues = JSON.parse(data);
+					if (ownIssues.total > 0) {
+						ownIssues.issues.forEach(function (issue) {
+							jira.notifications.queueChildren(issue);
+						});
+					}
+				});
+			}
+		})
+		.then(function () {
 			return jira.notifications.processChildren();
 		})
 		.then(function () {
