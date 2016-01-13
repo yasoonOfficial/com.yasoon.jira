@@ -79,8 +79,9 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		
 		if (convData) {
 			convData = JSON.parse(convData);
+			
 			jira.ribbonFactory.update('addToIssueFromMailMain', {
-				label: 'Add To ' + convData.issues[0].key
+				label: 'Add To ' + convData.issues[Object.keys(convData.issues)[0]].key
 			}, true);
 		}
 		else {

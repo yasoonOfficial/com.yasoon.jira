@@ -21,6 +21,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.settings = null;
 
 	this.mail = null;
+	this.mailConversationData = null;
 	this.selectedIssue = null;
 	this.addedAttachmentIds = [];
 	this.selectedAttachments = [];
@@ -198,19 +199,37 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				$('#project').next().find('.select2-selection').first().focus();
 				
 				//If mail is provided && subject contains reference to project, pre-select that
-				if (self.mail && self.mail.subject) {
-					//Sort projects by key length descending, so we will match the following correctly:
-					// Subject: This is for DEMODD project
-					// Keys: DEMO, DEMOD, DEMODD
-					var projectsByKeyLength = self.projects.sort(function(a, b){
-						return b.key.length - a.key.length; // ASC -> a - b; DESC -> b - a
-					});
+				if (self.mail) {					
+					var convData = yasoon.outlook.mail.getConversationData(self.mail);					
+					if (convData) {
+						self.mailConversationData = JSON.parse(convData);
+						
+						//Try to find project that matches
+						for (var id in self.mailConversationData.issues) {
+							id = parseInt(id);
+							if (self.projects.filter(function(el) {
+								return el.id === self.mailConversationData.issues[id].projectId;
+							}).length > 0) {
+								$('#project').val(self.mailConversationData.issues[id].projectId).trigger('change');
+								return; //Quit loop & promise chain -> subject handling will not be done if we find something here
+							}
+						}
+					}
 					
-					for (var i = 0; i < projectsByKeyLength.length; i++) {
-						var curProj = projectsByKeyLength[i];
-						if (self.mail.subject.indexOf(curProj.key) >= 0) {							
-							$('#project').val(curProj.id).trigger('change');
-							break;
+					if (self.mail.subject) {
+						//Sort projects by key length descending, so we will match the following correctly:
+						// Subject: This is for DEMODD project
+						// Keys: DEMO, DEMOD, DEMODD
+						var projectsByKeyLength = self.projects.sort(function(a, b) {
+							return b.key.length - a.key.length; // ASC -> a - b; DESC -> b - a
+						});
+						
+						for (var i = 0; i < projectsByKeyLength.length; i++) {
+							var curProj = projectsByKeyLength[i];
+							if (self.mail.subject.indexOf(curProj.key) >= 0) {							
+								$('#project').val(curProj.id).trigger('change');
+								break;
+							}
 						}
 					}
 				}
@@ -243,9 +262,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 
 	this.submitForm = function (e) {
-		var selectedIssue = $('#issue').val() || $('#issue').data('id');
+		var selectedIssueId = $('#issue').val() || $('#issue').find(':selected').data('id');
 
-		if (!selectedIssue) {
+		if (!selectedIssueId) {
 			alert('Please select the issue you want to comment!');
 			return;
 		}
@@ -264,19 +283,42 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		var text = $('#issue').data('text');
 		if (!text) {
 			//If standard select2 is used (after project has been selected)
-			text = $('#issue').find('[value=' + selectedIssue + ']').text();
+			text = $('#issue').find('[value=' + selectedIssueId + ']').text();
 		}
-		self.addRecentIssue({ id: selectedIssue, text: text });
+		self.addRecentIssue({ id: selectedIssueId, text: text });
 
 		var promises = [];
 		if ($('#description').val()) {
 			//Upload comments
 			promises.push(
-				jiraAjax('/rest/api/2/issue/' + selectedIssue + '/comment', yasoon.ajaxMethod.Post, JSON.stringify({ body: $('#description').val() }))
+				jiraAjax('/rest/api/2/issue/' + selectedIssueId + '/comment', yasoon.ajaxMethod.Post, JSON.stringify({ body: $('#description').val() }))				
 				.catch(jiraSyncError, function (e) {
 					$('#MainAlert .errorText').text('Connection Error: Commenting did not work: ' + e.getUserFriendlyError());
 					$('#MainAlert').show();
 					throw e;
+				})
+				.then(function() {
+					//Save issueId in conversation data
+					if (jira.mail) {
+						//Set Conversation Data
+						var conversationString = yasoon.outlook.mail.getConversationData(jira.mail);
+						var conversation = {
+							issues: {}
+						};
+	
+						if (conversationString)
+							conversation = JSON.parse(conversationString);
+						
+						var issueKey = $('#issue').find(':selected').data('key');
+						var issueSummary = $('#issue').find(':selected').data('summary');
+						var projectId = $('#issue').find(':selected').data('project').toString();
+		
+						conversation.issues[selectedIssueId] = { id: selectedIssueId, key: issueKey, summary: issueSummary, projectId: projectId };
+						yasoon.outlook.mail.setConversationData(jira.mail, JSON.stringify(conversation));
+						
+						//Set new message class to switch icon
+						jira.mail.setMessageClass('IPM.Note.Jira');
+					}
 				})
 			);
 		}
@@ -293,7 +335,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			});
 
 			promises.push(
-				jiraAjax('/rest/api/2/issue/' + selectedIssue + '/attachments', yasoon.ajaxMethod.Post, null, formData)
+				jiraAjax('/rest/api/2/issue/' + selectedIssueId + '/attachments', yasoon.ajaxMethod.Post, null, formData)
 				.catch(jiraSyncError, function (e) {
 					console.log(e.getUserFriendlyError());
 					$('#MainAlert .errorText').text('Connection Error: Uploading the attachments failed: ' + e.getUserFriendlyError());
@@ -327,6 +369,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 	this.selectProject = function () {
 		var selectedProject = $('#project').find(':selected').data('key');
+		var selectedProjectId = $('#project').val();
+		
 		$('#IssueSpinner').css('display', 'inline');
 		//Filter Issues based on selected Project
 		jiraGet('/rest/api/2/search?jql=project%20%3D%20%22'+ selectedProject +'%22%20AND%20status%20!%3D%20%22resolved%22&maxResults=200&fields=summary')
@@ -342,7 +386,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 						text: issue.fields.summary + ' (' + issue.key + ')'
 					});
 					
-					$('#issue').append('<option value="' + issue.id + '" data-key="' + issue.key + '">' + issue.fields.summary + ' (' + issue.key + ')' + '</option>');
+					$('#issue').append('<option value="' + issue.id + '" data-project="' + selectedProjectId +'" data-key="' + issue.key + '" data-summary="' + issue.fields.summary + '">' + issue.fields.summary + ' (' + issue.key + ')' + '</option>');
 				});
 			}
 			$('#issue').select2("destroy");
@@ -352,15 +396,31 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			});
 			
 			//If mail is provided && subject contains reference to issue, pre-select that
-			if (self.mail && self.mail.subject) {
-				//Try to extract issue key from subject
-				var regEx = new RegExp(selectedProject + '.[0-9]+', 'g');
-				var match = regEx.exec(self.mail.subject);
+			if (self.mail) {
 				
-				if (match && match.length > 0) {
-					var issueKey = match[0];
-					var issue = data.issues.filter(function(i) { return i.key === issueKey; })[0];
-					
+				var issueKey = null;
+				if (self.mailConversationData) {
+					//Try to find issue key that is in selected project
+					for (var id in self.mailConversationData.issues) {
+						id = parseInt(id);
+						if (self.mailConversationData.issues[id].projectId === selectedProjectId) {
+							issueKey = self.mailConversationData.issues[id].key;
+							break;
+						}
+					}
+				}
+				else if (self.mail.subject) {
+					//Try to extract issue key from subject
+					var regEx = new RegExp(selectedProject + '.[0-9]+', 'g');
+					var match = regEx.exec(self.mail.subject);
+				
+					if (match && match.length > 0) {
+						issueKey = match[0];
+					}					
+				}
+				
+				if (issueKey) {			
+					var issue = data.issues.filter(function(i) { return i.key === issueKey; })[0];					
 					if (issue) {
 						$('#issue').val(issue.id).trigger('change');
 					}
@@ -376,7 +436,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 								text: issue.fields.summary + ' (' + issue.key + ')'
 							});
 							
-							$('#issue').append('<option value="' + issue.id + '" data-key="' + issue.key + '">' + issue.fields.summary + ' (' + issue.key + ')' + '</option>');
+					        $('#issue').append('<option value="' + issue.id + '" data-project="' + selectedProjectId +'" data-key="' + issue.key + '" data-summary="' + issue.fields.summary + '">' + issue.fields.summary + ' (' + issue.key + ')' + '</option>');
 					
 							//Rebuild select2
 							$('#issue').select2("destroy");
