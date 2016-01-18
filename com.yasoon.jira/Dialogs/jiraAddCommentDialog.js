@@ -207,9 +207,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 						//Try to find project that matches
 						for (var id in self.mailConversationData.issues) {
 							id = parseInt(id);
-							if (self.projects.filter(function(el) {
-								return el.id === self.mailConversationData.issues[id].projectId;
-							}).length > 0) {
+							if (self.projects.filter(function (el) { return el.id === self.mailConversationData.issues[id].projectId; }).length > 0) //jshint ignore:line
+							{
 								$('#project').val(self.mailConversationData.issues[id].projectId).trigger('change');
 								return; //Quit loop & promise chain -> subject handling will not be done if we find something here
 							}
@@ -317,7 +316,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 						yasoon.outlook.mail.setConversationData(jira.mail, JSON.stringify(conversation));
 						
 						//Set new message class to switch icon
-						jira.mail.setMessageClass('IPM.Note.Jira');
+						if(!jira.mail.isSignedOrEncrypted || jira.settings.overwriteEncrypted)
+							jira.mail.setMessageClass('IPM.Note.Jira');
 					}
 				})
 			);

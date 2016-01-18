@@ -436,7 +436,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					yasoon.outlook.mail.setConversationData(jira.mail, JSON.stringify(conversation)); //jira.mail.setConversationData(JSON.stringify(conversation));
 					
 					//Set new message class to switch icon
-					jira.mail.setMessageClass('IPM.Note.Jira');
+					if (!jira.mail.isSignedOrEncrypted || jira.settings.overwriteEncrypted)
+						jira.mail.setMessageClass('IPM.Note.Jira');
 				}
 
 				if (self.selectedAttachments.length > 0) {

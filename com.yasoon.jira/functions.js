@@ -36,17 +36,17 @@ function JiraRibbonController() {
 		}];
 
 		//Add New Issue Ribbons in email
-		var newIssueRibbons = self.createEmailItems('New Issue', 'newIssueFromText', self.ribbonOnNewIssue);
+		var newIssueRibbons = self.createContextRibbonItems('New Issue', 'newIssueFromText', self.ribbonOnNewIssue);
 		contextMenuItems = contextMenuItems.concat(newIssueRibbons);
 		
-		var addToIssueRibbons = self.createEmailItems('Add to Issue', 'addToIssueFromText', self.ribbonOnAddToIssue);
+		var addToIssueRibbons = self.createContextRibbonItems('Add to Issue', 'addToIssueFromText', self.ribbonOnAddToIssue);
 		contextMenuItems = contextMenuItems.concat(addToIssueRibbons);
 
 		//Add main menu ribbon
 		ribbonFactory.create({
 			type: 'ribbon',
 			renderTo: [
-				'Microsoft.Outlook.Explorer',
+				'Microsoft.Outlook.Explorer'
 			],
 			items: [{
 				type: 'tabs',
@@ -58,34 +58,35 @@ function JiraRibbonController() {
 						id: 'jiraMailExplorerGroup',
 						insertAfterMso: 'GroupMailRespond',
 						label: 'JIRA',
-						items: [{
-							type: 'button',
-							id: 'newIssueFromMailMain',
-							size: 'large',
-							label: 'New Issue',
-							image: 'images/ribbonNew.png',
-							onAction: self.ribbonOnNewIssue
-						}, {
-							type: 'button',
-							id: 'addToIssueFromMailMain',
-							size: 'large',
-							label: 'Add To Issue',
-							image: 'images/ribbonAdd.png',
-							onAction: self.ribbonOnAddToIssue
-						}, {
-							type: 'button',
-							enabled: false,
-							id: 'openIssueFromMailMain',
-							size: 'large',
-							label: 'View Issue',
-							image: 'images/ribbonOpen.png',
-							onAction: self.ribbonOpenIssue
-						}]
+						items: self.createJiraRibbonGroup('MailMain')
 					}]
 				}]
 			}]
 		});
 
+		//Add Mail Read
+		ribbonFactory.create({
+			type: 'ribbon',
+			renderTo: [
+				'Microsoft.Outlook.Mail.Read'
+			],
+			items: [{
+				type: 'tabs',
+				items: [{
+					type: 'tab',
+					idMso: 'TabReadMessage',
+					items: [{
+						type: 'group',
+						id: 'jiraMailReadGroup',
+						insertAfterMso: 'GroupShow',
+						label: 'JIRA',
+						items: self.createJiraRibbonGroup('MailRead')
+					}]
+				}]
+			}]
+		});
+
+		//Add Context Menus
 		ribbonFactory.create({
 			type: 'contextMenus',
 			renderTo: [
@@ -93,10 +94,10 @@ function JiraRibbonController() {
 				'Microsoft.Outlook.Mail.Read'
 			],
 			items: contextMenuItems
-		});
+		});		
 	};
 
-	this.createEmailItems = function (label,id, action) {
+	this.createContextRibbonItems = function (label,id, action) {
 		var result = [];
 		//var mailContextMenuMso = [
 		//	'ContextMenuHeading',
@@ -144,6 +145,32 @@ function JiraRibbonController() {
 		return result;
 	};
 	
+	this.createJiraRibbonGroup = function (id) {
+		return [{
+			type: 'button',
+			id: 'newIssueFrom' + id,
+			size: 'large',
+			label: 'New Issue',
+			image: 'images/ribbonNew.png',
+			onAction: self.ribbonOnNewIssue
+		}, {
+			type: 'button',
+			id: 'addToIssueFrom' + id,
+			size: 'large',
+			label: 'Add To Issue',
+			image: 'images/ribbonAdd.png',
+			onAction: self.ribbonOnAddToIssue
+		}, {
+			type: 'button',
+			enabled: false,
+			id: 'openIssueFrom' + id,
+			size: 'large',
+			label: 'View Issue',
+			image: 'images/ribbonOpen.png',
+			onAction: self.ribbonOpenIssue
+		}];
+	};
+
 	this.ribbonOpenIssue = function ribbonOpenIssue(ribbonId, ribbonCtx) {
 		yasoon.openBrowser(jira.settings.baseUrl + '/browse/' + ribbonCtx.externalData);
 	};
@@ -174,7 +201,7 @@ function JiraRibbonController() {
 			closeCallback: self.ribbonOnCloseNewIssue
 		};
 		
-		if (ribbonId == 'newIssueFullMail' || ribbonId == 'newIssueFromMailMain') {
+		if (ribbonId == 'newIssueFullMail' || ribbonId == 'newIssueFromMailMain' || ribbonId == 'newIssueFromMailRead') {
 			//Ribbon on Mail Item
 			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
 			yasoon.dialog.open(dialogOptions);
@@ -238,7 +265,7 @@ function JiraRibbonController() {
 			closeCallback: self.ribbonOnCloseAddToIssue
 		};
 
-		if (ribbonId == 'addToIssueFullMail' || ribbonId == 'addToIssueFromMailMain') {
+		if (ribbonId == 'addToIssueFullMail' || ribbonId == 'addToIssueFromMailMain' || ribbonId == 'newIssueFromMailRead') {
 			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
 			yasoon.dialog.open(dialogOptions);
 			return;

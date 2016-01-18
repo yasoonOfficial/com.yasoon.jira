@@ -173,7 +173,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		console.log('OAuth Error', error, statusCode);
 		var initialError = error;
 		if (statusCode == 500) {
-			yasoon.dialog.showMessageBox("Couldn\'t reach JIRA server. Either the system does not exist anymore or is currently not reachable. (e.g. because VPN is missing)");
+			yasoon.dialog.showMessageBox("Couldn\'t reach JIRA server. Either the system does not exist anymore or is currently not reachable. (e.g. Proxy or VPN is missing)");
 		} else if (error.indexOf('oauth_problem') === 0) {
 			//Standard OAuth Messages => http://wiki.oauth.net/w/page/12238543/ProblemReporting
 			error = error.split('&')[0];
