@@ -56,6 +56,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			yasoon.app.on("oAuthSuccess", jira.handleOAuthSuccess);
 			yasoon.app.on("oAuthError", jira.handleOAuthError);
 			yasoon.outlook.on("selectionChange", jira.handleSelectionChange);
+			yasoon.outlook.on("itemOpen", jira.handleNewInspector);
 			yasoon.periodicCallback(300, jira.sync);
 			yasoon.on("sync", jira.sync);
 			
@@ -72,27 +73,12 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 	
 	this.handleSelectionChange = function handleSelectionChange(item) {
-		if (!item)
-			return;
-			
-		var convData = item.getConversationData();
-		
-		if (convData) {
-			convData = JSON.parse(convData);
-			var key = convData.issues[Object.keys(convData.issues)[0]].key;
-			jira.ribbonFactory.update('openIssueFromMailMain', {
-				label: 'View Issue ' + key,
-				externalData: key,
-				enabled: true
-			}, true);
-		}
-		else {
-			jira.ribbonFactory.update('openIssueFromMailMain', {
-				label: 'View Issue',
-				enabled: false
-			}, true);
-		}
-		
+		jira.ribbons.updateRibbons(item);
+		jira.ribbons.updateAttachmentRibbons(item);
+	};
+
+	this.handleNewInspector = function handleNewInspector(ribbonCtx) {
+		jira.ribbons.updateRibbons(ribbonCtx.items[0], ribbonCtx.inspectorId);
 	};
 
 	this.sync = function sync() {

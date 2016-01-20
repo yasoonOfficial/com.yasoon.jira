@@ -33,6 +33,29 @@ function JiraRibbonController() {
 				label: 'Add to Issue',
 				onAction: self.ribbonOnAddToIssue
 			}]
+		}, {
+			type: 'contextMenu',
+			idMso: 'ContextMenuAttachments',
+			items: [{
+				type: 'button',
+				id: 'uploadAttachmentToIssue',
+				label: 'Upload to Issue',
+				enabled: false,
+				image: 'logo_icon1.png',
+				onAction: self.uploadAttachment
+			}, {
+				type: 'dynamicMenu',
+				id: 'uploadAttachmentDynamicMenu',
+				label: 'Upload to Issues',
+				image: 'logo_icon1.png',
+				visible: false,
+				items: [{
+					type: 'menu',
+					id: 'uploadAttachmentMenu',
+					items: []
+				}]
+
+			}]
 		}];
 
 		//Add New Issue Ribbons in email
@@ -153,26 +176,214 @@ function JiraRibbonController() {
 			label: 'New Issue',
 			image: 'images/ribbonNew.png',
 			onAction: self.ribbonOnNewIssue
-		}, {
+		},{
 			type: 'button',
 			id: 'addToIssueFrom' + id,
 			size: 'large',
 			label: 'Add To Issue',
 			image: 'images/ribbonAdd.png',
 			onAction: self.ribbonOnAddToIssue
-		}, {
+		},{
 			type: 'button',
-			enabled: false,
 			id: 'openIssueFrom' + id,
+			enabled: false,
 			size: 'large',
-			label: 'View Issue',
+			label: 'Open Issue',
 			image: 'images/ribbonOpen.png',
 			onAction: self.ribbonOpenIssue
+		},{
+			type: 'dynamicMenu',
+			id: 'openIssueDynamicMenuFrom' + id,
+			size: 'large',
+			label: 'Open Issues',
+			image: 'images/ribbonOpen.png',
+			visible: false,
+			items: [{
+				type: 'menu',
+				id: 'openIssueMenuFrom' + id,
+				items: []
+			}]
+			
 		}];
+	};
+
+	this.updateRibbons = function (item, inspectorId) {
+		if (!item)
+			return;
+
+		//This method can be called with or without inspector. In inspector it has another method to call(updateSingle instead of update) and different Ids
+		var where = (inspectorId) ? 'MailRead' : 'MailMain';
+		var ribbonButton = 'openIssueFrom' + where;
+		var ribbonDynamicMenu = 'openIssueDynamicMenuFrom' + where;
+		var ribbonInnerMenu = 'openIssueMenuFrom' + where;
+
+		var parameters = (inspectorId) ? inspectorId : true;
+		var method = (inspectorId) ? 'updateSingle' : 'update';
+
+		var convData = item.getConversationData();
+
+		if (convData) {
+			convData = JSON.parse(convData);
+
+			if (convData.issues) {
+				if (Object.keys(convData.issues).length > 1) {
+					//Create Items for Dyn Menu
+					var convItems = [];
+					Object.keys(convData.issues).forEach(function (key) {
+						var currentItem = convData.issues[key];
+						convItems.push({
+							type: 'button',
+							id: 'openIssueMenu-' + currentItem.id,
+							label: 'Open Issue ' + currentItem.key,
+							externalData: currentItem.key,
+							image: 'images/ribbonOpen.png',
+							onAction: self.ribbonOpenIssue
+						});
+					});
+
+					jira.ribbonFactory[method](ribbonButton, {
+						visible: false
+					}, parameters);
+
+					jira.ribbonFactory[method](ribbonDynamicMenu, {
+						visible: true
+					}, parameters);
+					jira.ribbonFactory[method](ribbonInnerMenu, {
+						items: convItems
+					}, parameters);
+
+				} else {
+					var key = convData.issues[Object.keys(convData.issues)[0]].key;
+					jira.ribbonFactory[method](ribbonButton, {
+						label: 'Open Issue ' + key,
+						externalData: key,
+						enabled: true,
+						visible: true
+					}, parameters);
+
+					jira.ribbonFactory[method](ribbonDynamicMenu, {
+						visible: false
+					}, parameters);
+				}
+
+				return;
+			}
+		}
+
+		jira.ribbonFactory[method](ribbonButton, {
+			label: 'Open Issue',
+			enabled: false,
+			visible: true
+		}, parameters);
+
+		jira.ribbonFactory[method](ribbonDynamicMenu, {
+			visible: false
+		}, parameters);
+	};
+
+	this.updateAttachmentRibbons = function (item, inspectorId) {
+		var ribbonButton = 'uploadAttachmentToIssue';
+		var ribbonDynamicMenu = 'uploadAttachmentDynamicMenu';
+		var ribbonInnerMenu = 'uploadAttachmentMenu';
+
+		var parameters = (inspectorId) ? inspectorId : true;
+		var method = (inspectorId) ? 'updateSingle' : 'update';
+
+		var convData = item.getConversationData();
+
+		if (convData) {
+			convData = JSON.parse(convData);
+			if (convData.issues) {
+				if (Object.keys(convData.issues).length > 1) {
+					//Create Items for Dyn Menu
+					var convItems = [];
+					Object.keys(convData.issues).forEach(function (key) {
+						var currentItem = convData.issues[key];
+						convItems.push({
+							type: 'button',
+							id: 'uploadToIssue-' + currentItem.id,
+							label: 'Upload to Issue ' + currentItem.key,
+							externalData: currentItem.key,
+							image: 'images/ribbonOpen.png',
+							onAction: self.uploadAttachment
+						});
+					});
+
+					jira.ribbonFactory[method](ribbonButton, {
+						visible: false
+					}, parameters);
+
+					jira.ribbonFactory[method](ribbonDynamicMenu, {
+						visible: true
+					}, parameters);
+					jira.ribbonFactory[method](ribbonInnerMenu, {
+						items: convItems
+					}, parameters);
+
+				} else {
+					var key = convData.issues[Object.keys(convData.issues)[0]].key;
+					jira.ribbonFactory[method](ribbonButton, {
+						label: 'Upload to Issue ' + key,
+						externalData: key,
+						enabled: true,
+						visible: true
+					}, parameters);
+
+					jira.ribbonFactory[method](ribbonDynamicMenu, {
+						visible: false
+					}, parameters);
+				}
+
+				return;
+			}
+		}
+
+		jira.ribbonFactory[method](ribbonButton, {
+			label: 'Upload to Issue',
+			enabled: false,
+			visible: true
+		}, parameters);
+
+		jira.ribbonFactory[method](ribbonDynamicMenu, {
+			visible: false
+		}, parameters);
 	};
 
 	this.ribbonOpenIssue = function ribbonOpenIssue(ribbonId, ribbonCtx) {
 		yasoon.openBrowser(jira.settings.baseUrl + '/browse/' + ribbonCtx.externalData);
+	};
+
+	this.uploadAttachment = function (ribbonId, ribbonCtx) {
+
+		if (ribbonCtx.items && ribbonCtx.items.length > 0) {
+			//Upload every file to the issue and show Loader
+			var formData = [];
+			ribbonCtx.items.forEach(function (file) {
+				formData.push({
+					type: yasoon.formData.File,
+					name: 'file',
+					value: file.getFileHandle()
+				});
+			});
+
+			var progressProvider = yasoon.oauth({
+				url: jira.settings.baseUrl + '/rest/api/2/issue/' + ribbonCtx.externalData + '/attachments',
+				oauthServiceName: jira.settings.currentService,
+				type: yasoon.ajaxMethod.Post,
+				formData: formData,
+				headers: { Accept: 'application/json', 'X-Atlassian-Token': 'nocheck' },
+				error: function (data, statusCode, result, errorText, cbkParam) {
+					yasoon.dialog.showMessageBox('Couldn\'t upload all attachments. Please try again. - ' + errorText );
+				},
+				success: function () {
+					ribbonCtx.items[0].completeLoader();
+					jira.sync();
+				}
+			});
+
+			ribbonCtx.items[0].showLoader([progressProvider]);
+		}
+		
 	};
 
 	this.ribbonOnNewIssue = function ribbonOnNewIssue(ribbonId, ribbonCtx) {
