@@ -146,6 +146,9 @@ function MultilineTextRenderer() {
 
 function CheckboxRenderer() {
 	this.getValue = function (id) {
+		if ($('#' + id).length === 0)
+			return;
+
 		var checkedValues = [];
 		$('#'+id).find('input').each(function () {
 			if ($(this).is(':checked')) {
@@ -181,6 +184,9 @@ function CheckboxRenderer() {
 
 function RadioButtonRenderer() {
 	this.getValue = function (id) {
+		if ($('#' + id).length === 0)
+			return;
+
 		var checkedValue = { id: $('#' + id).find('input:checked').first().val() };
 		return checkedValue;
 	};
@@ -761,6 +767,9 @@ function AttachmentLinkRenderer() {
 
 function TimeTrackingRenderer() {
 	this.getValue = function (id) {
+		if ($('#' + id + '_originalestimate').length === 0)
+			return;
+
 		var origVal = $('#' + id + '_originalestimate').val();
 		var remainVal = $('#' + id + '_remainingestimate').val();
 

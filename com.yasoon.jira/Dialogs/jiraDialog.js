@@ -746,12 +746,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			$('#tab-list').html('');
 			$('#MainAlert').hide();
 
-			//Tabs nessecary?
-			if (renderData.sortedTabs.length < 2) {
-				$('#tab-list').addClass('hidden');
-			} else {
-				$('#tab-list').removeClass('hidden');
-			}
 			//Render each field
 			var renderedTabs = {};
 			renderData.fields.forEach(function (field) {
@@ -782,6 +776,13 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					jira.UIFormHandler.render(field.id, jira.currentMeta.fields[field.id], containerId);
 				}
 			});
+
+			//Tabs nessecary?
+			if (Object.keys(renderedTabs).length > 1) {
+				$('#tab-list').removeClass('hidden');
+			} else {
+				$('#tab-list').addClass('hidden');
+			}
 		});
 	};
 
