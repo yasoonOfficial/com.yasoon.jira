@@ -18,13 +18,13 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 
 	this.lifecycle = function (action, oldVersion, newVersion) {
 		if (action === yasoon.lifecycle.Upgrade) {
-			yasoon.setting.setAppParameter('icons', '[]');
+			//yasoon.setting.setAppParameter('icons', '[]');
 
-			//Clear license information. We had invalid user products, so make sure we pull again the latest ones
-			var validUntil = new Date();
-			validUntil.setDate(validUntil.getDate() + 1);
-			jira.license = { comment: 'Please play fair and pay for your software.', isFullyLicensed: false, validUntil: validUntil };
-			yasoon.setting.setAppParameter('license', JSON.stringify(jira.license));
+			////Clear license information. We had invalid user products, so make sure we pull again the latest ones
+			//var validUntil = new Date();
+			//validUntil.setDate(validUntil.getDate() + 1);
+			//jira.license = { comment: 'Please play fair and pay for your software.', isFullyLicensed: false, validUntil: validUntil };
+			//yasoon.setting.setAppParameter('license', JSON.stringify(jira.license));
 		}
 		jira.downloadScript = true;
 	};

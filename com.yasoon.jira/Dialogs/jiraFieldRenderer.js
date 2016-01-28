@@ -757,7 +757,7 @@ function AttachmentLinkRenderer() {
 		
 		$('#' + id + '-container').find('.AddAttachmentLink').click(function (e) {
 			e.preventDefault();
-			yasoon.view.fileChooser.open(function (selectedFiles) {
+			yasoon.view.fileChooser.open(function jiraFileChooserCloseHandler(selectedFiles) {
 				jira.selectedAttachments = jira.selectedAttachments.concat(selectedFiles);
 				self.renderAttachments(id);
 			});

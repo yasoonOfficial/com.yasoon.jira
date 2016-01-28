@@ -120,7 +120,7 @@ function JiraRibbonController() {
 		});		
 	};
 
-	this.createContextRibbonItems = function (label,id, action) {
+	this.createContextRibbonItems = function createContextRibbonItems(label, id, action) {
 		var result = [];
 		//var mailContextMenuMso = [
 		//	'ContextMenuHeading',
@@ -168,7 +168,7 @@ function JiraRibbonController() {
 		return result;
 	};
 	
-	this.createJiraRibbonGroup = function (id) {
+	this.createJiraRibbonGroup = function createJiraRibbonGroup(id) {
 		return [{
 			type: 'button',
 			id: 'newIssueFrom' + id,
@@ -207,7 +207,7 @@ function JiraRibbonController() {
 		}];
 	};
 
-	this.updateRibbons = function (item, inspectorId) {
+	this.updateRibbons = function updateRibbons(item, inspectorId) {
 		if (!item)
 			return;
 
@@ -281,7 +281,7 @@ function JiraRibbonController() {
 		}, parameters);
 	};
 
-	this.updateAttachmentRibbons = function (item, inspectorId) {
+	this.updateAttachmentRibbons = function updateAttachmentRibbons(item, inspectorId) {
 		var ribbonButton = 'uploadAttachmentToIssue';
 		var ribbonDynamicMenu = 'uploadAttachmentDynamicMenu';
 		var ribbonInnerMenu = 'uploadAttachmentMenu';
@@ -353,7 +353,7 @@ function JiraRibbonController() {
 		yasoon.openBrowser(jira.settings.baseUrl + '/browse/' + ribbonCtx.externalData);
 	};
 
-	this.uploadAttachment = function (ribbonId, ribbonCtx) {
+	this.uploadAttachment = function uploadAttachment(ribbonId, ribbonCtx) {
 
 		if (ribbonCtx.items && ribbonCtx.items.length > 0) {
 			//Upload every file to the issue and show Loader
@@ -507,12 +507,12 @@ function JiraRibbonController() {
 		}
 	};
 
-	this.ribbonOnCloseNewIssue = function ribbonOnCloseNewIssue() {
-		jira.sync();
+	this.ribbonOnCloseNewIssue = function ribbonOnCloseNewIssue(data) {
+		//jira.sync();
 	};
 
-	this.ribbonOnCloseAddToIssue = function ribbonOnCloseAddToIssue() {
-		jira.sync();
+	this.ribbonOnCloseAddToIssue = function ribbonOnCloseAddToIssue(data) {
+		//jira.sync();
 	};
 }
 
