@@ -541,26 +541,26 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				//Render Issue Types
 				$.each(self.selectedProject.issueTypes, function (i, type) {
 					if (!type.subtask) {
-						//Check if iconUrl contains html class
-						var cssClass = null;
-						try {
-							var decodedUrl = decodeURIComponent(type.iconUrl);
-							var regex = /class=\"([\-\w\s]+)\"/gi;
-							var matches = regex.exec(regex);
-							if (matches.length > 0) {
-								cssClass = matches[0];
-							}
+						////Check if iconUrl contains html class
+						//var cssClass = null;
+						//try {
+						//	var decodedUrl = decodeURIComponent(type.iconUrl);
+						//	var regex = /class=\"([\-\w\s]+)\"/gi;
+						//	var matches = regex.exec(regex);
+						//	if (matches.length > 0) {
+						//		cssClass = matches[0];
+						//	}
 
-						} catch (e) {
+						//} catch (e) {
 
-						}
+						//}
 
-						if(cssClass) {
-							$('#issuetype').append('<option data-iconclass="' + cssClass + '" value="' + type.id + '">' + type.name + '</option>');
-						} else {
+						//if(cssClass) {
+						//	$('#issuetype').append('<option data-iconclass="' + cssClass + '" value="' + type.id + '">' + type.name + '</option>');
+						//} else {
 							type.iconUrl = jira.icons.mapIconUrl(type.iconUrl);
 							$('#issuetype').append('<option data-icon="' + type.iconUrl + '" value="' + type.id + '">' + type.name + '</option>');
-						}
+						//}
 					}
 				});
 				$('#issuetype').select2("destroy");
@@ -820,8 +820,13 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, jira.mailAsMarkup);	
 			}
 			else if (!self.markupRenderProcess) {
+				//Rendering may take some time, so we add a loader.
+				var descriptionPos = $('#' + fieldMapping.body).offset();
+				var scrollPos = $('#' + fieldMapping.body).scrollTop();
+				//56 px = height of header
+				$('#markupLoader').css('top', (descriptionPos.top + scrollPos - 66) + 'px').show();
 				self.markupRenderProcess = yasoon.outlook.mail.renderBody(self.mail, 'jiraMarkup')
-				.then(function (markup) {				
+				.then(function (markup) {
 					//If there is no selection, set this as description;
 					if (!self.selectedText && fieldMapping.body) {
 						//Handle auto header add setting
@@ -831,10 +836,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 						else if (self.settings.addMailHeaderAutomatically === 'bottom') {
 							markup = markup + '\n' + renderMailHeaderText(self.mail, true);
 						}
-						
+
 						markup = self.handleAttachments(markup, self.mail.attachments);
 						jira.mailAsMarkup = markup;
-						jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, markup);					
+						jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, markup);
 					}
 				})
 				.catch(function () {
@@ -842,6 +847,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					if (!self.selectedText && fieldMapping.body) {
 						jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, jira.mailAsMarkup);
 					}
+				})
+				.finally(function () {
+					$('#markupLoader').hide();
 				});
 			}
 		}

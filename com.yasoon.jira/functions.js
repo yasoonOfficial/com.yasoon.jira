@@ -507,12 +507,14 @@ function JiraRibbonController() {
 		}
 	};
 
-	this.ribbonOnCloseNewIssue = function ribbonOnCloseNewIssue(data) {
-		//jira.sync();
+	this.ribbonOnCloseNewIssue = function ribbonOnCloseNewIssue(type, data) {
+		if(data && data.action === 'success')
+			jira.sync();
 	};
 
-	this.ribbonOnCloseAddToIssue = function ribbonOnCloseAddToIssue(data) {
-		//jira.sync();
+	this.ribbonOnCloseAddToIssue = function ribbonOnCloseAddToIssue(type, data) {
+		if (data && data.action === 'success')
+			jira.sync();
 	};
 }
 
@@ -520,7 +522,7 @@ function JiraContactController() {
 	var self = this;
 	var buffer = [];
 
-	self.update = function (actor) {
+	self.update = function updateContact(actor) {
 		if (!actor.name || !actor.displayName || !actor.emailAddress)
 			return;
 
@@ -567,7 +569,7 @@ function JiraContactController() {
 		}
 	};
 
-	self.updateOwn = function (ownUser) {
+	self.updateOwn = function updateOwnUser(ownUser) {
 		var avatarUrl = null;
 		if (ownUser.avatarUrls && ownUser.avatarUrls['48x48']) {
 			avatarUrl = ownUser.avatarUrls['48x48'].replace('size=large', 'size=xlarge');
@@ -590,7 +592,7 @@ function JiraContactController() {
 		}
 	};
 
-	self.get = function (id) {
+	self.get = function getContact(id) {
 		var result = $.grep(buffer, function (c) { return c.contactId === id; });
 		if (result.length === 1) {
 			return result[0];
@@ -615,7 +617,7 @@ function JiraFilterController() {
 		return (self.values[path] && self.values[path][id]) ? self.values[path][id] : null;
 	}
 
-	this.register = function () {
+	this.register = function registerFilter() {
 		var backendFilterObj = [];
 		self.filterObj.forEach(function (f) {
 			if (self.getSelectedFilters().indexOf(f.key) > -1) {
@@ -630,11 +632,11 @@ function JiraFilterController() {
 		yasoon.feed.addFilter(backendFilterObj);
 	};
 
-	this.getSelectedFilters = function () {
+	this.getSelectedFilters = function getSelectedFilter() {
 		return jira.settings.activeFilters.split(',');
 	};
 
-	this.load = function () {
+	this.load = function loadFilter() {
 		var string = yasoon.setting.getAppParameter('filter');
 		if (string)
 			self.values = JSON.parse(string);
@@ -700,7 +702,7 @@ function JiraFilterController() {
 
 	};
 
-	this.save = function () {
+	this.save = function saveFilter() {
 		yasoon.model.feeds.updateFilter();
 		yasoon.setting.setAppParameter('filter', JSON.stringify(self.values));
 	};
@@ -758,7 +760,7 @@ function JiraFilterController() {
 		return currentObj;
 	}
 
-	this.addNotif = function (obj) {
+	this.addNotif = function addNotifToFilter(obj) {
 		//Go through each filter 
 		var saveNeeded = false;
 		self.getSelectedFilters().forEach(function (filterKey) {
@@ -822,7 +824,7 @@ function JiraFilterController() {
 		});
 	}
 
-	this.reIndex = function () {
+	this.reIndex = function reindexFilter() {
 		var newValues = {};
 		return Promise.resolve()
 		.then(function () {

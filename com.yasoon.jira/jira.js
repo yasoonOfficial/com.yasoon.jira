@@ -138,8 +138,8 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			//Do nothing - just for dev information
 			console.log('Proxy error');
 		})
-		.catch(function (e) {
-			yasoon.util.log(e.message, yasoon.util.severity.error, getStackTrace(e));
+		.catch(function syncDataCatch3(e) {
+			yasoon.util.log(((e.message) ? e.message : e), yasoon.util.severity.error, getStackTrace(e));
 		})
 		.finally(function() {
 			jira.notifications.showDesktopNotif();
