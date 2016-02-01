@@ -261,7 +261,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 
 	this.submitForm = function (e) {
-		var selectedIssueId = $('#issue').val() || $('#issue').find(':selected').data('id');
+		var selectedIssueId = $('#issue').val() || $('#issue').data('id');
 
 		if (!selectedIssueId) {
 			alert('Please select the issue you want to comment!');
