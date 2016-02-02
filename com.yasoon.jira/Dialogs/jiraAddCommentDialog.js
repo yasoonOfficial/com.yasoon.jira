@@ -27,6 +27,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.selectedAttachments = [];
 	this.projects = [];
 
+	this.issueSelect2 = null;
 	this.mailAsMarkup = '';
 	this.recentIssues = [];
 	this.recentProjects = [];
@@ -284,7 +285,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			//If standard select2 is used (after project has been selected)
 			text = $('#issue').find('[value=' + selectedIssueId + ']').text();
 		}
-		self.addRecentIssue({ id: selectedIssueId, text: text });
+
+		var issueKey = $('#issue').data('key');
+		var issueSummary = $('#issue').data('summary');
+		var projectKey = $('#issue').data('projectKey');
+		var projectId = $('#issue').data('projectId');
+		projectId = projectId.toString();
+
+		self.addRecentIssue({ id: selectedIssueId, text: text, key: issueKey, project: { id: projectId, key: projectKey }, summary: issueSummary });
 
 		var promises = [];
 		if ($('#description').val()) {
@@ -307,11 +315,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	
 						if (conversationString)
 							conversation = JSON.parse(conversationString);
-						
-						var issueKey = $('#issue').find(':selected').data('key');
-						var issueSummary = $('#issue').find(':selected').data('summary');
-						var projectId = $('#issue').find(':selected').data('project').toString();
-		
+
 						conversation.issues[selectedIssueId] = { id: selectedIssueId, key: issueKey, summary: issueSummary, projectId: projectId };
 						yasoon.outlook.mail.setConversationData(jira.mail, JSON.stringify(conversation));
 						
@@ -350,7 +354,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			self.close({ action: "success" });
 		})
 		.catch(function (e) {
-			console.log(e);
+			console.log(e.message);
 		}).finally(function () {
 			$('#add-issue-submit').removeAttr("disabled");
 			$('#JiraSpinner').hide();
@@ -378,22 +382,20 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			data = JSON.parse(data);
 			self.projectIssues = [];
 			
-			$('#issue').html('<option></option>');
 			if (data.issues.length > 0) {
 				data.issues.forEach(function (issue) {
 					self.projectIssues.push({
 						id: issue.id,
-						text: issue.fields.summary + ' (' + issue.key + ')'
+						key: issue.key,
+						text: issue.fields.summary + ' (' + issue.key + ')',
+						summary: issue.fields.summary,
+						project: { id: selectedProjectId, key: selectedProject }
 					});
-					
-					$('#issue').append('<option value="' + issue.id + '" data-project="' + selectedProjectId +'" data-key="' + issue.key + '" data-summary="' + issue.fields.summary + '">' + issue.fields.summary + ' (' + issue.key + ')' + '</option>');
 				});
 			}
-			$('#issue').select2("destroy");
-			$('#issue').select2({
-				placeholder: "Select an Issue",
-				dataAdapter: jira.CustomIssueData
-			});
+
+			//Rebuild select2
+			self.createIssueLoader();
 			
 			//If mail is provided && subject contains reference to issue, pre-select that
 			if (self.mail) {
@@ -422,7 +424,13 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				if (issueKey) {			
 					var issue = data.issues.filter(function(i) { return i.key === issueKey; })[0];					
 					if (issue) {
-						$('#issue').val(issue.id).trigger('change');
+						//Rebuild select2
+						issue.fields.project = {
+							id: selectedProjectId,
+							key: selectedProject
+						};
+
+						self.createIssueLoader(issue);
 					}
 					else {
 						//Not in the list of the last 200 loaded, look up
@@ -433,20 +441,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 							//Add the issue to the dropdown
 							self.projectIssues.push({
 								id: issue.id,
-								text: issue.fields.summary + ' (' + issue.key + ')'
+								key: issue.key,
+								text: issue.fields.summary + ' (' + issue.key + ')',
+								summary: issue.fields.summary,
+								project: { id: selectedProjectId, key: selectedProject }
 							});
 							
-					        $('#issue').append('<option value="' + issue.id + '" data-project="' + selectedProjectId +'" data-key="' + issue.key + '" data-summary="' + issue.fields.summary + '">' + issue.fields.summary + ' (' + issue.key + ')' + '</option>');
-					
 							//Rebuild select2
-							$('#issue').select2("destroy");
-							$('#issue').select2({
-								placeholder: "Select an Issue",
-								dataAdapter: jira.CustomIssueData
-							});
-							
-							//Select the issue							
-							$('#issue').val(issue.id).trigger('change');
+							self.createIssueLoader(issue);
 						})
 						.catch(function() {
 							//Issue not found? Ignore..
@@ -467,9 +469,42 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			if (self.recentIssues.length >= 10) {
 				self.recentIssues = self.recentIssues.slice(1);
 			}
-			self.recentIssues.push(selectedIssue);
+			self.recentIssues.unshift(selectedIssue); //Add at beginning
 			yasoon.setting.setAppParameter('recentIssues', JSON.stringify(self.recentIssues));
 		}
+	};
+
+	this.createIssueLoader = function createIssueLoader(issue) {
+		//First Clear DOM
+		$('#issue').html('');
+		$('#issue').select2("destroy");
+		//Second Clear Data
+		$('#issue').removeData();
+
+		//Create Initial Selection
+		if (issue) {
+			$('#issue').append('<option value="' + issue.id + '" selected="selected">' + issue.fields.summary + ' (' + issue.key + ')' + '</option>');
+			$('#issue').data('id', issue.id)
+				.data('text', issue.fields.summary + ' (' + issue.key + ')')
+				.data('key', issue.key)
+			    .data('summary', issue.fields.summary)
+				.data('projectId', issue.fields.project.id)
+				.data('projectKey', issue.fields.project.key);
+		}
+		
+		self.issueSelect2 = $('#issue').select2({
+			placeholder: "Select an Issue",
+			dataAdapter: jira.CustomIssueData,
+			data: [{
+				id: 'Recent',
+				text: 'Recent',
+				children: jira.recentIssues
+			}, {
+				id: 'ProjectIssues',
+				text: 'Project Issues',
+				children: jira.projectIssues
+			}]
+		});
 	};
 
 	this.handleAttachments = function (markup, attachments) {
@@ -586,7 +621,12 @@ function (select, Utils) {
 			var val = data.id;
 			this.$element
 				.data('id', data.id)
-				.data('text', data.text);
+				.data('text', data.text)
+				.data('key', data.key)
+			    .data('summary', data.summary)
+				.data('projectId', data.project.id)
+				.data('projectKey', data.project.key);
+			
 
 			this.$element.val(val);
 			this.$element.trigger('change');
@@ -599,15 +639,14 @@ function (select, Utils) {
 		if (params && params.term) {
 			//Get Issues matching the criteria
 			lastQuery = params.term;
-			jiraGet('/rest/api/2/search?jql=Summary%20~%20%22' + encodeURIComponent(params.term) + '%22%20OR%20key%20%3D%20%22' + encodeURIComponent(params.term) + '%22&maxResults=20&fields=summary&validateQuery=false')
+			jiraGet('/rest/api/2/search?jql=Summary%20~%20%22' + encodeURIComponent(params.term) + '%22%20OR%20key%20%3D%20%22' + encodeURIComponent(params.term) + '%22&maxResults=20&fields=summary,project&validateQuery=false')
 			.then(function (data) {
 				if (params.term === lastQuery) {
 					var jqlResult = JSON.parse(data);
 					var result = [];
-					
 					//Transform Data
 					jqlResult.issues.forEach(function (issue) {
-						result.push({ id: issue.id, text: issue.fields.summary + ' (' + issue.key + ')' });
+						result.push({ id: issue.id, text: issue.fields.summary + ' (' + issue.key + ')', key: issue.key, summary: issue.fields.summary, project: issue.fields.project });
 					});
 					
 					callback({
@@ -637,9 +676,18 @@ function (select, Utils) {
 
 	jira.CustomIssueData = CustomIssueData;
 
-	$('#issue').select2({
+	jira.issueSelect2 = $('#issue').select2({
 		placeholder: "Search for any Issue",
-		dataAdapter: jira.CustomIssueData
+		dataAdapter: jira.CustomIssueData,
+		data: [{
+				id: 'Recent',
+				text: 'Recent',
+				children: jira.recentIssues
+			}, {
+				id: 'ProjectIssues',
+				text: 'Project Issues',
+				children: jira.projectIssues
+			}]
 	});
 });
 
