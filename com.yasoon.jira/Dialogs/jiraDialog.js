@@ -311,7 +311,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			$('#create-issue-submit').removeAttr("disabled");
 			$('#summary').val('');
 			$('#description').val('');
-			$('#AttachmentContainer').html('');
+			$('#AttachmentContainer').empty();
 			self.selectedAttachments = [];
 		} else {
 			yasoon.dialog.close(params);
@@ -536,7 +536,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			.spread(function (requestTypes) {
 				//New with JIRA 7: Depending on the project type, we render a little bit differently.
 				//Common stuff
-				$('#issuetype').html('').unbind();
+				$('#issuetype').empty().unbind();
 
 				//Render Issue Types
 				$.each(self.selectedProject.issueTypes, function (i, type) {
@@ -588,11 +588,11 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				$('#switchServiceMode').addClass('hidden').removeClass('active');
 				$('#issuetype').prop("disabled", false);
 				$('#ServiceArea').addClass('hidden');
-				$('#behalfOfUserReporter').html('');
+				$('#behalfOfUserReporter').empty();
 
 				//Service Specific Stuff
 				if (jira.selectedProject.projectTypeKey == 'service_desk' && requestTypes) {
-					$('#requestType').html('').unbind();
+					$('#requestType').empty().unbind();
 					//Render Request Types if it's an service project
 					requestTypes.groups.forEach(function (group) {
 						$('#requestType').append('<optgroup label="' + group.name + '"></optgroup>');
@@ -714,8 +714,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 
 	this.renderIssueFixed = function (meta) {
-		$('#ContainerFields').html('');
-		$('#tab-list').html('');
+		$('#ContainerFields').empty();
+		$('#tab-list').empty();
 		$('#tab-list').addClass('hidden');
 
 		var addedFields = [];
@@ -742,8 +742,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		return self.getUserPreferences()
 		.then(function (renderData) {
 			//First clean up everything
-			$('#ContainerFields').html('');
-			$('#tab-list').html('');
+			$('#ContainerFields').empty();
+			$('#tab-list').empty();
 			$('#MainAlert').hide();
 
 			//Render each field

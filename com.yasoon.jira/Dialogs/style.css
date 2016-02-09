@@ -2829,3 +2829,7 @@ body {
 #behalfReporter-container{
 	padding:0px;
 }
+
+.jiraAttachmentLink {
+	margin-bottom: 2px
+}

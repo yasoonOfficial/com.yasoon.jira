@@ -476,7 +476,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 	this.createIssueLoader = function createIssueLoader(issue) {
 		//First Clear DOM
-		$('#issue').html('');
+		$('#issue').empty();
 		$('#issue').select2("destroy");
 		//Second Clear Data
 		$('#issue').removeData();

@@ -637,16 +637,28 @@ function AttachmentLinkRenderer() {
 	};
 	
 	this.renderAttachments = function(id) {
-		$('#' + id + '-selected-container').html('');
+		$('#' + id + '-selected-container').empty();
+		
 		//Render Attachments
-		$.each(jira.selectedAttachments, function (i, fileHandle) {
-			//To support references to this file, [ ] and ^ are not supported by JIRA --> replace them and change FileName if nessecary
+		jira.selectedAttachments.forEach(function (fileHandle, i) {
+			//To support references to this file, [ ] and ^ are not supported by JIRA --> replace them and change FileName if nessecary		
 			var oldFileName = fileHandle.getFileName();
 			var newFileName = oldFileName.replace(/\[/g, '(').replace(/\]/g, ')').replace(/\^/g, '_');
 			if (oldFileName != newFileName)
 				fileHandle.setFileName(newFileName);
 
-			$('#' + id + '-selected-container').append('<div class="jiraAttachmentLink" data-id="' + fileHandle.id + '"><div style="display:inline-block; margin-top:-10px;"><img style="width:16px;" src="' + fileHandle.getFileIconPath() + '" /><span class="attachmentName">' + newFileName + '</span><div style="display:inline-block" class="attachmentNewName hidden">  <div class="input-group" style="width:300px;display:inline-table;margin-top:10px;"><input class="text input-sm form-control" /><div class="input-group-addon attachmentExtension">.txt</div></div></div> </div>' + self.renderMoreActions() + '</div>');
+			$('#' + id + '-selected-container').append(
+			'<div class="jiraAttachmentLink" data-id="' + fileHandle.id + '">'+
+				'<span>' +
+					'<img style="width:16px;" src="' + fileHandle.getFileIconPath() + '" />' +
+					'<span class="attachmentName">' + newFileName + '</span>' +
+					'<div style="display:inline-block" class="attachmentNewName hidden">' +  
+						'<div class="input-group" style="width:300px;display:inline-table;margin-top:10px;">' +
+						    '<input class="text input-sm form-control" /><div class="input-group-addon attachmentExtension">.txt</div>' +
+						'</div>' +
+					'</div>' +
+				'</span>' + self.renderMoreActions() + 
+			'</div>');			
 		});
 
 		//Hook EventHandler
