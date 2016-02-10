@@ -850,10 +850,8 @@ function JiraIssueActionNotification(event) {
 		}
 
 		////Update Author
-		jira.contacts.update({
-			displayName: comment.updateAuthor.displayName,
-			name: comment.updateAuthor.name
-		});
+		jira.contacts.update(comment.updateAuthor);
+
 		//Determine Renderd Comment
 		var renderedComment = $.grep(self.event.issue.renderedFields.comment.comments, function (c) { return c.id === comment.id; })[0];
 	   
