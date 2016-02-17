@@ -169,7 +169,7 @@ function jiraGet(relativeUrl) {
 		yasoon.oauth({
 			url: jira.settings.baseUrl + relativeUrl,
 			oauthServiceName: jira.settings.currentService,
-			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-ExperimentalApi': 'true' },
 			type: yasoon.ajaxMethod.Get,
 			error: function jiraGetError(data, statusCode, result, errorText, cbkParam) {
 				//Detect if oAuth token has become invalid
@@ -193,7 +193,7 @@ function jiraGetWithHeaders(relativeUrl) {
 		yasoon.oauth({
 			url: jira.settings.baseUrl + relativeUrl,
 			oauthServiceName: jira.settings.currentService,
-			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-ExperimentalApi': 'true' },
 			type: yasoon.ajaxMethod.Get,
 			error: function jiraGetError(data, statusCode, result, errorText, cbkParam) {
 				reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText,data, result));
@@ -210,7 +210,7 @@ function jiraAjax(relativeUrl, method, data, formData) {
 		var request = {
 			url: jira.settings.baseUrl + relativeUrl,
 			oauthServiceName: jira.settings.currentService,
-			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck' },
+			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck', 'X-ExperimentalApi': 'true' },
 			data: data,
 			formData: formData,
 			type: method,

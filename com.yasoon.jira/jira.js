@@ -11,14 +11,16 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 	
 	jira.firstTime = true;
+	jira.restartRequired = false;
 	jira.firstSyncedNotifications = 0;
 	var startSync = new Date();
 	var currentPage = 1;
 	var oAuthSuccess = false;
 
 	this.lifecycle = function (action, oldVersion, newVersion) {
-		if (action === yasoon.lifecycle.Upgrade && newVersion === '1.0.2') {
+		if (action === yasoon.lifecycle.Upgrade && newVersion === '1.0.4' && oldVersion[0] !== '1') { //Only to 1.0.4 if we are coming from an really old version (e.g. 0.9.3)
 			yasoon.setting.setAppParameter('recentIssues', '[]');
+			jira.restartRequired = true;
 
 		}
 		jira.downloadScript = true;
@@ -84,6 +86,12 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 
 	this.syncData = function () {
+		if (jira.restartRequired) {
+			//Notify user about recent update
+			yasoon.dialog.showMessageBox('JIRA for Outlook made some configurations on your Outlook. Please restart Outlook once again to use all new functionalities');
+			jira.restartRequired = false;
+		}
+
 		var currentTs = new Date().getTime();
 		var oldTs = jira.settings.lastSync.getTime() - 1000;
 
@@ -133,7 +141,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			//Do nothing - just for dev information
 			console.log('Proxy error');
 		})
-		.catch(function syncDataCatch3(e) {
+		.catch(function (e) {
 			yasoon.util.log(((e.message) ? e.message : e), yasoon.util.severity.error, getStackTrace(e));
 		})
 		.finally(function() {

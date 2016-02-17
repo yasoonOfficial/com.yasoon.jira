@@ -459,7 +459,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 						headers: { Accept: 'application/json', 'X-Atlassian-Token': 'nocheck' },
 						error: function (data, statusCode, result, errorText, cbkParam) {
 							jira.transaction.currentCallCounter--;
-							yasoon.dialog.showMessageBox('Issue ' + issue.key + ' created, but uploading the attachments did not work.');
+							yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data + ' || ' + JSON.stringify(formData), yasoon.util.severity.warning);
+							var ex = new jiraSyncError('', statusCode, errorText, data, result);
+							yasoon.dialog.showMessageBox('Issue ' + issue.key + ' created, but uploading the attachments did not work. ' + ex.getUserFriendlyError());
 
 							if (jira.transaction.currentCallCounter === 0)
 								self.close({ action: 'success' });
@@ -1105,6 +1107,9 @@ function submitErrorHandler(data, statusCode, result, errorText, cbkParam) {
 	} else {
 		error = JSON.stringify(result);
 	}
+
+	yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data + ' || ' + error, yasoon.util.severity.warning);
+
 
 	yasoon.dialog.showMessageBox('Sorry, that did not work. Check your input and try again.  \n' + error);
 	jira.transaction.currentCallCounter = -1;

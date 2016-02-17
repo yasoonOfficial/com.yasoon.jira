@@ -341,7 +341,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			promises.push(
 				jiraAjax('/rest/api/2/issue/' + selectedIssueId + '/attachments', yasoon.ajaxMethod.Post, null, formData)
 				.catch(jiraSyncError, function (e) {
-					console.log(e.getUserFriendlyError());
+					yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data + ' || ' + e.getUserFriendlyError() + ' || ' + JSON.stringify(formData), yasoon.util.severity.warning);
 					$('#MainAlert .errorText').text('Connection Error: Uploading the attachments failed: ' + e.getUserFriendlyError());
 					$('#MainAlert').show();
 					throw e;
@@ -354,7 +354,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			self.close({ action: "success" });
 		})
 		.catch(function (e) {
-			console.log(e.message);
+			console.log('Exception occured', e);
+			if (e.name === 'SyncError') {
+				yasoon.util.log(e.message + ' || ' + e.statusCode + ' || ' + e.errorText + ' || ' + e.result + ' || ' + e.data , yasoon.util.severity.warning);
+			}
 		}).finally(function () {
 			$('#add-issue-submit').removeAttr("disabled");
 			$('#JiraSpinner').hide();
@@ -367,8 +370,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		$('#MainAlert .errorText').text('Connection Error. Loading Values from Jira not possible.');
 		$('#MainAlert').show();
 		$('#LoaderArea').hide();
-		console.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data);
-		yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data, yasoon.util.severity.error);
+		yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data, yasoon.util.severity.warning);
 	};
 
 	this.selectProject = function () {

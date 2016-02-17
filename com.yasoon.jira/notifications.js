@@ -235,7 +235,10 @@ function JiraNotificationController() {
 
 				});
 				//Submit
-				$('#jiraAddWorklog .btn-primary').click(function () {
+				var saveInProgress = false;
+				$('#LogWorkSave').click(function () {
+					saveInProgress = true;
+					$('#LogWorkSave').removeClass('btn-primary').addClass('btn-default');
 					//Reset UI states
 					$('#jiraAddWorklog').find('form-group').remove('has-error');
 
@@ -296,6 +299,10 @@ function JiraNotificationController() {
 					.then(function () {
 						$('#jiraAddWorklog').modal('hide');
 						jira.sync();
+					})
+					.finally(function () {
+						$('#LogWorkSave').addClass('btn-primary').removeClass('btn-default');
+						saveInProgress = false;
 					});
 					yasoon.app.leaveContext(token);
 				});
@@ -502,7 +509,7 @@ function JiraIssueNotification(issue) {
 		var icon_url = yasoon.io.getLinkPath('Task-03.png');
 		feed.setIconHtml('<img src="' + icon_url + '" title="Issue" ></i>');
 		feed.afterRenderScript(function () {
-			$('.jiraStatusChangeLink').unbind().click(function () {
+			$('[data-feed-id=' + feed.feedId+']').find('.jiraStatusChangeLink').unbind().click(function () {
 				if (!jiraIsLicensed(true)) {
 					return;
 				}
@@ -525,12 +532,12 @@ function JiraIssueNotification(issue) {
 				});
 			});
 
-			$('.jiraFeedExpand').unbind().click(function () {
+			$('[data-feed-id=' + feed.feedId + ']').find('.jiraFeedExpand').unbind().click(function () {
 				$(this).parents('.body-collapsed').hide();
 				$(this).parents('.jiraContainer').find('.body-open').show();
 			});
 
-			$('.jiraFeedClose').unbind().click(function () {
+			$('[data-feed-id=' + feed.feedId + ']').find('.jiraFeedClose').unbind().click(function () {
 				$(this).parents('.body-open').hide();
 				$(this).parents('.jiraContainer').find('.body-collapsed').show();
 			});
@@ -685,6 +692,12 @@ function JiraIssueNotification(issue) {
 	self.openLogWorkDialog = function () {
 		worklogOpenInProgress = false;
 		$('#jiraAddWorklog').modal('show');
+		$('#jiraAddWorklog').on('shown.bs.modal', function () {
+			var contentHeight = $('#jiraAddWorklog').find('.modal-content').height();
+			contentHeight = contentHeight - 56 - 74 - 25; //Height of header / footer;
+			$('#jiraAddWorklog').find('.modal-body').height(contentHeight);
+
+		});
 	};
 }
 
