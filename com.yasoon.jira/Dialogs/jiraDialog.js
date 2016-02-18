@@ -419,7 +419,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			type: method,
 			error: submitErrorHandler,
 			success: function (data) {
-				var issue = JSON.parse(data);
+				var issue = jira.editIssue || JSON.parse(data);
 				
 				//Save issueId in conversation data
 				if (jira.mail) {
