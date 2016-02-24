@@ -155,7 +155,7 @@ function CheckboxRenderer() {
 				checkedValues.push({ id: $(this).val() });
 			}
 		});
-		return checkedValues;
+		return (checkedValues.length > 0) ? checkedValues : null;
 	};
 
 	this.setValue = function (id, value) {
@@ -187,8 +187,8 @@ function RadioButtonRenderer() {
 		if ($('#' + id).length === 0)
 			return;
 
-		var checkedValue = { id: $('#' + id).find('input:checked').first().val() };
-		return checkedValue;
+		var checkedValue = $('#' + id).find('input:checked').first().val();
+		return (checkedValue) ? { id: checkedValue } : null;
 	};
 
 	this.setValue = function (id, value) {
@@ -785,16 +785,29 @@ function TimeTrackingRenderer() {
 		var origVal = $('#' + id + '_originalestimate').val();
 		var remainVal = $('#' + id + '_remainingestimate').val();
 
-		//JIRA timetracking legacy mode --> it's not allowed to change original estimate.
-		//Check if it has been changed and do not send if it hasn't been changed.
-		if (!jira.editIssue || (jira.editIssue.fields.timetracking && (jira.editIssue.fields.timetracking.originalEstimate != origVal || jira.editIssue.fields.timetracking.remainingEstimate != remainVal))) {
-			return {
-				originalEstimate : origVal,
-				remainingEstimate: remainVal
-			};
+		//JIRA timetracking legacy mode
+		// --> it's not allowed to set orig and remainaing Estimate during creation
+		// --> it's not allowed to change original estimate.
+		var result = {};
+		//Edit Case
+		if (jira.editIssue) {
+			if (origVal && jira.editIssue.fields.timetracking.originalEstimate != origVal) {
+				result.originalEstimate = origVal;
+			}
+			if (remainVal && jira.editIssue.fields.timetracking.remainingEstimate != remainVal) {
+				result.remainingEstimate = remainVal;
+			}
 		} else {
-			return null;
+			if (origVal) {
+				result.originalEstimate = origVal;
+			}
+			if (remainVal) {
+				result.remainingEstimate = remainVal;
+			}
 		}
+
+		//Only return an object if it's not empty;
+		return (Object.keys(result).length > 0) ? result : null;
 	};
 
 	this.setValue = function (id, value) {
