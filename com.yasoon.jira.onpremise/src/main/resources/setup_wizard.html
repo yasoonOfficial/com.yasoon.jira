@@ -135,6 +135,10 @@
 			.modal {
 				width: 40%;
 			}
+            
+            .hidden {
+                display:none;
+            }
 		</style>
 	</head>
 	<body>
@@ -148,45 +152,82 @@
 				</ul>
 				<div class="tab-content">
 					<div class="tab-pane" id="tab1">
-						<form class="col s7">
-							<div class="row bootstrap-wrapper" style="margin-top: 20px; margin-bottom: 10px">
-								This JIRA instance is not yet registered at yasoon. <br/>
-								Please sign up below or <a href="#">login</a> with your existing yasoon account. <a href="#" data-toggle="popover" title="" data-content="The yasoon account allows you to quickly manage your users. In addition, we are able to provide you with a personal setup file. It's pre-configured for your JIRA, so no additional configuration will be necessary for users of the Outlook addin." data-original-title="Why do I need to register?">Why?</a>
-							</div>
-							<div class="row">
-								<div class="input-field col s6">
-									<input id="first_name" type="text" class="validate">
-									<label for="first_name">First Name</label>
-								</div>
-								<div class="input-field col s6">
-									<input id="last_name" type="text" class="validate">
-									<label for="last_name">Last Name</label>
-								</div>
-							</div>							
-							<div class="row">
-								<div class="input-field col s12">
-									<input id="email" type="email" class="validate">
-									<label for="email">Email</label>
-								</div>
-							</div>
-							<div class="row">
-								<div class="input-field col s12">
-									<input id="company" type="text" class="validate">
-									<label for="company">Company Name</label>
-								</div>
-							</div>
-							<div class="row">
-								<div class="input-field col s6">
-									<input id="password" type="password" class="validate">
-									<label for="password">Password</label>
-								</div>
-								<div class="input-field col s6">
-									<input id="password2" type="password" class="validate">
-									<label for="password2">Confirm Password</label>
-								</div>
-							</div>
-						</form>
+                        <div id="AreaPreRegister" class="col s7 hidden">
+                            <div class="row bootstrap-wrapper" style="margin-top: 20px; margin-bottom: 10px">
+                                This JIRA instance is not yet registered at yasoon. <br/>
+                                Please sign up below to create a new yasoon company account or login with your existing one. <br />
+                                <a href="#" data-toggle="popover" title="" data-content="The yasoon account allows you to quickly manage your users. In addition, we are able to provide you with a personal setup file that are pre-configured for your JIRA. No additional configuration will be necessary for users of the Outlook addin." data-original-title="Why do I need to register?">Why?</a>
+                            </div>
+                            <div class="row">
+                                <a id="ButtonRegister" class="waves-effect waves-light btn light-blue darken-2" style="margin: 50px; line-height: 72px; height: 72px; font-size: 20px;">Register</a>
+						        <a id="ButtonLogin" class="waves-effect waves-light btn light-green darken-2" style="margin: 50px; line-height: 72px; height: 72px; font-size: 20px;">Login</a>
+                            </div>
+                        </div>
+                        <div id="AreaRegister" class="hidden col s7">
+                            <form>
+                                <div class="row bootstrap-wrapper" style="margin-top: 20px; margin-bottom: 10px">
+                                    Please fill out these data so we can create a yasoon company account. <br />
+                                     The account is mandatory to get your JIRA for Outlook setup file.
+                                </div>
+                                <div class="row">
+                                    <div class="input-field col s6">
+                                        <input id="first_name" type="text" class="validate">
+                                        <label for="first_name">First Name</label>
+                                    </div>
+                                    <div class="input-field col s6">
+                                        <input id="last_name" type="text" class="validate">
+                                        <label for="last_name">Last Name</label>
+                                    </div>
+                                </div>							
+                                <div class="row">
+                                    <div class="input-field col s12">
+                                        <input id="email" type="email" class="validate">
+                                        <label for="email">Email</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="input-field col s12">
+                                        <input id="company" type="text" class="validate">
+                                        <label for="company">Company Name</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="input-field col s6">
+                                        <input id="password" type="password" class="validate">
+                                        <label for="password">Password</label>
+                                    </div>
+                                    <div class="input-field col s6">
+                                        <input id="password2" type="password" class="validate">
+                                        <label for="password2">Confirm Password</label>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div id="AreaLogin" class="hidden col s7">
+                            <form>
+                                <div class="row bootstrap-wrapper" style="margin-top: 20px; margin-bottom: 10px">
+                                    Please login to your yasoon account to assign this JIRA instance with the account. <br />
+                                    All instances can be managed our <a href="https://store.yasoon.com">yasoon account page</a> as well.
+                                </div>
+                                <div class="row">
+                                    <div class="input-field col s12">
+                                        <input id="email" type="email" class="validate">
+                                        <label for="email">Email</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="input-field col s6">
+                                        <input id="password" type="password" class="validate">
+                                        <label for="password">Password</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <a href="https://store.yasoon.com"> forgot your password? </a>
+                                </div>
+                            </form>
+                        </div>
 					</div>
+                    
 					<div class="tab-pane" id="tab2">
 						<div class="col s5">
 							 <div class="row" style="margin-top: 30px; margin-bottom: 10px">
@@ -254,7 +295,7 @@
 					
 					<div class="col s12 wizard-buttons">
 						<a class="waves-effect waves-light btn light-blue darken-2"><i class="material-icons right">message</i>I have an issue</a>
-						<a id="next" class="waves-effect waves-light btn light-green darken-2"><i class="material-icons right">play_arrow</i><span id="nextText">Next</span></a>
+						<a id="next" class="waves-effect waves-light btn light-green darken-2 hidden"><i class="material-icons right">play_arrow</i><span id="nextText">Next</span></a>
 					</div>
 					<div class="logo-branding">
 						<img src="images/logo_with_jira.png" />

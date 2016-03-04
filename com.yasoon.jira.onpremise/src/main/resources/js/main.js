@@ -161,12 +161,28 @@ function initUI(isRegistered) {
             loadRegisteredUIState();
         }
         else {
-            $('#loginArea').show();
+            $('#AreaLogin').removeClass('hidden'); 
         }
     }
-    else {        
-        $('#unregisteredArea').show();        
+    else {  
+        $('#unregisteredArea').show();  
+        $('ul.tabs').tabs('select_tab', 'tab1');    
+        $('#AreaPreRegister').removeClass('hidden');        
     }
+    
+    $('#ButtonLogin').click(function () {
+        $('#AreaPreRegister').addClass('hidden');
+        $('#AreaInitialLogin').removeClass('hidden'); 
+        $('#nextText').text('Login');
+        $('#next').data('type', 'login').removeClass('hidden');
+    });
+    
+    $('#ButtonRegister').click(function () {
+        $('#AreaPreRegister').addClass('hidden');
+        $('#AreaRegister').removeClass('hidden'); 
+        $('#nextText').text('Register');
+        $('#next').data('type', 'register').removeClass('hidden');
+    });
         
     //Init Modals & Tooltips
     $('[data-toggle="popover"]').popover({
@@ -179,17 +195,11 @@ function initUI(isRegistered) {
     });
 
     $('.send-message').click(function(e) {
-        zE(function() {
-            zE.activate();
-        });
+        //zE(function() {
+        //    zE.activate();
+        //});
     });
-    
-    //Register Events
-    $('#loginLink').click(function (e) {
-        $('#unregisteredArea').hide();
-        $('#loginArea').show();
-    });
-    
+      
     $('#next').click(handleNext);
     $('#addApplicationLinkButton, #addApplicationLinkButtonMain').click(handleAddApplicationLink);
     $('#loginYasoonButton').click(handleLogin);
@@ -197,8 +207,8 @@ function initUI(isRegistered) {
     //Prefill Wizard
     var userNameSplitted = systemInfo.userName.split(' ');
     if (userNameSplitted && userNameSplitted.length > 1) {
-        $('#firstName').val(userNameSplitted[0]).trigger('change');
-        $('#lastName').val(systemInfo.userName.replace(userNameSplitted[0] + ' ', '')).trigger('change');
+        $('#first_name').val(userNameSplitted[0]).trigger('change');
+        $('#last_name').val(systemInfo.userName.replace(userNameSplitted[0] + ' ', '')).trigger('change');
     }
     
     $('#emailAddress').val(systemInfo.userEmailAddress).trigger('change');
@@ -225,32 +235,37 @@ function handleLogin() {
         
     //A) Login case with existing instance
     // -----------------------------------
+    var promise = null;
     if (isInstanceRegistered) {
-        $.ajax({
-            url: serverUrl + '/api/user/auth',
-            contentType: 'application/json',
-            data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
-            processData: false,
-            type: 'POST'
-        })
-        .done(function (auth) {
-            authToken = auth;
-            $.cookie('yasoonAuthToken', authToken);
-            $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
-            
-            $('#RegisteredArea').show();
-            $('#LoginArea').hide();
-            loadRegisteredUIState();
-        })
-        .fail(function (jxqr, e) {
-            Raven.captureMessage('Error during login: ' + e);
-            alert('Login failed, probably invalid credentials.');
+        promise = new Promise(function (success, reject) {
+            $.ajax({
+                url: serverUrl + '/api/user/auth',
+                contentType: 'application/json',
+                data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
+                processData: false,
+                type: 'POST'
+            })
+            .done(function (auth) {
+                authToken = auth;
+                $.cookie('yasoonAuthToken', authToken);
+                $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
+
+                $('#RegisteredArea').show();
+                $('#LoginArea').hide();
+                loadRegisteredUIState();
+                success();
+            })
+            .fail(function (jxqr, e) {
+                Raven.captureMessage('Error during login: ' + e);
+                alert('Login failed, probably invalid credentials.');
+                reject();
+            });
         });
     } 
     //B) Login case with new instance
     // -----------------------------------
     else {
-        var promise = Promise.resolve($.ajax({
+        promise = Promise.resolve($.ajax({
             url: serverUrl + '/api/user/auth',
             contentType: 'application/json',
             data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
@@ -298,6 +313,8 @@ function handleLogin() {
             alert('An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.');
         });
     }
+    
+    return promise;
 }
 
 function handleAddApplicationLink() {
@@ -354,27 +371,43 @@ function handleAddApplicationLink() {
 function handleNext() {
     //Todo: Checks
     if (currentPage === 1) {
+        var type = $('#next').data('type');
         $('#next').prop("disabled", true);
-        
-        registerAccount(function(result) {
-           $('#next').prop("disabled", false);
-           
-           if (result.success) {
-                gotoNextPage();
-           }
-           else if (result.error) {
-               //Highlight error fields
-               $('#' + result.error).addClass('invalid');
+        if (type === 'register') {
+            
+            registerAccount(function (result) {
+                $('#next').prop("disabled", false);
+
+                if (result.success) {
+                    gotoNextPage();
+                }
+                else if (result.error) {
+                    //Highlight error fields
+                    $('#' + result.error).addClass('invalid');
+
+                    if (result.message)
+                        swal("Oops...", result.message, "error");
+                    else
+                        swal("Oops...", "Please fill out all fields to continue!", "error");
+                }
+                else if (result.message) {
+                    swal("Oops...", result.message, "error");
+                }
+            });
+        } else if (type === 'login') {
+            
+            return handleLogin()
+                .then(function () {
+                    gotoNextPage();
+                })
+                .caught(function () {
+                    swal("Oops...", "Login did not work. Please try again.", "error");
+                })
+                .lastly(function () {
+                    $('#next').prop("disabled", false);
+                });
                
-               if (result.message)
-                   swal("Oops...", result.message, "error");     
-               else   
-                   swal("Oops...", "Please fill out all fields to continue!", "error");     
-           }
-           else if (result.message) {
-               swal("Oops...", result.message, "error");
-           }
-        });            
+        }    
     }
     else if (currentPage === 5) {
         $('#unregisteredArea').hide();
@@ -394,6 +427,7 @@ function gotoNextPage() {
     
     if (currentPage === 2) {
         $('#next').prop('disabled', true);
+        $('#nextText').text('Next');
         checkAppLink().then(function(appLinkExists) {
             if (appLinkExists) {
                 $('#next').prop("disabled", false);
@@ -441,10 +475,10 @@ function registerAccount(cbk) {
         });
     }
     
-    if (formData.password !== formData.password1) {
+    if (formData.password !== formData.password2) {
         return cbk({
             success: false,
-            error: 'password1',
+            error: 'password2',
             message: 'Passwords do not match, please make sure that they are identical.'
         });
     }
@@ -586,7 +620,7 @@ function checkDownloadLink() {
     })
     .done(function(infos) {
         if(infos.state !== 5) {
-            setTimeout(checkDownloadLink, 30000);
+            setTimeout(checkDownloadLink, 10000);
             $('#downloadLinkReady, #downloadReady').hide();
             $('#downloadLinkWaiting, #downloadLoading').show();
         }                
@@ -605,7 +639,7 @@ function checkDownloadLink() {
             return;
         }
         
-        setTimeout(checkDownloadLink, 30000);
+        setTimeout(checkDownloadLink, 10000);
     });
 }
 
