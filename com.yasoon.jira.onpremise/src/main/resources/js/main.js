@@ -215,13 +215,14 @@ function initUI(isRegistered) {
 }
 
 function handleLogin() {
+    
     //Transform data                    
-    var formArray = $('#loginForm').serializeArray();
+    var formArray = (isInstanceRegistered) ? $('#loginForm').serializeArray() : $('#InitialLoginForm').serializeArray();
     var formData = {};
     $.each(formArray, function (i, elem) {
         formData[elem.name] = elem.value;
     });
-
+        
     var instanceData = {
         clientKey: serverId,
         baseUrl: systemInfo.baseUrl,
@@ -237,6 +238,8 @@ function handleLogin() {
     // -----------------------------------
     var promise = null;
     if (isInstanceRegistered) {
+
+    
         promise = new Promise(function (success, reject) {
             $.ajax({
                 url: serverUrl + '/api/user/auth',
@@ -302,11 +305,6 @@ function handleLogin() {
                 processData: false,
                 type: 'POST'
             });
-        })
-        .then(function () {
-            $('#registeredArea').show();
-            $('#loginArea').hide();
-            loadRegisteredUIState();
         })
         .caught(function (e) {
             Raven.captureMessage('Error during assignCompany: ' + e);

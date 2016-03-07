@@ -97,13 +97,13 @@
                                     </div>
                                     <div class="row">
                                         <div class="input-field col s6">
-                                            <input id="loginEmailAddress" type="email" class="validate">
+                                            <input id="loginEmailAddress" name="emailAddress" type="email" class="validate">
                                             <label for="loginEmailAddress">Email</label>
                                         </div>
                                     </div>
                                     <div class="row">
                                         <div class="input-field col s6">
-                                            <input id="loginPassword" type="password" class="validate">
+                                            <input id="loginPassword" name="password" type="password" class="validate">
                                             <label for="loginPassword">Password</label>
                                         </div>
                                     </div>

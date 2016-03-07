@@ -393,14 +393,15 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			//Get user Preferences for each project and each issue type
 			var promises = [];
 			jira.cache.userMeta = {};
-			jira.data.projects.forEach(function (project) {
+			cacheProjects.forEach(function (project) {
 				jira.cache.userMeta[project.id] = {};
 				project.issueTypes.forEach(function (issueType) {
-					promises.push(jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + project.id + '&issuetype=' + issueType.id)
-									.then(function (data) {
-										var userMeta = JSON.parse(data);
-										jira.cache.userMeta[project.id][issueType.id] = userMeta;
-									}).catch(function () { })
+					promises.push(
+						jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + project.id + '&issuetype=' + issueType.id)
+						.then(function (data) {
+							var userMeta = JSON.parse(data);
+							jira.cache.userMeta[project.id][issueType.id] = userMeta;
+						}).catch(function () { })
 					);
 				});
 			});
