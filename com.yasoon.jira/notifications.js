@@ -25,7 +25,7 @@ function JiraNotificationController() {
 		}
 		try {
 			//check comment for mention
-			comment = comment.replace(/@\[[\w\s]+\]\(user:([^\)]+)\)/g, '[~$1]');
+			comment = comment.replace(/@.*?\]\(user:([^\)]+)\)/g, '[~$1]');
 			var body = JSON.stringify({
 				"body": comment
 			});

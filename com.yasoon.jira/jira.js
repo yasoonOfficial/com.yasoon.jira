@@ -105,7 +105,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			//Only on first sync, make sure there are at least some own issues.
 			if (oAuthSuccess) {
 				var ownUserKey = jira.data.ownUser.key || jira.data.ownUser.name; //Depending on version >.<
-				return jiraGet('/rest/api/2/search?jql=assignee%20%3D%20%22' + ownUserKey + '%22%20AND%20status%20!%3D%20%22resolved%22%20ORDER%20BY%20created%20DESC&maxResults=200&fields=summary')
+				return jiraGet('/rest/api/2/search?jql=assignee%20%3D%20%22' + ownUserKey + '%22%20AND%20status%20!%3D%20%22resolved%22%20ORDER%20BY%20created%20DESC&maxResults=20&fields=summary')
 				.then(function (data) {
 					var ownIssues = JSON.parse(data);
 					if (ownIssues.total > 0) {
