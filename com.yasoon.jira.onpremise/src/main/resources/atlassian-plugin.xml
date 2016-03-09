@@ -7,6 +7,7 @@
         <param name="plugin-logo">images/pluginLogo.png</param>
         <param name="atlassian-data-center-compatible">true</param>
         <param name="configure.url">/plugins/servlet/jiraforoutlook/admin</param>
+        <param name="atlassian-licensing-enabled">true</param>
     </plugin-info>
 
     <!-- add our i18n resource -->
@@ -40,7 +41,8 @@
     <component-import key="applicationLinkService" interface="com.atlassian.applinks.spi.link.MutatingApplicationLinkService" />    
     <component-import key="typeAccessor" interface="com.atlassian.applinks.spi.util.TypeAccessor"/>
     <component-import key="storeService" interface="com.atlassian.oauth.serviceprovider.ServiceProviderConsumerStore"/>
-
+    <component-import key="pluginLicenseManager" interface="com.atlassian.upm.api.license.PluginLicenseManager"/>
+    
     <!--
     <component key="eventListener" class="com.yasoon.jira.LifecycleListener">
        <description>Class that processes the incoming JIRA issue events.</description>

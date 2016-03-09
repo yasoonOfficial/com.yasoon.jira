@@ -7,7 +7,6 @@ package com.yasoon.jira;
 
 import com.atlassian.applinks.spi.link.MutatingApplicationLinkService;
 import com.atlassian.applinks.spi.util.TypeAccessor;
-import com.atlassian.oauth.serviceprovider.ServiceProviderConsumerStore;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -25,7 +24,7 @@ public class AdminUIServlet extends HttpServlet {
     private final TemplateRenderer renderer;
 
     public AdminUIServlet(UserManager userManager, LoginUriProvider loginUriProvider, TemplateRenderer renderer,
-            MutatingApplicationLinkService appLinks, TypeAccessor typeAccessor, ServiceProviderConsumerStore storeService) {
+            MutatingApplicationLinkService appLinks, TypeAccessor typeAccessor) {
         this.userManager = userManager;
         this.loginUriProvider = loginUriProvider;
         this.renderer = renderer;
