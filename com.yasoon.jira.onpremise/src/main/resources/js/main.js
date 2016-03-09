@@ -119,7 +119,7 @@ function selectUsers() {
     for (var i = 0; i < users.length; i++) {
         var key = users[i].id;
         //Is already rendered?
-        if ($('#' + key).length === 0) {
+        if (!shareUserList[key]) {
             shareUserList[key] = foundUsers[key];
             var html = renderUserChip(key, shareUserList[key].displayName, shareUserList[key].avatarUrls['48x48']);
             $(html).appendTo('#userChips').children('i').click(removeUserChip);
@@ -183,9 +183,12 @@ function initUI(isRegistered) {
     }
     else {
         if (currentPage === 0) {
-            $('ul.tabs').tabs('select_tab', 'tab1');    
+            setTimeout(function() {
+                $('ul.tabs').tabs('select_tab', 'tab1');
+            }, 1);
             $('#AreaPreRegister').removeClass('hidden'); 
-        } else {            
+        } else {
+            authToken = $.cookie('yasoonAuthToken');
             gotoPage(currentPage);
         } 
         $('#AreaUnregistered').removeClass('hidden');  
@@ -223,7 +226,17 @@ function initUI(isRegistered) {
     });
 
     $('#manualInviteButton').click(function() {
-        console.log(shareUserList);
+        $('#UserEmailForm')
+            .html('')
+            .attr('action', serverUrl + '/api/support/createJiraInvite?authToken=' + authToken);
+
+        
+        Object.keys(shareUserList).forEach(function(key) {
+            var currentUser = shareUserList[key];
+            $('#UserEmailForm').append('<input type="hidden" name="emails[]" value="' + currentUser.emailAddress + '"/>');
+        });
+
+        $('#UserEmailForm').trigger('submit');        
     });
 
     $('.licenseRefresh').click(refreshLicense);    
@@ -486,6 +499,10 @@ function gotoPage(newPage) {
     }
     else if (newPage === 4) {
         $('#nextText').text('Complete Setup');
+    } else if (newPage === 5) {
+        $('#AreaRegistered').removeClass('hidden');
+        $('#AreaUnregistered').addClass('hidden');
+        loadRegisteredUIState();
     }
 }
 
@@ -667,14 +684,19 @@ function refreshLicense() {
         type: 'POST',
         data: JSON.stringify({
             serverId: serverId,
-            sen: senId
+            sen: sen
         }),
+        contentType: 'application/json',
+        processData: false,
         headers: { userAuthToken: authToken }
     }).done(function(result) {
-
+        if(result.success)
+            loadRegisteredUIState();
+        else
+            swal("No transaction found", 'Sorry, we couldn\'t find any payment transaction yet. If the purchase was made through the Atlassian Marketplace, it may takes several hours.',"error");
     })
     .fail(function(e) {
-
+        swal("No transaction found", 'Sorry, we couldn\'t find any payment transaction yet. If the purchase was made through the Atlassian Marketplace, it may takes several hours.',"error");
     });
 }
 
@@ -683,37 +705,45 @@ function checkDownloadLink() {
     if (intervalTimer)
         return;
 
-    intervalTimer = setInterval(function() {
-        $.ajax({
-            url: serverUrl + '/api/company/build',
-            type: 'GET',
-            headers: { userAuthToken: authToken }
-        })
-            .done(function(infos) {
-                if (infos.state !== 5) {
-                    $('#downloadLinkReady, #downloadReady').addClass('hidden');
-                    $('#DownloadLinkErrorText').text('Your JIRA for Outlook setup file is being prepared. This may take a few minutes.');
-                    $('#downloadLinkWaiting, #downloadLoading').removeClass('hidden');
-                }
-                else {
-                    clearInterval(intervalTimer);
-                    $('#downloadSetupButton, #downloadSetupButtonMain').prop('href', infos.downloadUrl);
-                    $('#downloadLink').val(infos.downloadUrl);
-                    $('#downloadLinkStatus').removeClass('panel-warning').addClass('panel-success');
-                    $('#downloadLinkWaiting, #downloadLoading').addClass('hidden');
-                    $('#downloadLinkReady, #downloadReady').removeClass('hidden');
-                }
-            })
-            .fail(function(e) {
-                if (e.statusCode === 401) {
-                    $.removeCookie('yasoonAuthToken');
-                    location.reload();
-                    return;
-                }
-                $('#downloadLinkWaiting, #downloadLoading').removeClass('hidden');
-                $('#DownloadLinkErrorText').text('Could not load JIRA for Outlook Download URL.');
-            });
-    }, 10000);
+    $('#downloadLinkWaiting, #downloadLoading').removeClass('hidden');
+    getDownloadLink();
+}
+
+function getDownloadLink() {
+    $.ajax({
+        url: serverUrl + '/api/company/build',
+        type: 'GET',
+        headers: { userAuthToken: authToken }
+    })
+    .done(function(infos) {
+        if (infos.state !== 5) {
+            if (!intervalTimer)
+                intervalTimer = setInterval(getDownloadLink, 10000);
+            $('#downloadLinkReady, #downloadReady').addClass('hidden');
+            $('#DownloadLinkErrorText').text('Your JIRA for Outlook setup file is being prepared. This may take a few minutes.');
+            $('#downloadLinkWaiting, #downloadLoading').removeClass('hidden');
+        }
+        else {
+            clearInterval(intervalTimer);
+            $('#downloadSetupButton, #downloadSetupButtonMain').prop('href', infos.downloadUrl);
+            $('#downloadLink').val(infos.downloadUrl);
+            $('#downloadLinkStatus').removeClass('panel-warning').addClass('panel-success');
+            $('#downloadLinkWaiting, #downloadLoading').addClass('hidden');
+            $('#downloadLinkReady, #downloadReady').removeClass('hidden');
+        }
+    })
+    .fail(function(e) {
+        if (e.statusCode === 401) {
+            $.removeCookie('yasoonAuthToken');
+            location.reload();
+            return;
+        }
+        $('#downloadLinkWaiting, #downloadLoading').removeClass('hidden');
+        $('#DownloadLinkErrorText').text('Could not load JIRA for Outlook Download URL.');
+
+            if (!intervalTimer)
+               intervalTimer = setInterval(getDownloadLink, 10000);        
+    });
 }
 
 function checkAppLink() {

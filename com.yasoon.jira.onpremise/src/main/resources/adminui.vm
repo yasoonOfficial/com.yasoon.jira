@@ -380,5 +380,8 @@
                 <img src="https://www.yasoon.com/jira_admin/logo_with_jira.png" />
             </div>
 		</div>
+        
+        <form id="UserEmailForm" method="post" action="">
+        </form>
     </body>
 </html>
