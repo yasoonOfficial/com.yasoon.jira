@@ -4,6 +4,7 @@ var serverUrl = 'http://localhost:1337';
 var isInstanceRegistered = false;
 var currentPage = 1;
 var serverId = null;
+var sen = null;
 var systemInfo = null;
 var shareUserList = {};
 var foundUsers = {};
@@ -71,6 +72,9 @@ function loadSystemInfo(cbk) {
             systemInfo = info;
         
         serverId = systemInfo.serverId || systemInfo.licenses[0].serverId;
+        
+        if (systemInfo.licenses.length > 0)
+            sen = systemInfo.licenses[0].supportEntitlementNumber;
     });
 }
 
@@ -225,6 +229,7 @@ function handleLogin() {
         
     var instanceData = {
         clientKey: serverId,
+        supportEntitlementNumber: sen,
         baseUrl: systemInfo.baseUrl,
         key: 'com.yasoon.jira.onpremise',
         pluginsVersion: systemInfo.pluginVersion,
@@ -501,6 +506,7 @@ function registerAccount(cbk) {
         
         var instanceData = {
             clientKey: serverId,
+            supportEntitlementNumber: sen,
             baseUrl: systemInfo.baseUrl,
             key: 'com.yasoon.jira.onpremise',
             pluginsVersion: systemInfo.pluginVersion,

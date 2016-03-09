@@ -227,6 +227,7 @@ final class JiraLicenseInfo {
         setIsUnlimitedNumberOfUsers(jiraLic.isUnlimitedNumberOfUsers());
         setLicenseEdition(jiraLic.getLicenseEdition());
         setLicenseType(jiraLic.getLicenseType());
+        setSupportEntitlementNumber(jiraLic.getSupportEntitlementNumber());
     }
     
     public JiraLicenseInfo(LicenseDetails details, OutlookDate date) {
@@ -250,6 +251,7 @@ final class JiraLicenseInfo {
         setIsPersonalLicense(details.isPersonalLicense());
         setIsStarter(details.isStarter());
         setIsUnlimitedNumberOfUsers(details.isUnlimitedNumberOfUsers());
+        setSupportEntitlementNumber(details.getSupportEntitlementNumber());
     }
 
     public String getDescription() {
@@ -460,6 +462,14 @@ final class JiraLicenseInfo {
         this.maintenanceEndDate = maintenanceEndDate;
     }
 
+    public String getSupportEntitlementNumber() {
+        return supportEntitlementNumber;
+    }
+
+    public void setSupportEntitlementNumber(String supportEntitlementNumber) {
+        this.supportEntitlementNumber = supportEntitlementNumber;
+    }
+
     private String description;
     private int maximumNumberOfUsers;
     private String organisation;
@@ -486,6 +496,8 @@ final class JiraLicenseInfo {
     private Date maintenanceExpiryDate;
     private LicenseType licenseType;
     private LicenseEdition licenseEdition;
+    private String supportEntitlementNumber;
+
 }
 
 class SystemInfo {
