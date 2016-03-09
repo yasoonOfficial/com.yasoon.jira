@@ -273,10 +273,109 @@
                                 JIRA for Outlook will <b>expire on <span id="JiraExpirationDate"></span></b>. All Outlook apps will be disabled a few days after. <br />
                                 If you like to continue to use JIRA for Outlook, please consider to purchase the addon. <br /><br />
                                 If you like the change the settings of the addon, please login to <a target="_blank" href="https://store.yasoon.com">our admin panel</a>
+<<<<<<< HEAD
+							</p>
+						</div>									
+						<div class="card-action">
+							<a class="purchaseDialogLink btn btn-default" href="#purchaseDialog" style="color: white" >Purchase</a>
+						</div>
+					</div>
+					
+					<div id="trialExpired" class="card col s4 hidden">	
+						<div class="card-title red-text text-lighten-2" style="padding: 20px 0 0 20px">
+							Trial Expired <span class="pull-right"><a class="licenseRefresh"><i class="material-icons" style="float: left;">autorenew</i><span style="float: left; margin-top: 5px;">refresh</span></a></span>
+						</div>
+						<div class="card-content">
+							<p>
+								The instance is <b>not licensed</b> anymore. All Outlook apps will be disabled soon (or are already disabled).<br /><br />
+								If you like to continue to use JIRA for Outlook, please consider to purchase the addon.
+							</p>
+						</div>									
+                        <div class="card-action">
+							<a class="purchaseDialogLink btn btn-default" href="#purchaseDialog" style="color: white" >Purchase</a>
+						</div>
+					</div>
+					
+					<!-- Application Link -->
+					<div id="applicationLinkActive" class="card col s3 hidden">	
+						<div class="card-title green-text text-lighten-2" style="padding: 20px 0 0 20px">
+							Application Link Active
+						</div>
+						<div class="card-content">
+							<p>
+								The required Application Link appears to be configured correctly, you are good to go!
+							</p>
+						</div>									
+						<div class="card-action">
+							<button type="button" class="btn btn-default disabled"><i class="material-icons right">done</i>Active</button>
+						</div>
+					</div>
+					
+					<div id="applicationLinkInactive" class="card col s3 hidden">	
+						<div class="card-title red-text text-lighten-2" style="padding: 20px 0 0 20px">
+							Application Link Missing
+						</div>
+						<div class="card-content">
+							<p>
+								JIRA for Outlook requires an application link to access your JIRA from Outlook. Please click the button below to configure this automatically.
+								<div style="margin-top: 20px; margin-bottom: 20px">
+									In case something is not working as expected, please <a href="#" class="send-message">contact us</a> or follow our <a target="_blank" href="https://yasoon.zendesk.com/hc/en-us/articles/202740381-Technical-Admin-Guide-Server">manual configuration guide</a>.
+								</div>
+							</p>
+						</div>									
+						<div class="card-action">
+							<button type="button" id="addApplicationLinkButtonMain" class="btn btn-default">Create Link</button>
+						</div>
+					</div>
+					
+					<!-- Download/Share Area -->
+					<div id="downloadLinkReady" class="card col s4 hidden">	
+						<div class="card-title green-text text-lighten-2" style="padding: 20px 0 0 20px">
+							Download Ready
+						</div>
+						<div class="card-content">
+							<p>
+								Your personalized setup is now available. Please download it below, or share the following link:
+								<div class="input-field">
+									<input spellcheck="false" id="downloadLink" type="text" class="validate">
+								</div>
+							</p>
+						</div>									
+						<div class="card-action">
+							<a target="_blank" id="downloadSetupButtonMain"><button type="button" class="btn btn-default" style="margin-bottom: 10px;"><i class="material-icons right">get_app</i>Download</button></a>
+							<button type="button" id="downloadShareButton" class="btn btn-default" style="margin-bottom: 10px;"><i class="material-icons right">send</i>Share</button>
+						</div>
+					</div>
+					
+					<div id="downloadLinkWaiting" class="card col s4 hidden">	
+						<div class="card-title red-text text-lighten-2" style="padding: 20px 0 0 20px">
+							Preparing Download
+						</div>
+						<div class="card-content">
+							<p>
+								<span id="DownloadLinkErrorText">Your JIRA for Outlook setup file is being prepared. This may take a few minutes. </span>
+							</p>
+						</div>									
+						<div class="card-action">
+							<img src="https://www.yasoon.com/jira_admin/loader_small.gif">
+						</div>
+					</div>
+										
+					<div class="logo-branding">
+						<img src="https://www.yasoon.com/jira_admin/logo_with_jira.png" />
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="AreaLogin" class="materialize-wrapper hidden" style="max-width: 600px; margin: 50px; margin-top: 0px;">
+			<div class="bootstrap-wrapper page-header">
+				<h2>yasoon<small> Login </small></h2>
+			</div>
+=======
                             </p>
                         </div>									
                         <div class="card-action">
-							<a class="purchaseDialogLink btn btn-default" href="#purchaseDialog" style="color: white" >Purchase</a>
+                            <a class="purchaseDialogLink btn btn-default" style="color: white" >Purchase</a>
                         </div>
                     </div>
 
@@ -291,7 +390,7 @@
                             </p>
                         </div>									
                         <div class="card-action">
-							<a class="purchaseDialogLink btn btn-default" href="#purchaseDialog" style="color: white" >Purchase</a>
+                            <a class="purchaseDialogLink btn btn-default" style="color: white" >Purchase</a>
                         </div>
                     </div>
 
@@ -370,6 +469,7 @@
             <div class="bootstrap-wrapper page-header">
                 <h2>yasoon<small> Login </small></h2>
             </div>
+>>>>>>> jira testing fixes
             <div class="row" style="margin-top: 30px; margin-bottom: 10px">
                 Please login to your yasoon company account to see the configuration data.
             </div>
@@ -393,7 +493,8 @@
             <div class="logo-branding">
                 <img src="https://www.yasoon.com/jira_admin/logo_with_jira.png" />
             </div>
-        </div>
+<<<<<<< HEAD
+		</div>
         <div class="materialize-wrapper">
             <div id="purchaseDialog" class="modal">
                 <div class="modal-content">
@@ -402,7 +503,7 @@
                             <h5>Flexible Licensing</h5>
                             <div>
                                 Only pay what you need! <br /><br />
-        
+                                
                                 You can buy any amount of JIRA for Outlook licenses at a fixed price of <span style="font-weight: 400;">$39.90</span> per user.
                             </div>
                         </div>
@@ -425,6 +526,10 @@
                 </div>
             </div> 
         </div>
+=======
+        </div>
+
+>>>>>>> jira testing fixes
         <form id="UserEmailForm" method="post" action="">
         </form>
     </body>
