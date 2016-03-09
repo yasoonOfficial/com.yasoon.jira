@@ -2,7 +2,7 @@ var authToken = '';
 //var serverUrl = 'https://store.yasoon.com';
 var serverUrl = 'http://localhost:1337';
 var isInstanceRegistered = false;
-var currentPage = 1;
+var currentPage = 0;
 var serverId = null;
 var sen = null;
 var systemInfo = null;
@@ -35,6 +35,7 @@ $(document).ready(function() {
         return getIsInstanceRegistered();       
     })
     .then(function(isRegistered) {
+        isInstanceRegistered = isRegistered;
         //Initialize the UI
         initUI(isRegistered);
         
@@ -48,7 +49,7 @@ $(document).ready(function() {
         }
     })
     .caught(function(e) {
-        $('#unregisteredArea').hide();
+        $('#AreaUnregistered').addClass('hidden');
         swal("Oops...", "Failed to load initial data, please contact us at support@yasoon.de", "error");
         Raven.captureMessage('Error while document ready execution!');
         Raven.captureException(e);
@@ -93,13 +94,17 @@ function getIsInstanceRegistered() {
 }
 
 function onUserDialogOpen() {
-    $('#userNameSearch').val('t').trigger('change');
+    var userEmail = $.cookie('yasoonEmail');
+    var splittedEmail = userEmail.split('@');
+    if (splittedEmail.length === 2) {
+        $('#userNameSearch').val(splittedEmail[1]).trigger('change');
+    }
     $('#userNameSearchTrigger').unbind().click(dialogSearch).trigger('click');
     $('#selectUsers').unbind().click(selectUsers);
 }
 
 function renderUserChip(userKey, userName, profilePicUrl) {
-    return '<div id="' + userKey + '" class="chip">' +
+    return '<div id="' + userKey + '" class="chip" style="margin:10px;">' +
 		'<img src="' + profilePicUrl + '" />' +
         userName + '<i class="material-icons">close</i></div>';
 }
@@ -113,9 +118,12 @@ function selectUsers() {
 
     for (var i = 0; i < users.length; i++) {
         var key = users[i].id;
-        shareUserList[key] = foundUsers[key];        
-        var html = renderUserChip(key, shareUserList[key].displayName, shareUserList[key].avatarUrls['48x48']);
-        $(html).appendTo('#userChips').children('i').click(removeUserChip);
+        //Is already rendered?
+        if ($('#' + key).length === 0) {
+            shareUserList[key] = foundUsers[key];
+            var html = renderUserChip(key, shareUserList[key].displayName, shareUserList[key].avatarUrls['48x48']);
+            $(html).appendTo('#userChips').children('i').click(removeUserChip);
+        }
     }
     
     $('#userPicker').closeModal();
@@ -156,11 +164,16 @@ function loadRegisteredUIState() {
 function initUI(isRegistered) {    
     //Hide page loader first
     $('#pageLoading').hide();
-    
-    if (isRegistered) {
+
+    var cookiePage = $.cookie('currentPage');
+    if (cookiePage) {
+        currentPage = parseInt(cookiePage);
+    }    
+
+    if (isRegistered && ( currentPage === 0 || currentPage > 4)) {
         if($.cookie('yasoonAuthToken')) {
             authToken = $.cookie('yasoonAuthToken');
-            $('#registeredArea').show();
+            $('#AreaRegistered').removeClass('hidden');
             $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
             loadRegisteredUIState();
         }
@@ -168,10 +181,15 @@ function initUI(isRegistered) {
             $('#AreaLogin').removeClass('hidden'); 
         }
     }
-    else {  
-        $('#unregisteredArea').show();  
-        $('ul.tabs').tabs('select_tab', 'tab1');    
-        $('#AreaPreRegister').removeClass('hidden');        
+    else {
+        if (currentPage === 0) {
+            $('ul.tabs').tabs('select_tab', 'tab1');    
+            $('#AreaPreRegister').removeClass('hidden'); 
+        } else {            
+            gotoPage(currentPage);
+        } 
+        $('#AreaUnregistered').removeClass('hidden');  
+       
     }
     
     $('#ButtonLogin').click(function () {
@@ -203,10 +221,16 @@ function initUI(isRegistered) {
         //    zE.activate();
         //});
     });
-      
+
+    $('#manualInviteButton').click(function() {
+        console.log(shareUserList);
+    });
+
+    $('.licenseRefresh').click(refreshLicense);    
+
     $('#next').click(handleNext);
     $('#addApplicationLinkButton, #addApplicationLinkButtonMain').click(handleAddApplicationLink);
-    $('#loginYasoonButton').click(handleLogin);
+    $('#LoginYasoonButton').click(handleLogin);
         
     //Prefill Wizard
     var userNameSplitted = systemInfo.userName.split(' ');
@@ -221,7 +245,7 @@ function initUI(isRegistered) {
 function handleLogin() {
     
     //Transform data                    
-    var formArray = (isInstanceRegistered) ? $('#loginForm').serializeArray() : $('#InitialLoginForm').serializeArray();
+    var formArray = (isInstanceRegistered) ? $('#LoginForm').serializeArray() : $('#InitialLoginForm').serializeArray();
     var formData = {};
     $.each(formArray, function (i, elem) {
         formData[elem.name] = elem.value;
@@ -255,17 +279,18 @@ function handleLogin() {
             })
             .done(function (auth) {
                 authToken = auth;
+                $.cookie('yasoonEmail', formData.emailAddress);
                 $.cookie('yasoonAuthToken', authToken);
                 $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
 
-                $('#RegisteredArea').show();
-                $('#LoginArea').hide();
+                $('#AreaRegistered').removeClass('hidden');
+                $('#AreaLogin').addClass('hidden');
                 loadRegisteredUIState();
                 success();
             })
             .fail(function (jxqr, e) {
                 Raven.captureMessage('Error during login: ' + e);
-                alert('Login failed, probably invalid credentials.');
+                swal("Oops...", "Login failed! Please check your credentials", "error");
                 reject();
             });
         });
@@ -282,11 +307,12 @@ function handleLogin() {
         }))
         .caught(function(e) {
             Raven.captureMessage('Error during login: ' + e);
-            swal("Oops...", "Login failed, probably invalid credentials.", "error");
+            swal("Oops...", "Login failed! Please check your credentials.", "error");
             promise.cancel();
         })
         .then(function (auth) {
             authToken = auth;
+            $.cookie('yasoonEmail', formData.emailAddress);
             $.cookie('yasoonAuthToken', authToken);
             $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
             
@@ -413,8 +439,9 @@ function handleNext() {
         }    
     }
     else if (currentPage === 5) {
-        $('#unregisteredArea').hide();
-        $('#registeredArea').show();
+        $('#AreaUnregistered').addClass('hidden');
+        $('#AreaRegistered').removeClass('hidden');
+        $.cookie('currentPage',"0");
         loadRegisteredUIState();
     }
     else {
@@ -423,12 +450,28 @@ function handleNext() {
 }
 
 function gotoNextPage() {    
-    $('ul.tabs :nth-child(' + currentPage + ')').addClass('disabled finished');
     currentPage++;
-    $('ul.tabs :nth-child(' + currentPage + ')').removeClass('disabled');
-    $('ul.tabs').tabs('select_tab', 'tab' + currentPage);
-    
-    if (currentPage === 2) {
+    $.cookie('currentPage',currentPage);
+    gotoPage(currentPage);
+}
+
+function gotoPage(newPage) {
+    console.log('GotoPage:', newPage);
+    //Disable all previous steps
+    for (var a = 1; a < newPage; a++) {
+        $('ul.tabs :nth-child(' + a + ')').addClass('disabled finished');
+    }
+    //Enable current step
+    $('ul.tabs :nth-child(' + newPage + ')').removeClass('disabled');
+    setTimeout(function() {
+        $('ul.tabs').tabs('select_tab', 'tab' + newPage);
+    }, 1);
+
+    if (newPage > 1) {
+        $('#next').removeClass('hidden');
+    }
+
+    if (newPage === 2) {
         $('#next').prop('disabled', true);
         $('#nextText').text('Next');
         checkAppLink().then(function(appLinkExists) {
@@ -437,11 +480,11 @@ function gotoNextPage() {
             }
         });       
     }
-    else if (currentPage === 3) {
-        $('#nextText').text('It\'s working!');
+    else if (newPage === 3) {
+        $('#nextText').text('Yes! It\'s working!');
         checkDownloadLink();
     }
-    else if (currentPage === 4) {
+    else if (newPage === 4) {
         $('#nextText').text('Complete Setup');
     }
 }
@@ -537,6 +580,7 @@ function registerAccount(cbk) {
     })
     .then(function (auth) {
         authToken = auth;
+        $.cookie('yasoonEmail', formData.emailAddress);
         $.cookie('yasoonAuthToken', authToken);
         $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
            
@@ -601,14 +645,15 @@ function checkProduct() {
         
         if (!product || new Date(product.validUntil).getTime() < new Date().getTime()) {
             //License Outdated
-            $('#trialExpired').show();
+            $('#trialExpired').removeClass('hidden');
         } else if (new Date(product.validUntil).getTime() < new Date(2099, 10, 1).getTime()) {
             $('#JiraExpirationDate').text(new Date(product.validUntil).toLocaleDateString());
-            $('#trialStatus').show();
+            $('#trialStatus').removeClass('hidden');
         } else {
             //License Ok
             $('#JiraSupportDate').text(new Date(product.parameters.supportUntil).toLocaleDateString());
-            $('#purchasedStatus').show();
+            $('#JiraUserNumber').text(product.userCount);
+            $('#purchasedStatus').removeClass('hidden');
         }
     })
     .fail(function () {
@@ -616,35 +661,59 @@ function checkProduct() {
     }); 
 }
 
-function checkDownloadLink() {
+function refreshLicense() {
     $.ajax({
-        url: serverUrl + '/api/company/build',
-        type: 'GET',
+        url: serverUrl + '/jira/checkSingleMarketplaceLicense',
+        type: 'POST',
+        data: JSON.stringify({
+            serverId: serverId,
+            sen: senId
+        }),
         headers: { userAuthToken: authToken }
-    })
-    .done(function(infos) {
-        if(infos.state !== 5) {
-            setTimeout(checkDownloadLink, 10000);
-            $('#downloadLinkReady, #downloadReady').hide();
-            $('#downloadLinkWaiting, #downloadLoading').show();
-        }                
-        else {
-            $('#downloadSetupButton, #downloadSetupButtonMain').prop('href', infos.downloadUrl);
-            $('#downloadLink').val(infos.downloadUrl);
-            $('#downloadLinkStatus').removeClass('panel-warning').addClass('panel-success');
-            $('#downloadLinkWaiting, #downloadLoading').hide();
-            $('#downloadLinkReady, #downloadReady').show();
-        }
+    }).done(function(result) {
+
     })
     .fail(function(e) {
-        if (e.statusCode === 401) {
-            $.removeCookie('yasoonAuthToken');
-            location.reload();
-            return;
-        }
-        
-        setTimeout(checkDownloadLink, 10000);
+
     });
+}
+
+var intervalTimer = null;
+function checkDownloadLink() {
+    if (intervalTimer)
+        return;
+
+    intervalTimer = setInterval(function() {
+        $.ajax({
+            url: serverUrl + '/api/company/build',
+            type: 'GET',
+            headers: { userAuthToken: authToken }
+        })
+            .done(function(infos) {
+                if (infos.state !== 5) {
+                    $('#downloadLinkReady, #downloadReady').addClass('hidden');
+                    $('#DownloadLinkErrorText').text('Your JIRA for Outlook setup file is being prepared. This may take a few minutes.');
+                    $('#downloadLinkWaiting, #downloadLoading').removeClass('hidden');
+                }
+                else {
+                    clearInterval(intervalTimer);
+                    $('#downloadSetupButton, #downloadSetupButtonMain').prop('href', infos.downloadUrl);
+                    $('#downloadLink').val(infos.downloadUrl);
+                    $('#downloadLinkStatus').removeClass('panel-warning').addClass('panel-success');
+                    $('#downloadLinkWaiting, #downloadLoading').addClass('hidden');
+                    $('#downloadLinkReady, #downloadReady').removeClass('hidden');
+                }
+            })
+            .fail(function(e) {
+                if (e.statusCode === 401) {
+                    $.removeCookie('yasoonAuthToken');
+                    location.reload();
+                    return;
+                }
+                $('#downloadLinkWaiting, #downloadLoading').removeClass('hidden');
+                $('#DownloadLinkErrorText').text('Could not load JIRA for Outlook Download URL.');
+            });
+    }, 10000);
 }
 
 function checkAppLink() {
@@ -659,14 +728,14 @@ function checkAppLink() {
         if(applink.exists) {
             $('#appLinkStatus').removeClass('panel-warning').addClass('panel-success');
             $('#addApplicationLinkButton').prop('disabled', true).text('Application Link Active!');
-            $('#applicationLinkActive').show();
-            $('#applicationLinkInactive').hide();
+            $('#applicationLinkActive').removeClass('hidden');
+            $('#applicationLinkInactive').addClass('hidden');
         }
         else {
             $('#appLinkStatus').removeClass('panel-success').addClass('panel-warning');
             $('#addApplicationLinkButton').prop('disabled', false).text('Create Application Link');
-            $('#applicationLinkInactive').show();
-            $('#applicationLinkActive').hide();
+            $('#applicationLinkInactive').removeClass('hidden');
+            $('#applicationLinkActive').addClass('hidden');
         }
         
         return applink.exists;

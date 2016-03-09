@@ -106,3 +106,12 @@
 .hidden {
     display:none;
 }
+
+.licenseRefresh {
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.pull-right {
+    float: right;
+}
