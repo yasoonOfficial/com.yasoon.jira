@@ -209,14 +209,17 @@ function initUI(isRegistered) {
         $('#next').data('type', 'register').removeClass('hidden');
     });
         
-    //Init Modals & Tooltips
+    //Init Modals
+	$('.modal-trigger').leanModal({
+        ready: onUserDialogOpen
+    });
+
+    $('.purchaseDialogLink').leanModal();    
+
+    //Init Popover
     $('[data-toggle="popover"]').popover({
 		trigger: "hover",
 		placement: "right"
-	});
-	
-	$('.modal-trigger').leanModal({
-        ready: onUserDialogOpen
     });
 
     $('.send-message').click(function(e) {
