@@ -48,27 +48,26 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		jira.filter.load();
 		jira.filter.register();
 
+		//Check Licensing
 		if (jiraIsLicensed(false)) {
-			//yasoon.view.header.addTab('jiraIssues', 'Issues', self.renderIssueTab);
-			yasoon.app.on("oAuthSuccess", jira.handleOAuthSuccess);
-			yasoon.app.on("oAuthError", jira.handleOAuthError);
-			yasoon.outlook.on("selectionChange", jira.handleSelectionChange);
-			yasoon.outlook.on("itemOpen", jira.handleNewInspector);
-			yasoon.periodicCallback(300, jira.sync);
-			yasoon.on("sync", jira.sync);
-			
-			//Download custom script
-			self.downloadCustomScript();
-
-		} else {
-			setTimeout(function () {
-				jiraOpenPurchaseDialog();
-			}, 10);
+			self.registerEvents();
 		}
-
 		self.checkLicense();
+
+		//Download custom script
+		self.downloadCustomScript();
 	};
 	
+	this.registerEvents = function () {
+		//yasoon.view.header.addTab('jiraIssues', 'Issues', self.renderIssueTab);
+		yasoon.app.on("oAuthSuccess", jira.handleOAuthSuccess);
+		yasoon.app.on("oAuthError", jira.handleOAuthError);
+		yasoon.outlook.on("selectionChange", jira.handleSelectionChange);
+		yasoon.outlook.on("itemOpen", jira.handleNewInspector);
+		yasoon.periodicCallback(300, jira.sync);
+		yasoon.on("sync", jira.sync);
+	};
+
 	this.handleSelectionChange = function handleSelectionChange(item) {
 		jira.ribbons.updateRibbons(item);
 		jira.ribbons.updateAttachmentRibbons(item);
@@ -426,6 +425,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 
 	this.checkLicense = function () {
 		if (!jira.license.isFullyLicensed) {
+			var isLicensed = jiraIsLicensed(false);
 			//Check License Information
 			jiraGetProducts()
 			.then(function (products) {
@@ -433,15 +433,29 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 					jira.license.validUntil = products[0].validUntil;
 				}
 
-				//Check if it's valid forever and if it's a Server instance (url does not ends with jira.com or atlassian.net) 
-				if (jira.license.validUntil > new Date(2099, 0, 1) && !jiraIsCloud(jira.settings.baseUrl)) {
-					jira.license.isFullyLicensed = true; //No need to check license again
+				//Check if it's valid license 
+				if (jiraIsLicensed(false)) {
+					//Check if it's valid forever and if it's a Server instance (url does not ends with jira.com or atlassian.net) 
+					if (jira.license.validUntil > new Date(2099, 0, 1) & !jiraIsCloud(jira.settings.baseUrl))
+						jira.license.isFullyLicensed = true; //No need to check license again
 
+					if (!isLicensed) {
+						//If addon hasn't been licensed before, we need to register events now.
+						jira.registerEvents();
+					}
+				} else {
+					setTimeout(function () {
+						jiraOpenPurchaseDialog();
+					}, 10);
 				}
 				yasoon.setting.setAppParameter('license', JSON.stringify(jira.license));
 			})
 			.catch(function (e) {
-
+				if (new Date() > jira.license.validUntil) {
+					setTimeout(function () {
+						jiraOpenPurchaseDialog();
+					}, 10);
+				}
 			});
 		}
 	};
