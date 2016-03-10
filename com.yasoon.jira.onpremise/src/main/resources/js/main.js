@@ -16,10 +16,10 @@ Promise.config({
 
 $(document).ready(function() {
     //IE9 and lower do not support cross origin requests with mixed protocols (see #7 @ http://blogs.msdn.com/b/ieinternals/archive/2010/05/13/xdomainrequest-restrictions-limitations-and-workarounds.aspx)
-    if (isIE() && isIE() <= 9 && document.location.protocol === 'http:') {
-        swal("Browser issue..", "You are using Internet Explorer 9 or lower and are accessing JIRA via a non-SSL connection. Unfortunately this is not supported. Please try to register via a newer browser or contact us at support@yasoon.de", "error");
+    if (isIE() && isIE() <= 9) {
+        swal("Browser issue..", "You are using Internet Explorer 9 or lower. Unfortunately this is not supported. Please try to register via a newer browser or contact us at support@yasoon.de", "error");
         return;
-    } 
+    }
     
     loadSystemInfo()
     .then(function() {
@@ -113,6 +113,8 @@ function onUserDialogOpen() {
     $('#userNameSearch').unbind().keypress(function(e) {
         if(e.which === 13) {
             dialogSearch();
+            e.preventDefault();
+            return false;
         }
     });
     

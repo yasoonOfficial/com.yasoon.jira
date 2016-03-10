@@ -75,6 +75,9 @@ public class SystemInfoServlet extends HttpServlet {
         }
         
         response.setContentType("text/html;charset=UTF-8");
+        response.setHeader("Cache-Control", "private, no-store, no-cache, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        
         PrintWriter out = response.getWriter();
         try {
             
