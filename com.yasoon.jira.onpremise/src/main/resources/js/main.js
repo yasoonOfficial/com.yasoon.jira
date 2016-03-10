@@ -2,7 +2,7 @@ var authToken = '';
 //var serverUrl = 'https://store.yasoon.com';
 var serverUrl = 'http://localhost:1337';
 var isInstanceRegistered = false;
-var currentPage = 0;
+var currentPage = 1;
 var serverId = null;
 var sen = null;
 var systemInfo = null;
@@ -21,7 +21,7 @@ $(document).ready(function() {
         return;
     } 
     
-	loadSystemInfo()
+    loadSystemInfo()
     .then(function() {
         //Hook up Raven error logging        
         Raven.config('https://6271d99937bd403da519654c1cf47879@sentry2.yasoon.com/4', {
@@ -30,6 +30,16 @@ $(document).ready(function() {
               key: 'onpremise'
           }
         }).install();
+        
+        if (systemInfo.userName && systemInfo.userEmailAddress) {
+            zE(function() {
+                zE.identify({
+                    ze23772381: 'JIRA for Outlook',
+                    name: systemInfo.userName,
+                    email: systemInfo.userEmailAddress
+                });                
+            });
+        }
         
         //Check if this instance is registered
         return getIsInstanceRegistered();       
@@ -100,6 +110,12 @@ function onUserDialogOpen() {
         $('#userNameSearch').val(splittedEmail[1]).trigger('change');
     }
     $('#userNameSearchTrigger').unbind().click(dialogSearch).trigger('click');
+    $('#userNameSearch').unbind().keypress(function(e) {
+        if(e.which === 13) {
+            dialogSearch();
+        }
+    });
+    
     $('#selectUsers').unbind().click(selectUsers);
 }
 
@@ -170,7 +186,7 @@ function initUI(isRegistered) {
         currentPage = parseInt(cookiePage);
     }    
 
-    if (isRegistered && ( currentPage === 0 || currentPage > 4)) {
+    if (isRegistered && (currentPage === 1 || currentPage > 4)) {
         if($.cookie('yasoonAuthToken')) {
             authToken = $.cookie('yasoonAuthToken');
             $('#AreaRegistered').removeClass('hidden');
@@ -182,7 +198,8 @@ function initUI(isRegistered) {
         }
     }
     else {
-        if (currentPage === 0) {
+        if (currentPage === 1 || currentPage > 4) {
+            currentPage = 1;
             setTimeout(function() {
                 $('ul.tabs').tabs('select_tab', 'tab1');
             }, 1);
@@ -191,8 +208,7 @@ function initUI(isRegistered) {
             authToken = $.cookie('yasoonAuthToken');
             gotoPage(currentPage);
         } 
-        $('#AreaUnregistered').removeClass('hidden');  
-       
+        $('#AreaUnregistered').removeClass('hidden');       
     }
     
     $('#ButtonLogin').click(function () {
@@ -223,9 +239,9 @@ function initUI(isRegistered) {
     });
 
     $('.send-message').click(function(e) {
-        //zE(function() {
-        //    zE.activate();
-        //});
+        zE(function() {
+            zE.activate();
+        });
     });
 
     $('#manualInviteButton').click(function() {
@@ -450,14 +466,13 @@ function handleNext() {
                 })
                 .lastly(function () {
                     $('#next').prop("disabled", false);
-                });
-               
+                });               
         }    
     }
-    else if (currentPage === 5) {
+    else if (currentPage === 4) {
         $('#AreaUnregistered').addClass('hidden');
         $('#AreaRegistered').removeClass('hidden');
-        $.cookie('currentPage',"0");
+        $.cookie('currentPage', "1");
         loadRegisteredUIState();
     }
     else {
@@ -502,10 +517,6 @@ function gotoPage(newPage) {
     }
     else if (newPage === 4) {
         $('#nextText').text('Complete Setup');
-    } else if (newPage === 5) {
-        $('#AreaRegistered').removeClass('hidden');
-        $('#AreaUnregistered').addClass('hidden');
-        loadRegisteredUIState();
     }
 }
 
@@ -663,9 +674,13 @@ function checkProduct() {
             }
         }
         
+        $('#trialStatus').addClass('hidden');
+        $('#trialExpired').addClass('hidden'); 
+        $('#purchasedStatus').addClass('hidden');
+        
         if (!product || new Date(product.validUntil).getTime() < new Date().getTime()) {
             //License Outdated
-            $('#trialExpired').removeClass('hidden');
+            $('#trialExpired').removeClass('hidden');            
         } else if (new Date(product.validUntil).getTime() < new Date(2099, 10, 1).getTime()) {
             $('#JiraExpirationDate').text(new Date(product.validUntil).toLocaleDateString());
             $('#trialStatus').removeClass('hidden');
@@ -681,7 +696,15 @@ function checkProduct() {
     }); 
 }
 
+var licenseRefreshActive = false;
 function refreshLicense() {
+    
+    if(licenseRefreshActive)
+        return;
+    
+    licenseRefreshActive = true;
+    $('.licenseRefresh').addClass('grey-text text-lighten-2');
+    
     $.ajax({
         url: serverUrl + '/jira/checkSingleMarketplaceLicense',
         type: 'POST',
@@ -693,6 +716,9 @@ function refreshLicense() {
         processData: false,
         headers: { userAuthToken: authToken }
     }).done(function(result) {
+        licenseRefreshActive = false;
+        $('.licenseRefresh').removeClass('grey-text text-lighten-2');
+        
         if(result.success)
             loadRegisteredUIState();
         else
