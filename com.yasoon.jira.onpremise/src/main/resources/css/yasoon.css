@@ -115,3 +115,11 @@
 .pull-right {
     float: right;
 }
+
+.isCloud .serverVisible {
+    display:none;
+}
+
+.isOnPremise .cloudVisible {
+    display:none;
+}

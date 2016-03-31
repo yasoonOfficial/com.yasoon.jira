@@ -18,7 +18,7 @@
         <dependency>com.atlassian.auiplugin:ajs</dependency>
         <resource type="download" name="bootstrap.css" location="/css/bootstrap.css"/>
         <resource type="download" name="materialize.css" location="/css/materialize.css"/>
-        <resource type="download" name="yasoononpremise.css" location="/css/yasoononpremise.css"/>
+        <resource type="download" name="yasoon.css" location="/css/yasoon.css"/>
         <resource type="download" name="sweetalert.css" location="/css/sweetalert.css"/>
         <resource type="download" name="jquery-1.11.3.min.js" location="/js/jquery-1.11.3.min.js"/>
         <resource type="download" name="bootstrap.js" location="/js/bootstrap.js"/>

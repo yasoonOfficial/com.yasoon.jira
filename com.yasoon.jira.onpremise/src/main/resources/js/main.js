@@ -8,7 +8,9 @@ var sen = null;
 var systemInfo = null;
 var shareUserList = {};
 var foundUsers = {};
-
+var isCloud = false;
+var jwtToken = null;
+    
 Promise.config({
     // Enable cancellation.
     cancellation: true
@@ -20,156 +22,127 @@ $(document).ready(function() {
         swal("Browser issue..", "You are using Internet Explorer 9 or lower. Unfortunately this is not supported. Please try to register via a newer browser or contact us at support@yasoon.de", "error");
         return;
     }
-    
-    loadSystemInfo()
-    .then(function() {
-        //Hook up Raven error logging        
-        Raven.config('https://6271d99937bd403da519654c1cf47879@sentry2.yasoon.com/4', {
-          tags: {
-              serverId: serverId,
-              key: 'onpremise'
-          }
-        }).install();
-        
-        if (systemInfo.userName && systemInfo.userEmailAddress) {
-            zE(function() {
-                zE.identify({
-                    ze23772381: 'JIRA for Outlook',
-                    name: systemInfo.userName,
-                    email: systemInfo.userEmailAddress
-                });                
-            });
-        }
-        
-        //Check if this instance is registered
-        return getIsInstanceRegistered();       
-    })
-    .then(function(isRegistered) {
-        isInstanceRegistered = isRegistered;
-        //Initialize the UI
-        initUI(isRegistered);
-        
-        if (isRegistered) {
-            if (authToken) {
-                checkDownloadLink();
-                checkProduct();
-            }
-            
-            checkAppLink();
-        }
-    })
-    .caught(function(e) {
-        $('#AreaUnregistered').addClass('hidden');
-        swal("Oops...", "Failed to load initial data, please contact us at support@yasoon.de", "error");
-        Raven.captureMessage('Error while document ready execution!');
-        Raven.captureException(e);
-    });
+
+    //Determine wether we are in Server or Cloud scenario.
+    jwtToken = getUrlParameterByName('jwt');
+    if (jwtToken) {
+        isCloud = true;
+        var allJsScriptPath = getUrlParameterByName('xdm_e') + context + '/atlassian-connect/all.js';
+        jQuery.getScript(allJsScriptPath);
+
+        $('body').addClass('isCloud');
+    } else {
+        $('body').addClass('isOnPremise');
+    }       
+
+    //Load Content
+    $.get('main.html')
+        .done(function(html) {
+            $('#pageContent').html(html);
+
+            loadSystemInfo()
+            .then(function() {
+                //Hook up Raven error logging        
+                Raven.config('https://6271d99937bd403da519654c1cf47879@sentry2.yasoon.com/4', {
+                tags: {
+                    serverId: serverId,
+                    key: 'onpremise'
+                }
+                }).install();
+                
+                if (systemInfo.userName && systemInfo.userEmailAddress) {
+                    zE(function() {
+                        zE.identify({
+                            ze23772381: 'JIRA for Outlook',
+                            name: systemInfo.userName,
+                            email: systemInfo.userEmailAddress
+                        });                
+                    });
+                }
+                
+                //Check if this instance is registered
+                return getIsInstanceRegistered();       
+            })
+            .then(function(isRegistered) {
+                isInstanceRegistered = isRegistered;
+                //Initialize the UI
+                initUI(isRegistered);
+                
+                if (isRegistered) {
+                    if (authToken) {
+                        checkDownloadLink();
+                        checkProduct();
+                    }
+                    
+                    checkAppLink();
+                }
+            })
+            .caught(function(e) {
+                $('#AreaUnregistered').addClass('hidden');
+                swal("Oops...", "Failed to load initial data, please contact us at support@yasoon.de", "error");
+                Raven.captureMessage('Error while document ready execution!');
+                Raven.captureException(e);
+            });            
+        })
+        .catch(function() {
+            swal("Oops...", "Failed to load nessecary files, please contact us at support@yasoon.de", "error");
+        });
 });
 
-function isIE () {
-  var myNav = navigator.userAgent.toLowerCase();
-  return (myNav.indexOf('msie') != -1) ? parseInt(myNav.split('msie')[1]) : false;
-}
+
 
 function loadSystemInfo(cbk) {
-    return Promise.resolve($.ajax({
-        url: 'sysinfo',
-        type: 'get'
-    }))
-    .then(function(info) {
-        if(typeof(info) === 'string')
-            systemInfo = JSON.parse(info);
-        else
-            systemInfo = info;
-        
-        serverId = systemInfo.serverId || systemInfo.licenses[0].serverId;
-        
-        if (systemInfo.licenses.length > 0)
-            sen = systemInfo.licenses[0].supportEntitlementNumber;
-    });
+    if (isCloud) {
+        systemInfo = {
+            baseUrl: getUrlParameterByName('xdm_e')
+        };
+
+        return Promise.resolve($.ajax({
+                url: systemInfo.baseUrl + '/rest/api/{version}/myself',
+                type: 'get'
+            }))
+            .then(function(user) {
+                systemInfo.userName = user.displayName;
+                systemInfo.userEmailAddress = user.emailAddress;
+            })
+            .catch(function(e) {
+                console.log(e);
+            });
+    } else {
+        return Promise.resolve($.ajax({
+                url: 'sysinfo',
+                type: 'get'
+            }))
+            .then(function(info) {
+                if (typeof (info) === 'string')
+                    systemInfo = JSON.parse(info);
+                else
+                    systemInfo = info;
+
+                serverId = systemInfo.serverId || systemInfo.licenses[0].serverId;
+
+                if (systemInfo.licenses.length > 0)
+                    sen = systemInfo.licenses[0].supportEntitlementNumber;
+            });
+    }
 }
 
 function getIsInstanceRegistered() {
+    var data = {};
+    if (isCloud) {
+        data.jwt = jwtToken;
+    } else {
+        data.serverId = serverId;
+        data.baseUrl = systemInfo.baseUrl;
+        
+    }    
     return Promise.resolve($.ajax({
-        url: serverUrl + '/jira/isInstanceRegistered',
-        data: { 
-            serverId: serverId,
-            baseUrl: systemInfo.baseUrl
-        },
+        url: yasoonServerUrl + '/jira/isInstanceRegistered',
+        data: data,
         type: 'GET'
     }))
     .then(function(data) {
         return data.registered;
-    });
-}
-
-function onUserDialogOpen() {
-    var userEmail = $.cookie('yasoonEmail');
-    var splittedEmail = userEmail.split('@');
-    if (splittedEmail.length === 2) {
-        $('#userNameSearch').val(splittedEmail[1]).trigger('change');
-    }
-    $('#userNameSearchTrigger').unbind().click(dialogSearch).trigger('click');
-    $('#userNameSearch').unbind().keypress(function(e) {
-        if(e.which === 13) {
-            dialogSearch();
-            e.preventDefault();
-            return false;
-        }
-    });
-    
-    $('#selectUsers').unbind().click(selectUsers);
-}
-
-function renderUserChip(userKey, userName, profilePicUrl) {
-    return '<div id="' + userKey + '" class="chip" style="margin:10px;">' +
-		'<img src="' + profilePicUrl + '" />' +
-        userName + '<i class="material-icons">close</i></div>';
-}
-
-function removeUserChip(e) {
-    delete shareUserList[e.target.parentNode.id];
-}
-
-function selectUsers() {
-    var users = $('#userPickerList > li > span > input:checked');
-
-    for (var i = 0; i < users.length; i++) {
-        var key = users[i].id;
-        //Is already rendered?
-        if (!shareUserList[key]) {
-            shareUserList[key] = foundUsers[key];
-            var html = renderUserChip(key, shareUserList[key].displayName, shareUserList[key].avatarUrls['48x48']);
-            $(html).appendTo('#userChips').children('i').click(removeUserChip);
-        }
-    }
-    
-    $('#userPicker').closeModal();
-}
-
-function dialogSearch() {
-    var term = $('#userNameSearch').val();
-    Promise.resolve($.get(systemInfo.baseUrl + '/rest/api/2/user/search?username=' + term))
-    .then(function(users) {
-        $('#userPickerList').html('');
-        foundUsers = [];
-        for (var i = 0; i < users.length; i++) {
-            var user = users[i];
-            foundUsers[user.key] = user;
-            $('#userPickerList').append('<li class="collection-item avatar">' + 
-								'<img src="' + user.avatarUrls['48x48'] + '" alt="" class="circle">'+
-								'<span class="title">' + user.displayName + '</span>'+
-								'<p class="grey-text text-lighten-1">' +
-									user.emailAddress +
-								'</p>' + 
-								'<span class="secondary-content"><input type="checkbox" class="filled-in" id="' + user.key +
-                                '" /><label for="' + user.key + '"></label></span></li>');
-        }
-                				
-        $('.collection-item.avatar').unbind().click(function(e) {
-            $(this).find('input').prop("checked", !$(this).find('input').prop("checked"));
-            e.stopPropagation();
-        });
     });
 }
 
@@ -249,7 +222,7 @@ function initUI(isRegistered) {
     $('#manualInviteButton').click(function() {
         $('#UserEmailForm')
             .html('')
-            .attr('action', serverUrl + '/api/support/createJiraInvite?authToken=' + authToken);
+            .attr('action', yasoonServerUrl + '/api/support/createJiraInvite?authToken=' + authToken);
 
         
         Object.keys(shareUserList).forEach(function(key) {
@@ -305,7 +278,7 @@ function handleLogin() {
     
         promise = new Promise(function (success, reject) {
             $.ajax({
-                url: serverUrl + '/api/user/auth',
+                url: yasoonServerUrl + '/api/user/auth',
                 contentType: 'application/json',
                 data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
                 processData: false,
@@ -333,7 +306,7 @@ function handleLogin() {
     // -----------------------------------
     else {
         promise = Promise.resolve($.ajax({
-            url: serverUrl + '/api/user/auth',
+            url: yasoonServerUrl + '/api/user/auth',
             contentType: 'application/json',
             data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
             processData: false,
@@ -351,7 +324,7 @@ function handleLogin() {
             $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
             
             return $.ajax({
-                url: serverUrl + '/jira/install',
+                url: yasoonServerUrl + '/jira/install',
                 contentType: 'application/json',
                 data: JSON.stringify(instanceData),
                 processData: false,
@@ -360,7 +333,7 @@ function handleLogin() {
         })
         .then(function (result) {
             return $.ajax({
-                url: serverUrl + '/jira/assigncompany',
+                url: yasoonServerUrl + '/jira/assigncompany',
                 contentType: 'application/json',
                 data: JSON.stringify({ 
                     serverId: serverId,
@@ -388,14 +361,14 @@ function handleAddApplicationLink() {
     var keyData = null;
     
     Promise.resolve($.ajax({
-        url: serverUrl + '/api/support/genkeypair',
+        url: yasoonServerUrl + '/api/support/genkeypair',
         type: 'GET'
     }))
     .then(function(data) {
         //Create the OAuth service on yasoon side
         keyData = data;                         
         return $.ajax({
-            url: serverUrl + '/jira/oauth',
+            url: yasoonServerUrl + '/jira/oauth',
             contentType: 'application/json',
             data: JSON.stringify({ 
                 clientCertificate: data.pkcs12,
@@ -505,13 +478,17 @@ function gotoPage(newPage) {
     }
 
     if (newPage === 2) {
-        $('#next').prop('disabled', true);
-        $('#nextText').text('Next');
-        checkAppLink().then(function(appLinkExists) {
-            if (appLinkExists) {
-                $('#next').prop("disabled", false);
-            }
-        });       
+        if (isCloud) {
+            $('#nextText').text('Yes, Application Link created');
+        } else {
+            $('#next').prop('disabled', true);
+            $('#nextText').text('Next');
+            checkAppLink().then(function(appLinkExists) {
+                if (appLinkExists) {
+                    $('#next').prop("disabled", false);
+                }
+            });
+        }
     }
     else if (newPage === 3) {
         $('#nextText').text('Yes! It\'s working!');
@@ -561,10 +538,11 @@ function registerAccount(cbk) {
             message: 'Passwords do not match, please make sure that they are identical.'
         });
     }
-    
+
+
     //Send Data
     var promise = Promise.resolve($.ajax({
-        url: serverUrl + '/api/company/register',
+        url: yasoonServerUrl + '/api/company/register',
         contentType: 'application/json',
         data: JSON.stringify(formData),
         processData: false,
@@ -579,7 +557,11 @@ function registerAccount(cbk) {
                 message: 'Account already exists. Please use login instead!'
             });
         }
-        
+
+        //Instance is already registered in Cloud (during Addon install Event)
+        if (isCloud)
+            return;
+
         var instanceData = {
             clientKey: serverId,
             supportEntitlementNumber: sen,
@@ -594,17 +576,17 @@ function registerAccount(cbk) {
         };
         
         return $.ajax({
-            url: serverUrl + '/jira/install',
+            url: yasoonServerUrl + '/jira/install',
             contentType: 'application/json',
             data: JSON.stringify(instanceData),
             processData: false,
             type: 'POST'
         });
     })
-    .then(function (result) {        
+    .then(function () {        
         //User created... Get authorization token
         return $.ajax({
-            url: serverUrl + '/api/user/auth',
+            url: yasoonServerUrl + '/api/user/auth',
             contentType: 'application/json',
             data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
             processData: false,
@@ -618,7 +600,7 @@ function registerAccount(cbk) {
         $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
            
         return $.ajax({
-            url: serverUrl + '/jira/assigncompany',
+            url: yasoonServerUrl + '/jira/assigncompany',
             contentType: 'application/json',
             data: JSON.stringify({ 
                 serverId: serverId,
@@ -644,16 +626,9 @@ function registerAccount(cbk) {
     });
 }
 
-function getUrlParameterByName(name) {
-    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-        results = regex.exec(location.search);
-    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-}
-
 function checkProduct() {
     $.ajax({
-        url: serverUrl + '/api/company/activeproducts',
+        url: yasoonServerUrl + '/api/company/activeproducts',
         headers: { userAuthToken: authToken },
         type: 'GET'
     }).done(function (data) {
@@ -703,12 +678,15 @@ function refreshLicense() {
     
     if(licenseRefreshActive)
         return;
-    
+
+    if (isCloud)
+        return;
+
     licenseRefreshActive = true;
     $('.licenseRefresh').addClass('grey-text text-lighten-2');
     
     $.ajax({
-        url: serverUrl + '/jira/checkSingleMarketplaceLicense',
+        url: yasoonServerUrl + '/jira/checkSingleMarketplaceLicense',
         type: 'POST',
         data: JSON.stringify({
             serverId: serverId,
@@ -742,7 +720,7 @@ function checkDownloadLink() {
 
 function getDownloadLink() {
     $.ajax({
-        url: serverUrl + '/api/company/build',
+        url: yasoonServerUrl + '/api/company/build',
         type: 'GET',
         headers: { userAuthToken: authToken }
     })
@@ -778,6 +756,9 @@ function getDownloadLink() {
 }
 
 function checkAppLink() {
+    if (isCloud)
+        return;
+    
     return Promise.resolve($.ajax({
         url: 'applink',
         type: 'GET'
@@ -801,4 +782,99 @@ function checkAppLink() {
         
         return applink.exists;
     });
+}
+
+function getCustomCert() {
+	$.ajax({
+		url: yasoonServerUrl + '/jira/getCustomCert',
+		data: { jwt: jwt },
+		headers: { userAuthToken: authToken },
+		type: 'GET'
+	}).done(function (data) {
+		$('.certTextArea').val(data.customCert);
+	});
+}
+
+// User Dialog
+function onUserDialogOpen() {
+    var userEmail = $.cookie('yasoonEmail');
+    var splittedEmail = userEmail.split('@');
+    if (splittedEmail.length === 2) {
+        $('#userNameSearch').val(splittedEmail[1]).trigger('change');
+    }
+    $('#userNameSearchTrigger').unbind().click(dialogSearch).trigger('click');
+    $('#userNameSearch').unbind().keypress(function(e) {
+        if(e.which === 13) {
+            dialogSearch();
+            e.preventDefault();
+            return false;
+        }
+    });
+    
+    $('#selectUsers').unbind().click(selectUsers);
+}
+
+function renderUserChip(userKey, userName, profilePicUrl) {
+    return '<div id="' + userKey + '" class="chip" style="margin:10px;">' +
+		'<img src="' + profilePicUrl + '" />' +
+        userName + '<i class="material-icons">close</i></div>';
+}
+
+function removeUserChip(e) {
+    delete shareUserList[e.target.parentNode.id];
+}
+
+function selectUsers() {
+    var users = $('#userPickerList > li > span > input:checked');
+
+    for (var i = 0; i < users.length; i++) {
+        var key = users[i].id;
+        //Is already rendered?
+        if (!shareUserList[key]) {
+            shareUserList[key] = foundUsers[key];
+            var html = renderUserChip(key, shareUserList[key].displayName, shareUserList[key].avatarUrls['48x48']);
+            $(html).appendTo('#userChips').children('i').click(removeUserChip);
+        }
+    }
+    
+    $('#userPicker').closeModal();
+}
+
+function dialogSearch() {
+    var term = $('#userNameSearch').val();
+    Promise.resolve($.get(systemInfo.baseUrl + '/rest/api/2/user/search?username=' + term))
+    .then(function(users) {
+        $('#userPickerList').html('');
+        foundUsers = [];
+        for (var i = 0; i < users.length; i++) {
+            var user = users[i];
+            foundUsers[user.key] = user;
+            $('#userPickerList').append('<li class="collection-item avatar">' + 
+								'<img src="' + user.avatarUrls['48x48'] + '" alt="" class="circle">'+
+								'<span class="title">' + user.displayName + '</span>'+
+								'<p class="grey-text text-lighten-1">' +
+									user.emailAddress +
+								'</p>' + 
+								'<span class="secondary-content"><input type="checkbox" class="filled-in" id="' + user.key +
+                                '" /><label for="' + user.key + '"></label></span></li>');
+        }
+                				
+        $('.collection-item.avatar').unbind().click(function(e) {
+            $(this).find('input').prop("checked", !$(this).find('input').prop("checked"));
+            e.stopPropagation();
+        });
+    });
+}
+
+
+function isIE () {
+  var myNav = navigator.userAgent.toLowerCase();
+  return (myNav.indexOf('msie') != -1) ? parseInt(myNav.split('msie')[1]) : false;
+}
+
+function getUrlParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
