@@ -5,46 +5,46 @@
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
 				</button>
-				<h4 class="modal-title">Log Work</h4>
+				<h4 class="modal-title">{{i18n 'logWork.title'}}</h4>
 			</div>
 			<div class="modal-body" style="max-height: 500px; width: 897px; overflow-y: auto;">
 				<form class="form-horizontal">
 				  <div class="form-group">
-					<label for="jiraInputTimeSpent" class="col-sm-3 control-label">Time spent<span style="color:red;">*</span></label>
+					<label for="jiraInputTimeSpent" class="col-sm-3 control-label">{{i18n 'logWork.timeSpent'}}<span style="color:red;">*</span></label>
 					<div class="col-sm-9">
-						<div><input type="text" class="form-control" id="jiraInputTimeSpent" style="width: 150px; display:inline;"/> (e.g. 3w 4d 12h)</div>
-						<small>An estimate of how much time you have spent working</small>
+						<div><input type="text" class="form-control" id="jiraInputTimeSpent" style="width: 150px; display:inline;"/> {{i18n 'logWork.timeSpentExample'}}</div>
+						<small>{{i18n 'logWork.timeSpentDescription'}}</small>
 					</div>
 				  </div>
 				  <div class="form-group">
-					<label for="jiraInputDateStarted" class="col-sm-3 control-label">Date started<span style="color:red;">*</span></label>
+					<label for="jiraInputDateStarted" class="col-sm-3 control-label">{{i18n 'logWork.dateStarted'}}<span style="color:red;">*</span></label>
 					<div class="col-sm-9">
 					  <input type="text" class="form-control" id="jiraInputDateStarted" style="width: 150px;" />
 					</div>
 				  </div>
 				  <div class="form-group">
-					<label for="inputRemainingEstimate" class="col-sm-3 control-label">Remaining Estimate</label>
+					<label for="inputRemainingEstimate" class="col-sm-3 control-label">{{i18n 'logWork.remainingEstimate'}}</label>
 					<div class="col-sm-9">
 						<div class="radio awesome">
 							<input type="radio" name="jiraOptionsRadios" id="jiraRemainingEstimateAuto" value="auto" checked="checked" />
-							<label for="jiraRemainingEstimateAuto">Adjust automatically</label>
+							<label for="jiraRemainingEstimateAuto">{{i18n 'logWork.adjustAutomatically'}}</label>
 						</div>
 						<div class="radio awesome">
 							<input type="radio" name="jiraOptionsRadios" id="jiraRemainingEstimateAsIs" value="leave" />
-							<label for="jiraRemainingEstimateAsIs">Leave estimate unset</label>
+							<label for="jiraRemainingEstimateAsIs">{{i18n 'logWork.leaveEstimateUnset'}}</label>
 						</div>
 						<div class="radio awesome">
 							<input type="radio" name="jiraOptionsRadios" id="jiraRemainingEstimateSet" value="new" />
-							<label for="jiraRemainingEstimateSet">Set to: <input type="text" id="jiraRemainingEstimateSetInput" class="form-control" style="width: 100px; display:inline;" disabled="disabled" /></label>
+							<label for="jiraRemainingEstimateSet">{{i18n 'logWork.setTo'}}: <input type="text" id="jiraRemainingEstimateSetInput" class="form-control" style="width: 100px; display:inline;" disabled="disabled" /></label>
 						</div>
 						<div class="radio awesome">
 							<input type="radio" name="jiraOptionsRadios" id="jiraRemainingEstimateReduce" value="manual" />
-							<label for="jiraRemainingEstimateReduce"> Reduce by: <input type="text" id="jiraRemainingEstimateReduceInput" class="form-control" style="width: 100px; display:inline;" disabled="disabled" /></label>
+							<label for="jiraRemainingEstimateReduce">{{i18n 'logWork.reduceBy'}}: <input type="text" id="jiraRemainingEstimateReduceInput" class="form-control" style="width: 100px; display:inline;" disabled="disabled" /></label>
 						</div>
 					</div>
 				  </div>
 				  <div class="form-group">
-					<label for="jiraInputComment" class="col-sm-3 control-label">Work description</label>
+					<label for="jiraInputComment" class="col-sm-3 control-label">{{i18n 'logWork.workDescription'}}</label>
 					<div class="col-sm-9">
 						<textarea id="jiraInputComment" class="form-control" style="width: 450px; height: 150px;"></textarea>
 					</div>
@@ -52,8 +52,8 @@
 				</form>
 			</div>
 			<div class="modal-footer" style="margin-top: 0px;">
-				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-				<button id="LogWorkSave" type="button" class="btn btn-primary">Add</button>
+				<button type="button" class="btn btn-default" data-dismiss="modal">{{i18n 'logWork.close'}}</button>
+				<button id="LogWorkSave" type="button" class="btn btn-primary">{{i18n 'logWork.add'}}</button>
 			</div>
 		</div>
 	</div>

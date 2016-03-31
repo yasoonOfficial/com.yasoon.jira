@@ -12,7 +12,7 @@ function JiraRibbonController() {
 				type: 'button',
 				id: 'newIssue',
 				insertAfterMso: 'NewTaskCompact',
-				label: 'New Issue',
+				label: yasoon.i18n('ribbon.newIssue'),
 				image: 'logo_icon1.png',
 				onAction: self.ribbonOnNewIssue
 			}]
@@ -24,13 +24,13 @@ function JiraRibbonController() {
 				id: 'newIssueFullMail',
 				type: 'button',
 				image: 'logo_icon1.png',
-				label: 'New Issue',
+				label: yasoon.i18n('ribbon.newIssue'),
 				onAction: self.ribbonOnNewIssue
 			}, {
 				id: 'addToIssueFullMail',
 				type: 'button',
 				image: 'logo_icon1.png',
-				label: 'Add to Issue',
+				label: yasoon.i18n('ribbon.addToIssue'),
 				onAction: self.ribbonOnAddToIssue
 			}]
 		}, {
@@ -39,14 +39,14 @@ function JiraRibbonController() {
 			items: [{
 				type: 'button',
 				id: 'uploadAttachmentToIssue',
-				label: 'Upload to Issue',
+				label: yasoon.i18n('ribbon.uploadToIssue'),
 				enabled: false,
 				image: 'logo_icon1.png',
 				onAction: self.uploadAttachment
 			}, {
 				type: 'dynamicMenu',
 				id: 'uploadAttachmentDynamicMenu',
-				label: 'Upload to Issues',
+				label: yasoon.i18n('ribbon.uploadToIssues'),
 				image: 'logo_icon1.png',
 				visible: false,
 				items: [{
@@ -59,10 +59,10 @@ function JiraRibbonController() {
 		}];
 
 		//Add New Issue Ribbons in email
-		var newIssueRibbons = self.createContextRibbonItems('New Issue', 'newIssueFromText', self.ribbonOnNewIssue);
+		var newIssueRibbons = self.createContextRibbonItems(yasoon.i18n('ribbon.newIssue'), 'newIssueFromText', self.ribbonOnNewIssue);
 		contextMenuItems = contextMenuItems.concat(newIssueRibbons);
 		
-		var addToIssueRibbons = self.createContextRibbonItems('Add to Issue', 'addToIssueFromText', self.ribbonOnAddToIssue);
+		var addToIssueRibbons = self.createContextRibbonItems(yasoon.i18n('ribbon.addToIssue'), 'addToIssueFromText', self.ribbonOnAddToIssue);
 		contextMenuItems = contextMenuItems.concat(addToIssueRibbons);
 
 		//Add main menu ribbon
@@ -81,6 +81,7 @@ function JiraRibbonController() {
 						id: 'jiraMailExplorerGroup',
 						insertAfterMso: 'GroupMailRespond',
 						label: 'JIRA',
+                        image: 'brandedlogo-64',
 						items: self.createJiraRibbonGroup('MailMain')
 					}]
 				}]
@@ -103,6 +104,7 @@ function JiraRibbonController() {
 						id: 'jiraMailReadGroup',
 						insertAfterMso: 'GroupShow',
 						label: 'JIRA',
+                        image: 'brandedlogo-64',
 						items: self.createJiraRibbonGroup('MailRead')
 					}]
 				}]
@@ -173,14 +175,14 @@ function JiraRibbonController() {
 			type: 'button',
 			id: 'newIssueFrom' + id,
 			size: 'large',
-			label: 'New Issue',
+			label: yasoon.i18n('ribbon.newIssue'),
 			image: 'images/ribbonNew.png',
 			onAction: self.ribbonOnNewIssue
 		},{
 			type: 'button',
 			id: 'addToIssueFrom' + id,
 			size: 'large',
-			label: 'Add To Issue',
+			label: yasoon.i18n('ribbon.addToIssue'),
 			image: 'images/ribbonAdd.png',
 			onAction: self.ribbonOnAddToIssue
 		},{
@@ -188,14 +190,14 @@ function JiraRibbonController() {
 			id: 'openIssueFrom' + id,
 			enabled: false,
 			size: 'large',
-			label: 'Open Issue',
+			label: yasoon.i18n('ribbon.openIssue'),
 			image: 'images/ribbonOpen.png',
 			onAction: self.ribbonOpenIssue
 		},{
 			type: 'dynamicMenu',
 			id: 'openIssueDynamicMenuFrom' + id,
 			size: 'large',
-			label: 'Open Issues',
+			label: yasoon.i18n('ribbon.openIssues'),
 			image: 'images/ribbonOpen.png',
 			visible: false,
 			items: [{
@@ -234,7 +236,7 @@ function JiraRibbonController() {
 						convItems.push({
 							type: 'button',
 							id: 'openIssueMenu-' + currentItem.id,
-							label: 'Open Issue ' + currentItem.key,
+							label: yasoon.i18n('ribbon.openIssueWithKey', { key: currentItem.key }),
 							externalData: currentItem.key,
 							image: 'images/ribbonOpen.png',
 							onAction: self.ribbonOpenIssue
@@ -255,7 +257,7 @@ function JiraRibbonController() {
 				} else {
 					var key = convData.issues[Object.keys(convData.issues)[0]].key;
 					jira.ribbonFactory[method](ribbonButton, {
-						label: 'Open Issue ' + key,
+						label: yasoon.i18n('ribbon.openIssueWithKey', { key: key }),
 						externalData: key,
 						enabled: true,
 						visible: true
@@ -271,7 +273,7 @@ function JiraRibbonController() {
 		}
 
 		jira.ribbonFactory[method](ribbonButton, {
-			label: 'Open Issue',
+			label: yasoon.i18n('ribbon.openIssue'),
 			enabled: false,
 			visible: true
 		}, parameters);
@@ -302,7 +304,7 @@ function JiraRibbonController() {
 						convItems.push({
 							type: 'button',
 							id: 'uploadToIssue-' + currentItem.id,
-							label: 'Upload to Issue ' + currentItem.key,
+							label: yasoon.i18n('ribbon.uploadToIssueWithKey', { key: currentItem.key }),
 							externalData: currentItem.key,
 							image: 'images/ribbonOpen.png',
 							onAction: self.uploadAttachment
@@ -323,7 +325,7 @@ function JiraRibbonController() {
 				} else {
 					var key = convData.issues[Object.keys(convData.issues)[0]].key;
 					jira.ribbonFactory[method](ribbonButton, {
-						label: 'Upload to Issue ' + key,
+						label: yasoon.i18n('ribbon.uploadToIssueWithKey', { key: key }),
 						externalData: key,
 						enabled: true,
 						visible: true
@@ -339,7 +341,7 @@ function JiraRibbonController() {
 		}
 
 		jira.ribbonFactory[method](ribbonButton, {
-			label: 'Upload to Issue',
+			label: yasoon.i18n('ribbon.uploadToIssue'),
 			enabled: false,
 			visible: true
 		}, parameters);
@@ -373,7 +375,7 @@ function JiraRibbonController() {
 				formData: formData,
 				headers: { Accept: 'application/json', 'X-Atlassian-Token': 'nocheck' },
 				error: function (data, statusCode, result, errorText, cbkParam) {
-					yasoon.dialog.showMessageBox('Couldn\'t upload all attachments. Please try again. - ' + errorText );
+					yasoon.dialog.showMessageBox(yasoon.i18n('general.couldNotUploadAttachments') + ' - ' + errorText );
 				},
 				success: function () {
 					ribbonCtx.items[0].completeLoader();
@@ -391,7 +393,7 @@ function JiraRibbonController() {
 			return;
 		}
 		if (!jira.settings.currentService || !yasoon.app.isOAuthed(jira.settings.currentService)) {
-			yasoon.dialog.showMessageBox('Please login to Jira in settings menu first!');
+			yasoon.dialog.showMessageBox(yasoon.i18n('general.loginFirst'));
 			return;
 		}
 		var initParams = {
@@ -405,7 +407,7 @@ function JiraRibbonController() {
 		var dialogOptions = {
 			width: 735,
 			height: 700,
-			title: 'New Jira Issue',
+			title: yasoon.i18n('dialog.newIssueDialogTitle'),
 			resizable: true,
 			htmlFile: 'Dialogs/newIssueDialog.html',
 			initParameter: initParams,
@@ -426,11 +428,11 @@ function JiraRibbonController() {
 			try {
 				selection = ribbonCtx.items[ribbonCtx.readingPaneItem].getSelection(0);
 			} catch (e) {
-				yasoon.dialog.showMessageBox('Couldn\'t determine the current email. Please switch the focus to another email and try again');
+				yasoon.dialog.showMessageBox(yasoon.i18n('general.couldNotDetectEmail'));
 				return;
 			}
 			if (!selection || !selection.trim()) {
-					yasoon.dialog.showMessageBox('Please select some text first!');
+					yasoon.dialog.showMessageBox(yasoon.i18n('general.selectTextFirst'));
 					return;
 			}
 						
@@ -442,7 +444,7 @@ function JiraRibbonController() {
 				yasoon.dialog.open(dialogOptions);
 			})
 			.catch(function () {
-				initParams.text = 'Could not render the selected text as JIRA markup. Please switch to plain text or contact us to get this fixed!';
+				initParams.text = yasoon.i18n('general.couldNotRenderMarkup');
 				yasoon.dialog.open(dialogOptions);
 			});
 			
@@ -456,7 +458,7 @@ function JiraRibbonController() {
 		}
 
 		if (!jira.settings.currentService || !yasoon.app.isOAuthed(jira.settings.currentService)) {
-			yasoon.dialog.showMessageBox('Please login to Jira in settings menu first!');
+			yasoon.dialog.showMessageBox(yasoon.i18n('general.loginFirst'));
 			return;
 		}
 
@@ -469,7 +471,7 @@ function JiraRibbonController() {
 		var dialogOptions = {
 			width: 610,
 			height: 575,
-			title: 'Add Comment',
+			title: yasoon.i18n('dialog.addToIssueDialogTitle'),
 			resizable: true,
 			htmlFile: 'Dialogs/AddCommentDialog.html',
 			initParameter: initParams,
@@ -485,11 +487,11 @@ function JiraRibbonController() {
 			try {
 				selection = ribbonCtx.items[ribbonCtx.readingPaneItem].getSelection(0);
 			} catch (e) {
-				yasoon.dialog.showMessageBox('Couldn\'t determine the current email. Please switch the focus to another email and try again');
+				yasoon.dialog.showMessageBox(yasoon.i18n('general.couldNotDetectEmail'));
 				return;
 			}
 			if (!selection || !selection.trim()) {
-				yasoon.dialog.showMessageBox('Please select some text first!');
+				yasoon.dialog.showMessageBox(yasoon.i18n('general.selectTextFirst'));
 				return;
 			}
 
@@ -501,7 +503,7 @@ function JiraRibbonController() {
 				yasoon.dialog.open(dialogOptions);
 			})
 			.catch(function () {
-				initParams.text = 'Could not render the selected text as JIRA markup. Please switch to plain text or contact us to get this fixed!';
+				initParams.text = yasoon.i18n('general.couldNotRenderMarkup');
 				yasoon.dialog.open(dialogOptions);
 			});
 		}
@@ -643,53 +645,53 @@ function JiraFilterController() {
 
 		self.filterObj = [
 			{
-				name: 'Project',
+				name: yasoon.i18n('filter.projectFilter'),
 				key: 'fields.project.id',
 				value: { type: 'json', path: 'fields.project.name' }
 				//Without label so it gets the default GetLabel method
 			},
 			{
-				name: 'Type',
+				name: yasoon.i18n('filter.typeFilter'),
 				key: 'fields.issuetype.id',
 				value: { type: 'json', path: 'fields.issuetype.name' }
 			},
 			{
-				name: 'Reporter',
+				name: yasoon.i18n('filter.reporterFilter'),
 				key: 'fields.reporter.emailAddress',
 				value: { type: 'json', path: 'fields.reporter.displayName' }
 			},
 			{
-				name: 'Status',
+				name: yasoon.i18n('filter.statusFilter'),
 				key: 'fields.status.id',
 				value: { type: 'json', path: 'fields.status.name' }
 			},
 			{
-				name: 'Priority',
+				name: yasoon.i18n('filter.priorityFilter'),
 				key: 'fields.priority.id',
 				value: { type: 'json', path: 'fields.priority.name' }
 			},
 			{
-				name: 'Assignee',
+				name: yasoon.i18n('filter.assigneeFilter'),
 				key: 'fields.assignee.emailAddress',
 				value: { type: 'json', path: 'fields.assignee.displayName' }
 			},
 			{
-				name: 'FixVersion',
+				name: yasoon.i18n('filter.fixVersionFilter'),
 				key: 'fields.fixVersions[*].id',
 				value: { type: 'json', path: 'fields.fixVersions[*].name' }
 			},
 			{
-				name: 'Version',
+				name: yasoon.i18n('filter.versionFilter'),
 				key: 'fields.versions[*].id',
 				value: { type: 'json', path: 'fields.fixVersions[*].name' }
 			},
 			{
-				name: 'Label',
+				name: yasoon.i18n('filter.labelFilter'),
 				key: 'fields.labels'
 				//value: { type: 'json', path: 'fields.fixVersions[*].name' }
 			},
 			{
-				name: 'Component',
+				name: yasoon.i18n('filter.labelFilter'),
 				key: 'fields.components[*].id',
 				value: { type: 'json', path: 'fields.components[*].name' }
 			}
@@ -908,7 +910,7 @@ function jiraOpenPurchaseDialog() {
 	yasoon.dialog.open({
 		width: 720,
 		height: 610,
-		title: 'Your trial has expired',
+		title: yasoon.i18n('dialog.trialExpiredDialogTitle'),
 		resizable: false,
 		htmlFile: 'Dialogs/purchase.html',
 		initParameter: {

@@ -10,13 +10,13 @@ function JiraNotificationController() {
 	self.worklogTemplate = null;
 
 	self.handleCommentError = function (error) {
-		var errorMessage = (error.statusCode === 500) ? 'Connection to Jira not possible' : error.errorText;
-		yasoon.alert.add({ type: yasoon.alert.alertType.error, message: 'Could not create Comment: ' + errorMessage });
+		var errorMessage = (error.statusCode === 500) ? yasoon.i18n('feed.connectionToJiraNotPossible') : error.errorText;
+		yasoon.alert.add({ type: yasoon.alert.alertType.error, message: yasoon.i18n('feed.couldNotCreateComment') + ': ' + errorMessage });
 	};
 	
 	self.handleAttachmentError = function (error) {
-		var errorMessage = (error.statusCode === 500) ? 'Connection to Jira not possible' : error.errorText;
-		yasoon.alert.add({ type: yasoon.alert.alertType.error, message: 'Could not upload Attachment(s): ' + errorMessage });
+		var errorMessage = (error.statusCode === 500) ? yasoon.i18n('feed.connectionToJiraNotPossible') : error.errorText;
+		yasoon.alert.add({ type: yasoon.alert.alertType.error, message: yasoon.i18n('feed.couldNotUploadAttachments') + ': ' + errorMessage });
 	};
 
 	self.addComment = function addComment(parent, comment, successCbk, attachments, errorCbk) {
@@ -93,17 +93,17 @@ function JiraNotificationController() {
 		if (notificationCounter === 1) {
 			//jiraLog('Single Desktop Notification shown: ', notification);
 			content = $('<div>' + notification.title + ' </div>').text();
-			yasoon.notification.showPopup({ title: 'News on Jira', text: content, contactId: notification.contactId });
+			yasoon.notification.showPopup({ title: yasoon.i18n('feed.jiraNewsDesktopNotifTitle'), text: content, contactId: notification.contactId });
 		}
 		else if (notificationCounter === 2 && notificationEvent && notificationEvent.category && notificationEvent.category['@attributes'].term === 'created') {
 			//Handle the single issue creation case (we want to show a single desktop nofif
 			//jiraLog('Single Desktop Notification shown: ', notification);
 			content = $('<div>' + notification.title + ' </div>').text();
-			yasoon.notification.showPopup({ title: 'News on Jira', text: content, contactId: notification.contactId });
+			yasoon.notification.showPopup({ title: yasoon.i18n('feed.jiraNewsDesktopNotifTitle'), text: content, contactId: notification.contactId });
 		}
 		else {
 			jiraLog('Multiple Desktop Notification shown!');
-			yasoon.notification.showPopup({ title: "News on Jira", text: 'multiple new notifications' });
+			yasoon.notification.showPopup({ title: yasoon.i18n('feed.jiraNewsDesktopNotifTitle'), text: yasoon.i18n('feed.jiraNewsDesktopNotifMultiple') });
 		}
 
 		notificationCounter = 0;
@@ -484,12 +484,16 @@ function JiraIssueNotification(issue) {
 		}
 
 		//Add Actions
-		feed.properties.customActions.push({ description: '<span><i class="fa fa-external-link"></i> Open </span>', url: jira.settings.baseUrl + '/browse/' + self.issue.key });
+		feed.properties.customActions.push(
+        { 
+            description: '<span><i class="fa fa-external-link"></i> ' + yasoon.i18n('notification.openAction')  + '</span>',
+            url: jira.settings.baseUrl + '/browse/' + self.issue.key 
+        });
 
 		var changeStatusHtml = '' +
 			'<span style="position:relative;">' +
 			'   <span class="dropdown-toggle" data-toggle="dropdown">' +
-			'       <span><i class="fa fa-sign-in"></i> Set status</span>' +
+			'       <span><i class="fa fa-sign-in"></i> '+ yasoon.i18n('notification.setStatusAction') + '</span>' +
 			'       <span class="caret"></span>' +
 			'   </span>' +
 			'   <ul class="dropdown-menu" role="menu">';
@@ -500,9 +504,9 @@ function JiraIssueNotification(issue) {
 			'   </ul>' +
 			'</span>';
 		feed.properties.customActions.push({ description: changeStatusHtml, eventHandler: $.noop });
-		feed.properties.customActions.push({ description: '<span><i class="fa fa-paperclip"></i> Add file</span>', eventHandler: self.addAttachment });
-		feed.properties.customActions.push({ description: '<span><i class="fa fa-pencil"></i> Edit</span>', eventHandler: self.editIssue });
-		feed.properties.customActions.push({ description: '<span data-key="' + self.issue.key + '"><i class="fa fa-clock-o"></i> Log Work</span>', eventHandler: self.logWork, issueKey: self.issue.key });
+		feed.properties.customActions.push({ description: '<span><i class="fa fa-paperclip"></i> ' + yasoon.i18n('notification.addFileAction') + '</span>', eventHandler: self.addAttachment });
+		feed.properties.customActions.push({ description: '<span><i class="fa fa-pencil"></i> ' + yasoon.i18n('notification.editAction') + '</span>', eventHandler: self.editIssue });
+		feed.properties.customActions.push({ description: '<span data-key="' + self.issue.key + '"><i class="fa fa-clock-o"></i> ' + yasoon.i18n('notification.logWorkAction') + '</span>', eventHandler: self.logWork, issueKey: self.issue.key });
 		feed.properties.baseUrl = jira.settings.baseUrl;
 		feed.setProperties(feed.properties);
 
@@ -581,7 +585,7 @@ function JiraIssueNotification(issue) {
 			}
 
 			//Description is sometimes an object. WTF?! check for it and log so we can probably figure out what's inside
-			var content = 'no content';
+			var content = yasoon.i18n('notification.noContent');
 			if (self.issue.fields.description && typeof self.issue.fields.description != 'string') {
 				try {
 					yasoon.util.log('Description Object found:' + JSON.stringify(self.issue.fields.description) + ' --> Rendered Description: ' + JSON.stringify(self.issue.renderedFields.description));
@@ -673,7 +677,7 @@ function JiraIssueNotification(issue) {
 		yasoon.dialog.open({
 			width: 725,
 			height: 700,
-			title: 'Edit Jira Issue',
+			title: yasoon.i18n('dialog.editJiraIssueDialogTitle'),
 			resizable: true,
 			htmlFile: 'Dialogs/newIssueDialog.html',
 			initParameter: { 'settings': jira.settings, 'ownUser': jira.data.ownUser, 'editIssue': self.issue },
@@ -869,10 +873,13 @@ function JiraIssueActionNotification(event) {
 		var renderedComment = $.grep(self.event.issue.renderedFields.comment.comments, function (c) { return c.id === comment.id; })[0];
 	   
 		yEvent.parentNotificationId = parent.notificationId;
-		yEvent.externalId = 'c'+comment.id;
+		yEvent.externalId = 'c' + comment.id;
 		//"Render" title for desktop notification
-		yEvent.title = comment.updateAuthor.displayName + ' commented on: ' + self.event.issue.fields.summary;
-		yEvent.content = (renderedComment.body) ? renderedComment.body : 'no content';
+		yEvent.title = yasoon.i18n('notification.commentedOn', {
+            name: comment.updateAuthor.displayName,
+            text: self.event.issue.fields.summary
+        });
+		yEvent.content = (renderedComment.body) ? renderedComment.body : yasoon.i18n('notification.noContent');
 		yEvent.contactId = comment.updateAuthor.name;
 		yEvent.createdAt = new Date(comment.updated);
 		yEvent.type = 1;		
@@ -918,7 +925,7 @@ function JiraIssueActionNotification(event) {
 		yEvent.parentNotificationId = parent.notificationId;
 		yEvent.externalId = self.event.id['#text'];
 		yEvent.title = $('<div>'+ self.event.title['#text']+'</div>').text();
-		yEvent.content = (yEvent.title) ? yEvent.title : 'no content';
+		yEvent.content = (yEvent.title) ? yEvent.title : yasoon.i18n('notification.noContent');
 		yEvent.createdAt = new Date(self.event.updated['#text']);
 		yEvent.type = 2;
 

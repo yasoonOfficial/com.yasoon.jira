@@ -49,10 +49,22 @@ function renderMailHeaderText(mail, useMarkup) {
 	var result = '';
 	
 	if (useMarkup) {
-		result = '*From:* ' + mail.senderName + ' <[mailto:' + mail.senderEmail + ']> \n*Sent:* ' + moment(mail.receivedAt).format('MMMM Do YYYY, h:mm a') + '\n'+ ((mail.recipients.length > 0) ? '*To:* [mailto:' + mail.recipients.join('],[mailto:') + ']\n *Subject*: '+ mail.subject + '\n----\n' : '');
+        result = yasoon.i18n('mail.mailHeaderMarkup', {
+           senderName: mail.senderName,
+           senderEmail: mail.senderEmail,
+           date: moment(mail.receivedAt).format('LLL'),
+           recipients: ((mail.recipients.length > 0) ? '[mailto:' + mail.recipients.join('],[mailto:') : 'No One'),
+           subject: mail.subject
+        });
 	}
 	else {
-		result = 'From: ' + mail.senderName + ' <' + mail.senderEmail + '> \n Sent: ' + moment(mail.receivedAt).format('MMMM Do YYYY, h:mm a') + ' \n To: ' + mail.recipients.join(',') + '\n Subject: ' + mail.subject + '\n';
+        result = yasoon.i18n('mail.mailHeaderPlain', {
+           senderName: mail.senderName,
+           senderEmail: mail.senderEmail,
+           date: moment(mail.receivedAt).format('LLL'),
+           recipients: mail.recipients.join(','),
+           subject: mail.subject
+        });
 	}
 	
 	return result;
@@ -256,12 +268,12 @@ function jiraSyncError(message, statusCode, errorText, data, result) {
 					result = JSON.stringify(error.errors);
 				}
 			} else {
-				result = 'This did not work due to an unexpected JIRA error.';
+				result = yasoon.i18n('general.unexpectedJiraError');
 			}
 
 			return result;
 		} catch (e) {
-			return 'This did not work due to an unexpected JIRA error.';
+			return yasoon.i18n('general.unexpectedJiraError');
 		}
 	};
 }

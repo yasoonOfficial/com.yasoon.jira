@@ -64,8 +64,17 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		yasoon.app.on("oAuthError", jira.handleOAuthError);
 		yasoon.outlook.on("selectionChange", jira.handleSelectionChange);
 		yasoon.outlook.on("itemOpen", jira.handleNewInspector);
-		yasoon.periodicCallback(300, jira.sync);
-		yasoon.on("sync", jira.sync);
+		yasoon.periodicCallback(300, function() {
+			//Don't pass the function directly, as yasoon will hook itself
+			// to the promise otherwise
+			jira.sync(); 
+		});
+		
+		yasoon.on("sync", function() {
+			//Don't pass the function directly, as yasoon will hook itself
+			// to the promise otherwise
+			jira.sync(); 
+		});
 	};
 
 	this.handleSelectionChange = function handleSelectionChange(item) {
@@ -87,7 +96,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	this.syncData = function () {
 		if (jira.restartRequired) {
 			//Notify user about recent update
-			yasoon.dialog.showMessageBox('JIRA for Outlook made some configurations on your Outlook. Please restart Outlook once again to use all new functionalities');
+			yasoon.dialog.showMessageBox(yasoon.i18n('general.restartNecessary'));
 			jira.restartRequired = false;
 		}
 
@@ -161,7 +170,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		console.log('OAuth Error', error, statusCode);
 		var initialError = error;
 		if (statusCode == 500) {
-			yasoon.dialog.showMessageBox("Couldn\'t reach JIRA server. Either the system does not exist anymore or is currently not reachable. (e.g. Proxy or VPN is missing)");
+			yasoon.dialog.showMessageBox(yasoon.i18n('general.couldNotReachJira'));
 		} else if (error.indexOf('oauth_problem') === 0) {
 			//Standard OAuth Messages => http://wiki.oauth.net/w/page/12238543/ProblemReporting
 			error = error.split('&')[0];
@@ -169,13 +178,13 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			if (error) {
 				switch (error) {
 					case 'consumer_key_unknown':
-						yasoon.dialog.showMessageBox("The application link is unknown. Please make sure you have an application link in JIRA called: yasoonjira");
+						yasoon.dialog.showMessageBox(yasoon.i18n('general.applicationLinkUnknown'));
 						break;
 					case 'timestamp_refused':
-						yasoon.dialog.showMessageBox("Jira refuses the request because of time differences. Either your local time is not set correctly or the JIRA server has a wrong time. (different timezones are ok)");
+						yasoon.dialog.showMessageBox(yasoon.i18n('general.timestampRefused'));
 						break;
 					case 'signature_invalid':
-						yasoon.dialog.showMessageBox("The certificate you are using in the application link is invalid. Please make sure you have setup JIRA correctly. Afterwards visit the settings and click on \"Reload System Information\"");
+						yasoon.dialog.showMessageBox(yasoon.i18n('general.certificateInvalid'));
 						break;
 					default:
 						yasoon.alert.add({ type: yasoon.alert.alertType.error, message: initialError });

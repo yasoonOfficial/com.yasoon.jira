@@ -1,0 +1,99 @@
+{
+	"en": {
+		"translation": {
+			"ribbon": {
+				"newIssue": "New Issue",
+                "addToIssue": "Add to Issue",
+                "uploadToIssue": "Upload to Issue",
+                "uploadToIssueWithKey": "Upload to Issue {{key}}",
+                "uploadToIssues": "Upload to Issues",
+                "openIssue": "Open Issue",
+                "openIssues": "Open Issues",
+                "openIssueWithKey": "Open Issue {{key}}"
+			},
+            "general": {
+                "couldNotUploadAttachments": "Couldn't upload all attachments. Please try again.",
+                "loginFirst": "Please login to JIRA in settings menu first!",
+                "couldNotDetectEmail": "Couldn't determine the current email. Please switch the focus to another email and try again",
+                "selectTextFirst": "Please select some text first!",
+                "couldNotRenderMarkup": "Could not render the selected text as JIRA markup. Please switch to plain text or contact us to get this fixed!",
+                "restartNecessary": "JIRA for Outlook made some changes to your Outlook. Please restart Outlook once again to use all new functions.",
+                "couldNotReachJira": "Couldn't connect to JIRA. Either the system does not exist anymore or is currently not reachable. (e.g. Proxy or VPN is missing)",
+                "applicationLinkUnknown": "The application link is unknown. Please make sure you have an application link in JIRA called: yasoonjira",
+                "timestampRefused": "JIRA refused the request because of time differences. Either your local time is not set correctly or the JIRA server has a wrong time (Different timezones are ok).",
+                "certificateInvalid": "The certificate you are using in the application link is invalid. Please make sure you have setup JIRA correctly. Afterwards visit the settings and click on \"Reload System Information\"",
+                "unexpectedJiraError": "This did not work due to an unexpected JIRA error.",
+                "connectionToJiraNotPossible": "Connection to Jira not possible"                        
+            },
+            "feed": {
+                "couldNotCreateComment": "Could not create comment",
+                "couldNotUploadAttachments": "Could not upload attachment(s)",
+                "jiraNewsDesktopNotifTitle": "News on JIRA",
+                "jiraNewsDesktopNotifMultiple": "Multiple new Notifications"
+            },
+            "dialog": {
+                "newIssueDialogTitle": "New JIRA Issue",
+                "addToIssueDialogTitle": "Add Comment/Attachments to Issue",
+                "trialExpiredDialogTitle": "Your trial has expired",
+                "editJiraIssueDialogTitle": "Edit JIRA Issue"
+            },
+            "filter": {
+                "projectFilter": "Project",
+                "typeFilter": "Type",
+                "reporterFilter": "Reporter",
+                "statusFilter": "Status",
+                "priorityFilter": "Priority",
+                "assigneeFilter": "Assignee",
+                "fixVersionFilter": "Fix Version",
+                "versionFilter": "Version",
+                "labelFilter": "Label",
+                "componentFilter": "Component"                
+            },
+            "mail": {
+                "mailHeaderMarkup": "*From:* {{senderName}} <[mailto:{{senderEmail}}]> \n*Sent:* {{date}}\n*To:* {{recipients}}\n*Subject*: {{subject}}\n----\n",
+                "mailHeaderPlain": "From: {{senderName}} <{{senderEmail}}> \n Sent: {{date}} \n To: {{recipients}}\n Subject: {{subject}}\n"
+            },
+            "logWork": {
+                "title": "Log Work",
+                "timeSpent": "Time spent",
+                "timeSpentExample": "(e.g. 3w 4d 12h)",
+                "timeSpentDescription": "An estimate of how much time you have spent working",
+                "dateStarted": "Date started",
+                "remainingEstimate": "Remaining Estimate",
+                "adjustAutomatically": "Adjust automatically",
+                "leaveEstimateUnset": "Leave estimate unset",
+                "setTo": "Set to",
+                "reduceBy": "Reduce by",
+                "workDescription": "Work description",
+                "close": "Close",
+                "add": "Add"
+            },
+            "notification": {
+                "summary": "Summary",
+                "dueAt": "Due at",
+                "type": "Type",
+                "details": "Details",
+                "priority": "Priority",
+                "affectedVersions": "Affected versions",
+                "environment": "Environment",
+                "description": "Description",
+                "status": "Status",
+                "solution": "Solution",
+                "fixVersions": "Fix versions",
+                "attachments": "Attachments",
+                "persons": "Persons",
+                "assignee": "Assignee",
+                "creator": "Creator",
+                "dates": "Dates",
+                "finishedAt": "Finished at",
+                "openAction": "Open",
+                "setStatusAction": "Set status",
+                "addFileAction": "Add File",
+                "editAction": "Edit",
+                "logWorkAction": "Log Work",
+                "commentedOn": "{{name}} commented on: {{text}}",
+                "noContent": "No Content"
+            }
+		}
+	}
+}

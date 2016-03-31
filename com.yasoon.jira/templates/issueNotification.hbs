@@ -3,7 +3,7 @@
   <div class="row body-collapsed" style="padding-top:2px; padding-bottom:3px;">
     <div class="col-sm-2" style="padding-left: 20px;">
       <div class="jiraFeedExpand" style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; cursor:pointer;">
-        <i class="fa fa-caret-right"></i> Summary:
+        <i class="fa fa-caret-right"></i> {{i18n 'notification.summary'}}:
       </div>
     </div>
     <div class="col-sm-2" style="margin-top: -3px">
@@ -17,7 +17,7 @@
       </span>
     </div>
     <div class="col-sm-3" style="margin-top: -3px">
-      <span>Due at: {{#if fields.duedate}} {{fields.duedate}} {{else}} - {{/if}}</span>
+      <span>{{i18n 'notification.dueAt'}}: {{#if fields.duedate}} {{fields.duedate}} {{else}} - {{/if}}</span>
     </div>
     <div class="col-sm-3" style="margin-top: -3px">
       <span>
@@ -29,13 +29,13 @@
   <div class="row body-open" style="display:none;">
     <div class="col-sm-8" style="padding: 2px 20px;">
       <div class="jiraFeedClose" style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; cursor:pointer;">
-        <i class="fa fa-caret-down"></i> Details <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
+        <i class="fa fa-caret-down"></i> {{i18n 'notification.details'}} <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
       </div>
       <div class="row" >
         <div class="col-sm-6">
           <div class="row" style="margin-top: 5px;">
             <div class="col-sm-4">
-              <span style="color: #707070">Type:</span>
+              <span style="color: #707070">{{i18n 'notification.type'}}:</span>
             </div>
             <div class="col-sm-8">
               <span title="{{fields.issuetype.description}}">
@@ -45,7 +45,7 @@
           </div>
           <div class="row" style="margin-top: 5px;">
             <div class="col-sm-4">
-              <span style="color: #707070">Priority:</span>
+              <span style="color: #707070">{{i18n 'notification.priority'}}:</span>
             </div>
             <div class="col-sm-8">
               <span>
@@ -56,7 +56,7 @@
           {{#if fields.versions}}
           <div class="row" style="margin-top: 5px;">
             <div class="col-sm-4">
-              <span style="color: #707070">Affected versions:</span>
+              <span style="color: #707070">{{i18n 'notification.affectedVersions'}}:</span>
             </div>
             <div class="col-sm-8">
               <span>
@@ -70,7 +70,7 @@
           {{#if environment}}
           <div class="row" style="margin-top: 5px;">
             <div class="col-sm-4">
-              <span style="color: #707070">Enviroment:</span>
+              <span style="color: #707070">{{i18n 'notification.environment'}}:</span>
             </div>
             <div class="col-sm-8">
               <div>{{renderedFields.environment}}</div>
@@ -81,7 +81,7 @@
         <div class="col-sm-6">
           <div class="row" style="margin-top: 5px;">
             <div class="col-sm-4">
-              <span style="color: #707070">Status:</span>
+              <span style="color: #707070">{{i18n 'notification.status'}}:</span>
             </div>
             <div class="col-sm-8">
               <span title="{{fields.status.description}}" >
@@ -91,7 +91,7 @@
           </div>
           <div class="row" style="margin-top: 5px;">
             <div class="col-sm-4">
-              <span style="color: #707070">Solution:</span>
+              <span style="color: #707070">{{i18n 'notification.solution'}}:</span>
             </div>
             <div class="col-sm-8">
               <span> {{#if fields.resolution}}{{fields.resolution.name}}{{else}}not done{{/if}}</span>
@@ -100,7 +100,7 @@
           {{#if fields.fixVersions}}
           <div class="row" style="margin-top: 5px;">
             <div class="col-sm-4">
-              <span style="color: #707070">Fix versions:</span>
+              <span style="color: #707070">{{i18n 'notification.fixVersions'}}:</span>
             </div>
             <div class="col-sm-8">
               <span>
@@ -114,14 +114,14 @@
         </div>
       </div>
       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top: 15px;">
-        Description <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
+        {{i18n 'notification.description'}} <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
       </div>
       <div class="row" style="margin-top: 5px;">
         <div class="col-sm-12"> {{{renderedFields.description}}}</div>
       </div>
         {{#if fields.attachment}}
         <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top: 15px;">
-            Attachments <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
+            {{i18n 'notification.attachments'}} <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
         </div>
         <div class="row" style="margin-top: 5px;">
             <div class="col-sm-12">
@@ -134,11 +134,11 @@
     </div>
     <div class="col-sm-4" style="padding: 10px 20px;">
       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden;">
-        Persons <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
+        {{i18n 'notification.persons'}} <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
       </div>
       <div class="row" style="margin-top: 5px;">
         <div class="col-sm-4">
-          <span style="color: #707070">Assignee:</span>
+          <span style="color: #707070">{{i18n 'notification.assignee'}}:</span>
         </div>
         <div class="col-sm-8">
           <span>
@@ -148,7 +148,7 @@
       </div>
       <div class="row" style="margin-top: 5px;">
         <div class="col-sm-4">
-          <span style="color: #707070">Creator:</span>
+          <span style="color: #707070">{{i18n 'notification.creator'}}:</span>
         </div>
         <div class="col-sm-8">
           <span>
@@ -157,12 +157,12 @@
         </div>
       </div>
       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top:15px;">
-        Dates <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
+        {{i18n 'notification.dates'}} <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
       </div>
       {{#if fields.duedate}}
       <div class="row" style="margin-top: 5px;">
         <div class="col-sm-4">
-          <span style="color: #707070">Due at:</span>
+          <span style="color: #707070">{{i18n 'notification.dueAt'}}:</span>
         </div>
         <div class="col-sm-8">
           <span>{{fields.duedate}}</span>
@@ -172,7 +172,7 @@
       {{#if fields.resolutiondate}}
       <div class="row" style="margin-top: 5px;">
         <div class="col-sm-4">
-          <span style="color: #707070">Finished at:</span>
+          <span style="color: #707070">{{i18n 'notification.finishedAt'}}:</span>
         </div>
         <div class="col-sm-8">
           <span> {{fields.resolutiondate}}</span>
