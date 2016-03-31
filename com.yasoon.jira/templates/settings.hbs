@@ -1,0 +1,165 @@
+{{#unless loggedIn }}
+<p>{{i18n 'settings.headingLogin'}}</p>
+<form class="form-horizontal" role="form">
+	<!-- Instance Selection -->
+	<div class="form-group" style="position:relative; margin-top:20px;">
+		<div class="col-sm-4 checkbox">
+			<b class="pull-right">{{i18n 'settings.selectSystem'}}</b>
+		</div>
+		<div class="col-sm-8">
+			<select id="currentService" class="form-control">
+				{{#each oAuthServices }}
+				<option value="{{serviceName}}" {{#if mainservice}} selected {{/if}}>{{description}}</option>
+				{{/each}}
+			</select>
+		</div>
+	</div>
+
+	<div class="form-group" style="position:relative;margin-top:20px;">
+		<div class="col-sm-4">
+			<button class="btn btn-primary" id="jiraLogin">{{i18n 'settings.loginButton'}}</button>
+		</div>
+	</div>
+	<div>{{i18n 'settings.systemMissing'}} <button id="jiraReloadOAuth" class="btn btn-link" style="padding-top: 4px; margin-left: -10px;">{{i18n 'settings.reloadSystems'}}</button></div>
+</form>
+{{/unless}}
+
+{{#if loggedIn}}
+<p>{{i18n 'settings.headingChooseSettings'}}</p>
+<form class="form-horizontal" role="form">
+	<!--Desktop Notification -->
+	<div class="form-group" style="position:relative; margin-top:20px;">
+		<div class="col-sm-4 checkbox">
+			<b class="pull-right">{{i18n 'settings.showDesktopNotif'}}</b>
+		</div>
+		<div class="col-sm-8">
+			<div class="checkbox awesome">
+				<input class="formValue" type="checkbox" id="showDesktopNotif" name="showDesktopNotif">
+				<label for="showDesktopNotif"></label>
+			</div>
+		</div>
+	</div>
+	<!--Auto Add Attachments-->
+	<div class="form-group" style="position:relative; margin-top:20px;">
+		<div class="col-sm-4 checkbox">
+			<b class="pull-right">{{i18n 'settings.addAttachmentsOnNewAddIssue'}}</b>
+		</div>
+		<div class="col-sm-8">
+			<div class="checkbox awesome">
+				<input class="formValue" type="checkbox" id="addAttachmentsOnNewAddIssue" name="addAttachmentsOnNewAddIssue">
+				<label for="addAttachmentsOnNewAddIssue"></label>
+			</div>
+		</div>
+	</div>
+	<!--Auto add emails-->
+	<div class="form-group" style="position:relative; margin-top:20px;">
+		<div class="col-sm-4 checkbox">
+			<b class="pull-right">{{i18n 'settings.addEmailOnNewAddIssue'}}</b>
+		</div>
+		<div class="col-sm-8">
+			<div class="checkbox awesome">
+				<input class="formValue" type="checkbox" id="addEmailOnNewAddIssue" name="addEmailOnNewAddIssue">
+				<label for="addEmailOnNewAddIssue">
+				</label>
+			</div>
+		</div>
+	</div>
+	<!--Auto Add Mail Header -->
+	<div class="form-group" style="position:relative; margin-top:20px;">
+		<div class="col-sm-4">
+			<b class="pull-right">{{i18n 'settings.addMailHeaderAutomatically'}}</b>
+		</div>
+		<div class="col-sm-8">
+			<select class="formValue" style="width: 140px" id="addMailHeaderAutomatically" name="addMailHeaderAutomatically">
+				<option value="off">{{i18n 'settings.optionDisabled'}}</option>
+				<option value="top">{{i18n 'settings.optionTop'}}</option>
+				<option value="bottom">{{i18n 'settings.optionBottom'}}</option>
+			</select>
+		</div>
+	</div>
+
+	<!-- Sync Options -->
+	<div class="form-group" style="position:relative; margin-top:20px;">
+		<div class="col-sm-4 checkbox">
+			<b class="pull-right">{{i18n 'settings.showFeedIf'}}</b>
+		</div>
+		<div class="col-sm-8">
+			<div class="checkbox awesome">
+				<input class="formValue" type="checkbox" id="showFeedAssignee" name="showFeedAssignee" disabled checked>
+				<label for="showFeedAssignee">{{i18n 'settings.syncAssignee'}}</label>
+			</div>
+			<div class="checkbox awesome">
+				<input class="formValue" type="checkbox" id="showFeedMentioned" name="showFeedMentioned" disabled checked>
+				<label for="showFeedMentioned">{{i18n 'settings.syncMention'}}</label>
+			</div>
+			<div class="checkbox awesome">
+				<input class="formValue" type="checkbox" id="showFeedWatcher" name="showFeedWatcher">
+				<label for="showFeedWatcher">{{i18n 'settings.syncWatch'}}</label>
+			</div>
+			<div class="checkbox awesome">
+				<input class="formValue" type="checkbox" id="showFeedProjectLead" name="showFeedProjectLead">
+				<label for="showFeedProjectLead">{{i18n 'settings.syncProjectLead'}}</label>
+			</div>
+			<div class="checkbox awesome">
+				<input class="formValue" type="checkbox" id="showFeedReporter" name="showFeedReporter">
+				<label for="showFeedReporter">{{i18n 'settings.syncReporter'}}</label>
+			</div>
+			<div class="checkbox awesome">
+				<input class="formValue" type="checkbox" id="showFeedCreator" name="showFeedCreator">
+				<label for="showFeedCreator">{{i18n 'settings.syncCreator'}}</label>
+			</div>
+			<div class="checkbox awesome">
+				<input class="formValue" type="checkbox" id="showFeedComment" name="showFeedComment">
+				<label for="showFeedComment">{{i18n 'settings.syncComment'}}</label>
+			</div>
+		</div>
+	</div>
+
+	<!-- User Config -->
+	<div class="form-group" style="position:relative; margin-top:20px;">
+		<div class="col-sm-4 checkbox">
+			<b class="pull-right">{{i18n 'settings.enableUserConfig'}} </b>
+		</div>
+		<div class="col-sm-8">
+			<div class="checkbox awesome">
+				<input class="formValue" type="checkbox" id="newCreationScreen" name="newCreationScreen">
+				<label for="newCreationScreen"></label>
+			</div>
+		</div>
+	</div>
+	<!-- Calendar Integration -->
+	<!--
+	<div class="form-group" style="position:relative; margin-top:20px;">
+		<div class="col-sm-4 checkbox">
+			<b class="pull-right">{{i18n 'settings.calendarIntegration'}}</b>
+		</div>
+	<div class="col-sm-8">
+			 <label>
+				 <input class="formValue" type="checkbox" id="syncCalendar" name="syncCalendar" />
+			</label>
+		</div>
+	</div>
+		-->
+	<!-- Filters -->
+	<div class="form-group" style="position:relative; margin-top:20px;">
+		<div class="col-sm-4 checkbox">
+			<b class="pull-right">{{i18n 'settings.configureFilter'}}</b>
+		</div>
+		<div class="col-sm-8">
+			<select multiple id="activeFilters" class="formValue">
+				{{#each filters}}
+				<option value="{{key}}" {{#if selected}}selected{{/if}}>{{name}}</option>
+				{{/each}}
+			</select>
+		</div>
+	</div>
+
+	<!-- Logout -->
+	<div class="form-group" style="position:relative;margin-top:20px;">
+		<div class="col-sm-4">
+			<button class="btn btn-default" id="jiraLogout">{{i18n 'settings.logoutButton'}}</button>
+		</div>
+	</div>
+</form>
+
+{{/if}}

@@ -93,7 +93,34 @@
                 "logWorkAction": "Log Work",
                 "commentedOn": "{{name}} commented on: {{text}}",
                 "noContent": "No Content"
-            }
+            }, 
+			"settings": {
+				"headingLogin": "Please choose your Jira instance and login.",
+				"headingChooseSettings": "Please choose your settings. Only logout if you like to stop the service or like to connect to another Jira system",
+				"selectSystem": "Select your System",
+				"loginButton": "Login",
+				"systemMissing": "Miss a Jira System?",
+				"reloadSystems": "Reload System Information",
+				"showDesktopNotif": "Show Desktop Notification",
+				"addAttachmentsOnNewAddIssue": "Automatically add attachments in issue dialogs",
+				"addEmailOnNewAddIssue": "Automatically add email (.msg) in issue dialogs",
+				"addMailHeaderAutomatically": "Automatically add email header to description",
+				"syncAssignee": "I am the assignee",
+				"syncMention": "I have been mentioned",
+				"syncWatch": "I am watching the issue",
+				"syncProjectLead": "I am the project lead",
+				"syncReporter": "I am the reporter",
+				"syncCreator": "I am the creator",
+				"syncComment": "I commented on the issue",
+				"enableUserConfig":"Enable User Configuration <br /> in Edit & Create Screens",
+				"configureFilter": "Configure Filter",
+				"calendarIntegration": "Enable Calendar Integration",
+				"logoutButton":"Logout",
+				"optionDisabled":"Disabled",
+				"optionTop": "On Top",
+				"optionBottom": "At the Bottom",
+				"showFeedIf": "Show feed entry for issue if:"
+			}
 		}
 	}
 }

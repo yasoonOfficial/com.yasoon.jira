@@ -1,5 +1,8 @@
 function JiraSettingController() {
 	var self = this;
+	var templateLoaded = false;
+	var settingTemplate = null;
+
 	var defaults = {
 		currentService: '',
 		lastSync: new Date( new Date().getTime() - (1000 * 60* 60* 24 * 30) ),// If nothing in db, set it to 30 days ago
@@ -24,188 +27,42 @@ function JiraSettingController() {
 			return;
 		}
 
+		//Prepare Data for handlebar Template
+		//We need all oAuth Services + determine the description
 		var oAuthServices = yasoon.app.getOAuthServices();
-		var html = '';
-		var description = '';
-		if (!jira.settings.currentService) {
-			html = '<p>Please choose your Jira instance and login.</p>' +
-				   '<form class="form-horizontal" role="form">' +
-		// Instance Selection
-					'   <div class="form-group" style="position:relative; margin-top:20px;">' +
-					'       <div class="col-sm-4 checkbox">' +
-					'           <b class="pull-right">Select your System</b>' +
-					'       </div>' +
-					'       <div class="col-sm-8">' +
-					'           <select id="currentService" class="form-control">';
-			$.each(oAuthServices, function (i, service) {
-				description = service.serviceName;
-				if (service.appParams)
-					description = service.appParams.description;
-				html += '           <option value="' + service.serviceName + '" '+ ((service.mainService) ? 'selected' : '' ) + '>' + description + '</option>';
+		oAuthServices.forEach(function (service) {
+			service.description = (service.appParams) ? service.appParams.description: service.serviceName;
+		});
+
+		//Check selecte filters
+		jira.filter.filterObj.forEach(function (f) {
+			//Is in selected?!
+			f.selected = jira.filter.getSelectedFilters().filter(function (key) { return key === f.key; }).length > 0;
+		});
+
+		var templateParams = {
+			oAuthServices: oAuthServices,
+			loggedIn: !!jira.settings.currentService,
+			filters: jira.filter.filterObj
+		};
+
+		if (!templateLoaded) {
+			var path = yasoon.io.getLinkPath('templates/settings.hbs');
+			$.get(path, function (template) {
+				templateLoaded = true;
+				settingTemplate = Handlebars.compile(template);
+				self.fillSettingsContainer(container, settingTemplate, templateParams);
 			});
-
-			html += '           </select>' +
-					'       </div>' +
-					'   </div>' +
-					'   <div class="form-group" style="position:relative;margin-top:20px;">' +
-					'       <div class="col-sm-4">' +
-					'           <button class="btn btn-primary" id="jiraLogin">Login</button>' +
-					'       </div>' +
-					'   </div>' +
-					'   <div> Miss a Jira System? <button id="jiraReloadOAuth" class="btn btn-link" style="padding-top: 4px; margin-left: -10px;"> Reload System Information</button></div>' +
-					'</form>';
-
 		} else {
-			html = '<p>Please choose your settings. Only logout if you like to stop the service or like to connect to another Jira system</p>' +
-			'<form class="form-horizontal" role="form">' +
-			//Desktop Notification
-			'   <div class="form-group" style="position:relative; margin-top:20px;">' +
-			'       <div class="col-sm-4 checkbox">' +
-			'           <b class="pull-right">Show Desktop Notification</b>' +
-			'       </div>' +
-			'       <div class="col-sm-8">' +
-			'           <div class="checkbox awesome">' +
-			'				<input class="formValue" type="checkbox" id="showDesktopNotif" name="showDesktopNotif">' +
-			'               <label for="showDesktopNotif">' +
-			'               </label>' +
-			'           </div>' +
-			'       </div>' +
-			'   </div>' +
-			//Auto Add Attachments
-			'   <div class="form-group" style="position:relative; margin-top:20px;">' +
-			'       <div class="col-sm-4 checkbox">' +
-			'           <b class="pull-right">Automatically add attachments in issue dialogs</b>' +
-			'       </div>' +
-			'       <div class="col-sm-8">' +
-			'           <div class="checkbox awesome">' +
-			'				<input class="formValue" type="checkbox" id="addAttachmentsOnNewAddIssue" name="addAttachmentsOnNewAddIssue">' +
-			'               <label for="addAttachmentsOnNewAddIssue">' +
-			'               </label>' +
-			'           </div>' +
-			'       </div>' +
-			'   </div>' +
-			//Auto add emails
-			'   <div class="form-group" style="position:relative; margin-top:20px;">' +
-			'       <div class="col-sm-4 checkbox">' +
-			'           <b class="pull-right">Automatically add email (.msg) in issue dialogs</b>' +
-			'       </div>' +
-			'       <div class="col-sm-8">' +
-			'           <div class="checkbox awesome">' +
-			'				<input class="formValue" type="checkbox" id="addEmailOnNewAddIssue" name="addEmailOnNewAddIssue">' +
-			'               <label for="addEmailOnNewAddIssue">' +
-			'               </label>' +
-			'           </div>' +
-			'       </div>' +
-			'   </div>' +			
-			//Auto Add Mail Header
-			'   <div class="form-group" style="position:relative; margin-top:20px;">' +
-			'       <div class="col-sm-4">' +
-			'           <b class="pull-right">Automatically add email header to description</b>' +
-			'       </div>' +
-			'       <div class="col-sm-8">' +
-			'           <select class="formValue" style="width: 140px" id="addMailHeaderAutomatically" name="addMailHeaderAutomatically">' +
-			'              <option value="off">Disabled</option>' +
-			'              <option value="top">On Top</option>'+
-			'              <option value="bottom">At the Bottom</option>'+
-			'           </select>' +
-			'       </div>' +
-			'   </div>' +
-			//The other stuff
-			'   <div class="form-group" style="position:relative; margin-top:20px;">' +
-			'       <div class="col-sm-4 checkbox">' +
-			'           <b class="pull-right">Show feed entry for issue if</b>' +
-			'       </div>' +
-			'       <div class="col-sm-8">' +
-			'           <div class="checkbox awesome">' +
-			'				<input class="formValue" type="checkbox" id="showFeedAssignee" name="showFeedAssignee" disabled checked>' +
-			'               <label for="showFeedAssignee">' +
-			'                   I am the assignee' +
-			'               </label>' +
-			'           </div>' +
-			'           <div class="checkbox awesome">' +
-			'				<input class="formValue" type="checkbox" id="showFeedMentioned" name="showFeedMentioned" disabled checked>' +
-			'               <label for="showFeedMentioned">' +
-			'                   I have been mentioned' +
-			'               </label>' +
-			'           </div>' +
-			'           <div class="checkbox awesome">' +
-			'				<input class="formValue" type="checkbox" id="showFeedWatcher" name="showFeedWatcher">' +
-			'               <label for="showFeedWatcher">' +
-			'                   I am watching the issue' +
-			'               </label>' +
-			'           </div>' +
-			'           <div class="checkbox awesome">' +
-			'				 <input class="formValue" type="checkbox" id="showFeedProjectLead" name="showFeedProjectLead">' +
-			'               <label for="showFeedProjectLead">' +
-			'                   I am the project lead' +
-			'               </label>' +
-			'           </div>' +
-			'           <div class="checkbox awesome">' +
-			'				<input class="formValue" type="checkbox" id="showFeedReporter" name="showFeedReporter">' +
-			'               <label for="showFeedReporter">' +
-			'                   I am the reporter' +
-			'               </label>' +
-			'           </div>' +
-			'           <div class="checkbox awesome">' +
-			'				<input class="formValue" type="checkbox" id="showFeedCreator" name="showFeedCreator">' +
-			'               <label for="showFeedCreator">' +
-			'                    I am the creator' +
-			'               </label>' +
-			'           </div>' +
-			'           <div class="checkbox awesome">' +
-			'				<input class="formValue" type="checkbox" id="showFeedComment" name="showFeedComment">' +
-			'               <label for="showFeedComment">' +
-			'                   I commented on the issue' +
-			'               </label>' +
-			'           </div>' +
-			'       </div>' +
-			'   </div>' +
-			'   <div class="form-group" style="position:relative; margin-top:20px;">' +
-			'       <div class="col-sm-4 checkbox">' +
-			'           <b class="pull-right">Enable User Configuration <br /> in Edit & Create Screens </b>' +
-			'       </div>' +
-			'		<div class="col-sm-8">' +
-			'           <div class="checkbox awesome">' +
-			'				<input class="formValue" type="checkbox" id="newCreationScreen" name="newCreationScreen">' +
-			'               <label for="newCreationScreen">' +
-			'               </label>' +
-			'           </div>' +
-			'		</div>' +
-			'	</div>' +
-			'   <div class="form-group" style="position:relative; margin-top:20px;">' +
-			'       <div class="col-sm-4 checkbox">' +
-			'           <b class="pull-right">Configure Filter</b>' +
-			'       </div>' +
-			'		<div class="col-sm-8">' +
-			'			<select multiple id="activeFilters" class="formValue">';
-			jira.filter.filterObj.forEach(function (f) {
-				//Is in selected?!
-				var selected = jira.filter.getSelectedFilters().filter(function (key) { return key === f.key; }).length > 0;
-				html += '<option ' + ((selected) ? 'selected' : '') + ' value="' + f.key + '">' + f.name + '</option>';
-			});
-			html += '	</select>'+
-			'		</div>' +
-			'	</div>' +
-			//'   <div class="form-group" style="position:relative; margin-top:20px;">' +
-			//'       <div class="col-sm-4 checkbox">' +
-			//'           <b class="pull-right">Enable Calendar Integration</b>' +
-			//'       </div>' +
-			//'		<div class="col-sm-8">' +
-			//'           <label>' +
-			//'               <input class="formValue" type="checkbox" id="syncCalendar" name="syncCalendar">' +
-			//'           </label>' +
-			//'		</div>' +
-			//'	</div>'+
-			'	<div class="form-group" style="position:relative;margin-top:20px;">' +
-			'       <div class="col-sm-4">' +
-			'           <button class="btn btn-default" id="jiraLogout">Logout</button>' +
-			'       </div>' +
-			'   </div>' +
-			'</form>';
+			self.fillSettingsContainer(container, settingTemplate, templateParams);
 		}
 
+
+	};
+
+	self.fillSettingsContainer= function fillSettingsContainer(container, template, parameter) {
 		//Add Values
-		var elem = $('<div>' + html + '</div>');
+		var elem = $('<div>' + template(parameter)+ '</div>');
 		$.each(jira.settings, function (i, val) {
 			if (elem.find('#' + i).attr('type') == "checkbox") {
 				if (val) {
@@ -224,7 +81,7 @@ function JiraSettingController() {
 
 			$('#jiraLogin').unbind().click(function () {
 				var selectedServiceName = $('#currentService').val();
-				var newService = $.grep(oAuthServices, function (s) { return s.serviceName == selectedServiceName; })[0];
+				var newService = $.grep(parameter.oAuthServices, function (s) { return s.serviceName == selectedServiceName; })[0];
 
 				if (!newService) {
 					yasoon.alert.add({ type: yasoon.alert.alertType.error, message: "Login to this systen not possible due to a missing configuration. Please contact your admin." });
