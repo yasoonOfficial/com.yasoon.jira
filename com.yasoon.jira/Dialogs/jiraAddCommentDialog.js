@@ -426,12 +426,13 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				if (issueKey) {			
 					var issue = data.issues.filter(function(i) { return i.key === issueKey; })[0];					
 					if (issue) {
-						//Rebuild select2
+						console.log(issue);
 						issue.fields.project = {
 							id: selectedProjectId,
 							key: selectedProject
 						};
 
+						//Rebuild select2
 						self.createIssueLoader(issue);
 					}
 					else {
@@ -459,7 +460,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				}
 			}
 		})
-		.then(function() {
+		.finally(function() {
 			$('#IssueSpinner').css('display', 'none');
 		});
 	};
@@ -710,6 +711,24 @@ function resizeWindow() {
 		$('body').css('overflow-y', 'scroll');
 		$('.form-body').height(350);
 		$('#description').height(155);
+	}
+}
+
+function searchUser(mode, query, callback) {
+	//console.log('Search User');
+	if (jira.selectedIssue) {
+		jiraGet('/rest/api/2/user/viewissue/search?issueKey=' + jira.selectedIssue.key + '&maxResults=10&username=' + query)
+		.then(function (users) {
+			//console.log('Result:',users);
+			var data = [];
+			users = JSON.parse(users);
+			users.forEach(function (user) {
+				data.push({ id: user.name, name: user.displayName, type: 'user' });
+			});
+			callback(data);
+		});
+	} else {
+		callback([]);
 	}
 }
 //@ sourceURL=http://Jira/Dialog/jiraAddCommentDialog.js

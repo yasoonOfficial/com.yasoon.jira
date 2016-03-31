@@ -20,7 +20,14 @@ function SingleTextRenderer() {
 	
 function MultilineTextRenderer() {
 	this.getValue = function (id) {
-		return $('#' + id).val();
+		if (id === 'description') {
+			//Parse @mentions
+			return $('#' + id).val().replace(/@.*?\]\(user:([^\)]+)\)/g, '[~$1]');
+		} else {
+			return $('#' + id).val();
+		}
+
+
 	};
 
 	this.setValue = function (id, value) {
@@ -139,6 +146,14 @@ function MultilineTextRenderer() {
 			$('#DescriptionMailInformation').on('click', function (e) {
 				backup = $('#description').val();				
 				insertAtCursor($('#description')[0], renderMailHeaderText(jira.mail, useMarkup));
+			});
+
+			$('#description').mentionsInput({
+				onDataRequest: searchUser,
+				triggerChar: '@',
+				minChars: 2,
+				showAvatars: false,
+				elastic: false
 			});
 		}
 	};
