@@ -41,25 +41,25 @@ function MultilineTextRenderer() {
 		if (isDescription && jira.mail) {
 			descriptionHtml = '<div style="margin-top:5px; position:relative;">' +
 				'<span id="DescriptionOptionToolbar" class="' + ((jira.mail) ? '' : 'hidden') + '" style="padding: 3px;">' +
-				'	<span title="Toggle Jira Markup of recently inserted markup"><input id="DescriptionUseJiraMarkup" class="toggle-checkbox" type="checkbox" checked="checked"/>Toggle Jira Markup</span>' +
-				'	<a style="cursor:pointer;" class="hidden" id="DescriptionUndoAction"><i class="fa fa-undo"></i> Undo </a>' +
+				'	<span title="'+ yasoon.i18n('dialog.titleToggleJiraMarkup') +'"><input id="DescriptionUseJiraMarkup" class="toggle-checkbox" type="checkbox" checked="checked"/>' + yasoon.i18n('dialog.toggleJiraMarkup') +'</span>' +
+				'	<a style="cursor:pointer;" class="hidden" id="DescriptionUndoAction"><i class="fa fa-undo"></i> ' + yasoon.i18n('dialog.undo') +' </a>' +
 				'</span>' +
 				'<span class="dropup pull-right">' +
-				'	<a style="cursor:pointer;" data-toggle="dropdown" class="dropdown-toggle" title="If you like to add the whole mail as .msg attachment, use the \"add attachment\" link below" >Replace with <span class="caret"></span></a>' +
+				'	<a style="cursor:pointer;" data-toggle="dropdown" class="dropdown-toggle" title="' + yasoon.i18n('dialog.titleReplaceWith') +'" >'+ yasoon.i18n('dialog.replaceWith') + '<span class="caret"></span></a>' +
 				'	<ul class="dropdown-menu">' +
-				'	<li><span style="display: block;padding: 4px 10px;">Use Jira Markup <input class="toggleJiraMarkup toggle-checkbox" type="checkbox" checked="checked" /></span></li>' +
+				'	<li><span style="display: block;padding: 4px 10px;">'+ yasoon.i18n('dialog.toggleJiraMarkup') +'<input class="toggleJiraMarkup toggle-checkbox" type="checkbox" checked="checked" /></span></li>' +
 				'	<li role="separator" class="divider"></li>' +
-				((jira.selectedText) ? '<li id="DescriptionSelectedText"><a href="#">Add selected text</a></li>' : '') +
-				((jira.mail) ? '<li id="DescriptionFullMail"><a href="#">Add whole conversation</a></li>' : '') +
+				((jira.selectedText) ? '<li id="DescriptionSelectedText"><a href="#">'+ yasoon.i18n('dialog.addSelectedText') +'</a></li>' : '') +
+				((jira.mail) ? '<li id="DescriptionFullMail"><a href="#">'+ yasoon.i18n('dialog.addConversation') +'</a></li>' : '') +
 				'	</ul>' +
 				'</span>' +
 
 				'<span class="dropup pull-right" style="margin-right: 20px;">' +
-				'	<a style="cursor:pointer;" data-toggle="dropdown" class="dropdown-toggle" title="If you like to add the whole mail as .msg attachment, use the \"add attachment\" link below" >Add <span class="caret"></span></a>' +
+				'	<a style="cursor:pointer;" data-toggle="dropdown" class="dropdown-toggle" title="' + yasoon.i18n('dialog.titleReplaceWith') + '" >'+ yasoon.i18n('dialog.add') +'<span class="caret"></span></a>' +
 				'	<ul class="dropdown-menu">' +
-				'	<li><span style="display: block;padding: 4px 10px;">Use Jira Markup <input class="toggleJiraMarkup toggle-checkbox" type="checkbox" checked="checked" /></span></li>' +
+				'	<li><span style="display: block;padding: 4px 10px;">'+yasoon.i18n('dialog.toggleJiraMarkup') +'<input class="toggleJiraMarkup toggle-checkbox" type="checkbox" checked="checked" /></span></li>' +
 				'	<li role="separator" class="divider"></li>' +
-				((jira.mail) ? '<li id="DescriptionMailInformation"><a href="#">Insert mail information</a></li>' : '') +
+				((jira.mail) ? '<li id="DescriptionMailInformation"><a href="#">' + yasoon.i18n('dialog.addMailInformation') +'</a></li>' : '') +
 
 				'	</ul>' +
 				'</span>' +
@@ -148,6 +148,7 @@ function MultilineTextRenderer() {
 				insertAtCursor($('#description')[0], renderMailHeaderText(jira.mail, useMarkup));
 			});
 
+			/*
 			$('#description').mentionsInput({
 				onDataRequest: searchUser,
 				triggerChar: '@',
@@ -155,6 +156,7 @@ function MultilineTextRenderer() {
 				showAvatars: false,
 				elastic: false
 			});
+			*/
 		}
 	};
 }
@@ -244,7 +246,7 @@ function DateRenderer() {
 
 	this.setValue = function (id, value) {
 		if (value) {
-			$('#' + id).val(moment(new Date(value)).format('YYYY/MM/DD'));
+			$('#' + id).val(moment(new Date(value)).format('L'));
 		}
 	};
 
@@ -252,14 +254,14 @@ function DateRenderer() {
 		var html = '<div class="field-group aui-field-datepicker"> ' +
 					'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ' +
 					'    <input style="height: 28px;" class="text long-field" id="' + id + '" name="' + id + '" placeholder="yyyy/mm/dd" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
-					'    <a href="#" id="' + id + '-trigger" title="Select a date" tabindex="-1"><span class="aui-icon icon-date">Select a date</span></a> ' +
+					'    <a href="#" id="' + id + '-trigger" title="'+ yasoon.i18n('dialog.titleSelectDate') +'" tabindex="-1"><span class="aui-icon icon-date">Select a date</span></a> ' +
 					'</div>';
 		$(container).append(html);
-
+		var format = moment.localeData().longDateFormat("L");
 		$('#' + id).datepicker({
 			showOtherMonths: true,
 			selectOtherMonths: true,
-			dateFormat: 'yy/mm/dd'
+			dateFormat: format
 		});
 
 		$('#' + id + '-trigger').unbind().click(function (e) {

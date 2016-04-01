@@ -17,49 +17,48 @@
 <div style="padding:10px;">
 	<div style="display: block; width: 100%; min-width: 690px;" class="jira-dialog box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready" id="create-issue-dialog">
 		<div class="jira-dialog-heading">
-			<h2 class="jira-title">Create Issue</h2>
+			<h2 class="jira-title" data-bind="localizedText: 'dialog.titleCreateIssue'"></h2>
 		</div>
 		<div class="jira-dialog-content">
-
 			<div class="qf-container">
 				<div class="qf-unconfigurable-form">
 					<form name="jiraform" action="#" class="aui">
 						<div class="form-body" style="height: 530px;">
 							<div id="MainAlert" class="alert alert-danger" style="display:none; margin: -20px -20px 0px -20px; border-radius: 0px;">
-								<span>Connection Error. Loading Values from Jira not possible.</span>
+								<span data-bind="localizedText: 'dialog.connectionError'">Connection Error. Loading Values from Jira not possible.</span>
 							</div>
 							<div class="">
 								<div class="qf-field qf-field-project qf-required">
 									<div class="field-group ">
-										<label for="project">Project</label>
+										<label for="project" data-bind="localizedText: 'dialog.project'"></label>
 										<select class="select input-field" id="project" name="pid" style="min-width: 350px; width: 80%;">
 											<option></option>
 											<optgroup class="templates" label="" style="display:none;"></optgroup>
-											<optgroup class="recent" label="Recent Projects"></optgroup>
-											<optgroup class="all" label="All Projects"></optgroup>
+											<optgroup class="recent" label="Recent Projects" data-bind="localizedText: {'label' : 'dialog.recentProjects' }"></optgroup>
+											<optgroup class="all" label="All Projects" data-bind="localizedText: {'label' : 'dialog.allProjects' }"></optgroup>
 										</select>
 										<img src="Dialogs/ajax-loader.gif" style="display:none;" id="ProjectSpinner" />
 									</div>
 								</div>
 								<div id="IssueArea" class="qf-field qf-field-issuetype issue-setup-fields qf-required" style="display:none;">
 									<div class="field-group input-field">
-										<label for="issuetype"><span id="issueTypeLabel"> Issue Type</span><span class="aui-icon icon-required">Required</span></label>
+										<label for="issuetype"><span id="issueTypeLabel" data-bind="localizedText: 'dialog.issueType'"></span><span class="aui-icon icon-required" data-bind="localizedText: 'dialog.required'">Required</span></label>
 										<select class="select input-field" id="issuetype" name="issuetype" style="min-width: 350px; width: 80%;"></select>
 										<br />
 										<a id="switchServiceMode"  class="hidden" style="cursor:pointer;" title="">
-											<span class="showPortal"><i class="fa fa-plus"></i> Service Desk assignment</span>
-											<span class="hidePortal"><i class="fa fa-minus"></i> Service Desk assignment</span>
+											<span class="showPortal"><i class="fa fa-plus"></i><span data-bind="localizedText: 'dialog.SDAssignment'">Service Desk assignment</span> </span>
+											<span class="hidePortal"><i class="fa fa-minus"></i><span data-bind="localizedText: 'dialog.SDAssignment'">Service Desk assignment</span> </span>
 										</a>
 									</div>
 								</div>
 								<div id="ServiceArea" class="qf-field qf-field-issuetype issue-setup-fields qf-required hidden">
-									<div style="color: darkgray; font-size: 12px;">Service Desk assignments make the issue visible for the reporter in the Service Desk as "Own Request"</div>
+									<div style="color: darkgray; font-size: 12px;" data-bind="localizedText: 'dialog.SDExplanation'">Service Desk assignments make the issue visible for the reporter in the Service Desk as "Own Request""</div>
 									<div class="field-group input-field">
-										<label for="requestType"><span id="requestTypeLabel">Request Type</span><span class="aui-icon icon-required">Required</span></label>
+										<label for="requestType"><span id="requestTypeLabel" data-bind="localizedText: 'dialog.requestType'">Request Type</span><span class="aui-icon icon-required" data-bind="localizedText: 'dialog.required'">Required</span></label>
 										<select class="select input-field" id="requestType" name="requestType" style="min-width: 350px; width: 80%;"></select>
 									</div>
 									<div class="field-group input-field" id="behalfOfUserDiv">
-										<label for="behalfReporter">On behalf of</label>
+										<label for="behalfReporter" data-bind="localizedText: 'dialog.behalfOf'">On behalf of</label>
 										<div id="behalfOfUserReporter" style="min-width: 350px; width: 100%; overflow: hidden;">
 
 										</div>
@@ -79,11 +78,11 @@
 						<div class="buttons-container form-footer">
 							<div class="buttons">
 								<img src="Dialogs/ajax-loader.gif" style="display:none; margin-right: 20px; margin-top: -12px;" id="JiraSpinner">
-								<label for="qf-create-another" class="qf-create-another" style="font-weight:normal;"><input id="qf-create-another" type="checkbox" /> Create another</label>
-								<button accesskey="s" title="" class="button" id="create-issue-submit"> Create </button>
+								<label for="qf-create-another" class="qf-create-another" style="font-weight:normal;"><input id="qf-create-another" type="checkbox" /><span data-bind="localizedText: 'dialog.createAnother'"></span></label>
+								<button accesskey="s" title="" class="button" id="create-issue-submit" data-bind="localizedText: 'dialog.create'"> Create </button>
 								<!-- Keep that, prevents stupid default form behavior when only one button is present -->
-								<button class="hidden" id="invisible-cancel-button"> Cancel </button>
-								<a href="#" accesskey="`" title="" id="create-issue-cancel" class="cancel">Cancel</a>
+								<button class="hidden" id="invisible-cancel-button" data-bind="localizedText: 'dialog.cancel'"> Cancel </button>
+								<a href="#" accesskey="`" title="" id="create-issue-cancel" class="cancel" data-bind="localizedText: 'dialog.cancel'">Cancel</a>
 							</div>
 						</div>
 					</form>

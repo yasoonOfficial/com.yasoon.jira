@@ -84,7 +84,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		self.userCommonValues = {
 			results: [{
 				id: 'Suggested',
-				text: 'Suggested',
+				text: yasoon.i18n('dialog.suggested'),
 				children: [{
 					'id': jira.ownUser.name,
 					'icon': 'ownUser',
@@ -94,7 +94,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			},
 			{
 				id: 'Search',
-				text: 'SearchResult',
+				text: yasoon.i18n('dialog.userSearchResult'),
 				children: []
 			}]
 		};
@@ -149,7 +149,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			
 			if (self.currentTemplates.length > 0) {
 				var group = $('#project').find('.templates');
-				group.attr('label', 'Templates for ' + self.mail.senderName);
+				group.attr('label', yasoon.i18n('dialog.templateFor', { name: self.mail.senderName}));
 				$.each(self.currentTemplates, function (i, template) {
 					group.append('<option value="template' + template.project.id + '" data-icon="' + getProjectIcon(template.project) + '">' + template.project.name + '</option>');
 				});
@@ -183,9 +183,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		if (!!initParams.editIssue) {
 			//It's the edit case
 			//Set Title & Labels
-			$('.jira-title').html('Edit Issue');
+			$('.jira-title').html(yasoon.i18n('dialog.titleEditIssue'));
 			$('.qf-create-another').hide(); //Create another button
-			$('#create-issue-submit').html('Save');
+			$('#create-issue-submit').html(yasoon.i18n('dialog.save'));
 
 			//Select issue project manually and immedeately for better layout.
 			var all = $('#project').find('.all');
@@ -225,13 +225,13 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			//Create case --> Select all projects and if user select one, load project settings
 			//Create select2 dropdown, so it looks better while loading.
 			$('#project').select2({
-				placeholder: "Select a Project"
+				placeholder: yasoon.i18n('dialog.placeholderSelectProject')
 			});
 			$("#issuetype").select2({
-				placeholder: "Select an Issue type"
+				placeholder: yasoon.i18n('dialog.placeholderIssueType')
 			});
 			$("#requestType").select2({
-				placeholder: "Select an Issue type"
+				placeholder: yasoon.i18n('dialog.placeholderRequestType')
 			});
 			$('#ProjectSpinner').css('display', 'inline');
 			
@@ -272,7 +272,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 				$('#project').select2("destroy");
 				$('#project').select2({
-					placeholder: "Select a Project",
+					placeholder: yasoon.i18n('dialog.placeholderSelectProject'),
 					templateResult: formatIcon,
 					templateSelection: formatIcon,
 				});
@@ -468,7 +468,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 							jira.transaction.currentCallCounter--;
 							yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data + ' || ' + JSON.stringify(formData), yasoon.util.severity.warning);
 							var ex = new jiraSyncError('', statusCode, errorText, data, result);
-							yasoon.dialog.showMessageBox('Issue ' + issue.key + ' created, but uploading the attachments did not work. ' + ex.getUserFriendlyError());
+							yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorCreateAttachment', { key: issue.key, error: ex.getUserFriendlyError()}));
 
 							if (jira.transaction.currentCallCounter === 0)
 								self.close({ action: 'success' });
@@ -834,7 +834,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					}
 				})
 				.catch(function () {
-					jira.mailAsMarkup = 'Could not render the selected text as JIRA markup. Please switch to plain text or contact us to get this fixed!';
+					jira.mailAsMarkup = yasoon.i18n('dialog.errorMarkupRenderer');
 					if (!self.selectedText && fieldMapping.body) {
 						jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, jira.mailAsMarkup);
 					}
@@ -1114,7 +1114,7 @@ function submitErrorHandler(data, statusCode, result, errorText, cbkParam) {
 	yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data + ' || ' + error, yasoon.util.severity.warning);
 
 
-	yasoon.dialog.showMessageBox('Sorry, that did not work. Check your input and try again.  \n' + error);
+	yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSubmitIssue', { error:  error}));
 	jira.transaction.currentCallCounter = -1;
 }
 

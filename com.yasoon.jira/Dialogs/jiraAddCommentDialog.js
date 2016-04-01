@@ -48,9 +48,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		// Resize Window if nessecary (sized are optimized for default Window - user may have changed that)
 		resizeWindow();
 		
+		//Init Select2
+		initCustomIssueData();
+
 		//Render fields
-		self.UIFormHandler.render('description', { name: 'Comment', schema: { system: 'description' }}, $('#ContentArea'));
-		self.UIFormHandler.render('attachment', { name: 'Attachment', schema: { system: 'attachment' }}, $('#ContentArea'));
+		self.UIFormHandler.render('description', { name: yasoon.i18n('dialog.comment'), schema: { system: 'description' }}, $('#ContentArea'));
+		self.UIFormHandler.render('attachment', { name: yasoon.i18n('dialog.attachment'), schema: { system: 'attachment' } }, $('#ContentArea'));
 		
 		//Add attachments to clipboard if requested
 		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
@@ -134,6 +137,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			});
 		}		
 
+		self.loadingFinished();
 		if (this.selectedIssue) {
 			//Project and Issue should be prepopulated
 			//Select issue project manually and immedeately for better layout.
@@ -155,7 +159,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		else {
 			//Nothing selected
 			$('#project').select2({
-				placeholder: "Filter by Project"
+				placeholder: yasoon.i18n('dialog.placeholderFilterProject')
 			});
 
 			$('#ProjectSpinner').css('display', 'inline');
@@ -190,7 +194,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 				$('#project').select2("destroy");
 				$('#project').select2({
-					placeholder: "Filter by Project",
+					placeholder: yasoon.i18n('dialog.placeholderFilterProject'),
 					templateResult: formatIcon,
 					templateSelection: formatIcon,
 				});
@@ -265,12 +269,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		var selectedIssueId = $('#issue').val() || $('#issue').data('id');
 
 		if (!selectedIssueId) {
-			alert('Please select the issue you want to comment!');
+			yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSelectIssue'));
 			return;
 		}
 
 		if (!$('#description').val() && !jira.selectedAttachments.length) {
-			alert('Please add either an comment or select an attachment');
+			yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorNoData'));
 			return;
 		}
 
@@ -300,7 +304,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			promises.push(
 				jiraAjax('/rest/api/2/issue/' + selectedIssueId + '/comment', yasoon.ajaxMethod.Post, JSON.stringify({ body: $('#description').val() }))				
 				.catch(jiraSyncError, function (e) {
-					$('#MainAlert .errorText').text('Connection Error: Commenting did not work: ' + e.getUserFriendlyError());
+					$('#MainAlert .errorText').text(yasoon.i18n('dialog.errorSubmitComment', { error: e.getUserFriendlyError() }));
 					$('#MainAlert').show();
 					throw e;
 				})
@@ -342,7 +346,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				jiraAjax('/rest/api/2/issue/' + selectedIssueId + '/attachments', yasoon.ajaxMethod.Post, null, formData)
 				.catch(jiraSyncError, function (e) {
 					yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data + ' || ' + e.getUserFriendlyError() + ' || ' + JSON.stringify(formData), yasoon.util.severity.warning);
-					$('#MainAlert .errorText').text('Connection Error: Uploading the attachments failed: ' + e.getUserFriendlyError());
+					$('#MainAlert .errorText').text(yasoon.i18n('dialog.errorAttachment', { error: e.getUserFriendlyError() }));
 					$('#MainAlert').show();
 					throw e;
 				})
@@ -367,7 +371,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 
 	this.handleError = function (data, statusCode, result, errorText, cbkParam) {
-		$('#MainAlert .errorText').text('Connection Error. Loading Values from Jira not possible.');
+		$('#MainAlert .errorText').text(yasoon.i18n('dialog.connectionError'));
 		$('#MainAlert').show();
 		$('#LoaderArea').hide();
 		yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data, yasoon.util.severity.warning);
@@ -496,15 +500,15 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		}
 		
 		self.issueSelect2 = $('#issue').select2({
-			placeholder: "Select an Issue",
+			placeholder: yasoon.i18n('dialog.placeholderSelectIssue'),
 			dataAdapter: jira.CustomIssueData,
 			data: [{
 				id: 'Recent',
-				text: 'Recent',
+				text: yasoon.i18n('dialog.recentIssues'),
 				children: jira.recentIssues
 			}, {
 				id: 'ProjectIssues',
-				text: 'Project Issues',
+				text: yasoon.i18n('dialog.projectIssues'),
 				children: jira.projectIssues
 			}]
 		});
@@ -555,6 +559,141 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		jira.UIFormHandler.getRenderer('attachment').renderAttachments('attachment');		
 		return markup;
 	};
+
+	this.loadingFinished = function () {
+		$('#create-issue-dialog-loader').css('display', 'none');
+		$('#create-issue-dialog').css('display', 'block');
+	};
+
+	function initCustomIssueData() {
+		jira.CustomIssueData.prototype.current = function (callback) {
+			var data = [];
+			var self = this;
+
+			this.$element.find(':selected').each(function () {
+				var $option = $(this);
+
+				var option = self.item($option);
+
+				data.push(option);
+			});
+
+			if (data.length === 0) {
+				if (this.$element.data('id')) {
+					data.push({
+						id: this.$element.data('id'),
+						text: this.$element.data('text')
+					});
+				}
+			}
+			callback(data);
+		};
+
+		jira.CustomIssueData.prototype.select = function (data) {
+			var self = this;
+			data.selected = true;
+
+			// If data.element is a DOM node, use it instead
+			if ($(data.element).is('option')) {
+				data.element.selected = true;
+
+				this.$element.trigger('change');
+
+				return;
+			}
+
+			if (this.$element.prop('multiple')) {
+				this.current(function (currentData) {
+					var val = [];
+
+					data = [data];
+					data.push.apply(data, currentData);
+
+					for (var d = 0; d < data.length; d++) {
+						var id = data[d].id;
+
+						if ($.inArray(id, val) === -1) {
+							val.push(id);
+						}
+					}
+
+					self.$element.val(val);
+					self.$element.trigger('change');
+				});
+			} else {
+				var val = data.id;
+				this.$element
+					.data('id', data.id)
+					.data('text', data.text)
+					.data('key', data.key)
+					.data('summary', data.summary)
+					.data('projectId', data.project.id)
+					.data('projectKey', data.project.key);
+
+
+				this.$element.val(val);
+				this.$element.trigger('change');
+			}
+		};
+
+		var searchIssue = debounce(function (term, callback) {
+			console.log('Debounce called');
+			jiraGet('/rest/api/2/search?jql=Summary%20~%20%22' + encodeURIComponent(term) + '%22%20OR%20key%20%3D%20%22' + encodeURIComponent(term) + '%22&maxResults=20&fields=summary,project&validateQuery=false')
+			.then(function (data) {
+				if (term === lastQuery) {
+					var jqlResult = JSON.parse(data);
+					var result = [];
+					//Transform Data
+					jqlResult.issues.forEach(function (issue) {
+						result.push({ id: issue.id, text: issue.fields.summary + ' (' + issue.key + ')', key: issue.key, summary: issue.fields.summary, project: issue.fields.project });
+					});
+
+					callback({
+						results: [{
+							id: 'Results',
+							text: yasoon.i18n('dialog.titleSearchResults', { term: term }),
+							children: result
+						}]
+					});
+				}
+			});
+		}, 250);
+		var lastQuery = '';
+		jira.CustomIssueData.prototype.query = function (params, callback) {
+			if (params && params.term) {
+				//Get Issues matching the criteria
+				lastQuery = params.term;
+				searchIssue(params.term, callback);
+			} else {
+				//Add Recent Items
+				callback({
+					results: [{
+						id: 'Recent',
+						text: yasoon.i18n('dialog.recentIssues'),
+						children: jira.recentIssues
+					}, {
+						id: 'ProjectIssues',
+						text: yasoon.i18n('dialog.projectIssues'),
+						children: jira.projectIssues
+					}]
+				});
+			}
+		};
+
+		jira.issueSelect2 = $('#issue').select2({
+			placeholder: yasoon.i18n('dialog.placeholderSearchIssue'),
+			dataAdapter: jira.CustomIssueData,
+			data: [{
+				id: 'Recent',
+				text: yasoon.i18n('dialog.recentIssues'),
+				children: jira.recentIssues
+			}, {
+				id: 'ProjectIssues',
+				text: yasoon.i18n('dialog.projectIssues'),
+				children: jira.projectIssues
+			}]
+		});
+	}
 }); //jshint ignore:line
 
 
@@ -565,133 +704,7 @@ function (select, Utils) {
 	}
 
 	Utils.Extend(CustomIssueData, select);
-
-	CustomIssueData.prototype.current = function (callback) {
-		var data = [];
-		var self = this;
-
-		this.$element.find(':selected').each(function () {
-			var $option = $(this);
-
-			var option = self.item($option);
-
-			data.push(option);
-		});
-
-		if (data.length === 0) {
-			if (this.$element.data('id')) {
-				data.push({
-					id: this.$element.data('id'),
-					text: this.$element.data('text')
-				});
-			}
-		}
-		callback(data);
-	};
-
-	CustomIssueData.prototype.select = function (data) {
-		var self = this;
-		data.selected = true;
-
-		// If data.element is a DOM node, use it instead
-		if ($(data.element).is('option')) {
-			data.element.selected = true;
-
-			this.$element.trigger('change');
-
-			return;
-		}
-
-		if (this.$element.prop('multiple')) {
-			this.current(function (currentData) {
-				var val = [];
-
-				data = [data];
-				data.push.apply(data, currentData);
-
-				for (var d = 0; d < data.length; d++) {
-					var id = data[d].id;
-
-					if ($.inArray(id, val) === -1) {
-						val.push(id);
-					}
-				}
-
-				self.$element.val(val);
-				self.$element.trigger('change');
-			});
-		} else {
-			var val = data.id;
-			this.$element
-				.data('id', data.id)
-				.data('text', data.text)
-				.data('key', data.key)
-			    .data('summary', data.summary)
-				.data('projectId', data.project.id)
-				.data('projectKey', data.project.key);
-			
-
-			this.$element.val(val);
-			this.$element.trigger('change');
-		}
-	};
-
-	var lastQuery = '';
-
-	CustomIssueData.prototype.query = debounce(function (params, callback) {
-		if (params && params.term) {
-			//Get Issues matching the criteria
-			lastQuery = params.term;
-			jiraGet('/rest/api/2/search?jql=Summary%20~%20%22' + encodeURIComponent(params.term) + '%22%20OR%20key%20%3D%20%22' + encodeURIComponent(params.term) + '%22&maxResults=20&fields=summary,project&validateQuery=false')
-			.then(function (data) {
-				if (params.term === lastQuery) {
-					var jqlResult = JSON.parse(data);
-					var result = [];
-					//Transform Data
-					jqlResult.issues.forEach(function (issue) {
-						result.push({ id: issue.id, text: issue.fields.summary + ' (' + issue.key + ')', key: issue.key, summary: issue.fields.summary, project: issue.fields.project });
-					});
-					
-					callback({
-						results: [{
-							id: 'Results',
-							text: 'Results for "' + params.term + '"',
-							children: result
-						}]
-					});
-				}
-			});
-		} else {
-			//Add Recent Items
-			callback({
-				results: [{
-					id: 'Recent',
-					text: 'Recent',
-					children: jira.recentIssues
-				}, {
-					id: 'ProjectIssues',
-					text: 'Project Issues',
-					children: jira.projectIssues
-				}]
-			});
-		}
-	}, 250);
-
 	jira.CustomIssueData = CustomIssueData;
-
-	jira.issueSelect2 = $('#issue').select2({
-		placeholder: "Search for any Issue",
-		dataAdapter: jira.CustomIssueData,
-		data: [{
-				id: 'Recent',
-				text: 'Recent',
-				children: jira.recentIssues
-			}, {
-				id: 'ProjectIssues',
-				text: 'Project Issues',
-				children: jira.projectIssues
-			}]
-	});
 });
 
 function resizeWindow() {
