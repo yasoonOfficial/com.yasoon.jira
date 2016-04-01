@@ -75,8 +75,8 @@ function JiraSettingController() {
 		//Add JS
 		container.afterRender = function () {
 			$('#activeFilters').multiSelect({
-				selectableHeader: 'Available',
-				selectionHeader: 'Active'
+				selectableHeader: yasoon.i18n('settings.filterAvailable'),
+				selectionHeader: yasoon.i18n('settings.filterActive')
 			});
 
 			$('#jiraLogin').unbind().click(function () {

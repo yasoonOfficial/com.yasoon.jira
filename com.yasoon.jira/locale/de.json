@@ -1,5 +1,5 @@
 {
-	"en": {
+	"de": {
 		"translation": {
 			"ribbon": {
 				"newIssue": "New Issue",
@@ -23,7 +23,7 @@
 				"timestampRefused": "JIRA refused the request because of time differences. Either your local time is not set correctly or the JIRA server has a wrong time (Different timezones are ok).",
 				"certificateInvalid": "The certificate you are using in the application link is invalid. Please make sure you have setup JIRA correctly. Afterwards visit the settings and click on \"Reload System Information\"",
 				"unexpectedJiraError": "This did not work due to an unexpected JIRA error.",
-				"connectionToJiraNotPossible": "Connection to JIRA not possible"
+				"connectionToJiraNotPossible": "Connection to Jira not possible"
 			},
 			"feed": {
 				"couldNotCreateComment": "Could not create comment",
@@ -39,7 +39,7 @@
 				"titleAddToIssue": "Add to Issue",
 				"titleCreateIssue": "Create New Issue",
 				"titleEditIssue": "Edit Issue",
-				"connectionError": "Connection Error. Loading Values from JIRA not possible.", 
+				"connectionError": "Connection Error. Loading Values from Jira not possible.", 
 				"project": "Project",
 				"issue": "Issue",
 				"issueType": "Issue Type",
@@ -76,8 +76,8 @@
 				"suggested": "Suggested",
 				"userSearchResult": "Search Result",
 				"templateFor": "templates for {{name}}",
-				"toggleJiraMarkup": "Use JIRA Markup",
-				"titleToggleJiraMarkup":"Toggle between JIRA Markup or plaintext",
+				"toggleJiraMarkup": "Use Jira Markup",
+				"titleToggleJiraMarkup":"Toggle between Jira Markup or plaintext",
 				"undo": "undo",
 				"titleReplaceWith":"If you like to add the whole mail as .msg attachment, use the \"add attachment\" link below",
 				"replaceWith": "Replace with",
@@ -144,33 +144,33 @@
 				"noContent": "No Content"
 			}, 
 			"settings": {
-				"headingLogin": "Please choose your JIRA instance and login.",
-				"headingChooseSettings": "Please choose your settings. Only logout if you like to stop the service or like to connect to another JIRA system.",
-				"selectSystem": "Select your system",
-				"loginButton": "Login",
-				"systemMissing": "Miss a JIRA System?",
-				"reloadSystems": "Reload System Information",
-				"showDesktopNotif": "Show Desktop Notification",
-				"addAttachmentsOnNewAddIssue": "Automatically add attachments in issue dialogs",
-				"addEmailOnNewAddIssue": "Automatically add email (.msg) in issue dialogs",
-				"addMailHeaderAutomatically": "Automatically add email header to description",
-				"syncAssignee": "I am the assignee",
-				"syncMention": "I have been mentioned",
-				"syncWatch": "I am watching the issue",
-				"syncProjectLead": "I am the project lead",
-				"syncReporter": "I am the reporter",
-				"syncCreator": "I am the creator",
-				"syncComment": "I commented on the issue",
-				"enableUserConfig":"Enable User Configuration <br /> in Edit & Create Screens",
-				"configureFilter": "Configure Filter",
-				"calendarIntegration": "Enable Calendar Integration",
-				"logoutButton":"Logout",
-				"optionDisabled":"Disabled",
-				"optionTop": "On Top",
-				"optionBottom": "At the Bottom",
-				"showFeedIf": "Show feed entry for issue if:",
-                "filterActive": "Active",
-                "filterAvailable": "Available"
+				"headingLogin": "Bitte wählen Sie Ihr JIRA System aus und melden sich an.",
+				"headingChooseSettings": "Sie können Ihre Einstellungen jetzt anpassen. Bitte melden Sie sich nur ab, wenn Sie das JIRA System wechseln möchten.",
+				"selectSystem": "Bitte wählen Sie Ihr System aus",
+				"loginButton": "Anmelden",
+				"systemMissing": "Ihr JIRA System ist nicht dabei?",
+				"reloadSystems": "System Liste neu laden",
+				"showDesktopNotif": "Desktop Benachrichtigungen anzeigen",
+				"addAttachmentsOnNewAddIssue": "E-Mail Anhänge in Dialogen automatisch hinzufügen",
+				"addEmailOnNewAddIssue": "E-Mail als Datei (.msg) in Dialogen automatisch hinzufügen",
+				"addMailHeaderAutomatically": "E-Mail Kopfzeilen automatisch zur Vorgang-Beschreibung hinzufügen",
+				"syncAssignee": "Ich Bearbeiter bin",
+				"syncMention": "Ich erwähnt werde",
+				"syncWatch": "Ich den Vorgang beobachte",
+				"syncProjectLead": "Ich der Projektleiter bin",
+				"syncReporter": "Ich der Reporter bin",
+				"syncCreator": "Ich der Autor bin",
+				"syncComment": "Ich auf den Vorgang kommentiert habe",
+				"enableUserConfig": "Verwende meine benutzerdefinierte<br />Feld-Konfiguration in Dialogen",
+				"configureFilter": "Filter konfigurieren",
+				"calendarIntegration": "Kalendar Integration verwenden",
+				"logoutButton":"Abmelden",
+				"optionDisabled":"Deaktiviert",
+				"optionTop": "Am Anfang",
+				"optionBottom": "Am Ende",
+				"showFeedIf": "Zeige Einträge im Feed für Vorgänge, wenn:",
+                "filterActive": "Aktiv",
+                "filterAvailable": "Verfügbar"
 			}
 		}
 	}
