@@ -281,7 +281,8 @@ function DateTimeRenderer() {
 
 	this.setValue = function (id, value) {
 		if (value) {
-			$('#' + id).val(moment(new Date(value)).format('YYYY/MM/DD hh:mm'));
+			var momentDate = moment(new Date(value));
+			$('#' + id).val(momentDate.format('L') + ' ' + momentDate.format('LT'));
 		}
 	};
 
@@ -289,7 +290,7 @@ function DateTimeRenderer() {
 		var html = '<div class="field-group aui-field-datepicker"> ' +
 					'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ' +
 					'    <input style="height: 28px;" class="text long-field" id="' + id + '" name="' + id + '" placeholder="yyyy/mm/dd hh:mm" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
-					'    <a href="#" id="' + id + '-trigger" title="Select a date" tabindex="-1"><span class="aui-icon icon-date">Select a date</span></a> ' +
+					'    <a href="#" id="' + id + '-trigger" "title="'+ yasoon.i18n('dialog.titleSelectDate')+'" tabindex="-1"><span class="aui-icon icon-date">'+ yasoon.i18n(dialog.titleSelectDate) + '</span></a> ' +
 					'</div>';
 		$(container).append(html);
 
@@ -324,7 +325,7 @@ function LabelRenderer() {
 		var html = '<div class="field-group aui-field-componentspicker frother-control-renderer">' +
 						'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
 						'       <select style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" multiple="" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:labels"></select>' +
-						'	<div class="description">Start typing to get a list of possible matches or press down to select.</div>' +
+						'	<div class="description">' + yasoon.i18n('dialog.labelDescription') + '</div>' +
 						'</div>';
 
 		$(container).append(html);
@@ -397,7 +398,7 @@ function SelectListRenderer() {
 		var html = '<div class="field-group input-field">' +
 						'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
 						'    <select class="select input-field" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
-						'		<option value="">' + ((field.hasDefaultValue) ? 'Default' : 'None') + '</option>';
+						'		<option value="">' + ((field.hasDefaultValue) ? yasoon.i18n('dialog.selectDefault') : yasoon.i18n('dialog.selectNone')) + '</option>';
 
 		$.each(field.allowedValues, function (i, option) {
 			var icon = null;
@@ -483,7 +484,7 @@ function VersionMultiSelectListRenderer() {
 		var html = '<div class="field-group input-field">' +
 				'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
 				'    <select data-container-class="issuetype-ss" class="select text" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">' +
-				'		<optgroup label="Released Versions">';
+				'		<optgroup label="'+ yasoon.i18n('dialog.releasedVersions') +'">';
 		$.each(field.allowedValues, function (i, option) {
 			if (option.released) {
 				var text = option.name || option.value;
@@ -491,7 +492,7 @@ function VersionMultiSelectListRenderer() {
 			}
 		});
 		html += '		</optgroup>' + 
-				'		<optgroup label="Unreleased Versions">';
+				'		<optgroup label="' + yasoon.i18n('dialog.unreleasedVersions') + '">';
 		$.each(field.allowedValues, function (i, option) {
 			if (!option.released) {
 				var text = option.name || option.value;
@@ -534,7 +535,7 @@ function UserPickerRenderer() {
 				'	</label>' +
 				'	<select id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" class="select input-field" data-type="com.atlassian.jira.plugin.system.customfieldtypes:userpicker"></select>' +
 				'	<span style="display:block; padding: 5px 0px;">' +
-				'	<a href="#' + id + '" class="assign-to-me-trigger" title="Assign this issue to yourself!">Assign to me</a>';
+				'	<a href="#' + id + '" class="assign-to-me-trigger" title="'+ yasoon.i18n('dialog.assignMyselfTitle') +'">'+ yasoon.i18n('dialog.assignMyself') +'</a>';
 
 		//Create User link is a little tricky. It should only be visible if it's based on an email and senderUser does not exist in system. 
 		// But we cannot be sure when user has been loaded.
@@ -543,10 +544,10 @@ function UserPickerRenderer() {
 		if (id !== 'assignee') {
 			if (jira.mail && jira.senderUser.name === -1) {
 				//user does not exist in system
-				html += '<a style="margin-left: 50px;" href="#' + id + '" class="create-sender">Create User ' + jira.mail.senderName + '</a>';
+				html += '<a style="margin-left: 50px;" href="#' + id + '" class="create-sender">'+ yasoon.i18n('dialog.createUserLink', { name: jira.mail.senderName}) + '</a>';
 			} else if (jira.mail && !jira.senderUser) {
 				//user may not exist in system
-				html += '<a style="margin-left: 50px; display:none" href="#' + id + '" class="create-sender">Create User ' + jira.mail.senderName + '</a>';
+				html += '<a style="margin-left: 50px; display:none" href="#' + id + '" class="create-sender">' + yasoon.i18n('dialog.createUserLink', { name: jira.mail.senderName }) + '</a>';
 			}
 		}
 		html += '</span></div>';
@@ -610,11 +611,11 @@ function UserPickerRenderer() {
 				elem.prop('disabled', false);
 				console.log(error);
 				if (error && error.statusCode == 403) {
-					yasoon.dialog.showMessageBox('You are not allowed to create new users in JIRA. Please contact your administrator to use this function');
+					yasoon.dialog.showMessageBox(yasoon.i18n('dialog.createUserError403'));
 				} else if (error && error.statusCode == 404) {
-					yasoon.dialog.showMessageBox('Your JIRA instance is too old and does not support this functionality');
+					yasoon.dialog.showMessageBox(yasoon.i18n('dialog.createUserError404'));
 				} else {
-					yasoon.dialog.showMessageBox('That does not work. Please try it again in a few seconds or contact our support (contact@yasoon.de)');
+					yasoon.dialog.showMessageBox(yasoon.i18n('dialog.createUserErrorOther'));
 				}
 			});
 			e.preventDefault();
@@ -644,11 +645,11 @@ function AttachmentLinkRenderer() {
 	
 	this.renderMoreActions = function renderMoreActions() {
 		return '<span class="dropup" style="position:relative;">' +
-				'	<span class="attachmentMore dropdown-toggle" data-toggle="dropdown" title="more Actions" style="cursor: pointer; color:grey;"><span style="font-size:6px;"> <i class="fa fa-circle-o" /><i class="fa fa-circle-o" style="margin-left: 1px;"/><i class="fa fa-circle-o" style="margin-left: 1px;"/></span>&nbsp;</span>' +
+				'	<span class="attachmentMore dropdown-toggle" data-toggle="dropdown" title="' + yasoon.i18n('dialog.attachmentLinkTitle') + '" style="cursor: pointer; color:grey;"><span style="font-size:6px;"> <i class="fa fa-circle-o" /><i class="fa fa-circle-o" style="margin-left: 1px;"/><i class="fa fa-circle-o" style="margin-left: 1px;"/></span>&nbsp;</span>' +
 				'	<ul class="dropdown-menu" style="cursor:pointer;">' +
-				'		<li class="attachmentRename"><a>Rename</a></li>' +
-				'		<li class="attachmentAddRef"><a>Add Reference to Text</a></li>' +
-				'		<li class="attachmentDelete"><a>Delete</a></li>' +
+				'		<li class="attachmentRename"><a>' + yasoon.i18n('dialog.attachmentRename') + '</a></li>' +
+				'		<li class="attachmentAddRef"><a>' + yasoon.i18n('dialog.attachmentReference') + 'Add Reference to Text</a></li>' +
+				'		<li class="attachmentDelete"><a>' + yasoon.i18n('dialog.attachmentDelete') + '</a></li>' +
 				'	</ul>' +
 				'</span>';
 	};
@@ -776,7 +777,7 @@ function AttachmentLinkRenderer() {
 		$(container).append('<div class="field-group" id="' + id + '-container">' +
 								'	<label for="description"><span class="descr">Attachment</span></label>' +
 								'	<div>' +
-								'		<div id="' + id + '"><a class="AddAttachmentLink" style="display:block; margin-top: 5px; cursor:pointer;"> add Attachment</a></div>' +
+								'		<div id="' + id + '"><a class="AddAttachmentLink" style="display:block; margin-top: 5px; cursor:pointer;">' + yasoon.i18n('dialog.attachmentAdd') + '</a></div>' +
 								'		<div id="' + id + '-selected-container"></div>' +
 								'	</div>' +
 								'</div>');
@@ -837,25 +838,25 @@ function TimeTrackingRenderer() {
 	this.render = function (id, field, container) {
 		$(container).append('<div id="' + id + '" data-type="timetracking"></div>');
 		$('#' + id).append('<div class="field-group">' +
-							'   <label for="' + id + '_originalestimate"> Original Estimate' +
+							'   <label for="' + id + '_originalestimate">' + yasoon.i18n('dialog.timetrackinOriginal') +
 							'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
 							'   </label>' +
 							'	<span style="min-width: 350px; width: 80%;">' +
 							'		<input class="text" style="min-width: 350px; width: 60%;" id="' + id + '_originalestimate" name="' + id + '_originalestimate" value="" type="text">' +
-							'		<span class="aui-form example">(eg. 3w 4d 12h)</span>' +
+							'		<span class="aui-form example">' + yasoon.i18n('dialog.timetrackingExample') + '</span>' +
 							'	</span>' +
-							'	<div class="description">The original estimate of how much work is involved in resolving this issue.</div>' +
+							'	<div class="description">' + yasoon.i18n('dialog.timetrackingDescrOriginal') + '</div>' +
 							'</div>');
 
 		$('#' + id).append('<div class="field-group">' +
-							'   <label for="' + id + '_remainingestimate"> Remaining Estimate' +
+							'   <label for="' + id + '_remainingestimate">' + yasoon.i18n('dialog.timetrackingRemaining') +
 							'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
 							'   </label>' +
 							'	<span style="min-width: 350px; width: 80%;">' +
 							'		<input class="text" style="min-width: 350px; width: 60%;" id="' + id + '_remainingestimate" name="' + id + '_remainingestimate" value="" type="text">' +
-							'		<span class="aui-form example">(eg. 3w 4d 12h)</span>' +
+							'		<span class="aui-form example">' + yasoon.i18n('dialog.timetrackingExample') + ')</span>' +
 							'	</span>' +
-							'	<div class="description">An estimate of how much work remains until this issue will be resolved.</div>' +
+							'	<div class="description">' + yasoon.i18n('dialog.timetrackingDescrRemain') + '</div>' +
 							'</div>');
 	};
 }
@@ -881,7 +882,7 @@ function EpicLinkRenderer() {
 		var html = '<div class="field-group input-field">' +
 				'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
 				'    <select data-container-class="issuetype-ss" style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.pyxis.greenhopper.jira:gh-epic-link">' +
-				'        <option value="">None</option>' +
+				'        <option value="">' + yasoon.i18n('dialog.selectNone') +'</option>' +
 				'    </select>' +
 				'</div>';
 
@@ -895,7 +896,7 @@ function EpicLinkRenderer() {
 			var result = [];
 			var oldValue = $('#' + id).data('value');						
 			var elem = $(container).find('#' + id);
-			elem.html('<option value="">None</option>');
+			elem.html('<option value="">' + yasoon.i18n('dialog.selectNone') + '</option>');
 			
 			if (epics && epics.total > 0) {				
 				if (epics.epicLists) {
@@ -968,7 +969,7 @@ function SprintLinkRenderer() {
 		var html = '<div class="field-group input-field">' +
 				'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
 				'    <select data-container-class="issuetype-ss" style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.pyxis.greenhopper.jira:gh-sprint">' +
-				'        <option value="">None</option>' +
+				'        <option value="">' + yasoon.i18n('dialog.selectNone') + '</option>' +
 				'    </select>' +
 				'</div>';
 
@@ -981,7 +982,7 @@ function SprintLinkRenderer() {
 			var result = [];
 			var oldValue = $('#' + id).data('value');
 			if (sprints && sprints.suggestions.length > 0) {
-				$(container).find('#' + id).html('<option value="">None</option>');
+				$(container).find('#' + id).html('<option value="">' + yasoon.i18n('dialog.selectNone') + '</option>');
 				$.each(sprints.suggestions, function (i, sprint) {
 					$(container).find('#' + id).append('<option value="' + sprint.id + '"> ' + sprint.name + '</option>');
 				});
