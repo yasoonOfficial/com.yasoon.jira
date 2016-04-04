@@ -138,7 +138,7 @@
 				"setStatusAction": "Status setzen",
 				"addFileAction": "Datei anhängen",
 				"editAction": "Bearbeiten",
-				"logWorkAction": "Zeit erfassen",
+				"logWorkAction": "Arbeit protokollieren",
 				"commentedOn": "{{name}} hat auf {{text}} kommentiert",
 				"noContent": "Kein Inhalt"
 			}, 
