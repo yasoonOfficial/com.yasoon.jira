@@ -834,7 +834,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					}
 				})
 				.catch(function () {
-					jira.mailAsMarkup = yasoon.i18n('dialog.errorMarkupRenderer');
+					jira.mailAsMarkup = yasoon.i18n('general.couldNotRenderMarkup');
 					if (!self.selectedText && fieldMapping.body) {
 						jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, jira.mailAsMarkup);
 					}

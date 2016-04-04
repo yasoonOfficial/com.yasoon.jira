@@ -132,6 +132,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					$('#description').val(markup);
 				}
 			})
+				.catch(function () {
+				jira.mailAsMarkup = yasoon.i18n('general.couldNotRenderMarkup');
+				if (!self.selectedText) {
+					jira.UIFormHandler.setValue('description', { schema: { custom: 'description' } }, jira.mailAsMarkup);
+				}
+			})
 			.finally(function() {
 				$('#markupLoader').hide();
 			});
