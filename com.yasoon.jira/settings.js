@@ -84,12 +84,12 @@ function JiraSettingController() {
 				var newService = $.grep(parameter.oAuthServices, function (s) { return s.serviceName == selectedServiceName; })[0];
 
 				if (!newService) {
-					yasoon.alert.add({ type: yasoon.alert.alertType.error, message: "Login to this systen not possible due to a missing configuration. Please contact your admin." });
+					yasoon.alert.add({ type: yasoon.alert.alertType.error, message: yasoon.i18n('settings.loginNotPossible') });
 					throw new Error('Selected service ' + selectedServiceName + ' does not exist.');
 				}
 
 				if(!newService.appParams || !newService.appParams.url){
-					yasoon.alert.add({ type: yasoon.alert.alertType.error, message: "Login to this system not possible due to a missing configuration. Please contact your admin." });
+					yasoon.alert.add({ type: yasoon.alert.alertType.error, message: yasoon.i18n('settings.loginNotPossible') });
 					return false;
 				}
 
@@ -138,12 +138,12 @@ function JiraSettingController() {
 				var app = yasoon.model.apps.get('com.yasoon.jira');
 				yasoon.store.getLatestVersions(function (storeApp) {
 					if (storeApp.id > app.origin.versionId) {
-						yasoon.dialog.showMessageBox('There are pending updates which prevent this action. Please check for latest updates in the Outlook menu: File --> yasoon, restart Outlook and try again');
+						yasoon.dialog.showMessageBox(yasoon.i18n('settings.pendingUpdates'));
 						$('#jiraReloadOAuth').unbind().prop('disabled', false).click(reloadOAuthHandler);
 						return;
 					}
 					if (app.origin.basePath.indexOf('update') > -1) {
-						yasoon.dialog.showMessageBox('There are pending updates which prevent this action. Please restart Outlook and try again');
+						yasoon.dialog.showMessageBox(yasoon.i18n('settings.pendingUpdatesApp'));
 						$('#jiraReloadOAuth').unbind().prop('disabled', false).click(reloadOAuthHandler);
 						return;
 					}
@@ -153,7 +153,7 @@ function JiraSettingController() {
 							jira.downloadScript = true;
 							yasoon.app.update(null, null, function () {
 								yasoon.view.settings.renderOptionPane(yasoon.view.settings.currentApp());
-								yasoon.alert.add({ message: 'Successfully reloaded the system information!', type: 3});
+								yasoon.alert.add({ message: yasoon.i18n('settings.reloadSuccess'), type: 3});
 							});
 						}
 					});

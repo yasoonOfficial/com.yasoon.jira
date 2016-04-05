@@ -448,6 +448,13 @@ function JiraIssueNotification(issue) {
 		if (self.issue.fields.creator)
 			creator = jira.contacts.get(self.issue.fields.creator.name);
 
+		//Transform Dates
+		if (self.issue.renderedFields.dueDate)
+			self.issue.renderedFields.dueDate = moment(new Date(self.issue.fields.dueDate)).format('L');
+		if (self.issue.renderedFields.resolutiondate)
+			self.issue.renderedFields.resolutiondate = moment(new Date(self.issue.fields.resolutiondate)).format('L');
+		
+		console.log('RenderedFields', self.issue.fields, self.issue.renderedFields);
 		//Start rendering
 		feed.setTemplate('templates/issueNotification.hbs', {
 			fields: self.issue.fields,
@@ -485,10 +492,10 @@ function JiraIssueNotification(issue) {
 
 		//Add Actions
 		feed.properties.customActions.push(
-        { 
-            description: '<span><i class="fa fa-external-link"></i> ' + yasoon.i18n('notification.openAction')  + '</span>',
-            url: jira.settings.baseUrl + '/browse/' + self.issue.key 
-        });
+		{ 
+			description: '<span><i class="fa fa-external-link"></i> ' + yasoon.i18n('notification.openAction')  + '</span>',
+			url: jira.settings.baseUrl + '/browse/' + self.issue.key 
+		});
 
 		var changeStatusHtml = '' +
 			'<span style="position:relative;">' +
@@ -876,9 +883,9 @@ function JiraIssueActionNotification(event) {
 		yEvent.externalId = 'c' + comment.id;
 		//"Render" title for desktop notification
 		yEvent.title = yasoon.i18n('notification.commentedOn', {
-            name: comment.updateAuthor.displayName,
-            text: self.event.issue.fields.summary
-        });
+			name: comment.updateAuthor.displayName,
+			text: self.event.issue.fields.summary
+		});
 		yEvent.content = (renderedComment.body) ? renderedComment.body : yasoon.i18n('notification.noContent');
 		yEvent.contactId = comment.updateAuthor.name;
 		yEvent.createdAt = new Date(comment.updated);

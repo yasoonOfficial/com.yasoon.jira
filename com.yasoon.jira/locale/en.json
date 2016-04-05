@@ -67,7 +67,6 @@
 				"errorAttachment": "Connection Error: Uploading the attachments failed: {{error}}",
 				"errorSubmitIssue": "Sorry, that did not work. Check your input and try again.  \n {{error}}",
 				"errorCreateAttachment": "Issue {{key}} created, but uploading the attachments did not work. {{error}}",
-				"errorMarkupRenderer": "Could not render the selected text as JIRA markup. Please switch to plain text or contact us to get this fixed!",
 				"SDAssignment": "Service Desk assignment",
 				"SDExplanation": "Service Desk assignments make the issue visible for the reporter in the Service Desk as \"Own Request\"",
 				"requestType":"Request Type",
@@ -82,7 +81,7 @@
 				"titleReplaceWith":"If you like to add the whole mail as .msg attachment, use the \"add attachment\" link below",
 				"replaceWith": "Replace with",
 				"addSelectedText": "Add selected text",
-				"addConversation":"Add whole conversation",
+				"addConversation":"Add whole email",
 				"addMailInformation":"Insert mail information",
 				"titleSelectDate": "Select a date",
 				"labelDescription":"Start typing to get a list of possible matches or press down to select.",
@@ -106,8 +105,6 @@
 				"timetrackingRemaining":"Remaining Estimate",
 				"timetrackingDescrOriginal": "The original estimate of how much work is involved in resolving this issue.",
 				"timetrackingDescrRemain": "An estimate of how much work remains until this issue will be resolved."
-
-
 			},
 			"filter": {
 				"projectFilter": "Project",
@@ -193,7 +190,11 @@
 				"optionBottom": "At the Bottom",
 				"showFeedIf": "Show feed entry for issue if:",
 				"filterActive": "Active",
-				"filterAvailable": "Available"
+				"filterAvailable": "Available",
+				"loginNotPossible":"Login to this systen not possible due to a missing configuration. Please contact your admin.",
+				"pendingUpdates":"There are pending updates which prevent this action. Please check for latest updates in the Outlook menu: File --> JIRA, restart Outlook and try again",
+				"pendingUpdatesApp": "There are pending updates which prevent this action. Please restart Outlook and try again",
+				"reloadSuccess": "Successfully reloaded the system information!"
 			}
 		}
 	}

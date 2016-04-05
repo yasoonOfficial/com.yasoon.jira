@@ -254,7 +254,7 @@ function DateRenderer() {
 		var html = '<div class="field-group aui-field-datepicker"> ' +
 					'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ' +
 					'    <input style="height: 28px;" class="text long-field" id="' + id + '" name="' + id + '" placeholder="yyyy/mm/dd" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
-					'    <a href="#" id="' + id + '-trigger" title="'+ yasoon.i18n('dialog.titleSelectDate') +'" tabindex="-1"><span class="aui-icon icon-date">Select a date</span></a> ' +
+					'    <a href="#" id="' + id + '-trigger" title="' + yasoon.i18n('dialog.titleSelectDate') + '" tabindex="-1"><span class="aui-icon icon-date">' + yasoon.i18n('dialog.titleSelectDate') + '</span></a> ' +
 					'</div>';
 		$(container).append(html);
 		var format = moment.localeData().longDateFormat("L");
@@ -290,7 +290,7 @@ function DateTimeRenderer() {
 		var html = '<div class="field-group aui-field-datepicker"> ' +
 					'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ' +
 					'    <input style="height: 28px;" class="text long-field" id="' + id + '" name="' + id + '" placeholder="yyyy/mm/dd hh:mm" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
-					'    <a href="#" id="' + id + '-trigger" "title="'+ yasoon.i18n('dialog.titleSelectDate')+'" tabindex="-1"><span class="aui-icon icon-date">'+ yasoon.i18n(dialog.titleSelectDate) + '</span></a> ' +
+					'    <a href="#" id="' + id + '-trigger" "title="'+ yasoon.i18n('dialog.titleSelectDate')+'" tabindex="-1"><span class="aui-icon icon-date">'+ yasoon.i18n('dialog.titleSelectDate') + '</span></a> ' +
 					'</div>';
 		$(container).append(html);
 
