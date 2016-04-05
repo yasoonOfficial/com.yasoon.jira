@@ -324,7 +324,7 @@ function LabelRenderer() {
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group aui-field-componentspicker frother-control-renderer">' +
 						'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-						'       <select style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" multiple="" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:labels"></select>' +
+                        '    <select style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" multiple="" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:labels"></select>' +
 						'	<div class="description">' + yasoon.i18n('dialog.labelDescription') + '</div>' +
 						'</div>';
 
@@ -1030,6 +1030,85 @@ function SprintLinkRenderer() {
 	};
 }
 
+function TempoAccountRenderer() {
+	this.getValue = function (id) {
+        if ($('#' + id).val())
+		    return parseInt($('#' + id).val());        
+	};
+
+	this.setValue = function (id, value) {
+		if (value && value.length > 0) {
+			$('#' + id).val(value).trigger('change');
+			$('#' + id).data('value', value);
+		}
+	};
+
+	this.render = function (id, field, container) {
+        var html = '<div class="field-group input-field">' +
+                '    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+                '    <select class="select input-field" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
+                '      <option value="">' + yasoon.i18n('dialog.selectNone') + '</option>' +
+                '    </select>' +
+				'</div>';
+
+		$(container).append(html);
+        
+        Promise.all([
+            jiraGet('/rest/tempo-accounts/1/account'),
+            jiraGet('/rest/tempo-accounts/1/account/project/' + jira.selectedProject.id)
+        ])        
+		.spread(function (accountData, projectAccounts) {
+			accountData = JSON.parse(accountData);
+            projectAccounts = JSON.parse(projectAccounts);
+                        
+            var result = [];
+            
+            if (projectAccounts && projectAccounts.length > 0) {
+                var childs = [];
+                
+                projectAccounts.forEach(function(projectAcc) {
+                    childs.push({
+                        'id': projectAcc.id,					
+					    'text': projectAcc.name
+                    })
+                });
+                
+                result.push({
+                    id: 'projectAccounts',
+				    text: yasoon.i18n('dialog.projectAccounts'),
+                    children: childs
+                });
+            }
+           
+            if (accountData && accountData.length > 0) {
+                accountData = accountData.filter(function(acc) { return acc.global; });
+                                
+                if (accountData.length > 0) {
+                
+                    var accChilds = [];
+                    
+                    accountData.forEach(function(projectAcc) {
+                        accChilds.push({
+                            'id': projectAcc.id,					
+                            'text': projectAcc.name
+                        })
+                    });
+                    
+                    result.push({
+                        id: 'globalAccounts',
+				        text: yasoon.i18n('dialog.globalAccounts'),
+                        children: accChilds
+                    });
+                }
+            }
+            
+            $('#' + id).select2({
+                data: result 
+		    });
+        });        
+	};
+}
+
 //Utility Methods
 function parseSprintId(input) {
 	//Wierd --> it's an array of strings with following structure:  "com.atlassian.greenhopper.service.sprint.Sprint@7292f4[rapidViewId=<null>,state=ACTIVE,name=Sample Sprint 2,startDate=2015-04-09T01:54:26.773+02:00,endDate=2015-04-23T02:14:26.773+02:00,completeDate=<null>,sequence=1,id=1]"
@@ -1256,5 +1335,6 @@ UIRenderer.register('attachment', new AttachmentLinkRenderer());
 UIRenderer.register('timetracking', new TimeTrackingRenderer());
 UIRenderer.register('com.pyxis.greenhopper.jira:gh-epic-link', new EpicLinkRenderer());
 UIRenderer.register('com.pyxis.greenhopper.jira:gh-sprint', new SprintLinkRenderer());
+UIRenderer.register('com.tempoplugin.tempo-accounts:accounts.customfield', new TempoAccountRenderer());
 
 //@ sourceURL=http://Jira/Dialog/jiraFieldRenderer.js

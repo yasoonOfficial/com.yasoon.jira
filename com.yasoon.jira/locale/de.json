@@ -86,7 +86,7 @@
 				"titleSelectDate": "Ein Datum auswählen",
 				"labelDescription":"Beginnen Sie mit der Eingabe, um eine Liste möglicher Übereinstimmungen zu erhalten.",
 				"selectDefault" : "Standard",
-				"selectNone": "Keine",
+				"selectNone": "Keine(r)",
 				"releasedVersions" : "Veröffentlichte Versionen",
 				"unreleasedVersions": "Unveröffentlichte Versionen",
 				"assignMyself": "Mir zuweisen",
@@ -104,7 +104,9 @@
 				"timetrackingOriginal": "Ursprüngliche Schätzung",
 				"timetrackingRemaining":"Verbleibende Schätzung",
 				"timetrackingDescrOriginal": "Die ursprüngliche Schätzung, wie viel Arbeit für die Erledigung des Vorgangs erforderlich ist.",
-				"timetrackingDescrRemain": "Eine Schätzung, wie viel Arbeit bis zur Erledigung des Vorgangs verbleibt."
+				"timetrackingDescrRemain": "Eine Schätzung, wie viel Arbeit bis zur Erledigung des Vorgangs verbleibt.",
+                "projectAccounts": "Projekt Accounts",
+                "globalAccounts": "Globale Accounts"
 			},
 			"filter": {
 				"projectFilter": "Projekt",

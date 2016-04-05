@@ -104,7 +104,9 @@
 				"timetrackingOriginal": "Original Estimate",
 				"timetrackingRemaining":"Remaining Estimate",
 				"timetrackingDescrOriginal": "The original estimate of how much work is involved in resolving this issue.",
-				"timetrackingDescrRemain": "An estimate of how much work remains until this issue will be resolved."
+				"timetrackingDescrRemain": "An estimate of how much work remains until this issue will be resolved.",
+                "projectAccounts": "Project Accounts",
+                "globalAccounts": "Global Accounts"
 			},
 			"filter": {
 				"projectFilter": "Project",
