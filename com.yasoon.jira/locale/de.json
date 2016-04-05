@@ -188,7 +188,7 @@
 				"optionDisabled":"Deaktiviert",
 				"optionTop": "Am Anfang",
 				"optionBottom": "Am Ende",
-				"showFeedIf": "Zeige Einträge im Feed für Vorgänge, wenn:",
+				"showFeedIf": "Zeige Neuigkeiten für Vorgänge, wenn:",
 				"filterActive": "Aktiv",
 				"filterAvailable": "Verfügbar",
 				"loginNotPossible":"Login in JIRA ist wegen fehlender Konfigurationen nicht möglich. Bitte kontaktiere deinen Administrator.",
