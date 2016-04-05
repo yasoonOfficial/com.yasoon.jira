@@ -107,6 +107,10 @@
 				"timetrackingDescrRemain": "An estimate of how much work remains until this issue will be resolved.",
                 "projectAccounts": "Project Accounts",
                 "globalAccounts": "Global Accounts"
+				"datePickerDateFormat":"mm/dd/yy",
+				"datePickerFormatTitle":"mm/dd/yyyy",
+				"dateTimePickerFormat":"m/d/Y H:i",
+				"dateTimePickerFormatTitle":"yyyy/mm/dd hh:mm"
 			},
 			"filter": {
 				"projectFilter": "Project",

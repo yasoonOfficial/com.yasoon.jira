@@ -210,3 +210,26 @@ table div.preformattedContent pre
 	font-size: 9px;
 	font-weight: normal;
 }
+
+
+.summary-entry{
+	margin-left: 15px;
+	margin-top: -3px;
+}
+
+.summary-entry img {
+	margin-right: 2px;
+	width: 16px;
+}
+
+@media (min-width: 992px) {
+	.summary-entry{
+		margin-left: 60px !important;
+	}
+}
+
+@media (min-width: 1200px) {
+	.summary-entry {
+		margin-left: 60px !important;
+	}
+}

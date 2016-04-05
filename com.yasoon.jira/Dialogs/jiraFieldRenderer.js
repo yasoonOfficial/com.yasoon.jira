@@ -238,9 +238,9 @@ function RadioButtonRenderer() {
 
 function DateRenderer() {
 	this.getValue = function (id) {
-		var value = $('#' + id).val();
+		var value = $('#' +id).datepicker("getDate");
 		if (value) {
-			return moment(new Date(value)).format('YYYY-MM-DD');
+			return moment(value).format('YYYY-MM-DD');
 		}
 	};
 
@@ -253,16 +253,22 @@ function DateRenderer() {
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group aui-field-datepicker"> ' +
 					'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ' +
-					'    <input style="height: 28px;" class="text long-field" id="' + id + '" name="' + id + '" placeholder="yyyy/mm/dd" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
+					'    <input style="height: 28px;" class="text long-field" id="' + id + '" name="' + id + '" placeholder="' + yasoon.i18n('dialog.datePickerFormatTitle') + '" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
 					'    <a href="#" id="' + id + '-trigger" title="' + yasoon.i18n('dialog.titleSelectDate') + '" tabindex="-1"><span class="aui-icon icon-date">' + yasoon.i18n('dialog.titleSelectDate') + '</span></a> ' +
 					'</div>';
 		$(container).append(html);
-		var format = moment.localeData().longDateFormat("L");
-		$('#' + id).datepicker({
-			showOtherMonths: true,
-			selectOtherMonths: true,
-			dateFormat: format
-		});
+		var format = yasoon.i18n('dialog.datePickerDateFormat');
+		var country = yasoon.setting.getProjectSetting('locale').split('-')[0];
+		var regionalTexts = $.datepicker.regional[country];
+
+		$('#' + id).datepicker($.extend(
+			{},
+			regionalTexts,
+			{
+				showOtherMonths: true,
+				selectOtherMonths: true,
+				dateFormat: format,
+			}));
 
 		$('#' + id + '-trigger').unbind().click(function (e) {
 			$('#' + id).datepicker("show");
@@ -272,9 +278,11 @@ function DateRenderer() {
 
 function DateTimeRenderer() {
 	this.getValue = function (id) {
-		var value = $('#' + id).val();
+		var value = $('#'+ id).datetimepicker('getValue');
 		if (value) {
-			var dateString = new Date(value).toISOString();
+			console.log(value);
+
+			var dateString = value.toISOString();
 			return dateString.replace('Z', '+0000');
 		}
 	};
@@ -289,10 +297,12 @@ function DateTimeRenderer() {
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group aui-field-datepicker"> ' +
 					'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ' +
-					'    <input style="height: 28px;" class="text long-field" id="' + id + '" name="' + id + '" placeholder="yyyy/mm/dd hh:mm" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
+					'    <input style="height: 28px;" class="text long-field" id="' + id + '" name="' + id + '" placeholder="' + yasoon.i18n('dialog.dateTimePickerFormatTitle') +'" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
 					'    <a href="#" id="' + id + '-trigger" "title="'+ yasoon.i18n('dialog.titleSelectDate')+'" tabindex="-1"><span class="aui-icon icon-date">'+ yasoon.i18n('dialog.titleSelectDate') + '</span></a> ' +
 					'</div>';
 		$(container).append(html);
+
+		var country = yasoon.setting.getProjectSetting('locale').split('-')[0];
 
 		$('#'+id).datetimepicker({
 			allowTimes: [
@@ -300,8 +310,10 @@ function DateTimeRenderer() {
 				'07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
 				'12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00'
 				//,'20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30'
-			]
+			],
+			format: yasoon.i18n('dialog.dateTimePickerFormat'),
 		});
+		$.datetimepicker.setLocale(country);
 
 		$('#' + id + '-trigger').unbind().click(function (e) {
 			$('#' + id).datetimepicker("show");
@@ -838,7 +850,7 @@ function TimeTrackingRenderer() {
 	this.render = function (id, field, container) {
 		$(container).append('<div id="' + id + '" data-type="timetracking"></div>');
 		$('#' + id).append('<div class="field-group">' +
-							'   <label for="' + id + '_originalestimate">' + yasoon.i18n('dialog.timetrackinOriginal') +
+							'   <label for="' + id + '_originalestimate">' + yasoon.i18n('dialog.timetrackingOriginal') +
 							'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
 							'   </label>' +
 							'	<span style="min-width: 350px; width: 80%;">' +

@@ -1,184 +1,189 @@
 <div style="position:relative; line-height: 1.42857;" class="jiraContainer">
-    <!-- Collapsed View-->
-  <div class="row body-collapsed" style="padding-top:2px; padding-bottom:3px;">
-    <div class="col-sm-2" style="padding-left: 20px;">
-      <div class="jiraFeedExpand" style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; cursor:pointer;">
-        <i class="fa fa-caret-right"></i> {{i18n 'notification.summary'}}:
-      </div>
-    </div>
-    <div class="col-sm-2" style="margin-top: -3px">
-      <span title="{{fields.issuetype.description}}">
-        <img src="{{fields.issuetype.iconUrl}}" style="margin-right: 2px; width: 16px;" />{{fields.issuetype.name}}
-      </span>
-    </div>
-    <div class="col-sm-2" style="margin-top: -3px">
-      <span title="{{fields.status.description}}">
-        <img src="{{fields.status.iconUrl}}" style="margin-right: 2px; width: 16px;" /> {{fields.status.name}}
-      </span>
-    </div>
-    <div class="col-sm-3" style="margin-top: -3px">
-      <span>{{i18n 'notification.dueAt'}}: {{#if renderedFields.duedate}} {{renderedFields.duedate}} {{else}} - {{/if}}</span>
-    </div>
-    <div class="col-sm-3" style="margin-top: -3px">
-      <span>
-        <img src="{{assignee.avatarUrl}}" style="margin-right: 2px; width: 16px;" /> {{assignee.displayName}}
-      </span>
-    </div>
-  </div>
-    <!-- Expanded View-->
-  <div class="row body-open" style="display:none;">
-    <div class="col-sm-8" style="padding: 2px 20px;">
-      <div class="jiraFeedClose" style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; cursor:pointer;">
-        <i class="fa fa-caret-down"></i> {{i18n 'notification.details'}} <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
-      </div>
-      <div class="row" >
-        <div class="col-sm-6">
-          <div class="row" style="margin-top: 5px;">
-            <div class="col-sm-4">
-              <span style="color: #707070">{{i18n 'notification.type'}}:</span>
-            </div>
-            <div class="col-sm-8">
-              <span title="{{fields.issuetype.description}}">
-                <img src="{{fields.issuetype.iconUrl}}" style="margin-right: 2px; width: 16px;" />{{fields.issuetype.name}}
-              </span>
-            </div>
-          </div>
-          <div class="row" style="margin-top: 5px;">
-            <div class="col-sm-4">
-              <span style="color: #707070">{{i18n 'notification.priority'}}:</span>
-            </div>
-            <div class="col-sm-8">
-              <span>
-                <img src="{{fields.priority.iconUrl}}" style="margin-right: 2px; width: 16px;" />{{fields.priority.name}}
-              </span>
-            </div>
-          </div>
-          {{#if fields.versions}}
-          <div class="row" style="margin-top: 5px;">
-            <div class="col-sm-4">
-              <span style="color: #707070">{{i18n 'notification.affectedVersions'}}:</span>
-            </div>
-            <div class="col-sm-8">
-              <span>
-                {{#each fields.versions}}
-                  {{#unless @first}}, {{/unless}}<span title="{{description}}"> {{name}}</span>
-                {{/each}}
-              </span>
-            </div>
-          </div>
-          {{/if}}
-          {{#if environment}}
-          <div class="row" style="margin-top: 5px;">
-            <div class="col-sm-4">
-              <span style="color: #707070">{{i18n 'notification.environment'}}:</span>
-            </div>
-            <div class="col-sm-8">
-              <div>{{renderedFields.environment}}</div>
-            </div>
-          </div>
-          {{/if}}
-        </div>
-        <div class="col-sm-6">
-          <div class="row" style="margin-top: 5px;">
-            <div class="col-sm-4">
-              <span style="color: #707070">{{i18n 'notification.status'}}:</span>
-            </div>
-            <div class="col-sm-8">
-              <span title="{{fields.status.description}}" >
-                <img src="{{fields.status.iconUrl}}" style="margin-right: 2px; width: 16px;" /> {{fields.status.name}}
-              </span>
-            </div>
-          </div>
-          <div class="row" style="margin-top: 5px;">
-            <div class="col-sm-4">
-              <span style="color: #707070">{{i18n 'notification.solution'}}:</span>
-            </div>
-            <div class="col-sm-8">
-              <span> {{#if fields.resolution}}{{fields.resolution.name}}{{else}}not done{{/if}}</span>
-            </div>
-          </div>
-          {{#if fields.fixVersions}}
-          <div class="row" style="margin-top: 5px;">
-            <div class="col-sm-4">
-              <span style="color: #707070">{{i18n 'notification.fixVersions'}}:</span>
-            </div>
-            <div class="col-sm-8">
-              <span>
-                {{#each fields.fixVersions}}
-                  {{#unless @first}}, {{/unless}}<a href="{{../baseUrl}}/browse/{{../fields.project.key}}/fixforversion/{{id}}" title="{{description}}"> {{name}}</a>
-                {{/each}}
-              </span>
-            </div>
-          </div>
-          {{/if}}
-        </div>
-      </div>
-      <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top: 15px;">
-        {{i18n 'notification.description'}} <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
-      </div>
-      <div class="row" style="margin-top: 5px;">
-        <div class="col-sm-12"> {{{renderedFields.description}}}</div>
-      </div>
-        {{#if fields.attachment}}
-        <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top: 15px;">
-            {{i18n 'notification.attachments'}} <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
-        </div>
-        <div class="row" style="margin-top: 5px;">
-            <div class="col-sm-12">
-                {{#each fields.attachment}}
-                <span class="jiraFile" style="margin-right:15px; white-space:nowrap;"><a href="{{content}}"><img style="width:16px;" src="{{fileIcon}}" />{{{filename}}}</a></span>
-                {{/each}}
-            </div>
-        </div>
-        {{/if}}
-    </div>
-    <div class="col-sm-4" style="padding: 10px 20px;">
-      <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden;">
-        {{i18n 'notification.persons'}} <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
-      </div>
-      <div class="row" style="margin-top: 5px;">
-        <div class="col-sm-4">
-          <span style="color: #707070">{{i18n 'notification.assignee'}}:</span>
-        </div>
-        <div class="col-sm-8">
-          <span>
-            <img src="{{assignee.avatarUrl}}" style="margin-right: 2px; width: 16px;" /> {{assignee.displayName}}
-          </span>
-        </div>
-      </div>
-      <div class="row" style="margin-top: 5px;">
-        <div class="col-sm-4">
-          <span style="color: #707070">{{i18n 'notification.creator'}}:</span>
-        </div>
-        <div class="col-sm-8">
-          <span>
-            <img src="{{creator.avatarUrl}}" style="margin-right: 2px; width: 16px;" /> {{creator.displayName}}
-          </span>
-        </div>
-      </div>
-      <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top:15px;">
-        {{i18n 'notification.dates'}} <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
-      </div>
-		{{#if renderedFields.duedate}}
-		<div class="row" style="margin-top: 5px;">
-        <div class="col-sm-4">
-          <span style="color: #707070">{{i18n 'notification.dueAt'}}:</span>
-        </div>
-        <div class="col-sm-8">
-          <span>{{renderedFields.duedate}}</span>
-        </div>
-      </div>
-      {{/if}}
-      {{#if renderedFields.resolutiondate}}
-      <div class="row" style="margin-top: 5px;">
-        <div class="col-sm-4">
-          <span style="color: #707070">{{i18n 'notification.finishedAt'}}:</span>
-        </div>
-        <div class="col-sm-8">
-          <span> {{renderedFields.resolutiondate}}</span>
-        </div>
-      </div>
-      {{/if}}
-    </div>
-  </div>
+	<!-- Collapsed View-->
+	<div class="row body-collapsed" style="padding-top:2px; padding-bottom:3px;">
+		<div class="col-sm-12" style="padding-left: 20px;">
+			<div class="jiraFeedExpand pull-left" style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; cursor:pointer;">
+				<i class="fa fa-caret-right"></i> {{i18n 'notification.summary'}}:
+			</div>
+			<div class="pull-left summary-entry" >
+				<span title="{{fields.issuetype.description}}" >
+					<img src="{{fields.issuetype.iconUrl}}"  />{{fields.issuetype.name}}
+				</span>
+			</div>
+			<div class="pull-left summary-entry">
+				<span title="{{fields.status.description}}">
+					<img src="{{fields.status.iconUrl}}" /> {{fields.status.name}}
+				</span>
+			</div>
+			<div class="pull-left summary-entry">
+				<span title="{{i18n 'notification.dueAt'}}">
+					<i class="fa fa-clock-o"></i> {{#if renderedFields.duedate}} {{renderedFields.duedate}} {{else}} - {{/if}}</span>
+			</div>
+			<div class="pull-left summary-entry">
+				<span>
+					<img src="{{assignee.avatarUrl}}" /> {{assignee.displayName}}
+				</span>
+			</div>
+		</div>
+	</div>
+	<!-- Expanded View-->
+	<div class="row body-open" style="display:none;">
+		<div class="col-sm-8" style="padding: 2px 20px;">
+			<div class="jiraFeedClose" style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; cursor:pointer;">
+				<i class="fa fa-caret-down"></i> {{i18n 'notification.details'}} <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
+			</div>
+			<div class="row" >
+				<div class="col-sm-6">
+					<div class="row" style="margin-top: 5px;">
+						<div class="col-sm-4">
+							<span style="color: #707070">{{i18n 'notification.type'}}:</span>
+						</div>
+						<div class="col-sm-8">
+							<span title="{{fields.issuetype.description}}">
+								<img src="{{fields.issuetype.iconUrl}}" style="margin-right: 2px; width: 16px;" />{{fields.issuetype.name}}
+							</span>
+						</div>
+					</div>
+					<div class="row" style="margin-top: 5px;">
+						<div class="col-sm-4">
+							<span style="color: #707070">{{i18n 'notification.priority'}}:</span>
+						</div>
+						<div class="col-sm-8">
+							<span>
+								<img src="{{fields.priority.iconUrl}}" style="margin-right: 2px; width: 16px;" />{{fields.priority.name}}
+							</span>
+						</div>
+					</div>
+					{{#if fields.versions}}
+					<div class="row" style="margin-top: 5px;">
+						<div class="col-sm-4">
+							<span style="color: #707070">{{i18n 'notification.affectedVersions'}}:</span>
+						</div>
+						<div class="col-sm-8">
+							<span>
+								{{#each fields.versions}}
+								{{#unless @first}}, {{/unless}}<span title="{{description}}"> {{name}}</span>
+								{{/each}}
+							</span>
+						</div>
+					</div>
+					{{/if}}
+					{{#if environment}}
+					<div class="row" style="margin-top: 5px;">
+						<div class="col-sm-4">
+							<span style="color: #707070">{{i18n 'notification.environment'}}:</span>
+						</div>
+						<div class="col-sm-8">
+							<div>{{renderedFields.environment}}</div>
+						</div>
+					</div>
+					{{/if}}
+				</div>
+				<div class="col-sm-6">
+					<div class="row" style="margin-top: 5px;">
+						<div class="col-sm-4">
+							<span style="color: #707070">{{i18n 'notification.status'}}:</span>
+						</div>
+						<div class="col-sm-8">
+							<span title="{{fields.status.description}}" >
+								<img src="{{fields.status.iconUrl}}" style="margin-right: 2px; width: 16px;" /> {{fields.status.name}}
+							</span>
+						</div>
+					</div>
+					<div class="row" style="margin-top: 5px;">
+						<div class="col-sm-4">
+							<span style="color: #707070">{{i18n 'notification.solution'}}:</span>
+						</div>
+						<div class="col-sm-8">
+							<span> {{#if fields.resolution}}{{fields.resolution.name}}{{else}}not done{{/if}}</span>
+						</div>
+					</div>
+					{{#if fields.fixVersions}}
+					<div class="row" style="margin-top: 5px;">
+						<div class="col-sm-4">
+							<span style="color: #707070">{{i18n 'notification.fixVersions'}}:</span>
+						</div>
+						<div class="col-sm-8">
+							<span>
+								{{#each fields.fixVersions}}
+								{{#unless @first}}, {{/unless}}<a href="{{../baseUrl}}/browse/{{../fields.project.key}}/fixforversion/{{id}}" title="{{description}}"> {{name}}</a>
+								{{/each}}
+							</span>
+						</div>
+					</div>
+					{{/if}}
+				</div>
+			</div>
+			<div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top: 15px;">
+				{{i18n 'notification.description'}} <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
+			</div>
+			<div class="row" style="margin-top: 5px;">
+				<div class="col-sm-12"> {{{renderedFields.description}}}</div>
+			</div>
+			{{#if fields.attachment}}
+			<div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top: 15px;">
+				{{i18n 'notification.attachments'}} <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
+			</div>
+			<div class="row" style="margin-top: 5px;">
+				<div class="col-sm-12">
+					{{#each fields.attachment}}
+					<span class="jiraFile" style="margin-right:15px; white-space:nowrap;">
+						<a href="{{content}}">
+							<img style="width:16px;" src="{{fileIcon}}" />{{{filename}}}
+						</a>
+					</span>
+					{{/each}}
+				</div>
+			</div>
+			{{/if}}
+		</div>
+		<div class="col-sm-4" style="padding: 10px 20px;">
+			<div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden;">
+				{{i18n 'notification.persons'}} <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
+			</div>
+			<div class="row" style="margin-top: 5px;">
+				<div class="col-sm-4">
+					<span style="color: #707070">{{i18n 'notification.assignee'}}:</span>
+				</div>
+				<div class="col-sm-8">
+					<span>
+						<img src="{{assignee.avatarUrl}}" style="margin-right: 2px; width: 16px;" /> {{assignee.displayName}}
+					</span>
+				</div>
+			</div>
+			<div class="row" style="margin-top: 5px;">
+				<div class="col-sm-4">
+					<span style="color: #707070">{{i18n 'notification.creator'}}:</span>
+				</div>
+				<div class="col-sm-8">
+					<span>
+						<img src="{{creator.avatarUrl}}" style="margin-right: 2px; width: 16px;" /> {{creator.displayName}}
+					</span>
+				</div>
+			</div>
+			<div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top:15px;">
+				{{i18n 'notification.dates'}} <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
+			</div>
+			{{#if renderedFields.duedate}}
+			<div class="row" style="margin-top: 5px;">
+				<div class="col-sm-4">
+					<span style="color: #707070">{{i18n 'notification.dueAt'}}:</span>
+				</div>
+				<div class="col-sm-8">
+					<span>{{renderedFields.duedate}}</span>
+				</div>
+			</div>
+			{{/if}}
+			{{#if renderedFields.resolutiondate}}
+			<div class="row" style="margin-top: 5px;">
+				<div class="col-sm-4">
+					<span style="color: #707070">{{i18n 'notification.finishedAt'}}:</span>
+				</div>
+				<div class="col-sm-8">
+					<span> {{renderedFields.resolutiondate}}</span>
+				</div>
+			</div>
+			{{/if}}
+		</div>
+	</div>
 </div>
