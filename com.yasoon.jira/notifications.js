@@ -449,12 +449,11 @@ function JiraIssueNotification(issue) {
 			creator = jira.contacts.get(self.issue.fields.creator.name);
 
 		//Transform Dates
-		if (self.issue.renderedFields.dueDate)
-			self.issue.renderedFields.dueDate = moment(new Date(self.issue.fields.dueDate)).format('L');
+		if (self.issue.renderedFields.duedate)
+			self.issue.renderedFields.duedate = moment(new Date(self.issue.fields.duedate)).format('L');
 		if (self.issue.renderedFields.resolutiondate)
 			self.issue.renderedFields.resolutiondate = moment(new Date(self.issue.fields.resolutiondate)).format('L');
 		
-		console.log('RenderedFields', self.issue.fields, self.issue.renderedFields);
 		//Start rendering
 		feed.setTemplate('templates/issueNotification.hbs', {
 			fields: self.issue.fields,

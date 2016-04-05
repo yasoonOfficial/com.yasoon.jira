@@ -159,23 +159,23 @@
       <div style="font:bold 14px arial, sans-serif; position:relative; overflow:hidden; margin-top:15px;">
         {{i18n 'notification.dates'}} <span style="position:absolute;  border-bottom: 1px solid #E2E2E2;width: 100%;top: 8px;margin: 0px 4px;"></span>
       </div>
-      {{#if fields.duedate}}
-      <div class="row" style="margin-top: 5px;">
+		{{#if renderedFields.duedate}}
+		<div class="row" style="margin-top: 5px;">
         <div class="col-sm-4">
           <span style="color: #707070">{{i18n 'notification.dueAt'}}:</span>
         </div>
         <div class="col-sm-8">
-          <span>{{fields.duedate}}</span>
+          <span>{{renderedFields.duedate}}</span>
         </div>
       </div>
       {{/if}}
-      {{#if fields.resolutiondate}}
+      {{#if renderedFields.resolutiondate}}
       <div class="row" style="margin-top: 5px;">
         <div class="col-sm-4">
           <span style="color: #707070">{{i18n 'notification.finishedAt'}}:</span>
         </div>
         <div class="col-sm-8">
-          <span> {{fields.resolutiondate}}</span>
+          <span> {{renderedFields.resolutiondate}}</span>
         </div>
       </div>
       {{/if}}
