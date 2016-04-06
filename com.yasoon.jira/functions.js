@@ -954,7 +954,7 @@ function getJiraMarkupRenderer() {
 			if (style.isHeading) { //Heading needs to be the first element in line. 
 				result = 'h' + style.headingSize + '. ' + result;
 			}
-
+			
 			return prefix + result + suffix; 
 		},
 		renderImage: function(image) {
@@ -996,7 +996,7 @@ function getJiraMarkupRenderer() {
 
 			lastOp = 'renderTableCell';
 			if(time === 1)
-				return '|'; 
+				return ' |'; //Add trailing whitespace to support empty cells
 		},
 		renderNewLine: function () {
 			if(inTableCount > 0 && lastOp === 'newLine')
