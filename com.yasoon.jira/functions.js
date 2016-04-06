@@ -81,7 +81,7 @@ function JiraRibbonController() {
 						id: 'jiraMailExplorerGroup',
 						insertAfterMso: 'GroupMailRespond',
 						label: 'JIRA',
-                        image: 'brandedlogo-64',
+						image: 'brandedlogo-64',
 						items: self.createJiraRibbonGroup('MailMain')
 					}]
 				}]
@@ -104,7 +104,7 @@ function JiraRibbonController() {
 						id: 'jiraMailReadGroup',
 						insertAfterMso: 'GroupShow',
 						label: 'JIRA',
-                        image: 'brandedlogo-64',
+						image: 'brandedlogo-64',
 						items: self.createJiraRibbonGroup('MailRead')
 					}]
 				}]
@@ -948,7 +948,7 @@ function getJiraMarkupRenderer() {
 			if(style.isStrikethrough)
 				result = '-' + result + '-';
 				
-			if (style.color && style.color != '#1F497D') //Do not add Outlook standard blue as markup
+			if (style.color && style.color != '#1F497D' && style.color != '#000000') //Do not add Outlook standard blue or black as markup
 				result = '{color:' + style.color + '}' + result + '{color}';
 			 
 			if (style.isHeading) { //Heading needs to be the first element in line. 

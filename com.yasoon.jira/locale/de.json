@@ -106,7 +106,7 @@
 				"timetrackingDescrOriginal": "Die ursprüngliche Schätzung, wie viel Arbeit für die Erledigung des Vorgangs erforderlich ist.",
 				"timetrackingDescrRemain": "Eine Schätzung, wie viel Arbeit bis zur Erledigung des Vorgangs verbleibt.",
                 "projectAccounts": "Projekt Accounts",
-                "globalAccounts": "Globale Accounts"
+                "globalAccounts": "Globale Accounts",
 				"datePickerDateFormat":"dd.mm.yy",
 				"datePickerFormatTitle":"tt.mm.jjjj",
 				"dateTimePickerFormat":"d.m.Y H:i",
