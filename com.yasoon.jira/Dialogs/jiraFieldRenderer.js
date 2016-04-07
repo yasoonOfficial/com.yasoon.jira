@@ -19,10 +19,18 @@ function SingleTextRenderer() {
 }
 	
 function MultilineTextRenderer() {
+	function isDescription(id) {
+		return (id === 'description' || id === 'comment');
+	}
+
+	//MentionsInput only allows to get the value async... which breaks our concept.
+	//So we get the value of the comment box after each change and save it here so we can get it afterwards synchroniously.
+	mentionTexts = {};
+
 	this.getValue = function (id) {
-		if (id === 'description') {
+		if (isDescription(id)) {
 			//Parse @mentions
-			return $('#' + id).val().replace(/@.*?\]\(user:([^\)]+)\)/g, '[~$1]');
+			return mentionTexts[id].replace(/@.*?\]\(user:([^\)]+)\)/g, '[~$1]');
 		} else {
 			return $('#' + id).val();
 		}
@@ -36,10 +44,9 @@ function MultilineTextRenderer() {
 	};
 
 	this.render = function (id, field, container) {
-		var isDescription = (id === 'description');
-		var descriptionHtml = '';
-		if (isDescription && jira.mail) {
-			descriptionHtml = '<div style="margin-top:5px; position:relative;">' +
+		var descriptionHtml = '<div class="mentions-help-text bg-warning"><span>' + yasoon.i18n('dialog.mentionsAlert') + '</span></div>';
+		if (isDescription(id) && jira.mail) {
+			descriptionHtml += '<div style="margin-top:5px; position:relative;">' +
 				'<span id="DescriptionOptionToolbar" class="' + ((jira.mail) ? '' : 'hidden') + '" style="padding: 3px;">' +
 				'	<span title="'+ yasoon.i18n('dialog.titleToggleJiraMarkup') +'"><input id="DescriptionUseJiraMarkup" class="toggle-checkbox" type="checkbox" checked="checked"/>' + yasoon.i18n('dialog.toggleJiraMarkup') +'</span>' +
 				'	<a style="cursor:pointer;" class="hidden" id="DescriptionUndoAction"><i class="fa fa-undo"></i> ' + yasoon.i18n('dialog.undo') +' </a>' +
@@ -63,7 +70,6 @@ function MultilineTextRenderer() {
 
 				'	</ul>' +
 				'</span>' +
-
 				'</div>';
 		}
 
@@ -71,11 +77,11 @@ function MultilineTextRenderer() {
 			'   <label for="' + id + '">' + field.name +
 			'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
 			'   </label>' +
-			'    <textarea class="form-control" id="' + id + '" name="' + id + '" rows="' + ((isDescription) ? 8 : 5) + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:textarea"></textarea>' +
+			'    <textarea class="form-control" id="' + id + '" name="' + id + '" style="height:' + ((isDescription(id)) ? '200px' : '100px') + ';overflow: initial;" data-type="com.atlassian.jira.plugin.system.customfieldtypes:textarea"></textarea>' +
 			descriptionHtml + //Is only filled if nessecary
 			'</div>');
 
-		if (isDescription) {
+		if (isDescription(id)) {
 			var defaultSelectedText = ((jira.selectedText) ? jira.mail.getSelection(0) : null);
 			var useMarkup = true;
 			var backup = '';
@@ -92,15 +98,15 @@ function MultilineTextRenderer() {
 				$('.toggleJiraMarkup').prop('checked', useMarkup);
 				if (lastAction == 'selectedText') {
 					if (useMarkup)
-						$('#description').val(jira.selectedText);
+						$('#' + id).val(jira.selectedText);
 					else
-						$('#description').val(defaultSelectedText);
+						$('#' + id).val(defaultSelectedText);
 
 				} else if (lastAction == 'wholeMail') {
 					if (useMarkup) {
-						$('#description').val(jira.mailAsMarkup);
+						$('#' + id).val(jira.mailAsMarkup);
 					} else {
-						$('#description').val(jira.mail.getBody(0));
+						$('#' + id).val(jira.mail.getBody(0));
 					}
 				}
 				e.preventDefault();
@@ -111,26 +117,26 @@ function MultilineTextRenderer() {
 			});
 
 			$('#DescriptionUndoAction').on('click', function (e) {
-				$('#description').val(backup);
+				$('#' + id).val(backup);
 				$('#DescriptionOptionToolbar').addClass('hidden');
 			});
 
 			$('#DescriptionSelectedText').on('click', function (e) {
-				backup = $('#description').val();
+				backup = $('#' + id).val();
 				lastAction = 'selectedText';
 				$('#DescriptionOptionToolbar').removeClass('hidden');
 				$('#DescriptionUseJiraMarkup').checked = useMarkup;
 				$('#DescriptionUndoAction').removeClass('hidden');
 
 				if (useMarkup)
-					$('#description').val(jira.selectedText);
+					$('#' + id).val(jira.selectedText);
 				else
-					$('#description').val(jira.mail.getSelection(0));
+					$('#' + id).val(jira.mail.getSelection(0));
 
 			});
 
 			$('#DescriptionFullMail').on('click', function (e) {
-				backup = $('#description').val();
+				backup = $('#' + id).val();
 				lastAction = 'wholeMail';
 				$('#DescriptionOptionToolbar').removeClass('hidden');
 				$('#DescriptionUseJiraMarkup').checked = useMarkup;
@@ -144,19 +150,31 @@ function MultilineTextRenderer() {
 			});
 
 			$('#DescriptionMailInformation').on('click', function (e) {
-				backup = $('#description').val();				
+				backup = $('#' + id).val();				
 				insertAtCursor($('#description')[0], renderMailHeaderText(jira.mail, useMarkup));
 			});
 
-			/*
-			$('#description').mentionsInput({
+			$('#' + id).mentionsInput({
 				onDataRequest: searchUser,
 				triggerChar: '@',
 				minChars: 2,
 				showAvatars: false,
 				elastic: false
 			});
-			*/
+
+			$('#' + id).bind('scroll', function () {
+				console.log($(this).scrollTop());
+				$(this).prev().css('margin-top', '-' + $(this).scrollTop() + 'px');
+			});
+
+			$('#' + id).bind('change', function () {
+				$('#' + id).mentionsInput('val', function (content) {
+					mentionTexts[id] = content;
+				});
+			});
+
+
+			
 		}
 	};
 }
@@ -278,19 +296,18 @@ function DateRenderer() {
 
 function DateTimeRenderer() {
 	this.getValue = function (id) {
-		var value = $('#'+ id).datetimepicker('getValue');
-		if (value) {
-			console.log(value);
-
-			var dateString = value.toISOString();
-			return dateString.replace('Z', '+0000');
+		var value = $('#' + id).datetimepicker('getValue');
+		var oldValue = $('#' + id).data('oldValue');
+		if (value && value.valueOf() != oldValue) {
+			return moment(value).format('YYYY-MM-DD[T]HH:mm:ss.[000]ZZ');
 		}
 	};
 
 	this.setValue = function (id, value) {
-		if (value) {
+		if (value) {			
 			var momentDate = moment(new Date(value));
-			$('#' + id).val(momentDate.format('L') + ' ' + momentDate.format('LT'));
+			$('#' + id).datetimepicker('setOptions', { value: momentDate.format('L') + ' ' + momentDate.format('LT') });
+			$('#' + id).data('oldValue', momentDate.valueOf());
 		}
 	};
 
@@ -328,6 +345,11 @@ function LabelRenderer() {
 
 	this.setValue = function (id, value) {
 		if (value && value.length > 0) {
+			value.forEach(function (label) {
+				//Add Option tags so initial selection will work
+				$('#' + id).append('<option val="' + label + '">' + label + '</option>');
+			});
+
 			$('#' + id).val(value).trigger('change');
 			$('#' + id).data('value', value);
 		}
@@ -336,7 +358,7 @@ function LabelRenderer() {
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group aui-field-componentspicker frother-control-renderer">' +
 						'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-                        '    <select style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" multiple="" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:labels"></select>' +
+						'    <select style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" multiple="" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:labels"></select>' +
 						'	<div class="description">' + yasoon.i18n('dialog.labelDescription') + '</div>' +
 						'</div>';
 
@@ -344,29 +366,44 @@ function LabelRenderer() {
 		//DAMIT JIRA!!! 
 		//field.autoCompleteUrl delivered by JIRA contains errors.
 		//So we need to decide wether it's JIRA standard label or any customfield label
-		var url = '/rest/api/1.0/labels/suggest?query=';
+		var url = '/rest/api/1.0/labels/suggest?maxResults=500&query=';
 		if (id !== 'labels') {
-			url = '/rest/api/1.0/labels/suggest?customFieldId=' + field.schema.customId + '&query=';
+			url = '/rest/api/1.0/labels/suggest?maxResults=500&customFieldId=' + field.schema.customId + '&query=';
 		}
-		jiraGet(url)
-		.then(function (data) {
-			var labels = JSON.parse(data);
-			var labelArray = [];
-			if (labels.suggestions) {
-				$.each(labels.suggestions, function (i, label) {
-					labelArray.push(label.label);
-				});
-			}
-			
-			$('#' + id).select2({
-				tags: true,
-				data: labelArray,
-				tokenSeparators: [" "]
-			});
-			var values = $('#' + id).data('value') || [];
-			if (values.length > 0) {
-				$('#' + id).val(values).trigger('change');
-			}
+		
+		$('#' + id).select2({
+			tags: true,
+			ajax: {
+				url: url,
+				transport: function (params, success, failure) {
+					var queryTerm = '';
+					if (params && params.data) {
+						queryTerm = params.data.q;
+					}
+
+					jiraGet(url + queryTerm)
+					.then(function (data) {
+						
+						var labels = JSON.parse(data);
+						var labelArray = [];
+						if (labels.suggestions) {
+							$.each(labels.suggestions, function (i, label) {
+								labelArray.push({ text: label.label, id: label.label });
+							});
+						}
+						success(labelArray);
+					})
+					.catch(function (e) {
+						failure();
+					});
+				},
+				processResults: function (data, page) {
+					return {
+						results: data
+					};
+				}
+			},
+			tokenSeparators: [" "]
 		});
 	};
 }
@@ -637,7 +674,7 @@ function UserPickerRenderer() {
 		$('#' + id).select2({
 			templateResult: formatUser,
 			templateSelection: formatUser,
-			dataAdapter: jiraFields.CustomDataSet,
+			dataAdapter: jiraFields.CustomUserDataSet,
 			minimumInputLength: 0,
 		});
 	};
@@ -684,7 +721,7 @@ function AttachmentLinkRenderer() {
 					'<span class="attachmentName">' + newFileName + '</span>' +
 					'<div style="display:inline-block" class="attachmentNewName hidden">' +  
 						'<div class="input-group" style="width:300px;display:inline-table;margin-top:10px;">' +
-						    '<input class="text input-sm form-control" /><div class="input-group-addon attachmentExtension">.txt</div>' +
+							'<input class="text input-sm form-control" /><div class="input-group-addon attachmentExtension">.txt</div>' +
 						'</div>' +
 					'</div>' +
 				'</span>' + self.renderMoreActions() + 
@@ -1044,8 +1081,8 @@ function SprintLinkRenderer() {
 
 function TempoAccountRenderer() {
 	this.getValue = function (id) {
-        if ($('#' + id).val())
-		    return parseInt($('#' + id).val());        
+		if ($('#' + id).val())
+			return parseInt($('#' + id).val());        
 	};
 
 	this.setValue = function (id, value) {
@@ -1056,68 +1093,68 @@ function TempoAccountRenderer() {
 	};
 
 	this.render = function (id, field, container) {
-        var html = '<div class="field-group input-field">' +
-                '    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-                '    <select class="select input-field" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
-                '      <option value="">' + yasoon.i18n('dialog.selectNone') + '</option>' +
-                '    </select>' +
+		var html = '<div class="field-group input-field">' +
+				'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+				'    <select class="select input-field" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
+				'      <option value="">' + yasoon.i18n('dialog.selectNone') + '</option>' +
+				'    </select>' +
 				'</div>';
 
 		$(container).append(html);
-        
-        Promise.all([
-            jiraGet('/rest/tempo-accounts/1/account'),
-            jiraGet('/rest/tempo-accounts/1/account/project/' + jira.selectedProject.id)
-        ])        
+		
+		Promise.all([
+			jiraGet('/rest/tempo-accounts/1/account'),
+			jiraGet('/rest/tempo-accounts/1/account/project/' + jira.selectedProject.id)
+		])        
 		.spread(function (accountData, projectAccounts) {
 			accountData = JSON.parse(accountData);
-            projectAccounts = JSON.parse(projectAccounts);
-                        
-            var result = [];
-            
-            if (projectAccounts && projectAccounts.length > 0) {
-                var childs = [];
-                
-                projectAccounts.forEach(function(projectAcc) {
-                    childs.push({
-                        'id': projectAcc.id,					
-					    'text': projectAcc.name
-                    })
-                });
-                
-                result.push({
-                    id: 'projectAccounts',
-				    text: yasoon.i18n('dialog.projectAccounts'),
-                    children: childs
-                });
-            }
-           
-            if (accountData && accountData.length > 0) {
-                accountData = accountData.filter(function(acc) { return acc.global; });
-                                
-                if (accountData.length > 0) {
-                
-                    var accChilds = [];
-                    
-                    accountData.forEach(function(projectAcc) {
-                        accChilds.push({
-                            'id': projectAcc.id,					
-                            'text': projectAcc.name
-                        })
-                    });
-                    
-                    result.push({
-                        id: 'globalAccounts',
-				        text: yasoon.i18n('dialog.globalAccounts'),
-                        children: accChilds
-                    });
-                }
-            }
-            
-            $('#' + id).select2({
-                data: result 
-		    });
-        });        
+			projectAccounts = JSON.parse(projectAccounts);
+						
+			var result = [];
+			
+			if (projectAccounts && projectAccounts.length > 0) {
+				var childs = [];
+				
+				projectAccounts.forEach(function(projectAcc) {
+					childs.push({
+						'id': projectAcc.id,
+						'text': projectAcc.name
+					});
+				});
+				
+				result.push({
+					id: 'projectAccounts',
+					text: yasoon.i18n('dialog.projectAccounts'),
+					children: childs
+				});
+			}
+		   
+			if (accountData && accountData.length > 0) {
+				accountData = accountData.filter(function(acc) { return acc.global; });
+								
+				if (accountData.length > 0) {
+				
+					var accChilds = [];
+					
+					accountData.forEach(function(projectAcc) {
+						accChilds.push({
+							'id': projectAcc.id,
+							'text': projectAcc.name
+						});
+					});
+					
+					result.push({
+						id: 'globalAccounts',
+						text: yasoon.i18n('dialog.globalAccounts'),
+						children: accChilds
+					});
+				}
+			}
+			
+			$('#' + id).select2({
+				data: result 
+			});
+		});        
 	};
 }
 
@@ -1179,16 +1216,47 @@ function insertAtCursor(myField, myValue) {
 
 }
 
+var timeoutSearchUser = null;
+function searchUser(mode, query, callback) {
+	//First try to get an issue key ... if it doesn't exist, get project.
+	var selectedIssueKey = $('#issue').data('key');
+	var selectedProjectKey = null;
+	if (!selectedIssueKey) {
+		selectedProjectKey = $('#project').data('key') || ((jira.selectedProject) ? jira.selectedProject.key : null);
+	}
+	if (selectedIssueKey || selectedProjectKey) {
+		var queryKey = (selectedIssueKey) ? 'issueKey=' + selectedIssueKey : 'projectKey=' + selectedProjectKey;
+		jiraGet('/rest/api/2/user/viewissue/search?' + queryKey + '&maxResults=10&username=' + query)
+		.then(function (users) {
+			var data = [];
+			users = JSON.parse(users);
+			users.forEach(function (user) {
+				data.push({ id: user.name, name: user.displayName, type: 'user' });
+			});
+			callback(data);
+		});
+	} else {
+		//Show alert
+		$('.mentions-input-box + .mentions-help-text').slideDown();
+		if (timeoutSearchUser) {
+			clearTimeout(timeoutSearchUser);
+		}
+		timeoutSearchUser = setTimeout(function () { $('.mentions-input-box + .mentions-help-text').slideUp(); }, 2000);
+		callback([]);
+	}
+}
+
 // Custom Data Provider for SELECT2  User retrieval
 $.fn.select2.amd.require(['select2/data/select', 'select2/utils','select2/selection/allowClear'],
 function (select, Utils, allowClear) {
-	function CustomData($element, options) {
-		CustomData.__super__.constructor.call(this, $element, options);
+
+	// User Data Retrieval
+	function CustomUserData($element, options) {
+		CustomUserData.__super__.constructor.call(this, $element, options);
 	}
+	Utils.Extend(CustomUserData, select);
 
-	Utils.Extend(CustomData, select);
-
-	CustomData.prototype.current = function (callback) {
+	CustomUserData.prototype.current = function (callback) {
 		var data = [];
 		var self = this;
 
@@ -1214,7 +1282,7 @@ function (select, Utils, allowClear) {
 		callback(data);
 	};
 
-	CustomData.prototype.select = function (data) {
+	CustomUserData.prototype.select = function (data) {
 		var self = this;
 
 		data.selected = true;
@@ -1258,7 +1326,7 @@ function (select, Utils, allowClear) {
 		}
 	};
 
-	CustomData.prototype.query = function (params, callback) {
+	CustomUserData.prototype.query = function (params, callback) {
 		var id = this.$element.attr('id');
 		if (params && params.term) {
 			//Get all Users
@@ -1313,8 +1381,7 @@ function (select, Utils, allowClear) {
 		}
 	};
 
-	jiraFields.CustomDataSet = CustomData;
-
+	jiraFields.CustomUserDataSet = CustomUserData;
 });
 
 

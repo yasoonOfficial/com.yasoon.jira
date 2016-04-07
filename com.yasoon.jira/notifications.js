@@ -418,7 +418,7 @@ function JiraIssueNotification(issue) {
 			html += '<img style="margin-right: 5px; width: 16px;" src="' + icon + '" /> ';
 		}
 
-		html += self.issue.fields.summary + '</span>';
+		html += self.issue.key + ': ' + self.issue.fields.summary + '</span>';
 		feed.setTitle(html);
 	};
 

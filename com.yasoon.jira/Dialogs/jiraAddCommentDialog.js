@@ -15,7 +15,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
    
 	jira = this;
 	jira.CONST_HEADER = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
-	
+
 	this.UIFormHandler = UIRenderer;
 	this.icons = new JiraIconController();
 	this.settings = null;
@@ -33,6 +33,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.recentProjects = [];
 	this.projectIssues = [];
 	this.cacheProjects = [];
+	this.fieldTypes = {};
 
 	this.init = function (initParams) {
 		//Parameter taken over from Main JIRA
@@ -50,10 +51,16 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		
 		//Init Select2
 		initCustomIssueData();
+		
+		//Save FieldType for later reuse.
+		self.fieldTypes = {
+			comment: { name: yasoon.i18n('dialog.comment'), schema: { system: 'description' } },
+			attachment: { name: yasoon.i18n('dialog.attachment'), schema: { system: 'attachment' } }
+		};
 
 		//Render fields
-		self.UIFormHandler.render('description', { name: yasoon.i18n('dialog.comment'), schema: { system: 'description' }}, $('#ContentArea'));
-		self.UIFormHandler.render('attachment', { name: yasoon.i18n('dialog.attachment'), schema: { system: 'attachment' } }, $('#ContentArea'));
+		self.UIFormHandler.render('comment', self.fieldTypes.comment, $('#ContentArea'));
+		self.UIFormHandler.render('attachment', self.fieldTypes.attachment, $('#ContentArea'));
 		
 		//Add attachments to clipboard if requested
 		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
@@ -106,7 +113,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			}
 			
 			text = self.handleAttachments(text, self.mail.attachments);
-			$('#description').val(text);
+			$('#comment').val(text);
 		}
 
 		//Render current mail (just in case we need it as it probably needs some time)
@@ -129,7 +136,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					}
 					
 					markup = self.handleAttachments(markup, self.mail.attachments);
-					$('#description').val(markup);
+					$('#comment').val(markup);
 				}
 			})
 				.catch(function () {
@@ -278,8 +285,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSelectIssue'));
 			return;
 		}
+		var comment = jira.UIFormHandler.getValue('comment', self.fieldTypes.comment);
+		console.log('Kommentar:', comment);
 
-		if (!$('#description').val() && !jira.selectedAttachments.length) {
+		if (!comment && !jira.selectedAttachments.length) {
 			yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorNoData'));
 			return;
 		}
@@ -305,10 +314,11 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		self.addRecentIssue({ id: selectedIssueId, text: text, key: issueKey, project: { id: projectId, key: projectKey }, summary: issueSummary });
 
 		var promises = [];
-		if ($('#description').val()) {
-			//Upload comments
+
+		if (comment) {
+			//Upload comment
 			promises.push(
-				jiraAjax('/rest/api/2/issue/' + selectedIssueId + '/comment', yasoon.ajaxMethod.Post, JSON.stringify({ body: $('#description').val() }))				
+				jiraAjax('/rest/api/2/issue/' + selectedIssueId + '/comment', yasoon.ajaxMethod.Post, JSON.stringify({ body: comment }))
 				.catch(jiraSyncError, function (e) {
 					$('#MainAlert .errorText').text(yasoon.i18n('dialog.errorSubmitComment', { error: e.getUserFriendlyError() }));
 					$('#MainAlert').show();
@@ -724,30 +734,12 @@ function resizeWindow() {
 
 		//If the rest has 270 pixel, only increase the comment field
 		if ((bodyHeight - 185 - 270 - 155) > 0) 
-			$('#description').height((bodyHeight - 185 - 270));
+			$('#comment').height((bodyHeight - 185 - 270));
 
 	} else {
 		$('body').css('overflow-y', 'scroll');
 		$('.form-body').height(350);
-		$('#description').height(155);
-	}
-}
-
-function searchUser(mode, query, callback) {
-	//console.log('Search User');
-	if (jira.selectedIssue) {
-		jiraGet('/rest/api/2/user/viewissue/search?issueKey=' + jira.selectedIssue.key + '&maxResults=10&username=' + query)
-		.then(function (users) {
-			//console.log('Result:',users);
-			var data = [];
-			users = JSON.parse(users);
-			users.forEach(function (user) {
-				data.push({ id: user.name, name: user.displayName, type: 'user' });
-			});
-			callback(data);
-		});
-	} else {
-		callback([]);
+		$('#comment').height(155);
 	}
 }
 //@ sourceURL=http://Jira/Dialog/jiraAddCommentDialog.js

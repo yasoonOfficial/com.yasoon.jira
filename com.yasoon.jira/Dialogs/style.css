@@ -2833,3 +2833,25 @@ body {
 .jiraAttachmentLink {
 	margin-bottom: 2px
 }
+
+#create-issue-dialog .mentions-help-text {
+	position: absolute;
+	display:none;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	padding: 10px;
+	margin: 5px 2px 5px 147px;
+	z-index: 1000;
+}
+
+#add-to-issue-dialog .mentions-help-text {
+	position: absolute;
+	display:none;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	padding: 10px;
+	margin: 5px 2px 5px 97px;
+	z-index: 1000;
+}

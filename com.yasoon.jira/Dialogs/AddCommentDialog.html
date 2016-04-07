@@ -1,17 +1,17 @@
 <link rel="stylesheet" href="Dialogs/style.css">
 <link rel="stylesheet" href="Dialogs/select2.min.css">
 <link rel="stylesheet" href="Dialogs/jquery-date.min.css" />
-<link rel="stylesheet" type="text/css" href="Dialogs/jquery.mentionsInput.css" />
+<link rel="stylesheet" href="Dialogs/jquery.mentionsInput.css" />
 <link rel="stylesheet" href="Dialogs/switch.css">
 <script src="Dialogs/select2.full.min.js"></script>
-<script type="text/javascript" charset="utf-8" src="Dialogs/jquery.mentionsInput.js"></script>
+<script src="Dialogs/jquery.mentionsInput.js"></script>
 <script src="common.js"></script>
 <script src="Dialogs/jiraFieldRendererCore.js"></script>
 <script src="Dialogs/jiraFieldRenderer.js"></script>
 <script src="Dialogs/jiraAddCommentDialog.js"></script>
 
 <div style="padding: 10px;">
-	<div style="display:block; width: 100%; min-width: 550px;" class="jira-dialog addToIssue box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready" id="create-issue-dialog">
+	<div style="display:block; width: 100%; min-width: 550px;" class="jira-dialog addToIssue box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready" id="add-to-issue-dialog">
 		<div class="jira-dialog-heading">
 			<h2 class="jira-title" data-bind="localizedText: 'dialog.titleAddToIssue'"></h2>
 		</div>
@@ -37,7 +37,7 @@
 								</div>
 								<div id="IssueArea" class="qf-field qf-field-issuetype qf-required">
 									<div class="field-group input-field">
-										<label for="issue" data-bind="localizedText: 'dialog.issue'"><span class="aui-icon icon-required" data-bind="localizedText: 'dialog.required'">Required</span></label>
+										<label for="issue"><span data-bind="localizedText: 'dialog.issue'"></span><span class="aui-icon icon-required" data-bind="localizedText: 'dialog.required'">Required</span></label>
 										<select class="select input-field" id="issue" name="issue" style="width: 75%"></select>
 										<img src="Dialogs/ajax-loader.gif" style="display:none;" id="IssueSpinner" />
 									</div>

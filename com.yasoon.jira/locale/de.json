@@ -105,12 +105,13 @@
 				"timetrackingRemaining":"Verbleibende Schätzung",
 				"timetrackingDescrOriginal": "Die ursprüngliche Schätzung, wie viel Arbeit für die Erledigung des Vorgangs erforderlich ist.",
 				"timetrackingDescrRemain": "Eine Schätzung, wie viel Arbeit bis zur Erledigung des Vorgangs verbleibt.",
-                "projectAccounts": "Projekt Accounts",
-                "globalAccounts": "Globale Accounts",
+				"projectAccounts": "Projekt Accounts",
+				"globalAccounts": "Globale Accounts",
 				"datePickerDateFormat":"dd.mm.yy",
-				"datePickerFormatTitle":"tt.mm.jjjj",
+				"datePickerFormatTitle":"TT.MM.JJJJ",
 				"dateTimePickerFormat":"d.m.Y H:i",
-				"dateTimePickerFormatTitle":"tt.mm.jjjj ss:mm"
+				"dateTimePickerFormatTitle":"TT.MM.JJJJ ss:mm",
+				"mentionsAlert": "Für Benutzervorschläge muss ein Projekt oder Vorgang ausgewählt sein",
 			},
 			"filter": {
 				"projectFilter": "Projekt",
