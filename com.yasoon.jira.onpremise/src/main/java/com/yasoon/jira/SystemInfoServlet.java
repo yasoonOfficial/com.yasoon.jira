@@ -20,6 +20,9 @@ import com.atlassian.jira.web.util.OutlookDate;
 import com.atlassian.jira.web.util.OutlookDateManager;
 import com.atlassian.sal.api.auth.LoginUriProvider;
 import com.atlassian.sal.api.user.UserManager;
+import com.atlassian.upm.api.license.PluginLicenseManager;
+import com.atlassian.upm.api.license.entity.PluginLicense;
+import com.atlassian.upm.api.util.Option;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,6 +37,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,16 +48,19 @@ import org.slf4j.LoggerFactory;
 public class SystemInfoServlet extends HttpServlet {
 
     private final JiraLicenseManager licenseManager;
+    private final PluginLicenseManager pluginLicenseManager;
     private final UserManager userManager;
     private final LoginUriProvider loginUriProvider;
     private final OutlookDateManager dateManager;
     private static final Logger log = LoggerFactory.getLogger(LifecycleListener.class);
 
-    public SystemInfoServlet(JiraLicenseManager licenseManager, UserManager userManager, LoginUriProvider loginUriProvider, OutlookDateManager dateManager) {
+    public SystemInfoServlet(JiraLicenseManager licenseManager, UserManager userManager, LoginUriProvider loginUriProvider, OutlookDateManager dateManager,
+            PluginLicenseManager pluginLicenseManager) {
         this.licenseManager = licenseManager;
         this.userManager = userManager;
         this.loginUriProvider = loginUriProvider;
         this.dateManager = dateManager;
+        this.pluginLicenseManager = pluginLicenseManager;
     }
     
     /**
@@ -82,12 +89,13 @@ public class SystemInfoServlet extends HttpServlet {
         try {
             
             Gson gson = new Gson();            
-            ArrayList<JiraLicenseInfo> collectedLicenses = new ArrayList<JiraLicenseInfo>();
+            ArrayList<JiraLicenseInfoDetail> instanceLicenses = new ArrayList<JiraLicenseInfoDetail>();
+            JiraLicenseInfo licenseInfo = new JiraLicenseInfo();
             SystemInfo info = new SystemInfo();
             
             getCurrentUserAndCompany(info);
                         
-            if(licenseManager != null) {                
+            if (licenseManager != null) {                
                 //getLicenses was introduced in 6.3, ensure compat until 6.0
                 if(supportsMultipleLicenses(licenseManager)) {                
                     Iterable<LicenseDetails> licenses = licenseManager.getLicenses();
@@ -95,18 +103,28 @@ public class SystemInfoServlet extends HttpServlet {
                     if(licenses != null) {            
                         for(LicenseDetails licDetails : licenses) {
                             JiraLicense jiraLicInfo = licDetails.getJiraLicense();
-                            collectedLicenses.add(new JiraLicenseInfo(jiraLicInfo));
+                            instanceLicenses.add(new JiraLicenseInfoDetail(jiraLicInfo));
                         }
                     }
                 }
                 else {
                     OutlookDate d = this.dateManager.getOutlookDate(Locale.ENGLISH);
-                    collectedLicenses.add(new JiraLicenseInfo(licenseManager.getLicense(), d));                    
+                    instanceLicenses.add(new JiraLicenseInfoDetail(licenseManager.getLicense(), d));                    
                 }
 
-                info.setLicenses(collectedLicenses);
+                licenseInfo.setInstances(instanceLicenses);
                 info.setServerId(licenseManager.getServerId());
             }
+            
+            if (pluginLicenseManager != null) {
+                Option<PluginLicense> plugLic = pluginLicenseManager.getLicense();
+                if (plugLic.isDefined()) {
+                    PluginLicense pluginInfo = plugLic.get();
+                    licenseInfo.setAddon(new JiraLicenseInfoDetail(pluginInfo));
+                }
+            }
+            
+            info.setLicenseInfo(licenseInfo);
             
             ApplicationProperties props = ComponentAccessor.getApplicationProperties();
             
@@ -210,7 +228,54 @@ public class SystemInfoServlet extends HttpServlet {
 }
 
 final class JiraLicenseInfo {
-    public JiraLicenseInfo(JiraLicense jiraLic) {
+    private JiraLicenseInfoDetail addon;
+    private ArrayList<JiraLicenseInfoDetail> instances;
+
+    public JiraLicenseInfoDetail getAddon() {
+        return addon;
+    }
+
+    public void setAddon(JiraLicenseInfoDetail addon) {
+        this.addon = addon;
+    }
+
+    public ArrayList<JiraLicenseInfoDetail> getInstances() {
+        return instances;
+    }
+
+    public void setInstances(ArrayList<JiraLicenseInfoDetail> instances) {
+        this.instances = instances;
+    }
+}
+
+final class JiraLicenseInfoDetail {
+    
+    public JiraLicenseInfoDetail(PluginLicense license) {
+        
+        setDescription(license.getDescription());
+        
+        if (license.getMaintenanceExpiryDate().isDefined())
+            setMaintenanceEndDate(license.getMaintenanceExpiryDate().get().toString());
+        
+        if (license.getPartner().isDefined())
+            setPartnerName(license.getPartner().get().getName());
+            
+        if (license.getMaximumNumberOfUsers().isDefined())
+            setMaximumNumberOfUsers(license.getMaximumNumberOfUsers().get());
+        
+        setPurchaseDateString(license.getPurchaseDate().toString());
+        setPluginLicenseType(license.getLicenseType());
+        setCreationDate(license.getCreationDate().toDate());
+        
+        setIsEvaluation(license.isEvaluation());
+        setIsExpired(license.isMaintenanceExpired());        
+        setIsUnlimitedNumberOfUsers(license.isUnlimitedNumberOfUsers());
+        
+        if (license.getSupportEntitlementNumber().isDefined())
+            setSupportEntitlementNumber(license.getSupportEntitlementNumber().get());
+    }
+    
+    public JiraLicenseInfoDetail(JiraLicense jiraLic) {
         setDescription(jiraLic.getDescription());
         
         if(jiraLic.getOrganisation() != null)        
@@ -233,7 +298,7 @@ final class JiraLicenseInfo {
         setSupportEntitlementNumber(jiraLic.getSupportEntitlementNumber());
     }
     
-    public JiraLicenseInfo(LicenseDetails details, OutlookDate date) {
+    public JiraLicenseInfoDetail(LicenseDetails details, OutlookDate date) {
         setDescription(details.getDescription());
         setMaintenanceEndDate(details.getMaintenanceEndString(date));
         setOrganisation(details.getOrganisation());
@@ -473,6 +538,14 @@ final class JiraLicenseInfo {
         this.supportEntitlementNumber = supportEntitlementNumber;
     }
 
+    public com.atlassian.upm.api.license.entity.LicenseType getPluginLicenseType() {
+        return pluginLicenseType;
+    }
+
+    public void setPluginLicenseType(com.atlassian.upm.api.license.entity.LicenseType pluginLicenseType) {
+        this.pluginLicenseType = pluginLicenseType;
+    }
+
     private String description;
     private int maximumNumberOfUsers;
     private String organisation;
@@ -498,6 +571,7 @@ final class JiraLicenseInfo {
     private Date expiryDate;
     private Date maintenanceExpiryDate;
     private LicenseType licenseType;
+    private com.atlassian.upm.api.license.entity.LicenseType pluginLicenseType;
     private LicenseEdition licenseEdition;
     private String supportEntitlementNumber;
 
@@ -521,12 +595,12 @@ class SystemInfo {
         this.version = version;
     }
 
-    public ArrayList<JiraLicenseInfo> getLicenses() {
-        return licenses;
+    public JiraLicenseInfo getLicenseInfo() {
+        return licenseInfo;
     }
 
-    public void setLicenses(ArrayList<JiraLicenseInfo> licenses) {
-        this.licenses = licenses;
+    public void setLicenseInfo(JiraLicenseInfo licenseInfo) {
+        this.licenseInfo = licenseInfo;
     }
 
     public String getBaseUrl() {
@@ -562,7 +636,7 @@ class SystemInfo {
         this.userEmailAddress = userEmailAddress;
     }
     
-    private ArrayList<JiraLicenseInfo> licenses;
+    private JiraLicenseInfo licenseInfo;
     private String baseUrl;
     private String version;
     private String pluginVersion;

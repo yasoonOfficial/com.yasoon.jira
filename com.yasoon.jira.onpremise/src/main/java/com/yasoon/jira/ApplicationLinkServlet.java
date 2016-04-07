@@ -87,7 +87,7 @@ public class ApplicationLinkServlet extends HttpServlet {
             if(request.getMethod().equalsIgnoreCase("get")) {
                 out.println("{ \"exists\": " + checkAppLink() + " }");
             }
-            else if(request.getMethod().equalsIgnoreCase("post") && !checkAppLink()){
+            else if(request.getMethod().equalsIgnoreCase("post")){
                 Gson g = new Gson();
                 PostRequest post = g.fromJson(new InputStreamReader(request.getInputStream()), PostRequest.class);
                 try {                
@@ -143,7 +143,9 @@ public class ApplicationLinkServlet extends HttpServlet {
     
     private void createAppLink(String cert) throws ManifestNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException, CertificateException, java.security.cert.CertificateException {
         //Handle broken links
-        ApplicationLink existingLink = TryGetApplicationLink();
+        ApplicationLink existingLink = TryGetApplicationLink();        
+        PublicKey key = RSAKeys.fromEncodedCertificateToPublicKey(cert);
+        Consumer con = Consumer.key("yasoonjira").name("JIRA for Outlook").publicKey(key).callback(URI.create("http://oauth.yasoon/v1/com.yasoon.jira/auth")).build();
         
         if(existingLink == null) {        
             ApplicationLinkDetails.Builder builder = ApplicationLinkDetails.builder();
@@ -151,9 +153,14 @@ public class ApplicationLinkServlet extends HttpServlet {
             ApplicationType generic = this.accessor.getApplicationType(GenericApplicationType.class);
             existingLink = this.appLinkService.createApplicationLink(generic, details);
         }
-
-        PublicKey key = RSAKeys.fromEncodedCertificateToPublicKey(cert);
-        Consumer con = Consumer.key("yasoonjira").name("JIRA for Outlook").publicKey(key).callback(URI.create("http://oauth.yasoon/v1/com.yasoon.jira/auth")).build();
+        else {
+//            String conKey = (String) existingLink.getProperty("oauth.incoming.consumerkey");
+//            if(conKey != null) {
+//                Consumer conOld = this.storeService.get(conKey);
+//                if(conOld != null && conOld.getKey().equals("yasoonjira"))
+//                    this.storeService.remove(conKey);
+//            }
+        }
         
         this.storeService.put(con);
         existingLink.putProperty("oauth.incoming.consumerkey", con.getKey());

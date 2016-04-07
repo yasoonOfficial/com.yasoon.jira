@@ -1,6 +1,6 @@
 var authToken = '';
-var serverUrl = 'https://store.yasoon.com';
-//var serverUrl = 'http://localhost:1337';
+var yasoonServerUrl = 'https://store.yasoon.com';
+//var yasoonServerUrl = 'http://localhost:1337';
 var isInstanceRegistered = false;
 var currentPage = 1;
 var serverId = null;
@@ -35,58 +35,49 @@ $(document).ready(function() {
         $('body').addClass('isOnPremise');
     }       
 
-    //Load Content
-    $.get('main.html')
-        .done(function(html) {
-            $('#pageContent').html(html);
+    loadSystemInfo()
+    .then(function() {
+        //Hook up Raven error logging        
+        Raven.config('https://6271d99937bd403da519654c1cf47879@sentry2.yasoon.com/4', {
+        tags: {
+            serverId: serverId,
+            key: 'onpremise'
+        }
+        }).install();
 
-            loadSystemInfo()
-            .then(function() {
-                //Hook up Raven error logging        
-                Raven.config('https://6271d99937bd403da519654c1cf47879@sentry2.yasoon.com/4', {
-                tags: {
-                    serverId: serverId,
-                    key: 'onpremise'
-                }
-                }).install();
-                
-                if (systemInfo.userName && systemInfo.userEmailAddress) {
-                    zE(function() {
-                        zE.identify({
-                            ze23772381: 'JIRA for Outlook',
-                            name: systemInfo.userName,
-                            email: systemInfo.userEmailAddress
-                        });                
-                    });
-                }
-                
-                //Check if this instance is registered
-                return getIsInstanceRegistered();       
-            })
-            .then(function(isRegistered) {
-                isInstanceRegistered = isRegistered;
-                //Initialize the UI
-                initUI(isRegistered);
-                
-                if (isRegistered) {
-                    if (authToken) {
-                        checkDownloadLink();
-                        checkProduct();
-                    }
-                    
-                    checkAppLink();
-                }
-            })
-            .caught(function(e) {
-                $('#AreaUnregistered').addClass('hidden');
-                swal("Oops...", "Failed to load initial data, please contact us at support@yasoon.de", "error");
-                Raven.captureMessage('Error while document ready execution!');
-                Raven.captureException(e);
-            });            
-        })
-        .catch(function() {
-            swal("Oops...", "Failed to load nessecary files, please contact us at support@yasoon.de", "error");
-        });
+        if (systemInfo.userName && systemInfo.userEmailAddress) {
+            zE(function() {
+                zE.identify({
+                    ze23772381: 'JIRA for Outlook',
+                    name: systemInfo.userName,
+                    email: systemInfo.userEmailAddress
+                });                
+            });
+        }
+
+        //Check if this instance is registered
+        return getIsInstanceRegistered();       
+    })
+    .then(function(isRegistered) {
+        isInstanceRegistered = isRegistered;
+        //Initialize the UI
+        initUI(isRegistered);
+
+        if (isRegistered) {
+            if (authToken) {
+                checkDownloadLink();
+                checkProduct();
+            }
+
+            checkAppLink();
+        }
+    })
+    .caught(function(e) {
+        $('#AreaUnregistered').addClass('hidden');
+        swal("Oops...", "Failed to load initial data, please contact us at support@yasoon.de", "error");
+        Raven.captureMessage('Error while document ready execution!');
+        Raven.captureException(e);
+    });            
 });
 
 
@@ -105,7 +96,7 @@ function loadSystemInfo(cbk) {
                 systemInfo.userName = user.displayName;
                 systemInfo.userEmailAddress = user.emailAddress;
             })
-            .catch(function(e) {
+            .caught(function(e) {
                 console.log(e);
             });
     } else {
@@ -119,10 +110,10 @@ function loadSystemInfo(cbk) {
                 else
                     systemInfo = info;
 
-                serverId = systemInfo.serverId || systemInfo.licenses[0].serverId;
-
-                if (systemInfo.licenses.length > 0)
-                    sen = systemInfo.licenses[0].supportEntitlementNumber;
+                serverId = systemInfo.serverId || systemInfo.licenseInfo.instances[0].serverId;
+                
+                if (systemInfo.licenseInfo.addon)
+                    sen = systemInfo.licenseInfo.addon.supportEntitlementNumber;
             });
     }
 }
@@ -258,24 +249,12 @@ function handleLogin() {
         formData[elem.name] = elem.value;
     });
         
-    var instanceData = {
-        clientKey: serverId,
-        supportEntitlementNumber: sen,
-        baseUrl: systemInfo.baseUrl,
-        key: 'com.yasoon.jira.onpremise',
-        pluginsVersion: systemInfo.pluginVersion,
-        description: 'Jira on Premise',
-        productType: 'jira',
-        serverVersion: systemInfo.version,
-        licenseInfo: systemInfo.licenses
-    };
+    var instanceData = getInstanceData();
         
     //A) Login case with existing instance
     // -----------------------------------
     var promise = null;
-    if (isInstanceRegistered) {
-
-    
+    if (isInstanceRegistered) {    
         promise = new Promise(function (success, reject) {
             $.ajax({
                 url: yasoonServerUrl + '/api/user/auth',
@@ -562,19 +541,7 @@ function registerAccount(cbk) {
         if (isCloud)
             return;
 
-        var instanceData = {
-            clientKey: serverId,
-            supportEntitlementNumber: sen,
-            baseUrl: systemInfo.baseUrl,
-            key: 'com.yasoon.jira.onpremise',
-            pluginsVersion: systemInfo.pluginVersion,
-            description: 'Jira on Premise',
-            productType: 'jira',
-            serverVersion: systemInfo.version,
-            licenseInfo: systemInfo.licenses,
-            eventType: 'installed'
-        };
-        
+        var instanceData = getInstanceData();        
         return $.ajax({
             url: yasoonServerUrl + '/jira/install',
             contentType: 'application/json',
@@ -624,6 +591,21 @@ function registerAccount(cbk) {
             message: 'An error occurred during your registration. Please contact us via the help button, we\'ll fix this quickly.'
         });
     });
+}
+
+function getInstanceData() {
+    return {
+            clientKey: serverId,
+            supportEntitlementNumber: sen,
+            baseUrl: systemInfo.baseUrl,
+            key: 'com.yasoon.jira.onpremise',
+            pluginsVersion: systemInfo.pluginVersion,
+            description: 'Jira on Premise',
+            productType: 'jira',
+            serverVersion: systemInfo.version,
+            licenseInfo: systemInfo.licenseInfo,
+            eventType: 'installed'
+    };
 }
 
 function checkProduct() {
@@ -685,17 +667,28 @@ function refreshLicense() {
     licenseRefreshActive = true;
     $('.licenseRefresh').addClass('grey-text text-lighten-2');
     
-    $.ajax({
-        url: yasoonServerUrl + '/jira/checkSingleMarketplaceLicense',
-        type: 'POST',
-        data: JSON.stringify({
-            serverId: serverId,
-            sen: sen
-        }),
-        contentType: 'application/json',
-        processData: false,
-        headers: { userAuthToken: authToken }
-    }).done(function(result) {
+    var instanceData = getInstanceData();        
+    Promise.resolve($.ajax({
+            url: yasoonServerUrl + '/jira/install',
+            contentType: 'application/json',
+            data: JSON.stringify(instanceData),
+            processData: false,
+            type: 'POST'
+    }))
+    .then(function() {
+        return $.ajax({
+            url: yasoonServerUrl + '/jira/checkSingleMarketplaceLicense',
+            type: 'POST',
+            data: JSON.stringify({
+                serverId: serverId,
+                sen: sen
+            }),
+            contentType: 'application/json',
+            processData: false,
+            headers: { userAuthToken: authToken }
+        });
+    })
+    .then(function(result) {
         licenseRefreshActive = false;
         $('.licenseRefresh').removeClass('grey-text text-lighten-2');
         
@@ -704,7 +697,7 @@ function refreshLicense() {
         else
             swal("No transaction found", 'Sorry, we couldn\'t find any payment transaction yet. If the purchase was made through the Atlassian Marketplace, it may takes several hours.',"error");
     })
-    .fail(function(e) {
+    .caught(function(e) {
         swal("No transaction found", 'Sorry, we couldn\'t find any payment transaction yet. If the purchase was made through the Atlassian Marketplace, it may takes several hours.',"error");
     });
 }
