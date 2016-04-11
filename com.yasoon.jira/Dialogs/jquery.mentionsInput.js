@@ -162,7 +162,7 @@
 
             elmInputBox.data('messageText', syntaxMessage); //Save the messageText to elmInputBox
 	        elmInputBox.trigger('updated');
-            elmMentionsOverlay.find('div').html(mentionText); //Insert into a div of the elmMentionsOverlay the mention text
+            elmMentionsOverlay.find('div').html(mentionText + '<br>'); //Insert into a div of the elmMentionsOverlay the mention text
         }
 
         //Cleans the buffer
@@ -220,7 +220,7 @@
 
         //Gets the actual value of the text area without white spaces from the beginning and end of the value
         function getInputBoxValue() {
-            return $.trim(elmInputBox.val());
+            return elmInputBox.val();
         }
 
         // This is taken straight from live (as of Sep 2012) GitHub code. The

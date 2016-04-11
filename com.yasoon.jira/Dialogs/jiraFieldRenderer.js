@@ -28,7 +28,7 @@ function MultilineTextRenderer() {
 	mentionTexts = {};
 
 	this.getValue = function (id) {
-		if (isDescription(id)) {
+		if (isDescription(id) && mentionTexts[id]) {
 			//Parse @mentions
 			return mentionTexts[id].replace(/@.*?\]\(user:([^\)]+)\)/g, '[~$1]');
 		} else {
@@ -39,8 +39,9 @@ function MultilineTextRenderer() {
 	};
 
 	this.setValue = function (id, value) {
-		if(value)
+		if (value) {
 			$('#' + id).val(value);
+		}
 	};
 
 	this.render = function (id, field, container) {
@@ -77,7 +78,7 @@ function MultilineTextRenderer() {
 			'   <label for="' + id + '">' + field.name +
 			'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
 			'   </label>' +
-			'    <textarea class="form-control" id="' + id + '" name="' + id + '" style="height:' + ((isDescription(id)) ? '200px' : '100px') + ';overflow: initial;" data-type="com.atlassian.jira.plugin.system.customfieldtypes:textarea"></textarea>' +
+			'    <textarea class="form-control" id="' + id + '" name="' + id + '" style="height:' + (isDescription(id) ? '200px' : '100px') + ';overflow: initial;" data-type="com.atlassian.jira.plugin.system.customfieldtypes:textarea"></textarea>' +
 			descriptionHtml + //Is only filled if nessecary
 			'</div>');
 
@@ -162,19 +163,15 @@ function MultilineTextRenderer() {
 				elastic: false
 			});
 
-			$('#' + id).bind('scroll', function () {
-				console.log($(this).scrollTop());
-				$(this).prev().css('margin-top', '-' + $(this).scrollTop() + 'px');
+			$('#' + id).on('scroll', function () {
+				$(this).prev().scrollTop($(this).scrollTop());
 			});
 
-			$('#' + id).bind('change', function () {
+			$('#' + id).on('updated', debounce(function () {
 				$('#' + id).mentionsInput('val', function (content) {
 					mentionTexts[id] = content;
 				});
-			});
-
-
-			
+			}, 250));			
 		}
 	};
 }
@@ -911,18 +908,19 @@ function TimeTrackingRenderer() {
 }
 
 function EpicLinkRenderer() {
+	var self = this;
 	this.getValue = function (id) {
 		//Only for creation as Epic links cannot be changed via REST APi --> Status code 500
 		//Ticket: https://jira.atlassian.com/browse/GHS-10333
 		//There is a workaround --> update it via unofficial greenhopper API --> For update see handleEvent
-		if (!jira.editIssue && $('#'+id).val()) {
+		if (jira.systemInfo.versionNumbers[0] === 6 && !jira.editIssue && $('#' + id).val()) {
 			return 'key:' + $('#' + id).val();
 		}
 	};
 
 	this.setValue = function (id, value) {
 		if (value) {
-			$('#' + id).val(value).trigger('change');
+			$('#' + id).append('<option value="'+ value +'"> '+ value + ' </option>').val(value).trigger('change');
 			$('#' + id).data('value', value);
 		}
 	};
@@ -937,66 +935,148 @@ function EpicLinkRenderer() {
 
 		$(container).append(html);
 		
-		jiraGet('/rest/greenhopper/1.0/epics?maxResults=100&projectKey=' + jira.selectedProject.key)
-		.then(function (data) {
-			//{"epicNames":[{"key":"SSP-24","name":"Epic 1"},{"key":"SSP-25","name":"Epic 2"}],"total":2}
-			// JIRA 7+: {"epicLists":[{"listDescriptor":"All epics","epicNames":[{"key":"SSP-24","name":"Epic 1","isDone":false},{"key":"SSP-25","name":"Epic 2","isDone":false},{"key":"SSP-28","name":"Epic New","isDone":false}]}],"total":3}
-			var epics = JSON.parse(data);
-			var result = [];
-			var oldValue = $('#' + id).data('value');						
-			var elem = $(container).find('#' + id);
-			elem.html('<option value="">' + yasoon.i18n('dialog.selectNone') + '</option>');
-			
-			if (epics && epics.total > 0) {				
-				if (epics.epicLists) {
-					epics.epicLists.forEach(function(epicList) {
-						var optGroup = $('<optgroup label="' + epicList.listDescriptor + '"></optgroup>').appendTo(elem);
-						epicList.epicNames.forEach(function (epic) {
-							optGroup.append('<option value="' + epic.key + '"> ' + epic.name + ' ( ' + epic.key + ' )</option>');
-						});
+		//Result of Service
+		// JIRA 6.x: {"epicNames":[{"key":"SSP-24","name":"Epic 1"},{"key":"SSP-25","name":"Epic 2"}],"total":2}
+		// JIRA 7+:  {"epicLists":[{"listDescriptor":"All epics","epicNames":[{"key":"SSP-24","name":"Epic 1","isDone":false},{"key":"SSP-25","name":"Epic 2","isDone":false},{"key":"SSP-28","name":"Epic New","isDone":false}]}],"total":3}
+		var url = '/rest/greenhopper/1.0/epics?maxResults=10&projectKey=' + jira.selectedProject.key + '&searchQuery=';
+
+		//Init select2 
+		$('#' + id).select2({
+			ajax: {
+				url: url,
+				transport: function (params, success, failure) {
+					var queryTerm = '';
+					if (params && params.data && params.data.q) {
+						queryTerm = params.data.q;
+					}
+
+					jiraGet( url + queryTerm)
+					.then(function (data) {
+						var epics = JSON.parse(data);
+						var results = [];
+
+						if (epics && epics.total > 0) {
+							if (epics.epicLists) {
+								epics.epicLists.forEach(function (epicList) {
+									var optGroup = {
+										id: epicList.listDescriptor,
+										text: epicList.listDescriptor,
+										children: []
+									};
+									epicList.epicNames.forEach(function (epic) {
+										optGroup.children.push({
+											id: epic.key,
+											text: epic.name + ' ( ' + epic.key + ' )',
+										});
+									});
+
+									results.push(optGroup);
+								});
+							}
+							else {
+								epics.epicNames.forEach(function (epic) {
+									results.push({
+										id: epic.key,
+										text: epic.name + ' ( ' + epic.key + ' )',
+									});
+								});
+							}
+						}
+						success(results);
+					})
+					.catch(function (e) {
+						console.log(e);
+						jira.handleError(e.data, e.statusCode, e.result, e.errorText);
+						success([]);
 					});
-				}
-				else {				
-					epics.epicNames.forEach(function (epic) {
-						elem.append('<option value="' + epic.key + '"> ' + epic.name + ' ( ' + epic.key + ' )</option>');
-					});
+					
+				},
+				processResults: function (data, page) {
+					return {
+						results: data
+					};
 				}
 			}
-			$('#' + id).select2();
-			$('#' + id).val(oldValue).trigger('change');
-		}).catch(function (e) {
-			jira.handleError(e.data, e.statusCode, e.result, e.errorText);
+		});
+
+
+	};
+
+	this.handleEvent = function (eventType, fieldId, field, data) {
+		var newEpicLink = $('#'+field.key).val();
+		if (eventType === 'save') {
+			//If newCreation, only if newEpicLink is set
+			//Or if edit, only if newEpicLink is different than existing 
+			if ((!jira.editIssue && newEpicLink) || (jira.editIssue && jira.editIssue.fields[fieldId] != newEpicLink)) {
+				jira.transaction.currentCallCounter++;
+				if (newEpicLink) {
+					//Create or update
+					if (jira.systemInfo.versionNumbers[0] === 6) {
+						self.updateEpic6(newEpicLink, jira.editIssue.key);
+					} else {
+						self.updateEpic7(newEpicLink, jira.editIssue.key);
+					}
+				} else {
+					//Delete
+					if (jira.systemInfo.versionNumbers[0] === 6) {
+						self.deleteEpic6(newEpicLink, jira.editIssue.key);
+					} else {
+						self.deleteEpic7(newEpicLink, jira.editIssue.key);
+					}
+				}
+			}
+
+			//AfterSave is only needed for JIRA 7 on creation as the setData does not work anymore.
+		} else if (eventType === 'afterSave' && !jira.editIssue && jira.systemInfo.versionNumbers[0] > 6) {
+			jira.transaction.currentCallCounter++;
+			var newEpic = $('#' + fieldId).val();
+			if(newEpic)
+				self.updateEpic7(newEpic, data.newIssue.key);
+
+		}
+	};
+
+	//Update Epic JIRA 6.x
+	this.updateEpic6 = function (newEpicLink, issueKey) {
+		jiraAjax('/rest/greenhopper/1.0/epics/' + newEpicLink + '/add', yasoon.ajaxMethod.Post, '{ "issueKeys":["' + issueKey + '"] }')
+		.then(function () {
+			submitSuccessHandler.apply(this, arguments);
+		})
+		.catch(function () {
+			submitErrorHandler.apply(this, arguments);
+		});
+	};
+	//Update Epic JIRA 7.x
+	this.updateEpic7 = function (newEpicLink, issueKey) {
+		jiraAjax('/rest/agile/1.0/epic/' + newEpicLink + '/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }')
+		.then(function () {
+			submitSuccessHandler.apply(this, arguments);
+		})
+		.catch(function () {
+			submitErrorHandler.apply(this, arguments);
 		});
 	};
 
-	this.handleEvent = function (type, field, data) {
-		var newEpicLink = $('#'+field.key).val();
-		if (type === 'save' && jira.editIssue && jira.editIssue.fields[field.key] != newEpicLink) {
-			jira.transaction.currentCallCounter++;
-			if (newEpicLink) {
-				//Create or update
-				yasoon.oauth({
-					url: jira.settings.baseUrl + '/rest/greenhopper/1.0/epics/' + newEpicLink + '/add',
-					oauthServiceName: jira.settings.currentService,
-					type: yasoon.ajaxMethod.Put,
-					data: '{ "issueKeys":["' + jira.editIssue.key + '"] }',
-					headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck' },
-					error: submitErrorHandler,
-					success: submitSuccessHandler
-				});
-			} else {
-				//Delete
-				yasoon.oauth({
-					url: jira.settings.baseUrl + '/rest/greenhopper/1.0/epics/remove',
-					oauthServiceName: jira.settings.currentService,
-					type: yasoon.ajaxMethod.Put,
-					data: '{ "issueKeys":["' + jira.editIssue.key + '"] }',
-					headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck' },
-					error: submitErrorHandler,
-					success: submitSuccessHandler
-				});
-			}
-		}
+	//Delete Epic JIRA 6.x
+	this.deleteEpic6 = function (issueKey) {
+		jiraAjax('/rest/greenhopper/1.0/epics/remove', yasoon.ajaxMethod.Put, '{ "issueKeys":["' + issueKey + '"] }')
+		.then(function () {
+			submitSuccessHandler.apply(this, arguments);
+		})
+		.catch(function () {
+			submitErrorHandler.apply(this, arguments);
+		});
+	};
+
+	//Delete Epic JIRA 7.x
+	this.deleteEpic7 = function (issueKey) {
+		jiraAjax('/rest/agile/1.0/epic/none/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }')
+		.then(function () {
+			submitSuccessHandler.apply(this, arguments);
+		})
+		.catch(function () {
+			submitErrorHandler.apply(this, arguments);
+		});
 	};
 }
 

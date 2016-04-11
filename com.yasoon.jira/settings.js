@@ -223,6 +223,11 @@ function JiraSettingController() {
 		yasoon.setting.setAppParameter('license', JSON.stringify(jira.license));
 	}
 
+	//Load System Infos
+	var sysInfoString = yasoon.setting.getAppParameter('systemInfo');
+	if (sysInfoString) {
+		jira.sysInfo = JSON.parse(sysInfoString);
+	}
 
 	//Server Default Settings
 	var defSettingsString = yasoon.setting.getAppParameter('defaultSettings');

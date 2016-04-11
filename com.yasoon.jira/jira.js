@@ -260,11 +260,13 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		jiraLog('Get Own Data');
 		if (jira.firstTime) {
 			return jiraGetWithHeaders('/rest/api/2/serverInfo')
-			.spread(function (serverInfo, headers) {
+			.spread(function (serverInfoString, headers) {
 				//This is one of the first calls. We may have a proxy (like starbucks) returning an XML.
-				jiraCheckProxyError(serverInfo);
-				serverInfo = JSON.parse(serverInfo);
-				if (serverInfo.versionNumbers[0] === 6 && serverInfo.versionNumbers[1] < 1)
+				jiraCheckProxyError(serverInfoString);
+				jira.sysInfo = JSON.parse(serverInfoString);
+				yasoon.setting.setAppParameter('systemInfo', serverInfoString);
+
+				if (jira.sysInfo.versionNumbers[0] === 6 && jira.sysInfo.versionNumbers[1] < 1)
 					return jiraGet('/rest/api/2/user?username=' + headers['X-AUSERNAME']);
 				else
 					return jiraGet('/rest/api/2/myself');

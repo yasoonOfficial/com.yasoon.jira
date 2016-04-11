@@ -29,6 +29,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.serviceDesks = null;
 	this.senderUser = { name: -1 };
 	this.projectMeta = null;
+	this.systemInfo = null;
 
 	this.mailAsMarkup = '';
 	this.recentProjects = [];
@@ -80,6 +81,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		self.cacheUserMeta = initParams.userMeta;
 		self.cacheCreateMetas = initParams.createMetas;
 		self.cacheProjects = initParams.projects;
+		self.systemInfo = initParams.systemInfo;
 
 		self.userCommonValues = {
 			results: [{
@@ -428,23 +430,31 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			success: function (data) {
 				var issue = jira.editIssue || JSON.parse(data);
 				
+				//Trigger AfterSave Event (needed for Epics :( )
+				self.UIFormHandler.triggerEvent('afterSave', { input: result, newIssue: issue });
+
 				//Save issueId in conversation data
 				if (jira.mail) {
-					//Set Conversation Data
-					var conversationString = yasoon.outlook.mail.getConversationData(jira.mail); //That derives wrong appNamespace, since the object wsa created in main window context: jira.mail.getConversationData();
-					var conversation = {
-						issues: {}
-					};
+					try {
+						//Set Conversation Data
+						var conversationString = yasoon.outlook.mail.getConversationData(jira.mail); //That derives wrong appNamespace, since the object wsa created in main window context: jira.mail.getConversationData();
+						var conversation = {
+							issues: {}
+						};
 
-					if (conversationString)
-						conversation = JSON.parse(conversationString);
+						if (conversationString)
+							conversation = JSON.parse(conversationString);
 
-					conversation.issues[issue.id] = { id: issue.id, key: issue.key, summary: result.fields.summary, projectId: self.selectedProject.id };
-					yasoon.outlook.mail.setConversationData(jira.mail, JSON.stringify(conversation)); //jira.mail.setConversationData(JSON.stringify(conversation));
+						conversation.issues[issue.id] = { id: issue.id, key: issue.key, summary: result.fields.summary, projectId: self.selectedProject.id };
+						yasoon.outlook.mail.setConversationData(jira.mail, JSON.stringify(conversation)); //jira.mail.setConversationData(JSON.stringify(conversation));
 					
-					//Set new message class to switch icon
-					if (!jira.mail.isSignedOrEncrypted || jira.settings.overwriteEncrypted)
-						jira.mail.setMessageClass('IPM.Note.Jira');
+						//Set new message class to switch icon
+						if (!jira.mail.isSignedOrEncrypted || jira.settings.overwriteEncrypted)
+							jira.mail.setMessageClass('IPM.Note.Jira');
+					} catch (e) {
+						//Not so important
+						yasoon.util.log('Failed to set Conversation data', yasoon.util.severity.info, getStackTrace(e));
+					}
 				}
 
 				if (self.selectedAttachments.length > 0) {

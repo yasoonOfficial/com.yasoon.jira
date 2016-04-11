@@ -401,7 +401,8 @@ function JiraRibbonController() {
 			'ownUser': jira.data.ownUser,
 			'userMeta': jira.cache.userMeta,
 			'createMetas': jira.cache.createMetas,
-			'projects': jira.data.projects
+			'projects': jira.data.projects,
+			'systemInfo': jira.sysInfo
 		};
 
 		var dialogOptions = {
@@ -465,7 +466,8 @@ function JiraRibbonController() {
 		var initParams = { 
 			settings: jira.settings, 
 			ownUser: jira.data.ownUser,
-			projects: jira.data.projects			 
+			projects: jira.data.projects,
+			systemInfo: jira.sysInfo
 		};
 
 		var dialogOptions = {

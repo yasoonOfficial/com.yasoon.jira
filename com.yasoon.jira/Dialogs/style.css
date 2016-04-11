@@ -2834,6 +2834,17 @@ body {
 	margin-bottom: 2px
 }
 
+#markupLoader { 
+	display: none;
+	position:absolute;
+	background: url(ajax-loader.gif) no-repeat center center;
+	width: 36px;
+	height: 36px;
+	left: 120px;
+	z-index: 110;
+	margin-top: 10px;
+}
+
 #create-issue-dialog .mentions-help-text {
 	position: absolute;
 	display:none;

@@ -65,14 +65,14 @@ function UIFormHandler() {
 			}
 		},
 
-		triggerEvent: function (type, data) {
+		triggerEvent: function (eventType, data) {
 			if (jira.currentMeta) {
 				$.each(jira.currentMeta.fields, function (key, field) {
 					var type = getFieldType(field);
 					if (type) {
 						var responsibleRenderer = renderer[type];
 						if (responsibleRenderer && responsibleRenderer.hasOwnProperty('handleEvent')) {
-							responsibleRenderer.handleEvent(type, field, data);
+							responsibleRenderer.handleEvent(eventType, key, field, data);
 						}
 					}
 				});
