@@ -362,22 +362,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			id: $('#issuetype').val()
 		};
 
-		//3.1 Check if Request type is needed and add it
-		var isServiceDesk = jira.selectedProject.projectTypeKey == 'service_desk' && $('#switchServiceMode').hasClass('active');
-		if (isServiceDesk) {
-			var requestType = $('#requestType').find(":selected").data('requesttype');
-			var requestTypeFieldName = self.getRequestTypeField(jira.currentMeta);
-
-			if (requestType && requestTypeFieldName) {
-				result.fields[requestTypeFieldName] = requestType;
-			}
-		}
-
-		//Incremnt transaction for Greenhopper API
+		//Increment transaction for Greenhopper API
 		jira.transaction.currentCallCounter++;
 		//Get Generated Fields
 		self.UIFormHandler.getFormData(result);
 
+		//3.1 Check if Request type is needed and add it
+		var isServiceDesk = jira.selectedProject.projectTypeKey == 'service_desk' && $('#switchServiceMode').hasClass('active');
+		
 		//3.2 Change reporter if we have a "on behalf of" case.
 		if (isServiceDesk) {
 			var user = $('#behalfReporter').data('id');
@@ -412,7 +404,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		console.log('Send Data:', result);
 
 		//Switch for edit or create
-		var url = self.settings.baseUrl + '/rest/api/2/issue';
+		var url = '/rest/api/2/issue';
 		var method = yasoon.ajaxMethod.Post;
 
 		if (self.editIssue && !self.fromTemplate) {
@@ -420,78 +412,93 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			method = yasoon.ajaxMethod.Put;
 		}
 		
-		yasoon.oauth({
-			url: url,
-			oauthServiceName: jira.settings.currentService,
-			headers: jira.CONST_HEADER,
-			data: JSON.stringify(result),
-			type: method,
-			error: submitErrorHandler,
-			success: function (data) {
-				var issue = jira.editIssue || JSON.parse(data);
-				
-				//Trigger AfterSave Event (needed for Epics :( )
-				self.UIFormHandler.triggerEvent('afterSave', { input: result, newIssue: issue });
+		//Submit request
+		jiraAjax(url, method, JSON.stringify(result))
+		.then(function (data) {
+			jira.transaction.currentCallCounter--;
+			var issue = jira.editIssue || JSON.parse(data);
 
-				//Save issueId in conversation data
-				if (jira.mail) {
-					try {
-						//Set Conversation Data
-						var conversationString = yasoon.outlook.mail.getConversationData(jira.mail); //That derives wrong appNamespace, since the object wsa created in main window context: jira.mail.getConversationData();
-						var conversation = {
-							issues: {}
-						};
+			//Trigger AfterSave Event (needed for Epics :( )
+			self.UIFormHandler.triggerEvent('afterSave', { input: result, newIssue: issue });
 
-						if (conversationString)
-							conversation = JSON.parse(conversationString);
+			//Save issueId in conversation data
+			if (jira.mail) {
+				try {
+					//Set Conversation Data
+					var conversationString = yasoon.outlook.mail.getConversationData(jira.mail); //That derives wrong appNamespace, since the object wsa created in main window context: jira.mail.getConversationData();
+					var conversation = {
+						issues: {}
+					};
 
-						conversation.issues[issue.id] = { id: issue.id, key: issue.key, summary: result.fields.summary, projectId: self.selectedProject.id };
-						yasoon.outlook.mail.setConversationData(jira.mail, JSON.stringify(conversation)); //jira.mail.setConversationData(JSON.stringify(conversation));
-					
-						//Set new message class to switch icon
-						if (!jira.mail.isSignedOrEncrypted || jira.settings.overwriteEncrypted)
-							jira.mail.setMessageClass('IPM.Note.Jira');
-					} catch (e) {
-						//Not so important
-						yasoon.util.log('Failed to set Conversation data', yasoon.util.severity.info, getStackTrace(e));
-					}
-				}
+					if (conversationString)
+						conversation = JSON.parse(conversationString);
 
-				if (self.selectedAttachments.length > 0) {
-					
-					var formData = [];
-					$.each(self.selectedAttachments, function (i, file) {
-						formData.push({
-							type: yasoon.formData.File,
-							name: 'file',
-							value: file
-						});
-					});
+					conversation.issues[issue.id] = { id: issue.id, key: issue.key, summary: result.fields.summary, projectId: self.selectedProject.id };
+					yasoon.outlook.mail.setConversationData(jira.mail, JSON.stringify(conversation)); //jira.mail.setConversationData(JSON.stringify(conversation));
 
-					yasoon.oauth({
-						url: jira.settings.baseUrl + '/rest/api/2/issue/' + issue.id + '/attachments',
-						oauthServiceName: jira.settings.currentService,
-						type: yasoon.ajaxMethod.Post,
-						formData: formData,
-						headers: { Accept: 'application/json', 'X-Atlassian-Token': 'nocheck' },
-						error: function (data, statusCode, result, errorText, cbkParam) {
-							jira.transaction.currentCallCounter--;
-							yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data + ' || ' + JSON.stringify(formData), yasoon.util.severity.warning);
-							var ex = new jiraSyncError('', statusCode, errorText, data, result);
-							yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorCreateAttachment', { key: issue.key, error: ex.getUserFriendlyError()}));
-
-							if (jira.transaction.currentCallCounter === 0)
-								self.close({ action: 'success' });
-
-						},
-						success: submitSuccessHandler
-					});
-				} else {
-					jira.transaction.currentCallCounter--;
-					if (jira.transaction.currentCallCounter === 0)
-						self.close({ action: 'success' });
+					//Set new message class to switch icon
+					if (!jira.mail.isSignedOrEncrypted || jira.settings.overwriteEncrypted)
+						jira.mail.setMessageClass('IPM.Note.Jira');
+				} catch (e) {
+					//Not so important
+					yasoon.util.log('Failed to set Conversation data', yasoon.util.severity.info, getStackTrace(e));
 				}
 			}
+
+			//Service Request? Assignment Type have an own call
+			if (isServiceDesk) {
+				var requestTypeId = $('#requestType').val();
+				jira.transaction.currentCallCounter++;
+
+				jiraAjax('/rest/servicedesk/1/servicedesk/request/'+ issue.id + '/request-types', yasoon.ajaxMethod.Post, JSON.stringify({ rtId: requestTypeId }))
+				.then(function () {
+					submitSuccessHandler();
+				})
+				.catch(jiraSyncError, function (e) {
+					jira.transaction.currentCallCounter--;
+					yasoon.util.log('Couldn\'t update RequestType assignment' + e.getUserFriendlyError(), yasoon.util.severity.warning);
+				});
+			}
+
+			//Attachments?
+			if (self.selectedAttachments.length > 0) {
+
+				var formData = [];
+				$.each(self.selectedAttachments, function (i, file) {
+					formData.push({
+						type: yasoon.formData.File,
+						name: 'file',
+						value: file
+					});
+				});
+				jira.transaction.currentCallCounter++;
+
+				jiraAjax('/rest/api/2/issue/' + issue.id + '/attachments', yasoon.ajaxMethod.Post, null, formData )
+				.then(function() {
+					submitSuccessHandler();
+				})
+				.catch(jiraSyncError, function(e) {
+					jira.transaction.currentCallCounter--;
+					yasoon.util.log('Couldn\'t upload attachments: ' + e.getUserFriendlyError() +' || ' +  JSON.stringify(formData), yasoon.util.severity.warning);
+					yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorCreateAttachment', { key: issue.key, error: e.getUserFriendlyError() }));
+
+					//If there is no open request, close Window
+					if (jira.transaction.currentCallCounter === 0)
+						self.close({ action: 'success' });
+				});
+			}
+
+			//If there is no open request, close Window
+			if (jira.transaction.currentCallCounter === 0)
+				self.close({ action: 'success' });
+		})
+		.catch(jiraSyncError, function (e) {
+			yasoon.util.log('Couldn\'t submit New Issue Dialog: ' + e.getUserFriendlyError(), yasoon.util.severity.warning);
+			yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSubmitIssue', { error: error }));
+			jira.transaction.currentCallCounter = -1; //Make sure the window will never close as issue has not been created
+		})
+		.catch(function (e) {
+			yasoon.util.log('Unexpected error in Create Issue Dialog: ' + e, yasoon.util.severity.error);
 		});
 		e.preventDefault();
 	};
@@ -601,7 +608,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 						requestTypes.forEach(function (rt) {
 							if (rt.groups.filter(function (g) { return g.id === group.id; }).length > 0) {
 								//This request type is assigned to current group --> display.
-								currentGroup.append('<option data-icon = "' + rt.iconUrl + '" data-requesttype="' + rt.portalKey + '/' + rt.key + '" data-issuetype="' + rt.issueType + '" value="' + rt.id + '">' + rt.name + '</option>');
+								if (jira.systemInfo.versionNumbers[0] === 7 && jira.systemInfo.versionNumbers[1] > 0) {
+									currentGroup.append('<option data-icon = "' + rt.iconUrl + '" data-requesttype="' + rt.portalKey + '/' + rt.key + '" data-issuetype="' + rt.issueType + '" value="' + rt.id + '">' + rt.name + '</option>');
+								} else {
+									currentGroup.append('<option data-iconclass = "vp-rq-icon vp-rq-icon-' + rt.icon + '" data-requesttype="' + rt.portalKey + '/' + rt.key + '" data-issuetype="' + rt.issueType + '" value="' + rt.id + '">' + rt.name + '</option>');
+									
+								}
 							}
 						});
 					});
@@ -965,18 +977,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		});
 	};
 
-
-	this.getRequestTypeField = function (meta) {
-		if (!meta)
-			return;
-
-		for (var key in meta.fields) {
-			var type = self.UIFormHandler.getFieldType(meta.fields[key]);
-			if (type === 'com.atlassian.servicedesk:vp-origin')
-				return key;
-		}
-	};
-
 	this.getUserPreferences = function () {
 		if (!jira.currentMeta)
 			return Promise.reject();
@@ -1114,7 +1114,7 @@ function submitErrorHandler(data, statusCode, result, errorText, cbkParam) {
 	yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data + ' || ' + error, yasoon.util.severity.warning);
 
 
-	yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSubmitIssue', { error:  error}));
+	
 	jira.transaction.currentCallCounter = -1;
 }
 

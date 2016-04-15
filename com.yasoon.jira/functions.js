@@ -931,11 +931,11 @@ function getJiraMarkupRenderer() {
 	
 	var reservedChars = [
 		{ char: '|', regex: '\\|' },
-		{ char: '*', regex: '^\\*' },
-		{ char: '+', regex: '^\\+' },
-		{ char: '_', regex: '^\\_' },
-		{ char: '-', regex: '^\\-' },
-		{ char: '!', regex: '^\\!' }
+		{ char: '*', regex: '\\*' },
+		{ char: '+', regex: '\\+' },
+		{ char: '_', regex: '\\_' },
+		{ char: '-', regex: '\\-' },
+		{ char: '!', regex: '\\!' }
 	];
 
 	function escapeText(text) {
@@ -949,7 +949,7 @@ function getJiraMarkupRenderer() {
 		renderTextElement: function(text, style, context) {
 			lastOp = 'renderTextElement';
 			
-			//Remove characters that would change the markup (|,* , etc)
+			//Escape characters that would change the markup (|,* , etc)
 			text = escapeText(text);
 			if (context && context.inHyperlink)
 				return text;
