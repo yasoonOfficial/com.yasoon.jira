@@ -1260,7 +1260,7 @@ function formatIcon(element) {
 	if (!element.id) return element.text; // optgroup
 	var icon = $(element.element).data('icon');
 	if (icon)
-		return $('<span><img style="margin-right:3px; width: 16px;" src="' + icon + '"/>' + element.text + '</span>');
+		return $('<span><img style="margin-right:3px; width: 16px;" src="' + icon + '"  onerror="jiraHandleImageFallback(this)"/>' + element.text + '</span>');
 	else {
 		icon = $(element.element).data('iconclass');
 		if (icon) {

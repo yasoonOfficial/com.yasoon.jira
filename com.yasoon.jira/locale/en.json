@@ -178,8 +178,8 @@
 				"systemMissing": "Miss a JIRA System?",
 				"reloadSystems": "Reload System Information",
 				"showDesktopNotif": "Show Desktop Notification",
-				"addAttachmentsOnNewAddIssue": "Automatically add attachments in issue dialogs",
-				"addEmailOnNewAddIssue": "Automatically add email (.msg) in issue dialogs",
+				"addAttachmentsOnNewAddIssue": "Automatically add attachments",
+				"addEmailOnNewAddIssue": "Automatically add email (.msg)",
 				"addMailHeaderAutomatically": "Automatically add email header to description",
 				"syncAssignee": "I am the assignee",
 				"syncMention": "I have been mentioned",
@@ -188,7 +188,7 @@
 				"syncReporter": "I am the reporter",
 				"syncCreator": "I am the creator",
 				"syncComment": "I commented on the issue",
-				"enableUserConfig":"Enable User Configuration <br /> in Edit & Create Screens",
+				"enableUserConfig":"Enable User Configuration in Edit & Create Screens",
 				"configureFilter": "Configure Filter",
 				"calendarIntegration": "Enable Calendar Integration",
 				"logoutButton":"Logout",
@@ -201,7 +201,12 @@
 				"loginNotPossible":"Login to this systen not possible due to a missing configuration. Please contact your admin.",
 				"pendingUpdates":"There are pending updates which prevent this action. Please check for latest updates in the Outlook menu: File --> JIRA, restart Outlook and try again",
 				"pendingUpdatesApp": "There are pending updates which prevent this action. Please restart Outlook and try again",
-				"reloadSuccess": "Successfully reloaded the system information!"
+				"reloadSuccess": "Successfully reloaded the system information!",
+				"general": "General",
+				"dialogs": "Dialogs",
+				"feed": "Feed",
+				"hideResolvedIssues": "Do not suggest resolved issues",
+				"filterChange":"Changes to filters will be available with the next Outlook restart."
 			}
 		}
 	}

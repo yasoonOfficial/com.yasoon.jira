@@ -178,8 +178,8 @@
 				"systemMissing": "Dein JIRA System ist nicht dabei?",
 				"reloadSystems": "System Liste neu laden",
 				"showDesktopNotif": "Desktop Benachrichtigungen anzeigen",
-				"addAttachmentsOnNewAddIssue": "E-Mail Anhänge in Dialogen automatisch hinzufügen",
-				"addEmailOnNewAddIssue": "E-Mail als Datei (.msg) in Dialogen automatisch hinzufügen",
+				"addAttachmentsOnNewAddIssue": "E-Mail Anhänge automatisch hinzufügen",
+				"addEmailOnNewAddIssue": "E-Mail als Datei (.msg) automatisch hinzufügen",
 				"addMailHeaderAutomatically": "E-Mail Kopfzeilen automatisch zur Vorgang-Beschreibung hinzufügen",
 				"syncAssignee": "Ich Bearbeiter bin",
 				"syncMention": "Ich erwähnt werde",
@@ -188,7 +188,7 @@
 				"syncReporter": "Ich der Autor bin",
 				"syncCreator": "Ich der Ersteller bin",
 				"syncComment": "Ich auf den Vorgang kommentiert habe",
-				"enableUserConfig": "Verwende meine benutzerdefinierte<br />Feld-Konfiguration in Dialogen",
+				"enableUserConfig": "Verwende meine benutzerdefinierte Feld-Konfiguration",
 				"configureFilter": "Filter konfigurieren",
 				"calendarIntegration": "Kalendar Integration verwenden",
 				"logoutButton":"Abmelden",
@@ -201,7 +201,13 @@
 				"loginNotPossible":"Login in JIRA ist wegen fehlender Konfigurationen nicht möglich. Bitte kontaktiere deinen Administrator.",
 				"pendingUpdates":"Es gibt wartende Updates die diese Aktion verhinden. Bitte lade zunächst das aktuellste Update über das Outlook Menü: Datei --> JIRA. Anschließend bitte Outlook neustarten und Login erneut probieren.",
 				"pendingUpdatesApp": "Es gibt wartende Updates die diese Aktion verhindern. Bitte starte Outlook zunächst neu und versuche es anschließend erneut.",
-				"reloadSuccess": "Neue System Informationen wurden erfolgreich geladen."
+				"reloadSuccess": "Neue System Informationen wurden erfolgreich geladen.",
+				"general": "Allgemein",
+				"dialogs": "Dialoge",
+				"feed": "Neuigkeiten",
+				"hideResolvedIssues": "Erledigte Vorgänge nicht vorschlagen",
+				"filterChange":"Änderungen am Filter sind erst mit dem nächsten Outlook Neustart aktiv.",
+
 			}
 		}
 	}

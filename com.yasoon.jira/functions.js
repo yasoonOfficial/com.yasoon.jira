@@ -693,7 +693,7 @@ function JiraFilterController() {
 				//value: { type: 'json', path: 'fields.fixVersions[*].name' }
 			},
 			{
-				name: yasoon.i18n('filter.labelFilter'),
+				name: yasoon.i18n('filter.componentFilter'),
 				key: 'fields.components[*].id',
 				value: { type: 'json', path: 'fields.components[*].name' }
 			}
@@ -927,11 +927,33 @@ function jiraOpenPurchaseDialog() {
 function getJiraMarkupRenderer() {
 	var inTableCount = 0;
 	var lastOp = '';
+	var lastColor = '';
 	
+	var reservedChars = [
+		{ char: '|', regex: '\\|' },
+		{ char: '*', regex: '^\\*' },
+		{ char: '+', regex: '^\\+' },
+		{ char: '_', regex: '^\\_' },
+		{ char: '-', regex: '^\\-' },
+		{ char: '!', regex: '^\\!' }
+	];
+
+	function escapeText(text) {
+		reservedChars.forEach(function (c) {
+			text = text.replace(new RegExp(c.regex, 'g'), '\\' + c.char);
+		});
+		return text;
+	}
+
 	return new MailRenderer({
-		renderTextElement: function(text, style) {
+		renderTextElement: function(text, style, context) {
 			lastOp = 'renderTextElement';
 			
+			//Remove characters that would change the markup (|,* , etc)
+			text = escapeText(text);
+			if (context && context.inHyperlink)
+				return text;
+
 			//Trim the spaces away and restore them later
 			var trimmedText = text.trim();
 			var prefix = text.substring(0, text.indexOf(trimmedText));

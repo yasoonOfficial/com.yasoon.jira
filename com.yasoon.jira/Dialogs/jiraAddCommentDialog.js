@@ -26,6 +26,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.addedAttachmentIds = [];
 	this.selectedAttachments = [];
 	this.projects = [];
+	this.selectedProjectId = null;
+	this.selectedProjectKey = null;
 
 	this.issueSelect2 = null;
 	this.mailAsMarkup = '';
@@ -186,7 +188,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 						id = parseInt(id);
 						if (self.projects.filter(function (el) { return el.id === convData.issues[id].projectId; }).length > 0) //jshint ignore:line
 						{
-							$('#project').val(sconvData.issues[id].projectId).trigger('change');
+							$('#project').val(convData.issues[id].projectId).trigger('change');
 							return; //Quit loop & promise chain -> subject handling will not be done if we find something here
 						}
 					}
@@ -238,7 +240,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 
 	this.submitForm = function (e) {
-		var selectedOption = $('#issue').find(':selected');
+		var selectedOption = $('#issue');
 		var selectedIssueId = selectedOption.data('id');
 
 		if (!selectedIssueId) {
@@ -277,6 +279,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				.catch(jiraSyncError, function (e) {
 					$('#MainAlert .errorText').text(yasoon.i18n('dialog.errorSubmitComment', { error: e.getUserFriendlyError() }));
 					$('#MainAlert').show();
+					yasoon.util.log('Error on sending a comment: ' + e.getUserFriendlyError(), yasoon.util.severity.info);
 					throw e;
 				})
 				.then(function() {
@@ -354,98 +357,59 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 
 	this.selectProject = function () {
-		var selectedProject = $('#project').find(':selected').data('key');
-		var selectedProjectId = $('#project').val();
-		
-		//Filter Issues based on selected Project
-		if (!selectedProjectId) {
-			self.projectIssues = [];
-			self.createIssueLoader();
-		} else {
-			$('#IssueSpinner').css('display', 'inline');
-			jiraGet('/rest/api/2/search?jql=project%20%3D%20%22' + selectedProject + '%22%20&maxResults=200&fields=summary')
-			.then(function (data) {
-				data = JSON.parse(data);
-				self.projectIssues = [];
+		jira.selectedProjectKey = $('#project').find(':selected').data('key');
+		jira.selectedProjectId = $('#project').val();
 
-				if (data.issues.length > 0) {
-					data.issues.forEach(function (issue) {
-						self.projectIssues.push({
-							id: issue.id,
-							key: issue.key,
-							text: issue.fields.summary + ' (' + issue.key + ')',
-							summary: issue.fields.summary,
-							project: { id: selectedProjectId, key: selectedProject }
-						});
+		//If mail is provided && subject contains reference to issue, pre-select that
+		if (self.mail) {
+			var convData = self.getConversationData(self.mail);
+			var issueKey = null;
+			if (convData) {
+				//Try to find issue key that is in selected project
+				for (var id in convData.issues) {
+					id = parseInt(id);
+					if (convData.issues[id].projectId === jira.selectedProjectId) {
+						issueKey = convData.issues[id].key;
+						break;
+					}
+				}
+			}
+			else if (self.mail.subject) {
+				//Try to extract issue key from subject
+				var regEx = new RegExp(jira.selectedProjectKey + '.[0-9]+', 'g');
+				var match = regEx.exec(self.mail.subject);
+
+				if (match && match.length > 0) {
+					issueKey = match[0];
+				}
+			}
+
+			if (issueKey) {
+				$('#IssueSpinner').css('display', 'inline');
+				return jiraGet('/rest/api/2/issue/' + issueKey)
+				.then(function (data) {
+					var issue = JSON.parse(data);
+
+					//Add the issue to the dropdown
+					self.projectIssues.push({
+						id: issue.id,
+						key: issue.key,
+						text: issue.fields.summary + ' (' + issue.key + ')',
+						summary: issue.fields.summary,
+						project: { id: issue.fields.project.id, key: issue.fields.project.key }
 					});
-				}
 
-				//Rebuild select2
-				self.createIssueLoader();
-
-				//If mail is provided && subject contains reference to issue, pre-select that
-				if (self.mail) {
-					var convData = self.getConversationData(self.mail);
-					var issueKey = null;
-					if (convData) {
-						//Try to find issue key that is in selected project
-						for (var id in convData.issues) {
-							id = parseInt(id);
-							if (convData.issues[id].projectId === selectedProjectId) {
-								issueKey = convData.issues[id].key;
-								break;
-							}
-						}
-					}
-					else if (self.mail.subject) {
-						//Try to extract issue key from subject
-						var regEx = new RegExp(selectedProject + '.[0-9]+', 'g');
-						var match = regEx.exec(self.mail.subject);
-
-						if (match && match.length > 0) {
-							issueKey = match[0];
-						}
-					}
-
-					if (issueKey) {
-						var issue = data.issues.filter(function (i) { return i.key === issueKey; })[0];
-						if (issue) {
-							issue.fields.project = {
-								id: selectedProjectId,
-								key: selectedProject
-							};
-
-							//Rebuild select2
-							self.createIssueLoader(issue);
-						}
-						else {
-							//Not in the list of the last 200 loaded, look up
-							return jiraGet('/rest/api/2/issue/' + issueKey)
-							.then(function (data) {
-								issue = JSON.parse(data);
-
-								//Add the issue to the dropdown
-								self.projectIssues.push({
-									id: issue.id,
-									key: issue.key,
-									text: issue.fields.summary + ' (' + issue.key + ')',
-									summary: issue.fields.summary,
-									project: { id: selectedProjectId, key: selectedProject }
-								});
-
-								//Rebuild select2
-								self.createIssueLoader(issue);
-							})
-							.catch(function () {
-								//Issue not found? Ignore..
-							});
-						}
-					}
-				}
-			})
-			.finally(function () {
-				$('#IssueSpinner').css('display', 'none');
-			});
+					//Rebuild select2
+					self.createIssueLoader(issue);
+				})
+				.catch(function () {
+					yasoon.util.log('Couldn\'t find issue: ' + issueKey, yasoon.util.severity.warning);
+					//Issue not found? Ignore..
+				})
+				.finally(function () {
+					$('#IssueSpinner').css('display', 'none');
+				});
+			}
 		}
 	};
 
@@ -462,22 +426,31 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 
 	var lastQuery = '';
-	var searchIssue = debounce(function (term, callback) {
+	var searchIssue = debounce(function searchuser(term, callback) {
 		console.log('Debounced searchIssue called');
-		//JQL
-		var selectedProject = $('#project').find(':selected').data('key');
+		//Concat JQL
 
-		var jql = '( Summary ~ "' + term +'"';
-		if(selectedProject) {
-			jql += ' AND project = "' + selectedProject + '"';
-		}
-		if(self.settings.hideResolvedIssues) {
-			jql += ' AND status != "resolved"';
-		}
-		jql += ') OR key = "' + term + '"';
-
+		var jql = '';
 		
-		jiraGet('/rest/api/2/search?jql=' + encodeURIComponent(jql) + '&maxResults=20&fields=summary,project&validateQuery=false')
+		if(term) {
+			jql += 'Summary ~ "' + term + '"';
+		}
+		if (jira.selectedProjectKey) {
+			jql += ((jql) ? 'AND' : '') + ' project = "' + jira.selectedProjectKey + '"';
+		}
+		if (self.settings.hideResolvedIssues) {
+			jql += ((jql) ? 'AND' : '') + ' status != "resolved"';
+		}
+		
+		jql = '( ' + jql + ' )';
+		
+		if(term) {
+			jql += 'OR key = "' + term + '"';
+		}
+
+		console.log('JQL' + jql);
+
+		return jiraGet('/rest/api/2/search?jql=' + encodeURIComponent(jql) + '&maxResults=20&fields=summary,project&validateQuery=false')
 		.then(function (data) {
 			if (term === lastQuery) {
 				var jqlResult = JSON.parse(data);
@@ -488,12 +461,15 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				});
 
 				console.log('Result for ' + term, result);
-				callback([{
-					id: 'Results',
-					text: yasoon.i18n('dialog.titleSearchResults', { term: term }),
-					children: result
-				}]);
+				callback(result);
 			}
+		})
+		.catch(function () {
+			if (term === lastQuery) {
+				$('#IssueSpinner').css('display', 'none');
+			}
+			yasoon.util.log('Couldn\'t find issues for Project' + jira.selectedProjectKey + ' || Term: ' + term, yasoon.util.severity.warning);
+			callback([]);
 		});
 	}, 250);
 
@@ -508,6 +484,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		//Create Initial Selection
 		if (issue) {
+			console.log('Init Selection' , issue);
 			$('#issue').append('<option value="' + issue.id + '" selected="selected">' + issue.fields.summary + ' (' + issue.key + ')' + '</option>');
 			$('#issue').data('id', issue.id)
 				.data('text', issue.fields.summary + ' (' + issue.key + ')')
@@ -530,24 +507,58 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 						queryTerm = params.data.q;
 					}
 
+					//Set last Quety term so we know when the REST Call returns, if it has been the latest result for the correct term.
 					lastQuery = queryTerm;
+
 					if (queryTerm) {
+						//Case 1: A Query term has been entered.
+						//Search for all issues (filtered by settings and selectedProject)
 						console.log('Query JIRA Issue Data');
-						
-						searchIssue(queryTerm, success);
+						$('#IssueSpinner').css('display', 'inline');
+						searchIssue(queryTerm, function (params) {
+							$('#IssueSpinner').css('display', 'none');
+							success([{
+								id: 'Results',
+								text: yasoon.i18n('dialog.titleSearchResults', { term: queryTerm }),
+								children: params
+							}]);
+						});
+					} else if (jira.selectedProjectId && jira.projectIssues.length <= 1) {
+						//Case 2: A project has been selected without query term, but the project issues have not been loaded yet.
+						$('#IssueSpinner').css('display', 'inline');
+						searchIssue(queryTerm, function (params) {
+							$('#IssueSpinner').css('display', 'none');
+							jira.projectIssues = params;
+							success([{
+								id: 'Recent',
+								text: yasoon.i18n('dialog.recentIssues'),
+								children: jira.recentIssues
+							}, {
+								id: 'ProjectIssues',
+								text: yasoon.i18n('dialog.projectIssues'),
+								children: params
+							}]);
+						});
 					} else {
+						//Case 3: Default just show local data
 						console.log('Query Result Default data');
-						success([{
+						var result = [];
+						result.push({
 							id: 'Recent',
 							text: yasoon.i18n('dialog.recentIssues'),
 							children: jira.recentIssues
-						}, {
-							id: 'ProjectIssues',
-							text: yasoon.i18n('dialog.projectIssues'),
-							children: jira.projectIssues
-						}]);
+						});
+
+						if (jira.selectedProjectId) {
+							result.push ({
+								id: 'ProjectIssues',
+								text: yasoon.i18n('dialog.projectIssues'),
+								children: jira.projectIssues
+							});
+						}
+
+						success(result);
 					}
-				
 				},
 				processResults: function (data, page) {
 					return { results: data };
@@ -652,17 +663,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 }); //jshint ignore:line
 
-
-$.fn.select2.amd.require(['select2/data/select', 'select2/utils'],
-function (select, Utils) {
-	function CustomIssueData($element, options) {
-		CustomIssueData.__super__.constructor.call(this, $element, options);
-	}
-
-	Utils.Extend(CustomIssueData, select);
-	jira.CustomIssueData = CustomIssueData;
-});
-
 function resizeWindow() {
 	var bodyHeight = $('body').height();
 	if (bodyHeight > 535) {
@@ -690,7 +690,7 @@ function formatIssue(issue) {
 	if (issue.element) 
 		$(issue.element).removeData();
 	
-	if(issue.element && issue.id) {
+	if (issue.element && issue.id && issue.project) {
 		$(issue.element).data('id', issue.id)
 				.data('text', issue.text)
 				.data('key', issue.key)

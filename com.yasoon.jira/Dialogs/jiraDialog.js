@@ -601,7 +601,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 						requestTypes.forEach(function (rt) {
 							if (rt.groups.filter(function (g) { return g.id === group.id; }).length > 0) {
 								//This request type is assigned to current group --> display.
-								currentGroup.append('<option data-iconclass = "vp-rq-icon vp-rq-icon-' + rt.icon + '" data-requesttype="' + rt.portalKey + '/' + rt.key + '" data-issuetype="' + rt.issueType + '" value="' + rt.id + '">' + rt.name + '</option>');
+								currentGroup.append('<option data-icon = "' + rt.iconUrl + '" data-requesttype="' + rt.portalKey + '/' + rt.key + '" data-issuetype="' + rt.issueType + '" value="' + rt.id + '">' + rt.name + '</option>');
 							}
 						});
 					});
@@ -928,53 +928,43 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		});
 	};
 
-	this.getRequestTypes = function (project) {
-		if (!project || project.projectTypeKey != 'service_desk' || !jira.serviceDesks || jira.serviceDesks.size === 0) {
+	this.getRequestTypes = function getRequestTypes(project) {
+		if (!project || project.projectTypeKey != 'service_desk') {
 			return;
 		}
 
-		//Find Service Desk for project
-		var serviceDesk = jira.serviceDesks.values.filter(function (sd) { return sd.projectId === project.id; })[0];
-		if (serviceDesk) {
-			//Only call for service desk projects
-			return jiraGet('/rest/servicedeskapi/servicedesk/'+  serviceDesk.id +'/requesttype')
-			.then(function (data) {
-				var requestTypesResult = JSON.parse(data);
+		//Only call for service desk projects
+		return jiraGet('/rest/servicedesk/1/servicedesk/' + project.key.toLowerCase() + '/request-types')
+		.then(function (data) {
+			var requestTypes = JSON.parse(data);
 
-				if (requestTypesResult.size === 0)
+			//Get all Groups to make rendering easier
+			var groups = [];
+			requestTypes.forEach(function (rt) {
+				//a request type can be assigned to multiple groups:
+				if (!rt.groups) {
 					return;
+				}
 
-				var requestTypes = requestTypesResult.values;
-				
-				//Get all Groups to make rendering easier
-				var groups = [];
-				requestTypes.forEach(function (rt) {
-					//a request type can be assigned to multiple groups:
-					if (!rt.groups) {
-						return;
+				rt.groups.forEach(function (group) {
+					if (groups.filter(function (g) { return g.id == group.id; }).length === 0) {
+						groups.push(group);
 					}
-
-					rt.groups.forEach(function (group) {
-						if (groups.filter(function (g) { return g.id == group.id; }).length === 0) {
-							groups.push(group);
-						}
-					});
 				});
 
-				//Sort groups by name
-				groups.sort(function (a, b) { return a.name > b.name; });
-
-				requestTypes.groups = groups;
-
-				return requestTypes;
-			})
-			.catch(function (data, statusCode, result, errorText, cbkParam) {
-				//Don't dump --> log and fallback to "old version"
-				yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data, yasoon.util.severity.error);
-				return null;
+				//Download Icon
+				rt.iconUrl = jira.icons.mapIconUrl(self.settings.baseUrl + '/servicedesk/customershim/secure/viewavatar?avatarType=SD_REQTYPE&avatarId=' + rt.icon);
 			});
-		}
+
+			//Sort groups by name
+			groups.sort(function (a, b) { return a.name > b.name; });
+
+			requestTypes.groups = groups;
+
+			return requestTypes;
+		});
 	};
+
 
 	this.getRequestTypeField = function (meta) {
 		if (!meta)

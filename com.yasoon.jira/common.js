@@ -49,22 +49,22 @@ function renderMailHeaderText(mail, useMarkup) {
 	var result = '';
 	
 	if (useMarkup) {
-        result = yasoon.i18n('mail.mailHeaderMarkup', {
-           senderName: mail.senderName,
-           senderEmail: mail.senderEmail,
-           date: moment(mail.receivedAt).format('LLL'),
-           recipients: ((mail.recipients.length > 0) ? '[mailto:' + mail.recipients.join('],[mailto:') : 'No One'),
-           subject: mail.subject
-        });
+		result = yasoon.i18n('mail.mailHeaderMarkup', {
+		   senderName: mail.senderName,
+		   senderEmail: mail.senderEmail,
+		   date: moment(mail.receivedAt).format('LLL'),
+		   recipients: ((mail.recipients.length > 0) ? '[mailto:' + mail.recipients.join('],[mailto:') : 'No One'),
+		   subject: mail.subject
+		});
 	}
 	else {
-        result = yasoon.i18n('mail.mailHeaderPlain', {
-           senderName: mail.senderName,
-           senderEmail: mail.senderEmail,
-           date: moment(mail.receivedAt).format('LLL'),
-           recipients: mail.recipients.join(','),
-           subject: mail.subject
-        });
+		result = yasoon.i18n('mail.mailHeaderPlain', {
+		   senderName: mail.senderName,
+		   senderEmail: mail.senderEmail,
+		   date: moment(mail.receivedAt).format('LLL'),
+		   recipients: mail.recipients.join(','),
+		   subject: mail.subject
+		});
 	}
 	
 	return result;
@@ -92,6 +92,10 @@ function jiraLog(text, obj, stacktrace) {
 	}
 }
 
+function jiraHandleImageFallback(img) {
+	img.src = yasoon.io.getLinkPath('Images\\unknown.png');
+}
+
 function JiraIconController() {
 	var self = this;
 	//Contains object { url: '' , fileName: '' }
@@ -101,17 +105,32 @@ function JiraIconController() {
 		//generate unique FileName
 		var fileName = 'Images\\' + jiraCreateHash(url);
 		console.log('Download Icon - URL: ' + url + ' : FileName: ' + fileName);
-		//Download File
-		yasoon.io.download(url, fileName, false, function (handle) {
-			//Success Handler --> update IconBuffer to local URL
-			var result = iconBuffer.filter(function (elem) { return elem.url == url; });
-			if (result.length === 1) {
-				result[0].fileName = 'Images\\' + handle.getFileName();
-				saveSettings();
-			}
-			
-		});
 
+		if (url.indexOf('secure') > -1) {
+			//Authed
+			yasoon.io.downloadAuthed(url, fileName, jira.settings.currentService,false, function (handle) {
+				//Success Handler --> update IconBuffer to local URL
+				var result = iconBuffer.filter(function (elem) { return elem.url == url; });
+				if (result.length === 1) {
+					result[0].fileName = 'Images\\' + handle.getFileName();
+					saveSettings();
+				}
+
+			});
+
+		} else {
+			//Download File
+			yasoon.io.download(url, fileName, false, function (handle) {
+				//Success Handler --> update IconBuffer to local URL
+				var result = iconBuffer.filter(function (elem) { return elem.url == url; });
+				if (result.length === 1) {
+					result[0].fileName = 'Images\\' + handle.getFileName();
+					saveSettings();
+				}
+
+			});
+
+		}
 		//Temporary save URL in Buffer
 		iconBuffer.push({ url: url, fileName: url });
 		return url;
@@ -123,7 +142,6 @@ function JiraIconController() {
 
 	this.mapIconUrl = function (url) {
 		//Avoid mapping local URLs
-		
 		if (url.indexOf('http') !== 0) {
 			return url;
 		}
@@ -138,9 +156,9 @@ function JiraIconController() {
 
 			//Only map if mappping to local URL exist
 			if (result.length === 1 && result[0].fileName.indexOf('http') !== 0) {
-				return yasoon.io.getLinkPath(result[0].fileName);	
+				return yasoon.io.getLinkPath(result[0].fileName);
 			} else if (result.length === 0) {
-				return saveIcon(url);
+				return saveIcon(url);			
 			}
 		} catch (e) {
 			//Can dump ... e.g. it seems to be possible to add font awesome icons without valid URL
@@ -157,19 +175,23 @@ function JiraIconController() {
 		}
 	};
 
+	this.getFullBuffer = function () {
+		return iconBuffer;
+	};
+
 	//Init - load data
 	var settingString = yasoon.setting.getAppParameter('icons');
 	if (settingString) {
 		iconBuffer = JSON.parse(settingString);
 
 		//Check consistency of buffer
-		iconBUffer = iconBuffer.filter(function (entry) {
+		iconBuffer = iconBuffer.filter(function (entry) {
 			if (entry.fileName.indexOf('http') === 0) {
 				//http links should be in index only temporary --> download newly this time
 				return false;
 			}
 			//Remove link if file does not exist
-			return yasoon.io.exists('Images\\' + entry.fileName);
+			return yasoon.io.exists(entry.fileName);
 		});
 
 		//console.log('Initial Icon Buffer', iconBuffer);

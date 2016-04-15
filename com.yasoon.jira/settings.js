@@ -19,6 +19,7 @@ function JiraSettingController() {
 		showFeedComment: true,
 		newCreationScreen: true,
 		syncCalendar: false,
+		hideResolvedIssues: false,
 		activeFilters: 'fields.project.id,fields.issuetype.id,fields.assignee.emailAddress,fields.status.id,fields.priority.id'
 	};
 
@@ -172,7 +173,7 @@ function JiraSettingController() {
 		$.each(form, function (i, param) {
 			//Special Case for activeFilters
 			if (param.key === 'activeFilters' && self[param.key] != param.value ) {
-				yasoon.dialog.showMessageBox('Changes to filters will be available with the next Outlook restart.');
+				yasoon.dialog.showMessageBox(yasoon.i18n('settings.filterChange'));
 			}
 			
 			if (param.value == "true") {
