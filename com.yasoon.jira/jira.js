@@ -447,7 +447,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				//Check if it's valid license 
 				if (jiraIsLicensed(false)) {
 					//Check if it's valid forever and if it's a Server instance (url does not ends with jira.com or atlassian.net) 
-					if (jira.license.validUntil > new Date(2099, 0, 1) & !jiraIsCloud(jira.settings.baseUrl))
+					if (jira.license.validUntil > new Date(2099, 0, 1) && !jiraIsCloud(jira.settings.baseUrl))
 						jira.license.isFullyLicensed = true; //No need to check license again
 
 					if (!isLicensed) {
