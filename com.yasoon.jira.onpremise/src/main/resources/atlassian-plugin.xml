@@ -23,6 +23,7 @@
         <resource type="download" name="jquery-1.11.3.min.js" location="/js/jquery-1.11.3.min.js"/>
         <resource type="download" name="bootstrap.js" location="/js/bootstrap.js"/>
         <resource type="download" name="jquery.cookie.js" location="/js/jquery.cookie.js"/>
+		<resource type="download" name="jquery.bootstrap.wizard.min.js" location="/js/jquery.bootstrap.wizard.min.js"/>
         <resource type="download" name="materialize.min.js" location="/js/materialize.min.js" />
         <resource type="download" name="sweetalert.min.js" location="/js/sweetalert.min.js" />
         <resource type="download" name="bluebird.min.js" location="/js/bluebird.min.js" />
