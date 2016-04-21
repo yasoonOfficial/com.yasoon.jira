@@ -111,7 +111,7 @@
 				"datePickerFormatTitle":"mm/dd/yyyy",
 				"dateTimePickerFormat":"m/d/Y H:i",
 				"dateTimePickerFormatTitle":"yyyy/mm/dd hh:mm",
-				"mentionsAlert": "For User Mentions you need to select an project or issue first",
+				"mentionsAlert": "For User Mentions you need to select an project or issue first"
 			},
 			"filter": {
 				"projectFilter": "Project",
@@ -168,7 +168,8 @@
 				"editAction": "Edit",
 				"logWorkAction": "Log Work",
 				"commentedOn": "{{name}} commented on: {{text}}",
-				"noContent": "No Content"
+				"noContent": "No Content",
+				"nobody": "Nobody"
 			}, 
 			"settings": {
 				"headingLogin": "Please choose your JIRA instance and login.",

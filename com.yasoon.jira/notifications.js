@@ -460,11 +460,11 @@ function JiraIssueNotification(issue) {
 			renderedFields: self.issue.renderedFields,
 			assignee: {
 				avatarUrl: (assignee) ? assignee.ImageURL : yasoon.io.getLinkPath('Images\\useravatar.png'),
-				displayName: (self.issue.fields.assignee) ? self.issue.fields.assignee.displayName : 'no one'
+				displayName: (self.issue.fields.assignee) ? self.issue.fields.assignee.displayName : yasoon.i18n('notification.nobody')
 			},
 			creator: {
 				avatarUrl: (creator) ? creator.ImageURL : yasoon.io.getLinkPath('Images\\useravatar.png'),
-				displayName: (self.issue.fields.creator) ? self.issue.fields.creator.displayName : 'anonym'
+				displayName: (self.issue.fields.creator) ? self.issue.fields.creator.displayName : '-'
 			},
 			baseUrl: jira.settings.baseUrl
 		});

@@ -168,7 +168,8 @@
 				"editAction": "Bearbeiten",
 				"logWorkAction": "Arbeit protokollieren",
 				"commentedOn": "{{name}} hat auf {{text}} kommentiert",
-				"noContent": "Kein Inhalt"
+				"noContent": "Kein Inhalt",
+				"nobody": "Niemand"
 			}, 
 			"settings": {
 				"headingLogin": "Bitte wähle dein JIRA System aus und melde dich an.",
