@@ -746,7 +746,7 @@ function JiraIssueActionNotification(event) {
 				}
 			}
 			if(title)
-				html += '<span class="small yasoon-tooltip" style="cursor:pointer;" data-toggle="tooltip" data-html="true" title="' + title + '">( <i class="fa fa-exclamation-circle"></i> more)</span>';
+				html += '<span class="small yasoon-tooltip" style="cursor:pointer;" data-toggle="tooltip" data-html="true" title="' + title + '">( <i class="fa fa-exclamation-circle"></i>' + yasoon.i18n('feed.more') +')</span>';
 		} else {
 			yasoon.util.log('Coulnd\'t determine title for:' + JSON.stringify(self.event), yasoon.util.severity.error);
 		}

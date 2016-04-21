@@ -29,7 +29,8 @@
 				"couldNotCreateComment": "Der Kommentar konnte nicht angelegt werden",
 				"couldNotUploadAttachments": "Die Anhänge konnten nicht hochgeladen werden",
 				"jiraNewsDesktopNotifTitle": "Neuigkeiten in JIRA",
-				"jiraNewsDesktopNotifMultiple": "Mehrere neue Benachrichtigungen"
+				"jiraNewsDesktopNotifMultiple": "Mehrere neue Benachrichtigungen",
+				"more" : "mehr",
 			},
 			"dialog": {
 				"newIssueDialogTitle": "Neuer JIRA Vorgang",

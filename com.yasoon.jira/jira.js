@@ -203,10 +203,9 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 	
 	//Handle Sync Event
-	this.syncStream = function (url, maxResults, currentPage) {
+	this.syncStream = function (url, maxResults) {
 		//Defaults
 		maxResults = maxResults || jira.CONST_PULL_RESULTS;
-		currentPage = currentPage || 0;
 
 		//Add maxResults to URL
 		if (url.indexOf('?') === -1) 
@@ -248,8 +247,8 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				var lastObj = entries[entries.length - 1];
 				var lastObjDate = new Date(lastObj.updated['#text']);
 
-				if (entries.length == maxResults && jira.settings.lastSync < lastObjDate && currentPage < 2) {
-					return self.syncStream('/activity?streams=update-date+BEFORE+' + (lastObjDate.getTime() - 2000), maxResults, currentPage + 1);
+				if (entries.length == maxResults && lastObjDate > jira.settings.lastSync) {
+					return self.syncStream('/activity?streams=update-date+BEFORE+' + (lastObjDate.getTime() + 2000), maxResults);
 				}
 			}
 		});

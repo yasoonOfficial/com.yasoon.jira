@@ -29,7 +29,8 @@
 				"couldNotCreateComment": "Could not create comment",
 				"couldNotUploadAttachments": "Could not upload attachment(s)",
 				"jiraNewsDesktopNotifTitle": "News on JIRA",
-				"jiraNewsDesktopNotifMultiple": "Multiple new Notifications"
+				"jiraNewsDesktopNotifMultiple": "Multiple new Notifications",
+				"more" : "more",
 			},
 			"dialog": {
 				"newIssueDialogTitle": "New JIRA Issue",
