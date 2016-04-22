@@ -240,8 +240,15 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 
 	this.submitForm = function (e) {
-		var selectedOption = $('#issue');
+		//technical stuff:
+		//If Issue has been preselected, the data attributes may be found on $('issue') instead of the option itself.
+		var selectedOption = $('#issue').find(':selected');
 		var selectedIssueId = selectedOption.data('id');
+
+		if (!selectedIssueId) {
+			selectedOption = $('#issue');
+			selectedIssueId = selectedOption.data('id');
+		}
 
 		if (!selectedIssueId) {
 			yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSelectIssue'));
