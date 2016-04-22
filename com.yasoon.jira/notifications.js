@@ -1029,6 +1029,9 @@ function JiraIssueController() {
 			if (result.total > 0) {
 				issues = result.issues;
 			}
+		})
+		.catch(function(e) {
+			jiraLog('Refresh Buffer Error:', e);
 		});
 	};
 
