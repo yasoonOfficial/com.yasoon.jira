@@ -1,6 +1,6 @@
 var authToken = '';
-var yasoonServerUrl = 'https://store.yasoon.com';
-//var yasoonServerUrl = 'http://localhost:1337';
+//var yasoonServerUrl = 'https://store.yasoon.com';
+var yasoonServerUrl = 'http://localhost:1337';
 var isInstanceRegistered = false;
 var currentPage = 1;
 var serverId = null;
@@ -40,13 +40,18 @@ $(document).ready(function () {
         });
 
         $('body').addClass('isCloud').addClass('ac-content');
+        $('#comment').val('Registered via JIRA Cloud');
     } else {
         $('body').addClass('isOnPremise');
+        $('#comment').val('Registered via JIRA Server');
     }
 
     prom.then(function () {
         if(isCloud)
             AP.sizeToParent();
+
+        //Load token even if it may does not exist.
+        authToken = $.cookie('yasoonAuthToken');
         
         loadSystemInfo()
         .then(function () {
@@ -73,18 +78,15 @@ $(document).ready(function () {
         })
         .then(function (isRegistered) {
             isInstanceRegistered = isRegistered;
+            
+            return getOwnUser()
+                .caught(function () {
+                    return null;        
+                });
+            
+        }).then(function (ownUser) {
             //Initialize the UI
-            initUI(isRegistered);
-
-/*
-            if (isRegistered) {
-                if (authToken) {
-                    checkDownloadLink();
-                    checkProduct();
-                }
-
-                checkAppLink();
-            } */
+            initUI(isInstanceRegistered, ownUser);
         })
         .caught(function (e) {
             console.log(e);
@@ -131,11 +133,10 @@ function loadSystemInfo() {
                 else
                     systemInfo = info;
 
-                serverId = systemInfo.serverId;
-                if (systemInfo.licenses && systemInfo.licenses.length > 0) {
-                    serverId = serverId ||  systemInfo.licenses[0].serverId;
-                    sen = systemInfo.licenses[0].supportEntitlementNumber;
-                }
+                serverId = systemInfo.serverId || systemInfo.licenseInfo.instances[0].serverId;
+                
+                if (systemInfo.licenseInfo.addon)
+                    sen = systemInfo.licenseInfo.addon.supportEntitlementNumber;
             });
     }
 }
@@ -158,20 +159,20 @@ function loadRegisteredUIState() {
     getCustomCert();
 }
 
-function initUI(isRegistered) {
+function initUI(isRegistered, ownUser) { 
     console.log('initUi', isRegistered);
     $('.wizard').bootstrapWizard();
     //Hide page loader first
     $('#pageLoading').hide();
 
+    var isAuthed = !!ownUser; //Ownuser can only be loaded if authToken is valid
     var cookiePage = $.cookie('currentPage');
     if (cookiePage) {
         currentPage = parseInt(cookiePage);
     }
 
     if (isRegistered && (currentPage === 1 || currentPage > 4)) {
-        if ($.cookie('yasoonAuthToken')) {
-            authToken = $.cookie('yasoonAuthToken');
+        if (isAuthed) {
             $('#AreaRegistered').removeClass('hidden');
             $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
             loadRegisteredUIState();
@@ -187,11 +188,13 @@ function initUI(isRegistered) {
                 $('ul.tabs').tabs('select_tab', 'tab1');
             }, 1);
             $('#AreaPreRegister').removeClass('hidden');
-        } else {
-            authToken = $.cookie('yasoonAuthToken');
+            $('#AreaUnregistered').removeClass('hidden');
+        } else if(isAuthed) {
             gotoPage(currentPage);
+             $('#AreaUnregistered').removeClass('hidden');
+        } else {
+            $('#AreaLogin').removeClass('hidden');
         }
-        $('#AreaUnregistered').removeClass('hidden');
     }
 
     $('#ButtonLogin').click(function () {
@@ -343,11 +346,11 @@ function handleLogin() {
                 $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
                 if (isCloud)
                     return;
-
+                
                 return $.ajax({
                     url: yasoonServerUrl + '/jira/install',
                     contentType: 'application/json',
-                    data: JSON.stringify(instanceData),
+                    data: JSON.stringify(getInstanceData()),
                     processData: false,
                     type: 'POST'
                 });
@@ -393,6 +396,7 @@ function handleAddApplicationLink() {
 
     genKeyPair()
         .then(function (certInfo) {
+            keyData = certInfo;
             return createOAuthService(certInfo.pkcs12);
         })
         .then(function () {
@@ -461,8 +465,12 @@ function handleNext() {
     }
     else if (currentPage === 2) {
         if (isCloud) {
+            $('#next').prop("disabled", true);
+            $('#nextText').text('checking...');
             return checkAppLink()
             .then(function (appLinkExists) {
+                $('#next').prop("disabled", false);
+                $('#nextText').text('Yes, Application Link created!');
                 if (appLinkExists)
                     gotoNextPage();
                 else {
@@ -520,7 +528,8 @@ function gotoPage(newPage) {
 
     if (newPage === 2) {
         if (isCloud) {
-            $('#nextText').prop('disabled', true).text('Loading...');
+            $('#next').prop('disabled', true);
+            $('#nextText').text('Loading...');
             getCustomCert()
             .then(function (cert) {
                 if (!cert.customCert) {
@@ -528,7 +537,8 @@ function gotoPage(newPage) {
                 }
             })
             .then(function () {
-                $('#nextText').prop('disabled', false).text('Yes, Application Link created!');
+                $('#next').prop('disabled', false);
+                $('#nextText').text('Yes, Application Link created!');
             })
             .caught(function () {
                 swal("Oops...", "Could not generate Certificates. Please reload to page to try again or contact us via the help button below.", "error");
@@ -615,23 +625,10 @@ function registerAccount(cbk) {
             if (isCloud)
                 return;
 
-            var instanceData = {
-                clientKey: serverId,
-                supportEntitlementNumber: sen,
-                baseUrl: systemInfo.baseUrl,
-                key: 'com.yasoon.jira.onpremise',
-                pluginsVersion: systemInfo.pluginVersion,
-                description: 'Jira on Premise',
-                productType: 'jira',
-                serverVersion: systemInfo.version,
-                licenseInfo: systemInfo.licenses,
-                eventType: 'installed'
-            };
-
             return $.ajax({
                 url: yasoonServerUrl + '/jira/install',
                 contentType: 'application/json',
-                data: JSON.stringify(instanceData),
+                data: JSON.stringify(getInstanceData()),
                 processData: false,
                 type: 'POST'
             });
@@ -676,6 +673,21 @@ function registerAccount(cbk) {
         });
 }
 
+function getInstanceData() {
+    return {
+            clientKey: serverId,
+            supportEntitlementNumber: sen,
+            baseUrl: systemInfo.baseUrl,
+            key: 'com.yasoon.jira.onpremise',
+            pluginsVersion: systemInfo.pluginVersion,
+            description: 'Jira on Premise',
+            productType: 'jira',
+            serverVersion: systemInfo.version,
+            licenseInfo: systemInfo.licenseInfo,
+            eventType: 'installed'
+    };
+}
+
 function checkProduct() {
     $.ajax({
         url: yasoonServerUrl + '/api/company/activeproducts',
@@ -685,7 +697,7 @@ function checkProduct() {
         var product = null;
         if (data.length > 0) {
             //Find correct product
-            var products = data.filter(function (el) { return el.product === 5; });
+            var products = data.filter(function (el) { return (el.product === 4 || el.product === 5 || el.product === 9); });
 
             if (products.length === 1) {
                 product = data[0];
@@ -713,8 +725,14 @@ function checkProduct() {
             $('#trialStatus').removeClass('hidden');
         } else {
             //License Ok
-            $('#JiraSupportDate').text(new Date(product.parameters.supportUntil).toLocaleDateString());
-            $('#JiraUserNumber').text(product.userCount);
+            if(product.parameters && product.parameters.supportUntil)
+                $('#JiraSupportDate').text(new Date(product.parameters.supportUntil).toLocaleDateString());
+
+            if (product.id === 9) {
+                $('#JiraLicensedFlexible').removeClass('hidden');
+                $('#JiraLicensedAllUsers').addClass('hidden');
+                $('#JiraUserNumber').text(product.userCount);
+            }            
             $('#purchasedStatus').removeClass('hidden');
         }
     })
@@ -729,34 +747,59 @@ function refreshLicense() {
     if (licenseRefreshActive)
         return;
 
-    if (isCloud)
-        return;
-
     licenseRefreshActive = true;
-    $('.licenseRefresh').addClass('grey-text text-lighten-2');
+    $('.licenseRefresh').addClass('grey-text text-lighten-2');    
+    if (isCloud) {
+        return Promise.resolve($.ajax({
+            url: yasoonServerUrl + '/jira/checkCloudLicense?jwt=' + jwtToken,
+            contentType: 'application/json',
+            processData: false,
+            headers: { userAuthToken: authToken },
+            type: 'GET'
+        }))
+            .then(function (data) {
+                if (data.success && data.product) {
+                   loadRegisteredUIState();
+               }
+            })
+            .caught(function () {
+                swal("Oops...", 'Something went wrong while refreshing your license information. Please try once more or contact us via the help button.', "error");
+            })
+            .lastly(function () {
+                licenseRefreshActive = false;
+                $('.licenseRefresh').removeClass('grey-text text-lighten-2');
+            });
 
-    $.ajax({
-        url: yasoonServerUrl + '/jira/checkSingleMarketplaceLicense',
-        type: 'POST',
-        data: JSON.stringify({
-            serverId: serverId,
-            sen: sen
-        }),
-        contentType: 'application/json',
-        processData: false,
-        headers: { userAuthToken: authToken }
-    }).done(function (result) {
-        licenseRefreshActive = false;
-        $('.licenseRefresh').removeClass('grey-text text-lighten-2');
-
-        if (result.success)
-            loadRegisteredUIState();
-        else
-            swal("No transaction found", 'Sorry, we couldn\'t find any payment transaction yet. If the purchase was made through the Atlassian Marketplace, it may takes several hours.', "error");
-    })
-        .fail(function (e) {
-            swal("No transaction found", 'Sorry, we couldn\'t find any payment transaction yet. If the purchase was made through the Atlassian Marketplace, it may takes several hours.', "error");
-        });
+    } else {
+        Promise.resolve($.ajax({
+            url: yasoonServerUrl + '/jira/install',
+            contentType: 'application/json',
+            data: JSON.stringify(getInstanceData()),
+            processData: false,
+            type: 'POST'
+        }))
+            .then(function () {
+                return $.ajax({
+                    url: yasoonServerUrl + '/jira/checkSingleMarketplaceLicense',
+                    type: 'POST',
+                    data: JSON.stringify(getIdentifyingParams()),
+                    contentType: 'application/json',
+                    processData: false,
+                    headers: { userAuthToken: authToken }
+                });
+            })
+            .then(function (result) {
+                if (result.updated)
+                    loadRegisteredUIState();
+            })
+            .caught(function (e) {
+                swal("Oops...", 'Something went wrong while refreshing your license information. Please try once more or contact us via the help button.', "error");
+            })
+            .lastly(function () {
+                licenseRefreshActive = false;
+                $('.licenseRefresh').removeClass('grey-text text-lighten-2');
+            });
+    }    
 }
 
 var intervalTimer = null;
@@ -812,10 +855,11 @@ function checkAppLink() {
         return Promise.resolve($.ajax({
             url: yasoonServerUrl + '/jira/checkCloudApplicationLink?jwt=' + jwtToken,
             headers: { userAuthToken: authToken },
+            contentType: 'application/json',
             type: 'GET'
         }))
             .then(function (result) {
-                if (result.outhToken) {
+                if (result.oauthToken) {
                     $('#addApplicationLinkButton').prop('disabled', true).text('Application Link Active!');
                     $('#applicationLinkActive').removeClass('hidden');
                     $('#applicationLinkInactive').addClass('hidden');
@@ -938,6 +982,27 @@ function updateCustomJiraCert(cert) {
         })
         .fail(function () {
             reject('Could not update Custom JIRA Certificate');
+        });
+    });
+}
+
+function getOwnUser() {
+    return new Promise(function (resolve, reject) {
+        if (!authToken)
+            return reject('No Auth token');
+        
+        $.ajax({
+            url: yasoonServerUrl + '/api/user/ownUser',
+            contentType: 'application/json',
+            headers: { userAuthToken: authToken },
+            processData: false,
+            type: 'GET'
+        })
+        .done(function (data) {
+            resolve(data);
+        })
+        .fail(function () {
+            reject('Auth token not valid');
         });
     });
 }

@@ -427,6 +427,24 @@ function NumberRenderer() {
 	};
 }
 
+function renderSelectField(id, field, style) {
+	var html = '' +
+		'    <select class="select input-field" id="' + id + '" name="' + id + '" style="'+ style +'" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
+		'		<option value="">' + ((field.hasDefaultValue) ? yasoon.i18n('dialog.selectDefault') : yasoon.i18n('dialog.selectNone')) + '</option>';
+
+	$.each(field.allowedValues, function (i, option) {
+		var icon = null;
+		if (option.iconUrl) {
+			icon = jira.icons.mapIconUrl(option.iconUrl);
+		}
+		var text = option.name || option.value;
+		html += '<option value="' + option.id + '" data-icon="' + ((icon) ? icon : '') + '">' + text + '</option>';
+	});
+	html += '   </select>';
+
+	return html;
+}
+
 function SelectListRenderer() {
 	this.getValue = function (id) {
 		if ($('#' + id).val()) {
@@ -442,20 +460,9 @@ function SelectListRenderer() {
 
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group input-field">' +
-						'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-						'    <select class="select input-field" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
-						'		<option value="">' + ((field.hasDefaultValue) ? yasoon.i18n('dialog.selectDefault') : yasoon.i18n('dialog.selectNone')) + '</option>';
-
-		$.each(field.allowedValues, function (i, option) {
-			var icon = null;
-			if (option.iconUrl) {
-				icon = jira.icons.mapIconUrl(option.iconUrl);
-			}
-			var text = option.name || option.value;
-			html += '<option value="' + option.id + '" data-icon="' + ((icon) ? icon : '') + '">' + text + '</option>';
-		});
-		html += '   </select>' +
-				'</div>';
+						'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>';
+		html += renderSelectField(id, field, "min-width: 350px; width: 80%;");
+		html +=    '</div>';
 
 		$(container).append(html);
 
@@ -463,6 +470,59 @@ function SelectListRenderer() {
 			templateResult: formatIcon,
 			templateSelection: formatIcon,
 			//escapeMarkup: function (m) { return m; }
+		});
+	};
+}
+
+function CascadedListRenderer() {
+	this.getValue = function (id) {
+		var parentId = $('#' + id + '_parent').find(':selected').val();
+		var childId = $('#' + id + 'child').find(':selected').val();
+		var resultObj = {};
+		if (parentId) {
+			resultObj.value = parentId;
+			if (childId) {
+				resultObj.child = { value: childId };
+			}
+			return resultObj;
+		}
+		return null;		
+	};
+
+	this.setValue = function (id, value) {
+		if (value) {
+			$('#' + id).val(value.id).trigger('change');
+		}
+	};
+
+	this.render = function (id, field, container) {
+		var html = '<div class="field-group input-field">' +
+					'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>';
+					
+		html += renderSelectField(id + '_parent', { hasDefaultValue: field.hasDefaultValue, allowedValues: field.allowedValues }, "min-width: 150px; width: 45%;");
+		html += renderSelectField(id + '_child', { hasDefaultValue: false, allowedValues: [] }, "min-width: 150px; width: 45%;");
+		html += '</div>';
+
+		$(container).append(html);
+
+		$('#' + id + '_parent').select2({
+			templateResult: formatIcon,
+			templateSelection: formatIcon,
+			//escapeMarkup: function (m) { return m; }
+		});
+
+		$('#' + id + '_child').select2({
+			templateResult: formatIcon,
+			templateSelection: formatIcon,
+			//escapeMarkup: function (m) { return m; }
+		});
+
+		$('#' + id + '_parent').on('change', function() {
+			var parentId = $('#' + id + '_parent').find(':selected').val();
+			var currentSelection = field.allowedValues.filter(function (v) { return v.id == parentId; })[0];
+			var allowedValues = (currentSelection) ? currentSelection.children : [];
+			var html = renderSelectField(id + '_child', { hasDefaullValue: false, allowedValues: allowedValues }, "min-width: 150px; width: 45%;");
+			$('#' + id + '_child').html(html).trigger('change');
 		});
 	};
 }
@@ -1495,5 +1555,6 @@ UIRenderer.register('timetracking', new TimeTrackingRenderer());
 UIRenderer.register('com.pyxis.greenhopper.jira:gh-epic-link', new EpicLinkRenderer());
 UIRenderer.register('com.pyxis.greenhopper.jira:gh-sprint', new SprintLinkRenderer());
 UIRenderer.register('com.tempoplugin.tempo-accounts:accounts.customfield', new TempoAccountRenderer());
+UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:cascadingselect', new CascadedListRenderer());
 
 //@ sourceURL=http://Jira/Dialog/jiraFieldRenderer.js

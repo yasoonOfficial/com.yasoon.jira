@@ -171,10 +171,10 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		var initialError = error;
 		if (statusCode == 500) {
 			yasoon.dialog.showMessageBox(yasoon.i18n('general.couldNotReachJira'));
-		} else if (error.indexOf('oauth_problem') === 0) {
+		} else if (error.indexOf('oauth_problem') > -1) {
 			//Standard OAuth Messages => http://wiki.oauth.net/w/page/12238543/ProblemReporting
-			error = error.split('&')[0];
-			error = error.split('=')[1];
+			var messages = error.split('&');
+			error = messages[0].split('=')[1];
 			if (error) {
 				switch (error) {
 					case 'consumer_key_unknown':

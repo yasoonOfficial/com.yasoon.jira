@@ -104,10 +104,10 @@
 			
             
 .hidden {
-    display:none;
+    display:none !important;
 }
 
-.licenseRefresh {
+.licenseRefresh, .checkCloudApplicationLink {
     cursor: pointer;
     font-size: 18px;
 }
