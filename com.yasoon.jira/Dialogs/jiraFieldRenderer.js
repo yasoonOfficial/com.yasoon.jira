@@ -477,12 +477,12 @@ function SelectListRenderer() {
 function CascadedListRenderer() {
 	this.getValue = function (id) {
 		var parentId = $('#' + id + '_parent').find(':selected').val();
-		var childId = $('#' + id + 'child').find(':selected').val();
+		var childId = $('#' + id + '_child').find(':selected').val();
 		var resultObj = {};
 		if (parentId) {
-			resultObj.value = parentId;
+			resultObj.id = parentId;
 			if (childId) {
-				resultObj.child = { value: childId };
+				resultObj.child = { id: childId };
 			}
 			return resultObj;
 		}
@@ -490,8 +490,11 @@ function CascadedListRenderer() {
 	};
 
 	this.setValue = function (id, value) {
-		if (value) {
-			$('#' + id).val(value.id).trigger('change');
+		if (value && value.id) {
+			$('#' + id + '_parent').val(value.id).trigger('change');
+			if (value.child) {
+				$('#' + id + '_child').val(value.child.id).trigger('change');
+			}
 		}
 	};
 
@@ -1085,13 +1088,13 @@ function EpicLinkRenderer() {
 					}
 				}
 			}
-
 			//AfterSave is only needed for JIRA 7 on creation as the setData does not work anymore.
 		} else if (eventType === 'afterSave' && !jira.editIssue && jira.systemInfo.versionNumbers[0] > 6) {
-			jira.transaction.currentCallCounter++;
 			var newEpic = $('#' + fieldId).val();
-			if(newEpic)
+			if (newEpic) {
+				jira.transaction.currentCallCounter++;
 				self.updateEpic7(newEpic, data.newIssue.key);
+			}
 
 		}
 	};
@@ -1099,44 +1102,28 @@ function EpicLinkRenderer() {
 	//Update Epic JIRA 6.x
 	this.updateEpic6 = function (newEpicLink, issueKey) {
 		jiraAjax('/rest/greenhopper/1.0/epics/' + newEpicLink + '/add', yasoon.ajaxMethod.Post, '{ "issueKeys":["' + issueKey + '"] }')
-		.then(function () {
-			submitSuccessHandler.apply(this, arguments);
-		})
-		.catch(function () {
-			submitErrorHandler.apply(this, arguments);
-		});
+		.then(submitSuccessHandler)
+		.catch(submitErrorHandler);
 	};
 	//Update Epic JIRA 7.x
 	this.updateEpic7 = function (newEpicLink, issueKey) {
 		jiraAjax('/rest/agile/1.0/epic/' + newEpicLink + '/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }')
-		.then(function () {
-			submitSuccessHandler.apply(this, arguments);
-		})
-		.catch(function () {
-			submitErrorHandler.apply(this, arguments);
-		});
+		.then(submitSuccessHandler)
+		.catch(submitErrorHandler);
 	};
 
 	//Delete Epic JIRA 6.x
 	this.deleteEpic6 = function (issueKey) {
 		jiraAjax('/rest/greenhopper/1.0/epics/remove', yasoon.ajaxMethod.Put, '{ "issueKeys":["' + issueKey + '"] }')
-		.then(function () {
-			submitSuccessHandler.apply(this, arguments);
-		})
-		.catch(function () {
-			submitErrorHandler.apply(this, arguments);
-		});
+		.then(submitSuccessHandler)
+		.catch(submitErrorHandler);
 	};
 
 	//Delete Epic JIRA 7.x
 	this.deleteEpic7 = function (issueKey) {
 		jiraAjax('/rest/agile/1.0/epic/none/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }')
-		.then(function () {
-			submitSuccessHandler.apply(this, arguments);
-		})
-		.catch(function () {
-			submitErrorHandler.apply(this, arguments);
-		});
+		.then(submitSuccessHandler)
+		.catch(submitErrorHandler);
 	};
 }
 

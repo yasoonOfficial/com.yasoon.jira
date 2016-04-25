@@ -81,7 +81,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		self.cacheUserMeta = initParams.userMeta;
 		self.cacheCreateMetas = initParams.createMetas;
 		self.cacheProjects = initParams.projects;
-		self.systemInfo = initParams.systemInfo;
+		self.systemInfo = initParams.systemInfo || { versionNumbers: [6, 4, 0] };
 
 		self.userCommonValues = {
 			results: [{
@@ -451,9 +451,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				jira.transaction.currentCallCounter++;
 
 				jiraAjax('/rest/servicedesk/1/servicedesk/request/'+ issue.id + '/request-types', yasoon.ajaxMethod.Post, JSON.stringify({ rtId: requestTypeId }))
-				.then(function () {
-					submitSuccessHandler();
-				})
+				.then(submitSuccessHandler)
 				.catch(jiraSyncError, function (e) {
 					jira.transaction.currentCallCounter--;
 					yasoon.util.log('Couldn\'t update RequestType assignment' + e.getUserFriendlyError(), yasoon.util.severity.warning);
@@ -474,9 +472,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				jira.transaction.currentCallCounter++;
 
 				jiraAjax('/rest/api/2/issue/' + issue.id + '/attachments', yasoon.ajaxMethod.Post, null, formData )
-				.then(function() {
-					submitSuccessHandler();
-				})
+				.then(submitSuccessHandler)
 				.catch(jiraSyncError, function(e) {
 					jira.transaction.currentCallCounter--;
 					yasoon.util.log('Couldn\'t upload attachments: ' + e.getUserFriendlyError() +' || ' +  JSON.stringify(formData), yasoon.util.severity.warning);
@@ -494,7 +490,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		})
 		.catch(jiraSyncError, function (e) {
 			yasoon.util.log('Couldn\'t submit New Issue Dialog: ' + e.getUserFriendlyError(), yasoon.util.severity.warning);
-			yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSubmitIssue', { error: error }));
+			yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSubmitIssue', { error: e.getUserFriendlyError() }));
 			jira.transaction.currentCallCounter = -1; //Make sure the window will never close as issue has not been created
 		})
 		.catch(function (e) {

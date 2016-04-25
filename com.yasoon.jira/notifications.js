@@ -686,7 +686,7 @@ function JiraIssueNotification(issue) {
 			title: yasoon.i18n('dialog.editJiraIssueDialogTitle'),
 			resizable: true,
 			htmlFile: 'Dialogs/newIssueDialog.html',
-			initParameter: { 'settings': jira.settings, 'ownUser': jira.data.ownUser, 'editIssue': self.issue },
+			initParameter: { 'settings': jira.settings, 'ownUser': jira.data.ownUser, 'editIssue': self.issue, 'systemInfo': jira.sysInfo },
 			closeCallback: jira.ribbons.ribbonOnCloseNewIssue
 		});
 	};
