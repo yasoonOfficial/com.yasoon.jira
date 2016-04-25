@@ -30,7 +30,7 @@
 				"couldNotUploadAttachments": "Could not upload attachment(s)",
 				"jiraNewsDesktopNotifTitle": "News on JIRA",
 				"jiraNewsDesktopNotifMultiple": "Multiple new Notifications",
-				"more" : "more",
+				"more" : "more"
 			},
 			"dialog": {
 				"newIssueDialogTitle": "New JIRA Issue",
@@ -72,7 +72,7 @@
 				"SDExplanation": "Service Desk assignments make the issue visible for the reporter in the Service Desk as \"Own Request\"",
 				"requestType":"Request Type",
 				"behalfOf": "On behalf of",
-				"createAnother": "create another",
+				"createAnother": "Create another",
 				"suggested": "Suggested",
 				"userSearchResult": "Search Result",
 				"templateFor": "templates for {{name}}",
@@ -108,11 +108,13 @@
 				"timetrackingDescrRemain": "An estimate of how much work remains until this issue will be resolved.",
 				"projectAccounts": "Project Accounts",
 				"globalAccounts": "Global Accounts",
-				"datePickerDateFormat":"mm/dd/yy",
+				"datePickerDateFormat":"m/d/y",
 				"datePickerFormatTitle":"mm/dd/yyyy",
 				"dateTimePickerFormat":"m/d/Y H:i",
 				"dateTimePickerFormatTitle":"yyyy/mm/dd hh:mm",
-				"mentionsAlert": "For User Mentions you need to select an project or issue first"
+				"mentionsAlert": "For User Mentions you need to select an project or issue first",
+				"sprintSuggestion": "Suggestions",
+				"sprintAll": "All"
 			},
 			"filter": {
 				"projectFilter": "Project",

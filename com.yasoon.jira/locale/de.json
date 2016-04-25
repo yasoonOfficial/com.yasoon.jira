@@ -30,7 +30,7 @@
 				"couldNotUploadAttachments": "Die Anhänge konnten nicht hochgeladen werden",
 				"jiraNewsDesktopNotifTitle": "Neuigkeiten in JIRA",
 				"jiraNewsDesktopNotifMultiple": "Mehrere neue Benachrichtigungen",
-				"more" : "mehr",
+				"more" : "mehr"
 			},
 			"dialog": {
 				"newIssueDialogTitle": "Neuer JIRA Vorgang",
@@ -108,11 +108,13 @@
 				"timetrackingDescrRemain": "Eine Schätzung, wie viel Arbeit bis zur Erledigung des Vorgangs verbleibt.",
 				"projectAccounts": "Projekt Accounts",
 				"globalAccounts": "Globale Accounts",
-				"datePickerDateFormat":"dd.mm.yy",
+				"datePickerDateFormat":"d.m.y",
 				"datePickerFormatTitle":"TT.MM.JJJJ",
 				"dateTimePickerFormat":"d.m.Y H:i",
 				"dateTimePickerFormatTitle":"TT.MM.JJJJ ss:mm",
 				"mentionsAlert": "Für Benutzervorschläge muss ein Projekt oder Vorgang ausgewählt sein",
+				"sprintSuggestion": "Vorschläge",
+				"sprintAll": "Alle"
 			},
 			"filter": {
 				"projectFilter": "Projekt",

@@ -1,6 +1,13 @@
 function SingleTextRenderer() {
 	this.getValue = function (id) {
-		return $('#' + id).val();
+		var val =  $('#' + id).val();
+		
+		if (jira.isEditMode) 
+			//In edit case: Only send if changed	
+			return (isEqual(jira.currentIssue.fields[id], val)) ? undefined : val;
+		else 
+			//In creation case: Only send if not null	
+			return (val) ? val : undefined;		
 	};
 
 	this.setValue = function (id, value) {
@@ -28,14 +35,20 @@ function MultilineTextRenderer() {
 	mentionTexts = {};
 
 	this.getValue = function (id) {
+		var val = '';
 		if (isDescription(id) && mentionTexts[id]) {
 			//Parse @mentions
-			return mentionTexts[id].replace(/@.*?\]\(user:([^\)]+)\)/g, '[~$1]');
+			val = mentionTexts[id].replace(/@.*?\]\(user:([^\)]+)\)/g, '[~$1]');
 		} else {
-			return $('#' + id).val();
+			val = $('#' + id).val();
 		}
 
-
+		if (jira.isEditMode) 
+			//In edit case: Only send if changed	
+			return (isEqual(jira.currentIssue.fields[id], val)) ? undefined : val;
+		else 
+			//In creation case: Only send if not null	
+			return (val) ? val : undefined;
 	};
 
 	this.setValue = function (id, value) {
@@ -178,16 +191,30 @@ function MultilineTextRenderer() {
 
 function CheckboxRenderer() {
 	this.getValue = function (id) {
-		if ($('#' + id).length === 0)
-			return;
-
 		var checkedValues = [];
 		$('#'+id).find('input').each(function () {
 			if ($(this).is(':checked')) {
 				checkedValues.push({ id: $(this).val() });
 			}
 		});
-		return (checkedValues.length > 0) ? checkedValues : null;
+		
+		//In edit case: Only send changes
+		if (jira.isEditMode) {
+			//Both empty
+			if (!jira.currentIssue.fields[id] && checkedValues.length === 0)
+				return;
+
+			//If length the same, all other values have to match too
+			if (jira.currentIssue.fields[id] && jira.currentIssue.fields[id].length == checkedValues.length) {
+				var isSame = jira.currentIssue.fields[id].every(function (c) { return checkedValues.indexOf(c.id) > -1; });
+				if (isSame)
+					return;	
+			}
+			return checkedValues;
+		} else {
+			//In creation case: Only send if not null	
+			return (checkedValues.length > 0) ? checkedValues : undefined;
+		}
 	};
 
 	this.setValue = function (id, value) {
@@ -216,11 +243,17 @@ function CheckboxRenderer() {
 
 function RadioButtonRenderer() {
 	this.getValue = function (id) {
-		if ($('#' + id).length === 0)
-			return;
-
 		var checkedValue = $('#' + id).find('input:checked').first().val();
-		return (checkedValue) ? { id: checkedValue } : null;
+		
+		if (jira.isEditMode) {
+			//In edit case: Only send if changed	
+			if (!isEqual(jira.currentIssue.fields[id], checkedValue)) {
+				return (checkedValue) ? { id: checkedValue } : { id: "-1" };
+			}
+		} else {
+			//In creation case: Only send if not null	
+			return (checkedValue) ? { id: checkedValue } : undefined;
+		}
 	};
 
 	this.setValue = function (id, value) {
@@ -234,15 +267,15 @@ function RadioButtonRenderer() {
 					'    <label>' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ';
 		if (!field.required) {
 			// Show None option only if it's not mandatory
-			html += '   <div class="radio">' +
-			'		<input name="' + id + '" type="radio" value="" checked>' +
-			'       <label>None</label>' +
+			html += '   <div class="radio awesome">' +
+			'		<input id="'+ id + '_none" name="'+ id + '" type="radio" value="" checked>' +
+			'       <label for="'+ id + '_none">None</label>' +
 			'   </div>';
 		}
 		$.each(field.allowedValues, function (i, option) {
-			html += '   <div class="radio">' +
-					'		<input name="'+ id +'" type="radio" value="' + option.id + '">' +
-					'       <label>' + option.value + '</label>' +
+			html += '   <div class="radio awesome">' +
+					'		<input id="'+ id +'_'+ option.id + '" name="'+ id + '" type="radio" value="' + option.id + '">' +
+					'       <label for="' + id + '_'+ option.id + '">' + option.value + '</label>' +
 					'   </div>';
 		});
 
@@ -253,15 +286,28 @@ function RadioButtonRenderer() {
 
 function DateRenderer() {
 	this.getValue = function (id) {
-		var value = $('#' +id).datepicker("getDate");
-		if (value) {
-			return moment(value).format('YYYY-MM-DD');
+		/*
+		var date = $('#' + id).datetimepicker("getValue");
+		//Special case: I have no idea how to set a null value. 
+		//If the datetimepicker has not been set a value, we get the current value
+		var value = null;
+		if (date) {
+			value = moment(date).format('YYYY-MM-DD');
 		}
+
+		if (jira.isEditMode) 
+			//In edit case: Only send if changed	
+			return (isEqual(renderTs, moment(date).valueOf()) || isEqual(jira.currentIssue.fields[id], value)) ? undefined : value;
+		else 
+			//In creation case: Only send if not null	
+			return (value) ? value : undefined;
+		*/
 	};
 
 	this.setValue = function (id, value) {
 		if (value) {
-			$('#' + id).val(moment(new Date(value)).format('L'));
+			var momentDate = moment(new Date(value));
+			$('#' + id).datetimepicker('setOptions', { value: momentDate.format('L')});
 		}
 	};
 
@@ -272,9 +318,16 @@ function DateRenderer() {
 					'    <a href="#" id="' + id + '-trigger" title="' + yasoon.i18n('dialog.titleSelectDate') + '" tabindex="-1"><span class="aui-icon icon-date">' + yasoon.i18n('dialog.titleSelectDate') + '</span></a> ' +
 					'</div>';
 		$(container).append(html);
-		var format = yasoon.i18n('dialog.datePickerDateFormat');
+
 		var country = yasoon.setting.getProjectSetting('locale').split('-')[0];
-		var regionalTexts = $.datepicker.regional[country];
+		$('#' + id).datetimepicker({
+			timepicker: false,
+			format: yasoon.i18n('dialog.datePickerDateFormat'),
+		});
+		$('#' + id).datetimepicker('setOptions', { value: null });
+		
+		$.datetimepicker.setLocale(country);
+		/*var regionalTexts = $.datepicker.regional[country];
 
 		$('#' + id).datepicker($.extend(
 			{},
@@ -283,28 +336,37 @@ function DateRenderer() {
 				showOtherMonths: true,
 				selectOtherMonths: true,
 				dateFormat: format,
-			}));
+			})); */
 
 		$('#' + id + '-trigger').unbind().click(function (e) {
-			$('#' + id).datepicker("show");
+			$('#' + id).datetimepicker("show");
 		});
 	};
 }
 
 function DateTimeRenderer() {
 	this.getValue = function (id) {
-		var value = $('#' + id).datetimepicker('getValue');
-		var oldValue = $('#' + id).data('oldValue');
-		if (value && value.valueOf() != oldValue) {
-			return moment(value).format('YYYY-MM-DD[T]HH:mm:ss.[000]ZZ');
-		}
+		/*
+		var date = $('#' + id).datetimepicker('getValue');
+		//var oldTs = $('#' + id).data('oldTs');
+		var value = null;
+		if(value)
+			value = moment(date).format('YYYY-MM-DD[T]HH:mm:ss.[000]ZZ');
+
+		if (jira.isEditMode) 
+			//In edit case: Only send if changed	
+			return (isEqual(jira.currentIssue.fields[id], value)) ? undefined : value;
+		else 
+			//In creation case: Only send if not null	
+			return (value) ? value : undefined;			
+		*/
 	};
 
 	this.setValue = function (id, value) {
 		if (value) {			
 			var momentDate = moment(new Date(value));
 			$('#' + id).datetimepicker('setOptions', { value: momentDate.format('L') + ' ' + momentDate.format('LT') });
-			$('#' + id).data('oldValue', momentDate.valueOf());
+			$('#' + id).data('oldTs', moment(new Date(value)).valueOf());
 		}
 	};
 
@@ -337,7 +399,25 @@ function DateTimeRenderer() {
 
 function LabelRenderer() {
 	this.getValue = function (id) {
-		return $('#' + id).val();
+		var val = $('#' + id).val() || [];
+
+		//In edit case: Only send changes
+		if (jira.isEditMode) {
+			//Both empty
+			if (!jira.currentIssue.fields[id] && val.length === 0)
+				return;
+
+			//If length the same, all other values have to match too
+			if (jira.currentIssue.fields[id] && jira.currentIssue.fields[id].length == val.length) {
+				var isSame = jira.currentIssue.fields[id].every(function (c) { return val.indexOf(c) > -1; });
+				if (isSame)
+					return;	
+			}
+			return val;
+		} else {
+			//In creation case: Only send if not null	
+			return (val.length > 0) ? val : undefined;
+		}
 	};
 
 	this.setValue = function (id, value) {
@@ -407,9 +487,13 @@ function LabelRenderer() {
 
 function NumberRenderer() {
 	this.getValue = function (id) {
-		var float = parseFloat($('#'+id).val());
-		if (float)
-			return float;
+		var float = parseFloat($('#' + id).val());
+		if (jira.isEditMode) 
+			//In edit case: Only send if changed	
+			return (isEqual(jira.currentIssue.fields[id], float)) ? undefined : float;
+		else 
+			//In creation case: Only send if not null	
+			return (float) ? float : undefined;	
 	};
 
 	this.setValue = function (id, value) {
@@ -427,29 +511,20 @@ function NumberRenderer() {
 	};
 }
 
-function renderSelectField(id, field, style) {
-	var html = '' +
-		'    <select class="select input-field" id="' + id + '" name="' + id + '" style="'+ style +'" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
-		'		<option value="">' + ((field.hasDefaultValue) ? yasoon.i18n('dialog.selectDefault') : yasoon.i18n('dialog.selectNone')) + '</option>';
-
-	$.each(field.allowedValues, function (i, option) {
-		var icon = null;
-		if (option.iconUrl) {
-			icon = jira.icons.mapIconUrl(option.iconUrl);
-		}
-		var text = option.name || option.value;
-		html += '<option value="' + option.id + '" data-icon="' + ((icon) ? icon : '') + '">' + text + '</option>';
-	});
-	html += '   </select>';
-
-	return html;
-}
-
 function SelectListRenderer() {
 	this.getValue = function (id) {
-		if ($('#' + id).val()) {
-			return { id: $('#' + id).val() };
-		}
+
+		var checkedValue = $('#' + id).val();
+		
+		if (jira.isEditMode) {
+			//In edit case: Only send if changed	
+			if (!isEqual(jira.currentIssue.fields[id], checkedValue)) {
+				return (checkedValue) ? { id: checkedValue } : { id: "-1" };
+			}
+		} else {
+			//In creation case: Only send if not null	
+			return (checkedValue) ? { id: checkedValue } : undefined;
+		}	
 	};
 
 	this.setValue = function (id, value) {
@@ -479,14 +554,34 @@ function CascadedListRenderer() {
 		var parentId = $('#' + id + '_parent').find(':selected').val();
 		var childId = $('#' + id + '_child').find(':selected').val();
 		var resultObj = {};
-		if (parentId) {
-			resultObj.id = parentId;
-			if (childId) {
-				resultObj.child = { id: childId };
+		
+		if (jira.isEditMode) {			
+			//In edit case: Only send if changed	
+			var oldParentValue = (jira.currentIssue.fields[id]) ? jira.currentIssue.fields[id].id : null;
+			var oldChildValue = (jira.currentIssue.fields[id] && jira.currentIssue.fields[id].child) ? jira.currentIssue.fields[id].child.id : null;
+			
+			if (!isEqual(oldParentValue, parentId) ||
+				!isEqual(oldChildValue, childId)) {
+				if (parentId) {
+					childId = (childId) ? { id: childId } : null;
+					return {
+						id: parentId,
+						child: childId
+					};
+				} else {
+					return null;
+				}	
 			}
-			return resultObj;
-		}
-		return null;		
+		} else {
+			//In creation case: Only send if not null
+			if (parentId) {
+				resultObj = { id: parentId };
+				if (childId) {
+					resultObj.child = { id: childId };
+				}
+				return resultObj;
+			}
+		}		
 	};
 
 	this.setValue = function (id, value) {
@@ -502,8 +597,8 @@ function CascadedListRenderer() {
 		var html = '<div class="field-group input-field">' +
 					'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>';
 					
-		html += renderSelectField(id + '_parent', { hasDefaultValue: field.hasDefaultValue, allowedValues: field.allowedValues }, "min-width: 150px; width: 45%;");
-		html += renderSelectField(id + '_child', { hasDefaultValue: false, allowedValues: [] }, "min-width: 150px; width: 45%;");
+		html += renderSelectField(id + '_parent', { hasDefaultValue: field.hasDefaultValue, allowedValues: field.allowedValues }, "min-width: 150px; width: 40%;");
+		html += renderSelectField(id + '_child', { hasDefaultValue: false, allowedValues: [] }, "min-width: 150px; width: 40%;");
 		html += '</div>';
 
 		$(container).append(html);
@@ -532,13 +627,29 @@ function CascadedListRenderer() {
 
 function MultiSelectListRenderer() {
 	this.getValue = function (id) {
-		if ($('#' + id).val()) {
-			var selectedValues = [];
-			$.each($('#' + id).val(), function (i, id) {
-				selectedValues.push({ id: id });
-			});
+		var values = $('#' + id).val() || [];
+		var selectedValues = [];	
+		values.forEach(function (id) {
+			selectedValues.push({ id: id });
+		});
+		
+		//In edit case: Only send changes
+		if (jira.isEditMode) {
+			//Both empty
+			if (!jira.currentIssue.fields[id] && selectedValues.length === 0)
+				return;
+
+			//If length the same, all other values have to match too
+			if (jira.currentIssue.fields[id] && jira.currentIssue.fields[id].length == selectedValues.length) {
+				var isSame = jira.currentIssue.fields[id].every(function (c) { return selectedValues.filter(function (e) { return e.id === c.id; }).length > 0; });
+				if (isSame)
+					return;	
+			}
 			return selectedValues;
-		}
+		} else {
+			//In creation case: Only send if not null	
+			return (selectedValues.length > 0) ? selectedValues : undefined;
+		}		
 	};
 
 	this.setValue = function (id, value) {
@@ -570,13 +681,30 @@ function MultiSelectListRenderer() {
 
 function VersionMultiSelectListRenderer() {
 	this.getValue = function (id) {
-		if ($('#' + id).val()) {
-			var selectedValues = [];
-			$.each($('#' + id).val(), function (i, id) {
-				selectedValues.push({ id: id });
-			});
+		//Just like MultiSelectListRenderer
+		var values = $('#' + id).val() || [];
+		var selectedValues = [];	
+		values.forEach(function (id) {
+			selectedValues.push({ id: id });
+		});
+		
+		//In edit case: Only send changes
+		if (jira.isEditMode) {
+			//Both empty
+			if (!jira.currentIssue.fields[id] && selectedValues.length === 0)
+				return;
+
+			//If length the same, all other values have to match too
+			if (jira.currentIssue.fields[id] && jira.currentIssue.fields[id].length == selectedValues.length) {
+				var isSame = jira.currentIssue.fields[id].every(function (c) { return selectedValues.filter(function (e) { return e.id === c.id; }).length > 0; });
+				if (isSame)
+					return;	
+			}
 			return selectedValues;
-		}
+		} else {
+			//In creation case: Only send if not null	
+			return (selectedValues.length > 0) ? selectedValues : undefined;
+		}		
 	};
 
 	this.setValue = function (id, value) {
@@ -620,10 +748,19 @@ function VersionMultiSelectListRenderer() {
 
 function UserPickerRenderer() {
 	this.getValue = function (id) {
-		var name = $('#'+id).data('id');
-		if (name) {
-			return { name: name };
-		}
+		/*
+		var name = $('#' + id).data('id');
+		var value = null;
+		if (name)
+			value = { name: name };
+		
+		if (jira.isEditMode) 
+			//In edit case: Only send if changed	
+			return (isEqual(jira.currentIssue.fields[id], value)) ? undefined : value;
+		else 
+			//In creation case: Only send if not null	
+			return (value) ? value : undefined;
+		*/
 	};
 
 	this.setValue = function (id, value) {
@@ -642,7 +779,7 @@ function UserPickerRenderer() {
 				'	<label for="' + id + '"><span class="descr">' + field.name +
 				'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
 				'	</label>' +
-				'	<select id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" class="select input-field" data-type="com.atlassian.jira.plugin.system.customfieldtypes:userpicker"></select>' +
+				'	<select id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" class="select input-field" data-type="com.atlassian.jira.plugin.system.customfieldtypes:userpicker"><option></option></select>' +
 				'	<span style="display:block; padding: 5px 0px;">' +
 				'	<a href="#' + id + '" class="assign-to-me-trigger" title="'+ yasoon.i18n('dialog.assignMyselfTitle') +'">'+ yasoon.i18n('dialog.assignMyself') +'</a>';
 
@@ -736,6 +873,7 @@ function UserPickerRenderer() {
 			templateSelection: formatUser,
 			dataAdapter: jiraFields.CustomUserDataSet,
 			minimumInputLength: 0,
+			//allowClear: true
 		});
 	};
 }
@@ -906,7 +1044,7 @@ function AttachmentLinkRenderer() {
 
 function TimeTrackingRenderer() {
 	this.getValue = function (id) {
-		if ($('#' + id + '_originalestimate').length === 0)
+		/*if ($('#' + id + '_originalestimate').length === 0)
 			return;
 
 		var origVal = $('#' + id + '_originalestimate').val();
@@ -917,11 +1055,11 @@ function TimeTrackingRenderer() {
 		// --> it's not allowed to change original estimate.
 		var result = {};
 		//Edit Case
-		if (jira.editIssue) {
-			if (origVal && jira.editIssue.fields.timetracking.originalEstimate != origVal) {
+		if (jira.editIssueId) {
+			if (origVal && jira.currentIssue.fields.timetracking.originalEstimate != origVal) {
 				result.originalEstimate = origVal;
 			}
-			if (remainVal && jira.editIssue.fields.timetracking.remainingEstimate != remainVal) {
+			if (remainVal && jira.currentIssue.fields.timetracking.remainingEstimate != remainVal) {
 				result.remainingEstimate = remainVal;
 			}
 		} else {
@@ -934,7 +1072,7 @@ function TimeTrackingRenderer() {
 		}
 
 		//Only return an object if it's not empty;
-		return (Object.keys(result).length > 0) ? result : null;
+		return (Object.keys(result).length > 0) ? result : null;*/
 	};
 
 	this.setValue = function (id, value) {
@@ -976,9 +1114,9 @@ function EpicLinkRenderer() {
 		//Only for creation as Epic links cannot be changed via REST APi --> Status code 500
 		//Ticket: https://jira.atlassian.com/browse/GHS-10333
 		//There is a workaround --> update it via unofficial greenhopper API --> For update see handleEvent
-		if (jira.systemInfo.versionNumbers[0] === 6 && !jira.editIssue && $('#' + id).val()) {
+		/*if (jira.systemInfo.versionNumbers[0] === 6 && !jira.editIssueId && $('#' + id).val()) {
 			return 'key:' + $('#' + id).val();
-		}
+		}*/
 	};
 
 	this.setValue = function (id, value) {
@@ -1066,36 +1204,34 @@ function EpicLinkRenderer() {
 	};
 
 	this.handleEvent = function (eventType, fieldId, field, data) {
-		var newEpicLink = $('#'+field.key).val();
+		var newEpicLink = $('#' + fieldId).val();
 		if (eventType === 'save') {
 			//If newCreation, only if newEpicLink is set
 			//Or if edit, only if newEpicLink is different than existing 
-			if ((!jira.editIssue && newEpicLink) || (jira.editIssue && jira.editIssue.fields[fieldId] != newEpicLink)) {
+			if ((!jira.editIssueId && newEpicLink) || (jira.editIssueId && jira.currentIssue.fields[fieldId] != newEpicLink)) {
 				jira.transaction.currentCallCounter++;
 				if (newEpicLink) {
 					//Create or update
 					if (jira.systemInfo.versionNumbers[0] === 6) {
-						self.updateEpic6(newEpicLink, jira.editIssue.key);
+						self.updateEpic6(newEpicLink, jira.currentIssue.key);
 					} else {
-						self.updateEpic7(newEpicLink, jira.editIssue.key);
+						self.updateEpic7(newEpicLink, jira.currentIssue.key);
 					}
 				} else {
 					//Delete
 					if (jira.systemInfo.versionNumbers[0] === 6) {
-						self.deleteEpic6(newEpicLink, jira.editIssue.key);
+						self.deleteEpic6(newEpicLink, jira.currentIssue.key);
 					} else {
-						self.deleteEpic7(newEpicLink, jira.editIssue.key);
+						self.deleteEpic7(newEpicLink, jira.currentIssue.key);
 					}
 				}
 			}
 			//AfterSave is only needed for JIRA 7 on creation as the setData does not work anymore.
-		} else if (eventType === 'afterSave' && !jira.editIssue && jira.systemInfo.versionNumbers[0] > 6) {
-			var newEpic = $('#' + fieldId).val();
-			if (newEpic) {
+		} else if (eventType === 'afterSave' && !jira.editIssueId && jira.systemInfo.versionNumbers[0] > 6) {
+			if (newEpicLink) {
 				jira.transaction.currentCallCounter++;
-				self.updateEpic7(newEpic, data.newIssue.key);
+				self.updateEpic7(newEpicLink, data.newIssue.key);
 			}
-
 		}
 	};
 
@@ -1130,8 +1266,8 @@ function EpicLinkRenderer() {
 function SprintLinkRenderer() {
 	this.getValue = function (id) {
 		//Bug in JIRA --> Edit is not supported via normal REST api --> See type com.pyxis.greenhopper.jira:gh-epic-link for more information.
-		if (!jira.editIssue && $('#' + id).val())
-			return $('#' + id).val();
+		/*if (!jira.editIssueId && $('#' + id).val())
+			return parseInt($('#' + id).val()); */
 	};
 
 	this.setValue = function (id, value) {
@@ -1157,12 +1293,24 @@ function SprintLinkRenderer() {
 			var sprints = JSON.parse(data);
 			var result = [];
 			var oldValue = $('#' + id).data('value');
+			
+			$(container).find('#' + id).html('<option value="">' + yasoon.i18n('dialog.selectNone') + '</option>');
+			
 			if (sprints && sprints.suggestions.length > 0) {
-				$(container).find('#' + id).html('<option value="">' + yasoon.i18n('dialog.selectNone') + '</option>');
+				var optGroupSuggestion = $('<optgroup label="' + yasoon.i18n('dialog.sprintSuggestion') +'"></optgroup>');
 				$.each(sprints.suggestions, function (i, sprint) {
-					$(container).find('#' + id).append('<option value="' + sprint.id + '"> ' + sprint.name + '</option>');
+					optGroupSuggestion.append('<option value="' + sprint.id + '"> ' + sprint.name + '</option>');
 				});
+				$(container).find('#' + id).append(optGroupSuggestion);
 			}
+			if (sprints && sprints.allMatches && sprints.allMatches.length > 0) {
+				var optGroupAll = $('<optgroup label="' + yasoon.i18n('dialog.sprintAll') +'"></optgroup>');
+				$.each(sprints.allMatches, function (i, sprint) {
+					optGroupAll.append('<option value="' + sprint.id + '"> ' + sprint.name + '</option>');
+				});
+				$(container).find('#' + id).append(optGroupAll);
+			}
+			
 			$('#' + id).select2();
 			$('#' + id).val(oldValue).trigger('change');
 		}).catch(function (e) {
@@ -1170,13 +1318,13 @@ function SprintLinkRenderer() {
 		});
 	};
 
-	this.handleEvent = function (type, field, data) {
-		if (type === 'save' && jira.editIssue) {
+	this.handleEvent = function (eventType, fieldId, field, data) {
+		if (eventType === 'save' && jira.editIssueId) {
 			var sprintId = '';
-			if (jira.editIssue.fields[field.key])
-				sprintId = parseSprintId(jira.editIssue.fields[field.key][0]);
+			if (jira.currentIssue.fields[fieldId])
+				sprintId = parseSprintId(jira.currentIssue.fields[fieldId][0]);
 
-			var newSprintId = $('#' + field.key).val();
+			var newSprintId = $('#' + fieldId).val();
 			if (sprintId != newSprintId) {
 				
 				jira.transaction.currentCallCounter++;
@@ -1185,7 +1333,7 @@ function SprintLinkRenderer() {
 						url: jira.settings.baseUrl + '/rest/greenhopper/1.0/sprint/rank',
 						oauthServiceName: jira.settings.currentService,
 						type: yasoon.ajaxMethod.Put,
-						data: '{"idOrKeys":["' + jira.editIssue.key + '"],"sprintId":' + newSprintId + ',"addToBacklog":false}',
+						data: '{"idOrKeys":["' + jira.currentIssue.key + '"],"sprintId":' + newSprintId + ',"addToBacklog":false}',
 						headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck' },
 						error: submitErrorHandler,
 						success: submitSuccessHandler
@@ -1195,7 +1343,7 @@ function SprintLinkRenderer() {
 						url: jira.settings.baseUrl + '/rest/greenhopper/1.0/sprint/rank',
 						oauthServiceName: jira.settings.currentService,
 						type: yasoon.ajaxMethod.Put,
-						data: '{"idOrKeys":["' + jira.editIssue.key + '"],"sprintId":"","addToBacklog":true}',
+						data: '{"idOrKeys":["' + jira.currentIssue.key + '"],"sprintId":"","addToBacklog":true}',
 						headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck' },
 						error: submitErrorHandler,
 						success: submitSuccessHandler
@@ -1208,14 +1356,21 @@ function SprintLinkRenderer() {
 
 function TempoAccountRenderer() {
 	this.getValue = function (id) {
-		if ($('#' + id).val())
-			return parseInt($('#' + id).val());        
+		/*var val = $('#' + id).val();
+		//If edit case and it hasn't been changed, do not send anything.
+		if (jira.currentIssue && !!jira.currentIssue.fields[id] === !!val) {
+			return;
+		}
+		
+		if (val)
+			return parseInt(val);
+		return -1; */
 	};
 
 	this.setValue = function (id, value) {
-		if (value && value.length > 0) {
-			$('#' + id).val(value).trigger('change');
-			$('#' + id).data('value', value);
+		if (value && value.id) {
+			$('#' + id).val(value.id).trigger('change');
+			$('#' + id).data('value', value.id);
 		}
 	};
 
@@ -1281,11 +1436,40 @@ function TempoAccountRenderer() {
 			$('#' + id).select2({
 				data: result 
 			});
+			var oldValue = $('#' + id).data('value');
+			if (oldValue) {
+				$('#' + id).val(oldValue).trigger('change');
+			}
 		});        
 	};
 }
 
+
+function renderSelectField(id, field, style) {
+	var html = '' +
+		'    <select class="select input-field" id="' + id + '" name="' + id + '" style="'+ style +'" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
+		'		<option value="">' + ((field.hasDefaultValue) ? yasoon.i18n('dialog.selectDefault') : yasoon.i18n('dialog.selectNone')) + '</option>';
+
+	$.each(field.allowedValues, function (i, option) {
+		var icon = null;
+		if (option.iconUrl) {
+			icon = jira.icons.mapIconUrl(option.iconUrl);
+		}
+		var text = option.name || option.value;
+		html += '<option value="' + option.id + '" data-icon="' + ((icon) ? icon : '') + '">' + text + '</option>';
+	});
+	html += '   </select>';
+
+	return html;
+}
+
 //Utility Methods
+function isEqual(a, b) {
+	a = a || "";
+	b = b || "";
+	return a == b;
+}
+
 function parseSprintId(input) {
 	//Wierd --> it's an array of strings with following structure:  "com.atlassian.greenhopper.service.sprint.Sprint@7292f4[rapidViewId=<null>,state=ACTIVE,name=Sample Sprint 2,startDate=2015-04-09T01:54:26.773+02:00,endDate=2015-04-23T02:14:26.773+02:00,completeDate=<null>,sequence=1,id=1]"
 	//First get content of array (everything between [])

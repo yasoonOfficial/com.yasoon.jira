@@ -41,7 +41,7 @@ function UIFormHandler() {
 			if (jira.currentMeta) {
 				$.each(jira.currentMeta.fields, function (key, field) {
 					var newValue = self.getValue(key,field);
-					if (newValue)
+					if (newValue !== undefined)
 						result.fields[key] = newValue;
 				});
 			}

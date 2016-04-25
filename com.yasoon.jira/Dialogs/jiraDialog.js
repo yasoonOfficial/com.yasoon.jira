@@ -75,7 +75,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		//Parameter taken over from Main JIRA
 		self.settings = initParams.settings;
 		self.ownUser = initParams.ownUser || {};
-		self.editIssue = initParams.editIssue;
+		self.isEditMode = !!initParams.editIssueId;
+		self.editIssueId = initParams.editIssueId;
+		self.editProject = initParams.editProject;
 		self.mail = initParams.mail;
 		self.selectedText = initParams.text;
 		self.cacheUserMeta = initParams.userMeta;
@@ -182,7 +184,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			});
 		}
 
-		if (!!initParams.editIssue) {
+		if (!!initParams.editIssueId) {
 			//It's the edit case
 			//Set Title & Labels
 			$('.jira-title').html(yasoon.i18n('dialog.titleEditIssue'));
@@ -191,22 +193,22 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 			//Select issue project manually and immedeately for better layout.
 			var all = $('#project').find('.all');
-			var proj = self.editIssue.fields.project;
-			self.projects.push(proj);
-			self.selectedProject = proj;
+			self.projects.push(self.editProject);
+			self.selectedProject = self.editProject;
 
-			all.append('<option data-icon="' + getProjectIcon(project) +'"  value="' + proj.id + '" data-key="' + proj.key + '">' + proj.name + '</option>');
+			all.append('<option data-icon="' + getProjectIcon(project) +'"  value="' + self.editProject.id + '" data-key="' + self.editProject.key + '">' + self.editProject.name + '</option>');
 			$('#project').select2();
-			$('#project').val(proj.id).trigger('change');
+			$('#project').val(self.editProject.id).trigger('change');
 			$('#project').prop("disabled", true);
 
 			//Start Loader
 			$('#LoaderArea').show();
 
 			//Load issue Meta in edit case and render UI!
-			jiraGet('/rest/api/2/issue/' + self.editIssue.id + '?expand=editmeta,renderedFields,transitions,changelog,operations,names')
+			jiraGet('/rest/api/2/issue/' + self.editIssueId + '?expand=editmeta,renderedFields,transitions,changelog,operations,names')
 			.then(function (data) {
 				self.currentIssue = JSON.parse(data);
+				console.log(JSON.parse(data));
 
 				//Select Issue Type
 				$('#issuetype').append('<option data-icon="' + jira.currentIssue.fields.issuetype.iconUrl + '" value="' + jira.currentIssue.fields.issuetype.id + '">' + jira.currentIssue.fields.issuetype.name + '</option>');
@@ -407,8 +409,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		var url = '/rest/api/2/issue';
 		var method = yasoon.ajaxMethod.Post;
 
-		if (self.editIssue && !self.fromTemplate) {
-			url = url + '/' + self.editIssue.key;
+		if (self.editIssueId && !self.fromTemplate) {
+			url = url + '/' + self.editIssueId;
 			method = yasoon.ajaxMethod.Put;
 		}
 		
@@ -416,7 +418,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		jiraAjax(url, method, JSON.stringify(result))
 		.then(function (data) {
 			jira.transaction.currentCallCounter--;
-			var issue = jira.editIssue || JSON.parse(data);
+			var issue = jira.currentIssue || JSON.parse(data);
 
 			//Trigger AfterSave Event (needed for Epics :( )
 			self.UIFormHandler.triggerEvent('afterSave', { input: result, newIssue: issue });
@@ -492,8 +494,13 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			yasoon.util.log('Couldn\'t submit New Issue Dialog: ' + e.getUserFriendlyError(), yasoon.util.severity.warning);
 			yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSubmitIssue', { error: e.getUserFriendlyError() }));
 			jira.transaction.currentCallCounter = -1; //Make sure the window will never close as issue has not been created
+			$('#JiraSpinner').hide();
+			$('#create-issue-submit').removeAttr("disabled");
 		})
 		.catch(function (e) {
+			$('#JiraSpinner').hide();
+			$('#create-issue-submit').removeAttr("disabled");
+			yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSubmitIssue', { error: 'Unknown' }));
 			yasoon.util.log('Unexpected error in Create Issue Dialog: ' + e, yasoon.util.severity.error);
 		});
 		e.preventDefault();
@@ -864,8 +871,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		}
 
 		//Set all Values in edit case
-		if (self.editIssue) {
-			self.UIFormHandler.setFormData(self.editIssue);
+		if (self.currentIssue) {
+			self.UIFormHandler.setFormData(self.currentIssue);
 		}
 	};
 
@@ -985,8 +992,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			return Promise.resolve(jira.cacheUserMeta[jira.selectedProject.id][jira.currentMeta.id]);
 		}
 
-		if (self.editIssue) {
-			return jiraGet('/secure/QuickEditIssue!default.jspa?issueId=' + jira.editIssue.id + '&decorator=none').then(function (data) { return JSON.parse(data); }).catch(function () { });
+		if (self.editIssueId) {
+			return jiraGet('/secure/QuickEditIssue!default.jspa?issueId=' + jira.editIssueId + '&decorator=none').then(function (data) { return JSON.parse(data); }).catch(function () { });
 		} else {
 			return jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + jira.selectedProject.id + '&issuetype=' + jira.currentMeta.id).then(function (data) { return JSON.parse(data); }).catch(function () { });
 		}
@@ -1084,33 +1091,41 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 function submitErrorHandler(data, statusCode, result, errorText, cbkParam) {
 	$('#JiraSpinner').hide();
 	$('#create-issue-submit').removeAttr("disabled");
-	result = JSON.parse(result);
-
-	//Parse different error messages summary --> errorMessages --> errors --> plain JSON
 	var error = '';
-	if (result.errors && result.errors.summary) {
-		error = result.errors.summary;
-	} else if (result.errorMessages && result.errorMessages.length > 0) {
-		result.errorMessages.forEach(function (msg) {
-			if (error)
-				error += '\n';
-			error += msg;
-		});
-	} else if (result.errors) {
-		for (var key in result.errors) {
-			var msg = result.errors[key];
-			if (error)
-				error += '\n';
-			error += msg;
-		}
+	
+	if (data instanceof jiraSyncError) {
+		result = data.result;
+		statusCode = data.statusCode;
+		errorText = data.errorText;
+		cbkParam = data.cbkParam;
+		error = data.getUserFriendlyError();
+		data = data.data;
 	} else {
-		error = JSON.stringify(result);
-	}
+		result = JSON.parse(result);
 
+		//Parse different error messages summary --> errorMessages --> errors --> plain JSON
+		
+		if (result.errors && result.errors.summary) {
+			error = result.errors.summary;
+		} else if (result.errorMessages && result.errorMessages.length > 0) {
+			result.errorMessages.forEach(function (msg) {
+				if (error)
+					error += '\n';
+				error += msg;
+			});
+		} else if (result.errors) {
+			for (var key in result.errors) {
+				var msg = result.errors[key];
+				if (error)
+					error += '\n';
+				error += msg;
+			}
+		} else {
+			error = JSON.stringify(result);
+		}
+	}
 	yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data + ' || ' + error, yasoon.util.severity.warning);
 
-
-	
 	jira.transaction.currentCallCounter = -1;
 }
 
