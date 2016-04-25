@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yasoon.jira</groupId>
     <artifactId>cloud</artifactId>
-    <version>1.4</version>
+    <version>1.4.1</version>
 
     <organization>
         <name>yasoon</name>

@@ -1,6 +1,6 @@
 var authToken = '';
-//var yasoonServerUrl = 'https://store.yasoon.com';
-var yasoonServerUrl = 'http://localhost:1337';
+var yasoonServerUrl = 'https://store.yasoon.com';
+//var yasoonServerUrl = 'http://localhost:1337';
 var isInstanceRegistered = false;
 var currentPage = 1;
 var serverId = null;
@@ -40,10 +40,8 @@ $(document).ready(function () {
         });
 
         $('body').addClass('isCloud').addClass('ac-content');
-        $('#comment').val('Registered via JIRA Cloud');
     } else {
         $('body').addClass('isOnPremise');
-        $('#comment').val('Registered via JIRA Server');
     }
 
     prom.then(function () {
@@ -89,14 +87,8 @@ $(document).ready(function () {
             initUI(isInstanceRegistered, ownUser);
         })
         .caught(function (e) {
-            console.log(e);
             swal("Oops...", "Failed to load initial data, please contact us at support@yasoon.de", "error");
-            try {
-                Raven.captureMessage('Error while document ready execution!');
-                Raven.captureException(e);
-            } catch(ex) {
-                console.log('Raven is not initialized yet', ex);
-            }
+            captureMessage('Error while document ready execution!', e);
         });
     }).caught(function (e) {
         console.log(e);
@@ -209,6 +201,23 @@ function initUI(isRegistered, ownUser) {
         $('#AreaRegister').removeClass('hidden');
         $('#nextText').text('Register');
         $('#next').data('type', 'register').removeClass('hidden');
+
+
+        //Prefill Wizard
+        if (isCloud) {
+             $('#comment').val('Registered via JIRA Cloud');
+        } else {
+             $('#comment').val('Registered via JIRA Server');
+        }
+        if (systemInfo.userName) {
+            var userNameSplitted = systemInfo.userName.split(' ');
+            if (userNameSplitted && userNameSplitted.length > 1) {
+                $('#first_name').val(userNameSplitted[0]).trigger('change');
+                $('#last_name').val(systemInfo.userName.replace(userNameSplitted[0] + ' ', '')).trigger('change');
+            }
+        }
+
+        $('#emailAddress').val(systemInfo.userEmailAddress).trigger('change');
     });
 
     //Init Modals
@@ -259,16 +268,7 @@ function initUI(isRegistered, ownUser) {
     $('#addApplicationLinkButton, #addApplicationLinkButtonMain').click(handleAddApplicationLink);
     $('#LoginYasoonButton').click(handleLogin);
 
-    //Prefill Wizard
-    if (systemInfo.userName) {
-        var userNameSplitted = systemInfo.userName.split(' ');
-        if (userNameSplitted && userNameSplitted.length > 1) {
-            $('#first_name').val(userNameSplitted[0]).trigger('change');
-            $('#last_name').val(systemInfo.userName.replace(userNameSplitted[0] + ' ', '')).trigger('change');
-        }
-    }
-
-    $('#emailAddress').val(systemInfo.userEmailAddress).trigger('change');
+   
 }
 
 function handleLogin() {
@@ -308,8 +308,8 @@ function handleLogin() {
             })
                 .done(function (auth) {
                     authToken = auth;
-                    $.cookie('yasoonEmail', formData.emailAddress);
-                    $.cookie('yasoonAuthToken', authToken);
+                    $.cookie('yasoonEmail', formData.emailAddress, { expires: 365 });
+                    $.cookie('yasoonAuthToken', authToken, { expires: 365 });
                     $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
 
                     $('#AreaRegistered').removeClass('hidden');
@@ -318,7 +318,7 @@ function handleLogin() {
                     success();
                 })
                 .fail(function (jxqr, e) {
-                    Raven.captureMessage('Error during login: ' + e);
+                    captureMessage('Error during login: ', e);
                     swal("Oops...", "Login failed! Please check your credentials", "error");
                     reject();
                 });
@@ -335,14 +335,14 @@ function handleLogin() {
             type: 'POST'
         }))
             .caught(function (e) {
-                Raven.captureMessage('Error during login: ' + e);
+                captureMessage('Error during login: ', e);
                 swal("Oops...", "Login failed! Please check your credentials.", "error");
                 promise.cancel();
             })
             .then(function (auth) {
                 authToken = auth;
-                $.cookie('yasoonEmail', formData.emailAddress);
-                $.cookie('yasoonAuthToken', authToken);
+                $.cookie('yasoonEmail', formData.emailAddress, { expires: 365 });
+                $.cookie('yasoonAuthToken', authToken, { expires: 365 });
                 $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
                 if (isCloud)
                     return;
@@ -366,7 +366,7 @@ function handleLogin() {
                 });
             })
             .caught(function (e) {
-                Raven.captureMessage('Error during assignCompany: ' + e);
+                captureMessage('Error during assignCompany: ', e);
                 swal("Oops...", 'An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.', "error");
 
                 promise.cancel();
@@ -410,8 +410,12 @@ function handleAddApplicationLink() {
             });
         })
         .caught(function (e) {
-            Raven.captureMessage('Error during oauth update: ' + e);
+            captureMessage('Error during handleAddApplicationLink: ', e);
             swal("Oops...", 'An error occurred while creating the application link. Please contact us via the help button and we\'ll fix this quickly.', "error");
+        })
+        .then(function () {
+            $('#addApplicationLinkButton').text('Create').prop("disabled", false);
+            $('#addApplicationLinkButtonMain').text('Create').prop("disabled", false);
         })
         .then(function () {
             return checkAppLink();
@@ -496,7 +500,7 @@ function handleNext() {
     else if (currentPage === 4) {
         $('#AreaUnregistered').addClass('hidden');
         $('#AreaRegistered').removeClass('hidden');
-        $.cookie('currentPage', "1");
+        $.cookie('currentPage', "1", { expires: 365 });
         loadRegisteredUIState();
     }
     else {
@@ -506,7 +510,7 @@ function handleNext() {
 
 function gotoNextPage() {
     currentPage++;
-    $.cookie('currentPage', currentPage);
+    $.cookie('currentPage', currentPage, { expires: 365 });
     gotoPage(currentPage);
 }
 
@@ -645,8 +649,8 @@ function registerAccount(cbk) {
         })
         .then(function (auth) {
             authToken = auth;
-            $.cookie('yasoonEmail', formData.emailAddress);
-            $.cookie('yasoonAuthToken', authToken);
+            $.cookie('yasoonEmail', formData.emailAddress, { expires: 365 });
+            $.cookie('yasoonAuthToken', authToken, { expires: 365 });
             $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
 
             return $.ajax({
@@ -664,8 +668,7 @@ function registerAccount(cbk) {
             });
         })
         .caught(function (e) {
-            Raven.captureMessage('Error during registration: ' + e);
-
+            captureMessage('Error during registration: ', e);
             cbk({
                 success: false,
                 message: 'An error occurred during your registration. Please contact us via the help button, we\'ll fix this quickly.'
@@ -1108,6 +1111,10 @@ function dialogSearch() {
                 $(this).find('input').prop("checked", !$(this).find('input').prop("checked"));
                 e.stopPropagation();
             });
+        })
+        .caught(function (e) {
+            captureMessage('Could not query user for ' + term, e);
+            swal("Oops...", "Could not search for users.", "error");
         });
 }
 
@@ -1122,4 +1129,43 @@ function getUrlParameterByName(name) {
     var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
         results = regex.exec(location.search);
     return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+function captureMessage(message, e) {
+    if (!Raven.isSetup())
+        return console.log(message, e);
+    try {
+        if (!e) {
+            Raven.captureMessage(message);
+        } else if (isError(e)) {
+            //Plain JS Exception - Set message into error and log as exception
+            e.message = message + ': ' + e.message;
+            Raven.captureException(e);
+        } else if (e.responseText) {
+            //jQuery AJAX Error
+            var errorText = e.responseText;
+            var stackElement = $(e.responseText).find('#stacktrace');
+            if (stackElement.length > 0) {
+                //JIRA Error message
+                //Get first characters and send it.
+                errorText = stackElement.text().substr(0, 300);
+            }
+            Raven.captureMessage(e.statusCode + ': ' + message + ' - ' + errorText);
+        } else {
+            //Probably string
+            Raven.captureMessage(message + ': ' + e);
+        }
+    } catch (ex) {
+        console.log('Error while sending Raven error! ' + message, e, ex);
+    }    
+}
+
+function isError(what) {
+    return isObject(what) &&
+        Object.prototype.toString.call(what) === '[object Error]' ||
+        what instanceof Error;
+}
+
+function isObject(what) {
+    return typeof what === 'object' && what !== null;
 }

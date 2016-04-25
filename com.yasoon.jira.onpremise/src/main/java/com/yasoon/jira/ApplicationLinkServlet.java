@@ -146,7 +146,7 @@ public class ApplicationLinkServlet extends HttpServlet {
         ApplicationLink existingLink = TryGetApplicationLink();        
         PublicKey key = RSAKeys.fromEncodedCertificateToPublicKey(cert);
         Consumer con = Consumer.key("yasoonjira").name("JIRA for Outlook").publicKey(key).callback(URI.create("http://oauth.yasoon/v1/com.yasoon.jira/auth")).build();
-        
+
         if(existingLink == null) {        
             ApplicationLinkDetails.Builder builder = ApplicationLinkDetails.builder();
             ApplicationLinkDetails details = builder.name("JIRA for Outlook").displayUrl(URI.create("http://jira.yasoon.com")).build();

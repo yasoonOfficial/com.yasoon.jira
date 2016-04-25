@@ -42,7 +42,7 @@
             <img src="https://www.yasoon.com/jira_admin/loader_small.gif">
         </div>
         <div id="pageContent" class="materialize-wrapper">
-			<div id="AreaUnregistered" class="hidden">
+					<div id="AreaUnregistered" class="hidden">
 			<div class="main row">
 				<div class="wizard col s12 z-depth-1">
 					<ul class="tabs">
@@ -170,7 +170,7 @@
 										<div class="card col s9">
 											<div class="card-content">
 												<p>
-													Your JIRA for Outlook setup file is being prepared. This may take a few minutes.
+													Your JIRA for Outlook setup file is being prepared. This may take up to 10 minutes.
 												</p>
 											</div>
 											<div class="card-action">
@@ -355,7 +355,7 @@
 							<p>
 								Your personalized setup is now available. Please download it below, or share the following link:
 								<div class="input-field">
-									<input spellcheck="false" id="downloadLink" type="text" class="validate">
+									<input spellcheck="false" id="downloadLink" type="text" class="validate ajs-dirty-warning-exempt" style="color:black;" disabled="disabled">
 								</div>
 							</p>
 						</div>
