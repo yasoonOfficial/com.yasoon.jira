@@ -41,6 +41,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		//Parameter taken over from Main JIRA
 		self.mail = initParams.mail;
 		self.selectedIssue = initParams.issue;
+		self.isEditMode = false;
 		self.settings = initParams.settings;
 		self.selectedText = initParams.text;
 		self.cacheProjects = initParams.projects;
@@ -433,7 +434,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 
 	var lastQuery = '';
-	var searchIssue = debounce(function searchuser(term, callback) {
+	var searchIssue = debounce(function searchIssue(term, callback) {
 		console.log('Debounced searchIssue called');
 		//Concat JQL
 

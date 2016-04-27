@@ -60,7 +60,12 @@ function UIFormHandler() {
 			var self = this;
 			if (jira.currentMeta) {
 				$.each(jira.currentMeta.fields, function (key, field) {
-					self.setValue(key,field, issue.fields[key]);
+					try {
+						self.setValue(key, field, issue.fields[key]);
+					} catch (e) {
+						console.log('Error SetValue for Field: ', field, e.message);
+						yasoon.util.log('Error: ' + e.message + '. Couldn\'t setValue for field' + JSON.stringify(field), yasoon.util.severity.warning);
+					}	
 				});
 			}
 		},

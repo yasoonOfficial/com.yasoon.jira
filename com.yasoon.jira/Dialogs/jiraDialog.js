@@ -92,7 +92,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				children: [{
 					'id': jira.ownUser.name,
 					'icon': 'ownUser',
-					'selected': true,
 					'text': jira.ownUser.displayName
 				}]
 			},
@@ -105,6 +104,13 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		self.assigneeCommonValues = JSON.parse(JSON.stringify(self.userCommonValues));
 
+		self.assigneeCommonValues.results[0].children.push({
+			'id': '-1',
+			'selected': true,
+			'icon': 'avatar',
+			'text': 'Automatic'
+		});
+				
 		//Register Close Handler
 		yasoon.dialog.onClose(self.cleanup);
 
@@ -548,6 +554,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				}
 			} 
 			else {
+				self.currentIssue = null;
 				jira.selectedProject = $.grep(self.projects, function (proj) { return proj.id === selectedProject; })[0];
 			}
 			
@@ -1042,7 +1049,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		var reporterData = self.getDefaultReporter(fieldId);
 		if (reporterData.sender) {
 			jira.UIFormHandler.setValue(fieldId, { schema: { custom: reporterData.type } }, reporterData.sender);
-			$('#' + fieldId).data('icon', reporterData.icon).trigger('change');
 		}
 	};
 	

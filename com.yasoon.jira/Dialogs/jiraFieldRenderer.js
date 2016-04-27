@@ -764,21 +764,82 @@ function UserPickerRenderer() {
 
 	this.setValue = function (id, value) {
 		if (value) {
+			//We can only select elements that have an rendered option tag.
+			if ($('#' + id).find('option[value=' + value.name + ']').length === 0) {
+				$('#' + id).append('<option value="' + value.name + '" data-icon="emailSender"><span>' + formatUser(getSelect2User(value)).html() + '</span></option>');
+			}
+			
 			$('#' + id)
-			.data('id', value.name)
-			.data('text', value.displayName)
-			.data('icon', '')
 			.val(value.name)
 			.trigger('change');
 		}
 	};
 
+	var lastQuery = '';
+	var searchPickerUser = debounce(function searchUser(id, term, callback) {
+		console.log('Debounced searchUser called');
+		var url = '';
+		if (term) {
+			//Get all Users
+			url = '/rest/api/2/user/picker?query=' + term + '&maxResults=50';
+			if (id === 'assignee') {
+				//Only get assignable users
+				url = '/rest/api/2/user/assignable/search?project=' + jira.selectedProject.key + '&username=' + term + '&maxResults=50';
+			}
+		} else {
+			return callback(jira.assigneeCommonValues);
+		}
+		
+		return jiraGet(url)
+		.then(function (data) {
+			var users = JSON.parse(data);
+			console.log('Call for ' + id + ', Term: ' + term, users);
+			if (term !== lastQuery) {
+				return;
+			}
+			//Transform Data
+			var result = [];
+			//Yay, change of return structure....
+			var userArray = [];
+			if (users && users.users && users.users.length > 0) {
+				userArray = users.users;
+			} else if (users && users.length > 0) {
+				userArray = users;
+			}
+			userArray.forEach(function (user) {
+				result.push(getSelect2User(user));
+			});
+			
+			if (id === 'assignee') {
+				jira.assigneeCommonValues.results[1].children = result;
+				callback(jira.assigneeCommonValues);
+			} else {
+				jira.userCommonValues.results[1].children = result;
+				callback(jira.userCommonValues);
+			}
+		})
+		.catch(function (e) {
+			yasoon.util.log('Couldn\'t find users! Term: ' + term, yasoon.util.severity.warning);
+			callback([]);
+		});
+	}, 250);
+	
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group" id="' + id + '-container">' +
-				'	<label for="' + id + '"><span class="descr">' + field.name +
-				'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
-				'	</label>' +
-				'	<select id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" class="select input-field" data-type="com.atlassian.jira.plugin.system.customfieldtypes:userpicker"><option></option></select>' +
+			'	<label for="' + id + '"><span class="descr">' + field.name +
+			'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
+			'	</label>' +
+			'	<select id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" class="select input-field" data-type="com.atlassian.jira.plugin.system.customfieldtypes:userpicker"> ' +
+			'		<option></option>';
+		if(id === 'assignee')
+			html += '<option value="-1" data-icon="avatar" selected>Automatic</option>';
+		
+		if (jira.ownUser)
+			html += '<option value="' + jira.ownUser.name + '" data-icon="ownUser"><span>' + formatUser(getSelect2User(jira.ownUser)).html() + '</span></option>';
+		if (jira.senderUser && jira.senderUser.name != -1)
+			html += '<option value="' + jira.senderUser.name + '" data-icon="emailSender"><span>' + formatUser(getSelect2User(jira.senderUser)).html() + '</span></option>';
+		
+		html += '	</select > ' +
 				'	<span style="display:block; padding: 5px 0px;">' +
 				'	<a href="#' + id + '" class="assign-to-me-trigger" title="'+ yasoon.i18n('dialog.assignMyselfTitle') +'">'+ yasoon.i18n('dialog.assignMyself') +'</a>';
 
@@ -802,9 +863,6 @@ function UserPickerRenderer() {
 		$('#' + id + '-container').find('.assign-to-me-trigger').unbind().click(function (e) {
 			if (jira.ownUser) {
 				$('#' + id)
-					.data('id', jira.ownUser.name)
-					.data('text', jira.ownUser.displayName)
-					.data('icon', 'ownUser')
 					.val(jira.ownUser.name)
 					.trigger('change');
 
@@ -835,11 +893,12 @@ function UserPickerRenderer() {
 			.then(function (user) {
 				//New user successfully created
 				console.log('Successfull:', user);
-				//1. Set it as value for current field
+				//1. Generate option field
+				jira.senderUser = user;
+				$('#' + id).append('<option value="' + user.name + '"><span>' + formatUser(getSelect2User(user)).html() + '</span></option>');
+				
+				//2. Set it as value for current field
 				$('#' + id)
-				.data('id', user.name)
-				.data('text', user.displayName)
-				.data('icon', 'emailSender')
 				.val(user.name)
 				.trigger('change');
 
@@ -870,9 +929,38 @@ function UserPickerRenderer() {
 		$('#' + id).select2({
 			templateResult: formatUser,
 			templateSelection: formatUser,
-			dataAdapter: jiraFields.CustomUserDataSet,
+			ajax: {
+				url: '',
+				transport: function (params, success, failure) {
+					var queryTerm = '';
+					if (params && params.data) {
+						queryTerm = params.data.q;
+					}
+
+					lastQuery = queryTerm;
+					console.log('Query for ' + id + ', Term: ' + queryTerm);
+					if (queryTerm) {
+						searchPickerUser(id, queryTerm, function (data) {
+							console.log('Set Data',data);
+							success(data);
+						});
+					} else {
+						var data = null;
+						if (id === 'assignee') {
+							data = jira.assigneeCommonValues;
+							jira.assigneeCommonValues.results[1].children = [];
+						} else {
+							data = jira.userCommonValues;
+							jira.userCommonValues.results[1].children = [];
+						}
+						
+						console.log('Set Data', data);
+						success(data);
+					}
+				}
+			},
 			minimumInputLength: 0,
-			placeholder: '',
+			placeholder: (id === 'assignee') ? 'Unassigned' : '',
 			allowClear: true
 		});
 	};
@@ -915,7 +1003,7 @@ function AttachmentLinkRenderer() {
 			$('#' + id + '-selected-container').append(
 			'<div class="jiraAttachmentLink" data-id="' + fileHandle.id + '">'+
 				'<span>' +
-					'<img style="width:16px;" src="' + fileHandle.getFileIconPath() + '" />' +
+					'<img style="width:16px;" src="' + fileHandle.getFileIconPath(true) + '" />' +
 					'<span class="attachmentName">' + newFileName + '</span>' +
 					'<div style="display:inline-block" class="attachmentNewName hidden">' +  
 						'<div class="input-group" style="width:300px;display:inline-table;margin-top:10px;">' +
@@ -1044,7 +1132,7 @@ function AttachmentLinkRenderer() {
 
 function TimeTrackingRenderer() {
 	this.getValue = function (id) {
-		/*if ($('#' + id + '_originalestimate').length === 0)
+		if ($('#' + id + '_originalestimate').length === 0)
 			return;
 
 		var origVal = $('#' + id + '_originalestimate').val();
@@ -1072,7 +1160,7 @@ function TimeTrackingRenderer() {
 		}
 
 		//Only return an object if it's not empty;
-		return (Object.keys(result).length > 0) ? result : null;*/
+		return (Object.keys(result).length > 0) ? result : undefined;
 	};
 
 	this.setValue = function (id, value) {
@@ -1114,9 +1202,9 @@ function EpicLinkRenderer() {
 		//Only for creation as Epic links cannot be changed via REST APi --> Status code 500
 		//Ticket: https://jira.atlassian.com/browse/GHS-10333
 		//There is a workaround --> update it via unofficial greenhopper API --> For update see handleEvent
-		/*if (jira.systemInfo.versionNumbers[0] === 6 && !jira.editIssueId && $('#' + id).val()) {
+		if (jira.systemInfo.versionNumbers[0] === 6 && !jira.editIssueId && $('#' + id).val()) {
 			return 'key:' + $('#' + id).val();
-		}*/
+		}
 	};
 
 	this.setValue = function (id, value) {
@@ -1266,8 +1354,8 @@ function EpicLinkRenderer() {
 function SprintLinkRenderer() {
 	this.getValue = function (id) {
 		//Bug in JIRA --> Edit is not supported via normal REST api --> See type com.pyxis.greenhopper.jira:gh-epic-link for more information.
-		/*if (!jira.editIssueId && $('#' + id).val())
-			return parseInt($('#' + id).val()); */
+		if (!jira.editIssueId && $('#' + id).val())
+			return parseInt($('#' + id).val()); 
 	};
 
 	this.setValue = function (id, value) {
@@ -1367,7 +1455,7 @@ function TempoAccountRenderer() {
 		}
 		else { 
 			//In creation case: Only send if not null	
-			return (val) ? parseInt(val) : -1;
+			return (val) ? parseInt(val) : undefined;
 		}	
 	};
 
@@ -1510,13 +1598,32 @@ function formatUser(user) {
 	if (!user)
 		return '';
 
-	if (user.icon === 'ownUser') {
+	var icon = user.icon;
+	if (!icon)
+		icon = $(user.element).data('icon');
+	
+	if (icon === 'ownUser') {
 		return $('<span><i style="margin-right:3px; width: 16px;" class="fa fa-user" />' + user.text +'</span>');
-	} else if (user.icon === 'emailSender') {
+	} else if (icon === 'emailSender') {
 		return $('<span><i style="margin-right:3px; width: 16px;" class="fa fa-envelope" />' + user.text + '</span>');
+	} else if (icon === 'avatar') {
+		var filePath = yasoon.io.getLinkPath('Images/useravatar.png');
+		return $('<span><img style="margin-right:3px; width: 16px;" src="' + filePath + '"  onerror="jiraHandleImageFallback(this)"/>' + user.text + '</span>');
 	} else {
 		return user.text;
 	}
+}
+
+function getSelect2User(user) {
+	var obj = {
+		id: user.name,
+		text: user.displayName
+	};
+	if (user.name === jira.ownUser.name)
+		obj.icon = 'ownUser';
+	if (user.name === jira.senderUser.name)
+		obj.icon = 'emailSender';
+	return obj;
 }
 
 function insertAtCursor(myField, myValue) {
@@ -1560,145 +1667,6 @@ function searchUser(mode, query, callback) {
 		callback([]);
 	}
 }
-
-// Custom Data Provider for SELECT2  User retrieval
-$.fn.select2.amd.require(['select2/data/select', 'select2/utils','select2/selection/allowClear'],
-function (select, Utils, allowClear) {
-
-	// User Data Retrieval
-	function CustomUserData($element, options) {
-		CustomUserData.__super__.constructor.call(this, $element, options);
-	}
-	Utils.Extend(CustomUserData, select);
-
-	CustomUserData.prototype.current = function (callback) {
-		var data = [];
-		var self = this;
-
-		this.$element.find(':selected').each(function () {
-			var $option = $(this);
-
-			var option = self.item($option);
-
-			data.push(option);
-		});
-
-		if (data.length === 0) {
-			if (this.$element.data('id')) {
-				var user = {
-					id: this.$element.data('id'),
-					text: this.$element.data('text'),
-					icon: this.$element.data('icon'),
-					selected: true
-				};
-				data.push(user);
-			}
-		}
-		callback(data);
-	};
-
-	CustomUserData.prototype.select = function (data) {
-		var self = this;
-
-		data.selected = true;
-
-		// If data.element is a DOM node, use it instead
-		if ($(data.element).is('option')) {
-			data.element.selected = true;
-
-			this.$element.trigger('change');
-
-			return;
-		}
-
-		if (this.$element.prop('multiple')) {
-			this.current(function (currentData) {
-				var val = [];
-
-				data = [data];
-				data.push.apply(data, currentData);
-
-				for (var d = 0; d < data.length; d++) {
-					var id = data[d].id;
-
-					if ($.inArray(id, val) === -1) {
-						val.push(id);
-					}
-				}
-
-				self.$element.val(val);
-				self.$element.trigger('change');
-			});
-		} else {
-			var val = data.id;
-			this.$element
-				.data('id', data.id)
-				.data('text', data.text)
-				.data('icon', data.icon || '');
-
-			this.$element.val(val);
-			this.$element.trigger('change');
-		}
-	};
-
-	CustomUserData.prototype.query = function (params, callback) {
-		var id = this.$element.attr('id');
-		if (params && params.term) {
-			//Get all Users
-			var url = jira.settings.baseUrl + '/rest/api/2/user/picker?query=' + params.term + '&maxResults=50';
-			if (id === 'assignee') {
-				//Only get assignable users
-				url = jira.settings.baseUrl + '/rest/api/2/user/assignable/search?project=' + jira.selectedProject.key + '&username=' + params.term + '&maxResults=50';
-			}
-			yasoon.oauth({
-				url: url,
-				oauthServiceName: jira.settings.currentService,
-				headers: jira.CONST_HEADER,
-				type: yasoon.ajaxMethod.Get,
-				error: function () {
-					jira.handleError.apply(this, arguments);
-					callback([]);
-				},
-				success: function (data) {
-					var users = JSON.parse(data);
-					console.log('Query for ' + id + ', Term: ' + params.term, users);
-					//Transform Data
-					var result = [];
-					if (users && users.users && users.users.length > 0) {
-						$.each(users.users, function (i, user) {
-							result.push({
-								id: user.name,
-								text: user.displayName
-							});
-						});
-					} else if (users && users.length > 0) {
-						$.each(users, function (i, user) {
-							result.push({
-								id: user.name,
-								text: user.displayName
-							});
-						});
-					}
-					if (id === 'assignee') {
-						jira.assigneeCommonValues.results[1].children = result;
-						callback(jira.assigneeCommonValues);
-					} else {
-						jira.userCommonValues.results[1].children = result;
-						callback(jira.userCommonValues);
-					}
-
-
-				}
-			});
-		} else {
-			jira.userCommonValues.results[1].children = [];
-			callback(jira.userCommonValues);
-		}
-	};
-
-	jiraFields.CustomUserDataSet = CustomUserData;
-});
-
 
 //Register Components for each supported type
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:textfield', new SingleTextRenderer());
