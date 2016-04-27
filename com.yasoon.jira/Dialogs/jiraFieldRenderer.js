@@ -286,10 +286,8 @@ function RadioButtonRenderer() {
 
 function DateRenderer() {
 	this.getValue = function (id) {
-		/*
 		var date = $('#' + id).datetimepicker("getValue");
-		//Special case: I have no idea how to set a null value. 
-		//If the datetimepicker has not been set a value, we get the current value
+		
 		var value = null;
 		if (date) {
 			value = moment(date).format('YYYY-MM-DD');
@@ -301,7 +299,6 @@ function DateRenderer() {
 		else 
 			//In creation case: Only send if not null	
 			return (value) ? value : undefined;
-		*/
 	};
 
 	this.setValue = function (id, value) {
@@ -323,8 +320,8 @@ function DateRenderer() {
 		$('#' + id).datetimepicker({
 			timepicker: false,
 			format: yasoon.i18n('dialog.datePickerDateFormat'),
+			allowBlank: true
 		});
-		$('#' + id).datetimepicker('setOptions', { value: null });
 		
 		$.datetimepicker.setLocale(country);
 		/*var regionalTexts = $.datepicker.regional[country];
@@ -346,20 +343,19 @@ function DateRenderer() {
 
 function DateTimeRenderer() {
 	this.getValue = function (id) {
-		/*
 		var date = $('#' + id).datetimepicker('getValue');
-		//var oldTs = $('#' + id).data('oldTs');
 		var value = null;
-		if(value)
+		
+		if(date) {
 			value = moment(date).format('YYYY-MM-DD[T]HH:mm:ss.[000]ZZ');
+		}
 
 		if (jira.isEditMode) 
 			//In edit case: Only send if changed	
 			return (isEqual(jira.currentIssue.fields[id], value)) ? undefined : value;
 		else 
 			//In creation case: Only send if not null	
-			return (value) ? value : undefined;			
-		*/
+			return (value) ? value : undefined;
 	};
 
 	this.setValue = function (id, value) {
@@ -388,7 +384,9 @@ function DateTimeRenderer() {
 				//,'20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30'
 			],
 			format: yasoon.i18n('dialog.dateTimePickerFormat'),
+			allowBlank: true
 		});
+		
 		$.datetimepicker.setLocale(country);
 
 		$('#' + id + '-trigger').unbind().click(function (e) {
@@ -747,7 +745,8 @@ function VersionMultiSelectListRenderer() {
 }
 
 function UserPickerRenderer() {
-	this.getValue = function (id) {
+	
+	this.getValue = function (id) {		
 		/*
 		var name = $('#' + id).data('id');
 		var value = null;
@@ -873,7 +872,8 @@ function UserPickerRenderer() {
 			templateSelection: formatUser,
 			dataAdapter: jiraFields.CustomUserDataSet,
 			minimumInputLength: 0,
-			//allowClear: true
+			placeholder: '',
+			allowClear: true
 		});
 	};
 }
@@ -1356,15 +1356,19 @@ function SprintLinkRenderer() {
 
 function TempoAccountRenderer() {
 	this.getValue = function (id) {
-		/*var val = $('#' + id).val();
-		//If edit case and it hasn't been changed, do not send anything.
-		if (jira.currentIssue && !!jira.currentIssue.fields[id] === !!val) {
-			return;
+		var val = $('#' + id).val();
+				
+		if (jira.isEditMode) {
+			//In edit case: Only send if changed	
+			if (isEqual(jira.currentIssue.fields[id], val))
+				return;
+			
+			return val ? parseInt(val) : -1;
 		}
-		
-		if (val)
-			return parseInt(val);
-		return -1; */
+		else { 
+			//In creation case: Only send if not null	
+			return (val) ? parseInt(val) : -1;
+		}	
 	};
 
 	this.setValue = function (id, value) {
