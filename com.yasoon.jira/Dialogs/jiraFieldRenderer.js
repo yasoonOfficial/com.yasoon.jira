@@ -1192,7 +1192,7 @@ function EpicLinkRenderer() {
 		//Only for creation as Epic links cannot be changed via REST APi --> Status code 500
 		//Ticket: https://jira.atlassian.com/browse/GHS-10333
 		//There is a workaround --> update it via unofficial greenhopper API --> For update see handleEvent
-		if (jiraIsVersionHigher(jira.systemInfo, '7.1') && !jira.isEditMode && $('#' + id).val()) {
+		if (!jiraIsVersionHigher(jira.systemInfo, '7.1') && !jira.isEditMode && $('#' + id).val()) {
 			return 'key:' + $('#' + id).val();
 		}
 	};
@@ -1317,7 +1317,7 @@ function EpicLinkRenderer() {
 
 	//Update Epic JIRA 6.x and 7.0
 	this.updateEpic6 = function (newEpicLink, issueKey) {
-		jiraAjax('/rest/greenhopper/1.0/epics/' + newEpicLink + '/add', yasoon.ajaxMethod.Post, '{ "issueKeys":["' + issueKey + '"] }')
+		jiraAjax('/rest/greenhopper/1.0/epics/' + newEpicLink + '/add', yasoon.ajaxMethod.Put, '{ "issueKeys":["' + issueKey + '"] }')
 		.then(submitSuccessHandler)
 		.catch(submitErrorHandler);
 	};
