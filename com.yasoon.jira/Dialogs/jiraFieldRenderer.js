@@ -704,9 +704,10 @@ function VersionMultiSelectListRenderer() {
 	};
 
 	this.render = function (id, field, container) {
+		var isMultiSelect = field.schema.type === 'array';
 		var html = '<div class="field-group input-field">' +
 				'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-				'    <select data-container-class="issuetype-ss" class="select text" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">' +
+				'    <select data-container-class="issuetype-ss" class="select text" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" '+ ((isMultiSelect) ? 'multiple="multiple"' : '' ) + ' data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">' +
 				'		<optgroup label="'+ yasoon.i18n('dialog.releasedVersions') +'">';
 		$.each(field.allowedValues, function (i, option) {
 			if (option.released) {
@@ -1682,9 +1683,11 @@ UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:float', n
 UIRenderer.register('priority', new SelectListRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:select', new SelectListRenderer());
 UIRenderer.register('components', new MultiSelectListRenderer());
+UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:multiselect', new MultiSelectListRenderer());
 UIRenderer.register('fixVersions', new VersionMultiSelectListRenderer());
 UIRenderer.register('versions', new VersionMultiSelectListRenderer());
-UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:multiselect', new MultiSelectListRenderer());
+UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:version', new VersionMultiSelectListRenderer());
+UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:multiversion', new VersionMultiSelectListRenderer());
 UIRenderer.register('reporter', new UserPickerRenderer());
 UIRenderer.register('assignee', new UserPickerRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:userpicker', new UserPickerRenderer());
