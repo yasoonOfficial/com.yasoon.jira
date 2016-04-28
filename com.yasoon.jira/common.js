@@ -293,13 +293,9 @@ function jiraSyncError(message, statusCode, errorText, data, result) {
 					result += msg + '<br />';
 				});
 			} else if (error.errors) {
-				if (error.errors.comment) {
-					result = error.errors.comment;
-				} else if (errors.errors[""]) {
-					result = errors.errors[""];
-				} else {
-					result = JSON.stringify(error.errors);
-				}
+				Object.keys(error.errors).forEach(function (key) {
+					result += error.errors[key] + '<br />';
+				});
 			} else {
 				result = yasoon.i18n('general.unexpectedJiraError');
 			}
