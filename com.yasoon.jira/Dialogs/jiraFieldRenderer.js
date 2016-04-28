@@ -704,10 +704,9 @@ function VersionMultiSelectListRenderer() {
 	};
 
 	this.render = function (id, field, container) {
-		var isMultiSelect = field.schema.type === 'array';
 		var html = '<div class="field-group input-field">' +
 				'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-				'    <select data-container-class="issuetype-ss" class="select text" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" '+ ((isMultiSelect) ? 'multiple="multiple"' : '' ) + ' data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">' +
+				'    <select data-container-class="issuetype-ss" class="select text" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">' +
 				'		<optgroup label="'+ yasoon.i18n('dialog.releasedVersions') +'">';
 		$.each(field.allowedValues, function (i, option) {
 			if (option.released) {
@@ -1193,7 +1192,7 @@ function EpicLinkRenderer() {
 		//Only for creation as Epic links cannot be changed via REST APi --> Status code 500
 		//Ticket: https://jira.atlassian.com/browse/GHS-10333
 		//There is a workaround --> update it via unofficial greenhopper API --> For update see handleEvent
-		if (jira.systemInfo.versionNumbers[0] === 6 && !jira.isEditMode && $('#' + id).val()) {
+		if (jiraIsVersionHigher(jira.systemInfo, '7.1') && !jira.isEditMode && $('#' + id).val()) {
 			return 'key:' + $('#' + id).val();
 		}
 	};
@@ -1293,22 +1292,22 @@ function EpicLinkRenderer() {
 				jira.transaction.currentCallCounter++;
 				if (newEpicLink) {
 					//Create or update
-					if (jira.systemInfo.versionNumbers[0] === 6) {
-						self.updateEpic6(newEpicLink, jira.currentIssue.key);
-					} else {
+					if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
 						self.updateEpic7(newEpicLink, jira.currentIssue.key);
+					} else {
+						self.updateEpic6(newEpicLink, jira.currentIssue.key);
 					}
 				} else {
 					//Delete
-					if (jira.systemInfo.versionNumbers[0] === 6) {
-						self.deleteEpic6(jira.currentIssue.key);
-					} else {
+					if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
 						self.deleteEpic7(jira.currentIssue.key);
+					} else {
+						self.deleteEpic6(jira.currentIssue.key);
 					}
 				}
 			}
 			//AfterSave is only needed for JIRA 7 on creation as the setData does not work anymore.
-		} else if (eventType === 'afterSave' && !jira.isEditMode && jira.systemInfo.versionNumbers[0] > 6) {
+		} else if (eventType === 'afterSave' && !jira.isEditMode && jiraIsVersionHigher(jira.systemInfo, '7.1')) {
 			if (newEpicLink) {
 				jira.transaction.currentCallCounter++;
 				self.updateEpic7(newEpicLink, data.newIssue.key);
@@ -1316,27 +1315,27 @@ function EpicLinkRenderer() {
 		}
 	};
 
-	//Update Epic JIRA 6.x
+	//Update Epic JIRA 6.x and 7.0
 	this.updateEpic6 = function (newEpicLink, issueKey) {
 		jiraAjax('/rest/greenhopper/1.0/epics/' + newEpicLink + '/add', yasoon.ajaxMethod.Post, '{ "issueKeys":["' + issueKey + '"] }')
 		.then(submitSuccessHandler)
 		.catch(submitErrorHandler);
 	};
-	//Update Epic JIRA 7.x
+	//Update Epic JIRA > 7.1
 	this.updateEpic7 = function (newEpicLink, issueKey) {
 		jiraAjax('/rest/agile/1.0/epic/' + newEpicLink + '/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }')
 		.then(submitSuccessHandler)
 		.catch(submitErrorHandler);
 	};
 
-	//Delete Epic JIRA 6.x
+	//Delete Epic JIRA 6.x and 7.0
 	this.deleteEpic6 = function (issueKey) {
 		jiraAjax('/rest/greenhopper/1.0/epics/remove', yasoon.ajaxMethod.Put, '{ "issueKeys":["' + issueKey + '"] }')
 		.then(submitSuccessHandler)
 		.catch(submitErrorHandler);
 	};
 
-	//Delete Epic JIRA 7.x
+	//Delete Epic JIRA > 7.1
 	this.deleteEpic7 = function (issueKey) {
 		jiraAjax('/rest/agile/1.0/epic/none/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }')
 		.then(submitSuccessHandler)
@@ -1686,7 +1685,7 @@ UIRenderer.register('components', new MultiSelectListRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:multiselect', new MultiSelectListRenderer());
 UIRenderer.register('fixVersions', new VersionMultiSelectListRenderer());
 UIRenderer.register('versions', new VersionMultiSelectListRenderer());
-UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:version', new VersionMultiSelectListRenderer());
+//UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:version', new VersionMultiSelectListRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:multiversion', new VersionMultiSelectListRenderer());
 UIRenderer.register('reporter', new UserPickerRenderer());
 UIRenderer.register('assignee', new UserPickerRenderer());

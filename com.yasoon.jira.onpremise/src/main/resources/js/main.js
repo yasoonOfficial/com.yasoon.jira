@@ -172,21 +172,23 @@ function initUI(isRegistered, ownUser) {
         else {
             $('#AreaLogin').removeClass('hidden');
         }
-    }
-    else {
-        if (currentPage === 1 || currentPage > 4) {
-            currentPage = 1;
-            setTimeout(function () {
-                $('ul.tabs').tabs('select_tab', 'tab1');
-            }, 1);
-            $('#AreaPreRegister').removeClass('hidden');
-            $('#AreaUnregistered').removeClass('hidden');
-        } else if(isAuthed) {
+    } else if (isRegistered && (currentPage >= 2 || currentPage <= 4)) {
+        //Already registered but didn't finish the wizard yet.
+        if(isAuthed) {
             gotoPage(currentPage);
              $('#AreaUnregistered').removeClass('hidden');
         } else {
             $('#AreaLogin').removeClass('hidden');
         }
+    }        
+    else {
+        //Unregistered
+        currentPage = 1;
+        setTimeout(function () {
+            $('ul.tabs').tabs('select_tab', 'tab1');
+        }, 1);
+        $('#AreaPreRegister').removeClass('hidden');
+        $('#AreaUnregistered').removeClass('hidden');
     }
 
     $('#ButtonLogin').click(function () {
@@ -279,18 +281,6 @@ function handleLogin() {
     $.each(formArray, function (i, elem) {
         formData[elem.name] = elem.value;
     });
-
-    var instanceData = {
-        clientKey: serverId,
-        supportEntitlementNumber: sen,
-        baseUrl: systemInfo.baseUrl,
-        key: 'com.yasoon.jira.onpremise',
-        pluginsVersion: systemInfo.pluginVersion,
-        description: 'Jira on Premise',
-        productType: 'jira',
-        serverVersion: systemInfo.version,
-        licenseInfo: systemInfo.licenses
-    };
 
     //A) Login case with existing instance
     // -----------------------------------

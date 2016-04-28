@@ -1113,7 +1113,7 @@ function submitErrorHandler(data, statusCode, result, errorText, cbkParam) {
 	$('#JiraSpinner').hide();
 	var error = '';
 	
-	if (data instanceof jiraSyncError) {
+	if (data !== null && data instanceof jiraSyncError) {
 		result = data.result;
 		statusCode = data.statusCode;
 		errorText = data.errorText;
