@@ -747,19 +747,21 @@ function VersionMultiSelectListRenderer() {
 function UserPickerRenderer() {
 	
 	this.getValue = function (id) {		
-		/*
-		var name = $('#' + id).data('id');
-		var value = null;
+		
+		var name = $('#' + id).val();
+		var value;
 		if (name)
 			value = { name: name };
 		
-		if (jira.isEditMode) 
+		if (jira.isEditMode) {
 			//In edit case: Only send if changed	
-			return (isEqual(jira.currentIssue.fields[id], value)) ? undefined : value;
-		else 
+			if (jira.currentIssue.fields[id] && isEqual(jira.currentIssue.fields[id].name, name))
+				return;
+			
+			return value;
+		} else 
 			//In creation case: Only send if not null	
 			return (value) ? value : undefined;
-		*/
 	};
 
 	this.setValue = function (id, value) {
@@ -1448,7 +1450,10 @@ function TempoAccountRenderer() {
 				
 		if (jira.isEditMode) {
 			//In edit case: Only send if changed	
-			if (isEqual(jira.currentIssue.fields[id], val))
+			if (jira.currentIssue.fields[id], isEqual(jira.currentIssue.fields[id].id, val))
+				return;
+
+			if (!jira.currentIssue.fields[id] && !val)
 				return;
 			
 			return val ? parseInt(val) : -1;
