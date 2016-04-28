@@ -354,78 +354,83 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		var result = {
 			fields: {}
 		};
-
+		jira.issueCreated = false;
+		
 		//Prepare UI
 		$('#MainAlert').hide();
 		$('#create-issue-submit').attr('disabled', 'disabled');
 		$('#JiraSpinner').show();
-
-		//Collect fixed data:
-		//1. Project ID
-		result.fields.project = {
-			id: self.selectedProject.id
-		};
-		//2. Issue Type
-		result.fields.issuetype = {
-			id: $('#issuetype').val()
-		};
-
-		//Increment transaction for Greenhopper API
-		jira.transaction.currentCallCounter++;
-		//Get Generated Fields
-		self.UIFormHandler.getFormData(result);
-
-		//3.1 Check if Request type is needed and add it
+		
+		e.preventDefault();
+		//Check if Request type is needed and add it
 		var isServiceDesk = jira.selectedProject.projectTypeKey == 'service_desk' && $('#switchServiceMode').hasClass('active');
 		
-		//3.2 Change reporter if we have a "on behalf of" case.
-		if (isServiceDesk) {
-			var user = $('#behalfReporter').data('id');
-			if (user) {
-				result.fields.reporter = { name: user };
-			}
-		}
+		return Promise.resolve()
+			.then(function () {
 
-		//Inform Fields that save is going to start.
-		self.UIFormHandler.triggerEvent('save', result);
+			//Collect fixed data:
+			//1. Project ID
+			result.fields.project = {
+				id: self.selectedProject.id
+			};
+			//2. Issue Type
+			result.fields.issuetype = {
+				id: $('#issuetype').val()
+			};
 
-		//Save Template if created by Email
-		if (self.mail) {
-			var newTemplate = new createTemplate(self.mail.senderEmail, self.mail.senderName, self.selectedProject, result);
-			var templateFound = false;
-			$.each(self.savedTemplates, function (i, temp) {
-				if (temp.senderEmail == newTemplate.senderEmail && temp.project.id == newTemplate.project.id) {
-					self.savedTemplates[i] = newTemplate;
-					templateFound = true;
+			//Increment transaction for Greenhopper API
+			jira.transaction.currentCallCounter++;
+			//Get Generated Fields
+			self.UIFormHandler.getFormData(result);
+
+			//3.2 Change reporter if we have a "on behalf of" case.
+			if (isServiceDesk) {
+				var user = $('#behalfReporter').data('id');
+				if (user) {
+					result.fields.reporter = { name: user };
 				}
-			});
-
-			if (!templateFound) {
-				self.savedTemplates.push(newTemplate);
 			}
-			yasoon.setting.setAppParameter('createTemplates', JSON.stringify(self.savedTemplates));
-		}
 
-		// Save Project in recently used
-		self.addRecentProject(jira.selectedProject);
+			//Inform Fields that save is going to start.
+			self.UIFormHandler.triggerEvent('save', result);
 
-		console.log('Send Data:', result);
+			//Save Template if created by Email
+			if (self.mail) {
+				var newTemplate = new createTemplate(self.mail.senderEmail, self.mail.senderName, self.selectedProject, result);
+				var templateFound = false;
+				$.each(self.savedTemplates, function (i, temp) {
+					if (temp.senderEmail == newTemplate.senderEmail && temp.project.id == newTemplate.project.id) {
+						self.savedTemplates[i] = newTemplate;
+						templateFound = true;
+					}
+				});
 
-		//Switch for edit or create
-		var url = '/rest/api/2/issue';
-		var method = yasoon.ajaxMethod.Post;
+				if (!templateFound) {
+					self.savedTemplates.push(newTemplate);
+				}
+				yasoon.setting.setAppParameter('createTemplates', JSON.stringify(self.savedTemplates));
+			}
 
-		if (self.editIssueId && !self.fromTemplate) {
-			url = url + '/' + self.editIssueId;
-			method = yasoon.ajaxMethod.Put;
-		}
-		
-		//Submit request
-		jiraAjax(url, method, JSON.stringify(result))
+			// Save Project in recently used
+			self.addRecentProject(jira.selectedProject);
+
+			console.log('Send Data:', result);
+
+			//Switch for edit or create
+			var url = '/rest/api/2/issue';
+			var method = yasoon.ajaxMethod.Post;
+
+			if (self.editIssueId && !self.fromTemplate) {
+				url = url + '/' + self.editIssueId;
+				method = yasoon.ajaxMethod.Put;
+			}
+			//Submit request		
+			return jiraAjax(url, method, JSON.stringify(result));
+		})	
 		.then(function (data) {
 			jira.transaction.currentCallCounter--;
 			var issue = jira.currentIssue || JSON.parse(data);
-
+			jira.issueCreated = true;
 			//Trigger AfterSave Event (needed for Epics :( )
 			self.UIFormHandler.triggerEvent('afterSave', { input: result, newIssue: issue });
 
@@ -498,25 +503,35 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		})
 		.catch(jiraSyncError, function (e) {
 			yasoon.util.log('Couldn\'t submit New Issue Dialog: ' + e.getUserFriendlyError(), yasoon.util.severity.warning);
-			yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSubmitIssue', { error: e.getUserFriendlyError() }));
 			jira.transaction.currentCallCounter = -1; //Make sure the window will never close as issue has not been created
+			yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSubmitIssue', { error: e.getUserFriendlyError() }));
 			$('#JiraSpinner').hide();
 			$('#create-issue-submit').removeAttr("disabled");
 		})
 		.catch(function (e) {
 			$('#JiraSpinner').hide();
-			$('#create-issue-submit').removeAttr("disabled");
-			yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSubmitIssue', { error: 'Unknown' }));
-			yasoon.util.log('Unexpected error in Create Issue Dialog: ' + e, yasoon.util.severity.error);
+			if (jira.issueCreated) {
+				yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorAfterSubmitIssue', { error: 'Unknown' }));	
+			} else {
+				$('#create-issue-submit').removeAttr("disabled");
+				yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSubmitIssue', { error: 'Unknown' }));	
+			}	
+			jira.transaction.currentCallCounter = -1; //Make sure the window will never close as issue has not been created
+					
+			yasoon.util.log('Unexpected error in Create Issue Dialog: ' + e, yasoon.util.severity.error, getStackTrace(e));
 		});
-		e.preventDefault();
 	};
 
 	this.handleError = function (data, statusCode, result, errorText, cbkParam) {
 		$('#MainAlert').show();
 		$('#LoaderArea').hide();
-		console.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data);
-		yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data, yasoon.util.severity.error);
+		if (data && data.stack) {
+			yasoon.util.log('Unexpected JS Error: ' + data, yasoon.util.severity.error, getStackTrace(data));
+			console.log(data);
+		} else {
+			console.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data);
+			yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data, yasoon.util.severity.error);
+		}	
 	};
 
 	this.addRecentProject = function (project) {
@@ -1096,7 +1111,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 function submitErrorHandler(data, statusCode, result, errorText, cbkParam) {
 	$('#JiraSpinner').hide();
-	$('#create-issue-submit').removeAttr("disabled");
 	var error = '';
 	
 	if (data instanceof jiraSyncError) {
@@ -1130,6 +1144,14 @@ function submitErrorHandler(data, statusCode, result, errorText, cbkParam) {
 			error = JSON.stringify(result);
 		}
 	}
+
+	if (jira.issueCreated) {
+		yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorAfterSubmitIssue', { error: error }));	
+	} else {
+		$('#create-issue-submit').removeAttr("disabled");
+		yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSubmitIssue', { error: error }));	
+	}	
+	
 	yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data + ' || ' + error, yasoon.util.severity.warning);
 
 	jira.transaction.currentCallCounter = -1;

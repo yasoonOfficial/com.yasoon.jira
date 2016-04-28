@@ -67,6 +67,7 @@
 				"errorSubmitComment": "Connection Error! Commenting did not work: {{error}}",
 				"errorAttachment": "Connection Error: Uploading the attachments failed: {{error}}",
 				"errorSubmitIssue": "Sorry, that did not work. Check your input and try again.  \n {{error}}",
+				"errorAfterSubmitIssue": "The issue has been created, but there happend an error afterwards. Please check your data. \n {{error}}",
 				"errorCreateAttachment": "Issue {{key}} created, but uploading the attachments did not work. {{error}}",
 				"SDAssignment": "Service Desk assignment",
 				"SDExplanation": "Service Desk assignments make the issue visible for the reporter in the Service Desk as \"Own Request\"",
@@ -114,7 +115,9 @@
 				"dateTimePickerFormatTitle":"yyyy/mm/dd hh:mm",
 				"mentionsAlert": "For User Mentions you need to select an project or issue first",
 				"sprintSuggestion": "Suggestions",
-				"sprintAll": "All"
+				"sprintAll": "All",
+				"unassigned": "Unassigned",
+				"automatic": "Automatic"
 			},
 			"filter": {
 				"projectFilter": "Project",

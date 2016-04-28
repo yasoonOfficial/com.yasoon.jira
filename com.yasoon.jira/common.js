@@ -286,6 +286,8 @@ function jiraSyncError(message, statusCode, errorText, data, result) {
 			} else if (error.errors) {
 				if (error.errors.comment) {
 					result = error.errors.comment;
+				} else if (errors.errors[""]) {
+					result = errors.errors[""];
 				} else {
 					result = JSON.stringify(error.errors);
 				}

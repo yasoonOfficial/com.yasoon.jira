@@ -67,6 +67,7 @@
 				"errorSubmitComment": "Verbindungsfehler! Kommentieren hat nicht funktioniert: {{error}}",
 				"errorAttachment": "Verbindungsfehler! Das hochladen der Anhänge hat nicht funktioniert: {{error}}",
 				"errorSubmitIssue": "Das hat leider nicht funktioniert. Bitte prüfe deine Eingaben und versuche es erneut.  \n {{error}}",
+				"errorAfterSubmitIssue": "Der Vorgang wurde angelegt, allerdings ist anschließend ein Fehler aufgetreten. Bitte prüfe den Vorgang. \n {{error}}",
 				"errorCreateAttachment": "Vergang {{key}} wurde angelegt, aber beim hochladen der Anhänge sind Fehler aufgetreten. {{error}}",
 				"SDAssignment": "Service Anfrage stellen",
 				"SDExplanation": "Service Anfragen sind für den Autor im Service Portal unter \"Eigene Anfragen\" sichtbar ",
@@ -114,7 +115,9 @@
 				"dateTimePickerFormatTitle":"TT.MM.JJJJ ss:mm",
 				"mentionsAlert": "Für Benutzervorschläge muss ein Projekt oder Vorgang ausgewählt sein",
 				"sprintSuggestion": "Vorschläge",
-				"sprintAll": "Alle"
+				"sprintAll": "Alle",
+				"unassigned": "Nicht zugewiesen",
+				"automatic": "Automatisch"
 			},
 			"filter": {
 				"projectFilter": "Projekt",

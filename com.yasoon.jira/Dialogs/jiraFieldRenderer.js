@@ -287,18 +287,16 @@ function RadioButtonRenderer() {
 function DateRenderer() {
 	this.getValue = function (id) {
 		var date = $('#' + id).datetimepicker("getValue");
-		
-		var value = null;
 		if (date) {
-			value = moment(date).format('YYYY-MM-DD');
+			date = moment(date).format('YYYY-MM-DD');
 		}
 
 		if (jira.isEditMode) 
 			//In edit case: Only send if changed	
-			return (isEqual(renderTs, moment(date).valueOf()) || isEqual(jira.currentIssue.fields[id], value)) ? undefined : value;
+			return (isEqual(jira.currentIssue.fields[id], date)) ? undefined : date;
 		else 
 			//In creation case: Only send if not null	
-			return (value) ? value : undefined;
+			return (date) ? date : undefined;
 	};
 
 	this.setValue = function (id, value) {
@@ -324,16 +322,6 @@ function DateRenderer() {
 		});
 		
 		$.datetimepicker.setLocale(country);
-		/*var regionalTexts = $.datepicker.regional[country];
-
-		$('#' + id).datepicker($.extend(
-			{},
-			regionalTexts,
-			{
-				showOtherMonths: true,
-				selectOtherMonths: true,
-				dateFormat: format,
-			})); */
 
 		$('#' + id + '-trigger').unbind().click(function (e) {
 			$('#' + id).datetimepicker("show");
@@ -749,32 +737,35 @@ function UserPickerRenderer() {
 	this.getValue = function (id) {		
 		
 		var name = $('#' + id).val();
-		var value;
-		if (name)
-			value = { name: name };
+		var value = { name: name };
 		
 		if (jira.isEditMode) {
-			//In edit case: Only send if changed	
+			//In edit case: Only send if changed
+			if (!jira.currentIssue.fields[id] && !name)
+				return;
+			
 			if (jira.currentIssue.fields[id] && isEqual(jira.currentIssue.fields[id].name, name))
 				return;
 			
-			return value;
+			return (name) ? value: null;
 		} else 
 			//In creation case: Only send if not null	
 			return (value) ? value : undefined;
 	};
 
 	this.setValue = function (id, value) {
+		var userName = (value) ? value.name : null;
+		
 		if (value) {
 			//We can only select elements that have an rendered option tag.
-			if ($('#' + id).find('option[value=' + value.name + ']').length === 0) {
-				$('#' + id).append('<option value="' + value.name + '" data-icon="emailSender"><span>' + formatUser(getSelect2User(value)).html() + '</span></option>');
+			if ($('#' + id).find('option[value="' + userName + '"]').length === 0) {
+				$('#' + id).append('<option value="' + userName + '"><span>' + formatUser(getSelect2User(value)).html() + '</span></option>');
 			}
-			
-			$('#' + id)
-			.val(value.name)
-			.trigger('change');
 		}
+		
+		$('#' + id)
+		.val(userName)
+		.trigger('change');
 	};
 
 	var lastQuery = '';
@@ -834,7 +825,7 @@ function UserPickerRenderer() {
 			'	<select id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" class="select input-field" data-type="com.atlassian.jira.plugin.system.customfieldtypes:userpicker"> ' +
 			'		<option></option>';
 		if(id === 'assignee')
-			html += '<option value="-1" data-icon="avatar" selected>Automatic</option>';
+			html += '<option value="-1" data-icon="avatar" selected>'+ yasoon.i18n('dialog.automatic') + '</option>';
 		
 		if (jira.ownUser)
 			html += '<option value="' + jira.ownUser.name + '" data-icon="ownUser"><span>' + formatUser(getSelect2User(jira.ownUser)).html() + '</span></option>';
@@ -940,10 +931,8 @@ function UserPickerRenderer() {
 					}
 
 					lastQuery = queryTerm;
-					console.log('Query for ' + id + ', Term: ' + queryTerm);
 					if (queryTerm) {
 						searchPickerUser(id, queryTerm, function (data) {
-							console.log('Set Data',data);
 							success(data);
 						});
 					} else {
@@ -956,13 +945,12 @@ function UserPickerRenderer() {
 							jira.userCommonValues.results[1].children = [];
 						}
 						
-						console.log('Set Data', data);
 						success(data);
 					}
 				}
 			},
 			minimumInputLength: 0,
-			placeholder: (id === 'assignee') ? 'Unassigned' : '',
+			placeholder: (id === 'assignee') ? yasoon.i18n('dialog.unassigned') : '',
 			allowClear: true
 		});
 	};
@@ -1204,7 +1192,7 @@ function EpicLinkRenderer() {
 		//Only for creation as Epic links cannot be changed via REST APi --> Status code 500
 		//Ticket: https://jira.atlassian.com/browse/GHS-10333
 		//There is a workaround --> update it via unofficial greenhopper API --> For update see handleEvent
-		if (jira.systemInfo.versionNumbers[0] === 6 && !jira.editIssueId && $('#' + id).val()) {
+		if (jira.systemInfo.versionNumbers[0] === 6 && !jira.isEditMode && $('#' + id).val()) {
 			return 'key:' + $('#' + id).val();
 		}
 	};
@@ -1287,7 +1275,9 @@ function EpicLinkRenderer() {
 						results: data
 					};
 				}
-			}
+			},
+			allowClear: true,
+			placeholder: yasoon.i18n('dialog.selectNone')
 		});
 
 
@@ -1298,7 +1288,7 @@ function EpicLinkRenderer() {
 		if (eventType === 'save') {
 			//If newCreation, only if newEpicLink is set
 			//Or if edit, only if newEpicLink is different than existing 
-			if ((!jira.editIssueId && newEpicLink) || (jira.editIssueId && jira.currentIssue.fields[fieldId] != newEpicLink)) {
+			if (jira.isEditMode && jira.currentIssue.fields[fieldId] != newEpicLink) {
 				jira.transaction.currentCallCounter++;
 				if (newEpicLink) {
 					//Create or update
@@ -1310,14 +1300,14 @@ function EpicLinkRenderer() {
 				} else {
 					//Delete
 					if (jira.systemInfo.versionNumbers[0] === 6) {
-						self.deleteEpic6(newEpicLink, jira.currentIssue.key);
+						self.deleteEpic6(jira.currentIssue.key);
 					} else {
-						self.deleteEpic7(newEpicLink, jira.currentIssue.key);
+						self.deleteEpic7(jira.currentIssue.key);
 					}
 				}
 			}
 			//AfterSave is only needed for JIRA 7 on creation as the setData does not work anymore.
-		} else if (eventType === 'afterSave' && !jira.editIssueId && jira.systemInfo.versionNumbers[0] > 6) {
+		} else if (eventType === 'afterSave' && !jira.isEditMode && jira.systemInfo.versionNumbers[0] > 6) {
 			if (newEpicLink) {
 				jira.transaction.currentCallCounter++;
 				self.updateEpic7(newEpicLink, data.newIssue.key);
@@ -1450,7 +1440,7 @@ function TempoAccountRenderer() {
 				
 		if (jira.isEditMode) {
 			//In edit case: Only send if changed	
-			if (jira.currentIssue.fields[id], isEqual(jira.currentIssue.fields[id].id, val))
+			if (jira.currentIssue.fields[id] && isEqual(jira.currentIssue.fields[id].id, val))
 				return;
 
 			if (!jira.currentIssue.fields[id] && !val)
@@ -1615,7 +1605,7 @@ function formatUser(user) {
 		var filePath = yasoon.io.getLinkPath('Images/useravatar.png');
 		return $('<span><img style="margin-right:3px; width: 16px;" src="' + filePath + '"  onerror="jiraHandleImageFallback(this)"/>' + user.text + '</span>');
 	} else {
-		return user.text;
+		return $('<span>' + user.text + '</span>');
 	}
 }
 
