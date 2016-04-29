@@ -1051,7 +1051,8 @@ function JiraIssueController() {
 				issues = result.issues;
 			}
 		})
-		.catch(function(e) {
+		.catch(function (e) {
+			issues = [];
 			jiraLog('Refresh Buffer Error:', e);
 		});
 	};
