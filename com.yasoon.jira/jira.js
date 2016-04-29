@@ -360,7 +360,8 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			var recentProjects = JSON.parse(recentProjectsString);
 			
 			recentProjects.forEach(function (project) {
-				cacheProjects.push(project);
+				var expandedProject = jira.data.projects.filter(function (p) { return p.key === project.key; })[0] || project;
+				cacheProjects.push(expandedProject);
 			});
 
 			//If we haven't a full recent items list --> add a few random projects. Maybe we have luck :D
@@ -404,6 +405,11 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			jira.cache.userMeta = {};
 			cacheProjects.forEach(function (project) {
 				jira.cache.userMeta[project.id] = {};
+
+				//Legacy - In old edit logic we didn't update recent items correctly.
+				if (!project.issueTypes)
+					return;
+				
 				project.issueTypes.forEach(function (issueType) {
 					promises.push(
 						jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + project.id + '&issuetype=' + issueType.id)

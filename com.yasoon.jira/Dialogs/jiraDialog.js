@@ -198,10 +198,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			$('#create-issue-submit').html(yasoon.i18n('dialog.save'));
 
 			//Select issue project manually and immedeately for better layout.
-			var all = $('#project').find('.all');
-			self.projects.push(self.editProject);
 			self.selectedProject = self.editProject;
-
+			
+			var all = $('#project').find('.all');
 			all.append('<option data-icon="' + getProjectIcon(project) +'"  value="' + self.editProject.id + '" data-key="' + self.editProject.key + '">' + self.editProject.name + '</option>');
 			$('#project').select2();
 			$('#project').val(self.editProject.id).trigger('change');
@@ -211,11 +210,15 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			$('#LoaderArea').show();
 
 			//Load issue Meta in edit case and render UI!
-			jiraGet('/rest/api/2/issue/' + self.editIssueId + '?expand=editmeta,renderedFields,transitions,changelog,operations,names')
-			.then(function (data) {
+			Promise.all([
+				jiraGet('/rest/api/2/issue/' + self.editIssueId + '?expand=editmeta,renderedFields,transitions,changelog,operations,names'),
+				self.getProjectValues()
+			])
+			.spread(function (data) { //Result of getProjectValues is set to jira.selectedProject
 				self.currentIssue = JSON.parse(data);
 				console.log(JSON.parse(data));
-
+				
+				self.projects.push(self.selectedProject);
 				//Select Issue Type
 				$('#issuetype').append('<option data-icon="' + jira.currentIssue.fields.issuetype.iconUrl + '" value="' + jira.currentIssue.fields.issuetype.id + '">' + jira.currentIssue.fields.issuetype.name + '</option>');
 
