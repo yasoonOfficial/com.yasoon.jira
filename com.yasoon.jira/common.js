@@ -42,7 +42,7 @@ function getUniqueKey() {
 		binary += String.fromCharCode( bytes[ i ] );
 	}
 	
-	return window.btoa( binary ).replace(/=/g, '');
+	return window.btoa( binary ).replace(/=/g, '').replace(/\//g, '').replace(/\+/g, '');
 }
 
 function renderMailHeaderText(mail, useMarkup) {
