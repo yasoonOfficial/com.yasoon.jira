@@ -842,7 +842,9 @@ function JiraIssueActionNotification(event) {
 			} else if(self.event.id) {
 				externalId = self.event.id['#text'];
 			} else {
-				yasoon.util.log('Action found that is neither an comment, nor an normal activity:' + JSON.stringify(self.event), yasoon.util.severity.error);
+				var logObj = JSON.parse(JSON.stringify(self.event));
+				delete logObj.issue;
+				yasoon.util.log('Action found that is neither an comment, nor an normal activity:' + JSON.stringify(logObj), yasoon.util.severity.error);
 				return;
 			}
 
