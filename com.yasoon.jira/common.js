@@ -290,11 +290,11 @@ function jiraSyncError(message, statusCode, errorText, data, result) {
 			var error = JSON.parse(self.result);
 			if (error.errorMessages && error.errorMessages.length > 0) {
 				error.errorMessages.forEach(function (msg) {
-					result += msg + '<br />';
+					result += msg + '\n';
 				});
 			} else if (error.errors) {
 				Object.keys(error.errors).forEach(function (key) {
-					result += error.errors[key] + '<br />';
+					result += error.errors[key] + '\n';
 				});
 			} else {
 				result = yasoon.i18n('general.unexpectedJiraError');

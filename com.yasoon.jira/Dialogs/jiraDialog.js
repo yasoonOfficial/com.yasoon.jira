@@ -190,7 +190,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			});
 		}
 
-		if (!!initParams.editIssueId) {
+		if (self.isEditMode) {
 			//It's the edit case
 			//Set Title & Labels
 			$('.jira-title').html(yasoon.i18n('dialog.titleEditIssue'));
@@ -429,7 +429,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		})	
 		.then(function (data) {
 			jira.transaction.currentCallCounter--;
-			var issue = jira.currentIssue || JSON.parse(data);
+			var issue = self.isEditMode ? jira.currentIssue : JSON.parse(data);
 			jira.issueCreated = true;
 			//Trigger AfterSave Event (needed for Epics :( )
 			self.UIFormHandler.triggerEvent('afterSave', { input: result, newIssue: issue });
