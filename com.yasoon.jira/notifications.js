@@ -499,12 +499,12 @@ function JiraIssueNotification(issue) {
 		var changeStatusHtml = '' +
 			'<span style="position:relative;">' +
 			'   <span class="dropdown-toggle" data-toggle="dropdown">' +
-			'       <span><i class="fa fa-sign-in"></i> '+ yasoon.i18n('notification.setStatusAction') + '</span>' +
+			'       <span><i class="fa fa-sign-in"></i> <span class="transitionChangeLabel">'+ yasoon.i18n('notification.setStatusAction') + '</span></span>' +
 			'       <span class="caret"></span>' +
 			'   </span>' +
 			'   <ul class="dropdown-menu" role="menu">';
 		$.each(self.issue.transitions, function (i, transition) {
-			changeStatusHtml += '<li><a class="jiraStatusChangeLink" data-transition="' + transition.id + '" data-key="' + self.issue.key + '">' + transition.name + '</a></li>';
+			changeStatusHtml += '<li><a class="jiraStatusChangeLink" data-transition="' + transition.id + '" data-key="' + self.issue.key + '" data-issue-id="' + self.issue.id + '">' + transition.name + '</a></li>';
 		});
 		changeStatusHtml += '' +
 			'   </ul>' +
@@ -512,7 +512,7 @@ function JiraIssueNotification(issue) {
 		feed.properties.customActions.push({ description: changeStatusHtml, eventHandler: $.noop });
 		feed.properties.customActions.push({ description: '<span><i class="fa fa-paperclip"></i> ' + yasoon.i18n('notification.addFileAction') + '</span>', eventHandler: self.addAttachment });
 		feed.properties.customActions.push({ description: '<span><i class="fa fa-pencil"></i> ' + yasoon.i18n('notification.editAction') + '</span>', eventHandler: self.editIssue });
-		feed.properties.customActions.push({ description: '<span data-key="' + self.issue.key + '"><i class="fa fa-clock-o"></i> ' + yasoon.i18n('notification.logWorkAction') + '</span>', eventHandler: self.logWork, issueKey: self.issue.key });
+		feed.properties.customActions.push({ description: '<span data-key="' + self.issue.key + '" ><i class="fa fa-clock-o"></i> ' + yasoon.i18n('notification.logWorkAction') + '</span>', eventHandler: self.logWork, issueKey: self.issue.key });
 		feed.properties.baseUrl = jira.settings.baseUrl;
 		feed.setProperties(feed.properties);
 
@@ -524,21 +524,42 @@ function JiraIssueNotification(issue) {
 					return;
 				}
 
-				var transitionId = $(this).data('transition');
+				var element = $(this);
+				//Get all data
+				var transitionId = element.data('transition');
 				var bodyObj = {
 					"transition": {
 						"id": transitionId
 					}
 				};
-				var key = $(this).data('key');
+				var key = element.data('key');
+				var id = element.data('issueId');
 				var body = JSON.stringify(bodyObj);
 
-				jiraAjax('/rest/api/2/issue/' + key + '/transitions', yasoon.ajaxMethod.Post, body)
-				.then(function () {
-					jira.sync();
+				//Show user something is happening...
+				$('[data-feed-id=' + feed.feedId + ']').find('.transitionChangeLabel').text(yasoon.i18n('notification.updating')).prop('disabled', true);
+
+
+				//Get latest transition information
+				jiraGet('/rest/api/2/issue/'+ key + '/transitions?transitionId=' + transitionId)
+				.then(function (data) {
+					var transObj = JSON.parse(data);
+					if (transObj.transitions[0].hasScreen) {
+						yasoon.openBrowser(jira.settings.baseUrl + '/login.jsp?os_destination=' + encodeURIComponent('/secure/CommentAssignIssue!default.jspa?id=' + id + '&action=' + transitionId));
+					} else {
+						return jiraAjax('/rest/api/2/issue/' + key + '/transitions', yasoon.ajaxMethod.Post, body)
+						.then(function () {
+							jira.sync();
+						});
+					}
 				})
 				.catch(function (error) {
-					//Todo
+					var msg = (error.getUserFriendlyError) ? error.getUserFriendlyError() : error;
+					yasoon.alert.add({ type: yasoon.alert.alertType.error, message: yasoon.i18n('notification.changeStatusNotPossible', { error: msg }) });
+					yasoon.util.log('Unexpected error in Set Status Feed Action: ' + error, yasoon.util.severity.error, getStackTrace(error));
+				})
+				.finally(function () {
+					$('[data-feed-id=' + feed.feedId + ']').find('.transitionChangeLabel').text(yasoon.i18n('notification.setStatusAction')).prop('disabled', false);
 				});
 			});
 

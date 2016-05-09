@@ -175,7 +175,9 @@
 				"logWorkAction": "Arbeit protokollieren",
 				"commentedOn": "{{name}} hat auf {{text}} kommentiert",
 				"noContent": "Kein Inhalt",
-				"nobody": "Niemand"
+				"nobody": "Niemand",
+				"updating": "aktualisiere...",
+				"changeStatusNotPossible": "Der Status konnte nicht geändert werden: {{error}}"
 			}, 
 			"settings": {
 				"headingLogin": "Bitte wähle dein JIRA System aus und melde dich an.",

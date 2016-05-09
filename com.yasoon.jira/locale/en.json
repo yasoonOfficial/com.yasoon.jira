@@ -175,7 +175,9 @@
 				"logWorkAction": "Log Work",
 				"commentedOn": "{{name}} commented on: {{text}}",
 				"noContent": "No Content",
-				"nobody": "Nobody"
+				"nobody": "Nobody",
+				"updating": "updating...",
+				"changeStatusNotPossible": "Could not change status: {{error}}"
 			}, 
 			"settings": {
 				"headingLogin": "Please choose your JIRA instance and login.",
