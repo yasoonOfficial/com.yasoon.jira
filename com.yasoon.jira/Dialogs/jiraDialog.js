@@ -388,7 +388,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 			//3.2 Change reporter if we have a "on behalf of" case.
 			if (isServiceDesk) {
-				var user = $('#behalfReporter').data('id');
+				var user = $('#behalfReporter').val();
 				if (user) {
 					result.fields.reporter = { name: user };
 				}
@@ -505,7 +505,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				self.close({ action: 'success' });
 		})
 		.catch(jiraSyncError, function (e) {
-			yasoon.util.log('Couldn\'t submit New Issue Dialog: ' + e.getUserFriendlyError(), yasoon.util.severity.warning);
+			yasoon.util.log('Couldn\'t submit New Issue Dialog: ' + e.getUserFriendlyError() + ' || Issue: ' + JSON.stringify(result), yasoon.util.severity.warning);
 			jira.transaction.currentCallCounter = -1; //Make sure the window will never close as issue has not been created
 			yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSubmitIssue', { error: e.getUserFriendlyError() }));
 			$('#JiraSpinner').hide();
@@ -521,7 +521,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			}	
 			jira.transaction.currentCallCounter = -1; //Make sure the window will never close as issue has not been created
 					
-			yasoon.util.log('Unexpected error in Create Issue Dialog: ' + e, yasoon.util.severity.error, getStackTrace(e));
+			yasoon.util.log('Unexpected error in Create Issue Dialog: ' + e + ' || Issue: ' + JSON.stringify(result), yasoon.util.severity.error, getStackTrace(e));
 		});
 	};
 

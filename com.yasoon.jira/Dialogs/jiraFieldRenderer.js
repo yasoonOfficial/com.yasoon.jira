@@ -1535,6 +1535,77 @@ function TempoAccountRenderer() {
 	};
 }
 
+function GroupSingleRenderer() {
+	this.getValue = function (id) {
+		var val = $('#' + id).val();
+
+		//In edit case: Only send changes
+		if (jira.isEditMode) {
+			//In edit case: Only send if changed	
+			if (!isEqual(jira.currentIssue.fields[id], val)) {
+				return (val) ? { name: val } : null;
+			}
+		} else {
+			//In creation case: Only send if not null	
+			return (val) ? { name: val } : undefined;
+		}
+	};
+
+	this.setValue = function (id, value) {
+		if (value) {
+			$('#' + id).append('<option val="' + value.name + '">' + value.name + '</option>');
+			$('#' + id).val(value.name).trigger('change');
+		}
+	};
+
+	this.render = function (id, field, container) {
+		var html = '<div class="field-group aui-field-componentspicker frother-control-renderer">' +
+						'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+						'    <select style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:grouppicker"></select>' +
+						'</div>';
+
+		$(container).append(html);
+
+		var url = '/rest/api/2/groups/picker?maxResults=100&query=';
+		$('#' + id).select2({
+			allowClear: true,
+			placeholder: yasoon.i18n('dialog.selectNone'),
+			ajax: {
+				url: url,
+				transport: function (params, success, failure) {
+					var queryTerm = '';
+					if (params && params.data) {
+						queryTerm = params.data.q;
+					}
+
+					jiraGet(url + queryTerm)
+					.then(function (data) {
+						var groupsResult = JSON.parse(data);
+						console.log(groupsResult);
+						var groupsArray = [];
+						groupsResult.groups.forEach(function (group) {
+							groupsArray.push({
+								id: group.name,
+								text: group.name
+							});
+						});
+
+						success(groupsArray);
+					})
+					.catch(function (e) {
+						failure([]);
+					});
+				},
+				processResults: function (data, page) {
+					return {
+						results: data
+					};
+				}
+			}
+		});
+	};
+}
+
 function renderSelectField(id, field, style) {
 	var html = '' +
 		'    <select class="select input-field" id="' + id + '" name="' + id + '" style="'+ style +'" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
@@ -1599,7 +1670,13 @@ function formatUser(user) {
 	var icon = user.icon;
 	if (!icon)
 		icon = $(user.element).data('icon');
-	
+	if (!icon) {
+		if (user.id === jira.ownUser.name)
+			icon = 'ownUser';
+		if (user.id === jira.senderUser.name)
+			icon = 'emailSender';
+	}
+
 	if (icon === 'ownUser') {
 		return $('<span><i style="margin-right:3px; width: 16px;" class="fa fa-user" />' + user.text +'</span>');
 	} else if (icon === 'emailSender') {
@@ -1704,5 +1781,6 @@ UIRenderer.register('com.pyxis.greenhopper.jira:gh-epic-link', new EpicLinkRende
 UIRenderer.register('com.pyxis.greenhopper.jira:gh-sprint', new SprintLinkRenderer());
 UIRenderer.register('com.tempoplugin.tempo-accounts:accounts.customfield', new TempoAccountRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:cascadingselect', new CascadedListRenderer());
+UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:grouppicker', new GroupSingleRenderer());
 
 //@ sourceURL=http://Jira/Dialog/jiraFieldRenderer.js
