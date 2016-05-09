@@ -243,13 +243,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.submitForm = function (e) {
 		//technical stuff:
 		//If Issue has been preselected, the data attributes may be found on $('issue') instead of the option itself.
-		var selectedOption = $('#issue').find(':selected');
-		var selectedIssueId = selectedOption.data('id');
-
-		if (!selectedIssueId) {
-			selectedOption = $('#issue');
-			selectedIssueId = selectedOption.data('id');
-		}
+		var selectedIssueId = self.getSelectedIssueId();
+		var selectedOption = self.getSelectedIssueOption();
 
 		if (!selectedIssueId) {
 			yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSelectIssue'));
@@ -617,6 +612,24 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		}
 
 		return self.mailConversationData;
+	};
+
+	this.getSelectedIssueId = function getSelectedIssueId() {
+		var selectedIssueId = selectedOption.data('id');
+
+		if (!selectedIssueId) {
+			selectedIssueId = selectedOption.data('id');
+		}
+		return selectedIssueId;
+	};
+
+	this.getSelectedIssueOption = function getSelectedIssueOption() {
+		var selectedOption = $('#issue').find(':selected');
+
+		if (!selectedOption) {
+			selectedOption = $('#issue');
+		}
+		return selectedOption;
 	};
 
 	this.handleAttachments = function (markup, attachments) {

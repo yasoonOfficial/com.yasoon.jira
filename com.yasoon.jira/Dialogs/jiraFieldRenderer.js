@@ -1535,7 +1535,6 @@ function TempoAccountRenderer() {
 	};
 }
 
-
 function renderSelectField(id, field, style) {
 	var html = '' +
 		'    <select class="select input-field" id="' + id + '" name="' + id + '" style="'+ style +'" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
@@ -1639,9 +1638,14 @@ function insertAtCursor(myField, myValue) {
 
 var timeoutSearchUser = null;
 function searchUser(mode, query, callback) {
-	//First try to get an issue key ... if it doesn't exist, get project.
-	var selectedIssueKey = $('#issue').data('key');
+	//First try to get an issue key ... if it doesn't exist, get project
+	var selectedIssueKey = null;
 	var selectedProjectKey = null;
+
+	if (jira.getSelectedIssueOption) {
+		selectedIssueKey = jira.getSelectedIssueOption().data('key');
+	}
+
 	if (!selectedIssueKey) {
 		selectedProjectKey = $('#project').data('key') || ((jira.selectedProject) ? jira.selectedProject.key : null);
 	}
