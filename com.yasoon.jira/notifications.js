@@ -1053,7 +1053,71 @@ function JiraIssueAppointment(issue) {
 		});
 	};
 }
+/*
+function JiraIssueTask(issue) {
+	var self = this;
+	this.issue = issue;
 
+	this.save = function () {
+
+		if (!jira.settings.syncTask)
+			return Promise.resolve();
+
+		if (!self.issue.fields.duedate)
+			return Promise.resolve();
+
+		//Check if it's an update or creation
+		return jiraGetTaskItem(self.issue.id)
+		.then(function (dbItem) {
+			var creation = false;
+			if (!dbItem) {
+				//Creation
+				creation = true;
+				dbItem = { categories: ['Jira', self.issue.fields.project.name] };
+			} else {
+				//Update nessecary?
+			}
+	
+			dbItem.externalId = self.issue.id;
+			dbItem.subject = self.issue.fields.summary;
+			dbItem.body = self.issue.fields.description;
+			dbItem.isHtmlBody = false;
+
+
+			if (self.issue.fields.duedate) {
+				//We need to use momentJS to parse the date correctly
+				// Wunderlist JSON contains "2014-04-14"
+				// If using new Date(json), this will result in a date:
+				//     14.04.2014 00:00 UTC!
+				// but we actually need 00:00 local time (moment does that)
+				self.task.dueDate = moment(self.issue.fields.duedate).toDate();
+			}
+			else {
+				self.task.dueDate = new Date(0);
+			}
+
+			if (self.issue.fields.assignee)
+				dbItem.owner = self.issue.fields.assignee.displayName;
+			else
+				delete dbItem.owner;
+
+			//Really needed?!
+			dbItem.externalData = JSON.stringify(self.issue);
+
+			//Does folder exist?
+			return jiraGetFolder(self.issue.fields.project.key)
+			.then(function(folder) {
+
+			})
+
+			if (creation)
+				return jiraAddTaskItem(dbItem);
+			else
+				return jiraSaveTaskItem(dbItem);
+		});
+	};
+}
+*/
 function JiraIssueController() {
 	var self = this;
 	var issues = [];

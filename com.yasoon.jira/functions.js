@@ -1134,6 +1134,72 @@ function jiraSaveCalendarItem(item) {
 	});
 }
 
+function jiraGetTask(id) {
+	return new Promise(function (resolve, reject) {
+		try {
+			yasoon.outlook.task.getAsync(id, resolve, reject);
+		} catch (e) {
+			reject(e);
+		}
+	});
+}
+
+function jiraAddTask(item, folderId) {
+	return new Promise(function (resolve, reject) {
+		try {
+			yasoon.outlook.task.addAsync(item, folderId, resolve, reject);
+		} catch (e) {
+			reject(e);
+		}
+	});
+}
+
+function jiraSaveTask(item) {
+	return new Promise(function (resolve, reject) {
+		try {
+			yasoon.outlook.task.saveAsync(item, resolve, reject);
+		} catch (e) {
+			reject(e);
+		}
+	});
+}
+
+function jiraRemoveTask(task) {
+	return new Promise(function (resolve, reject) {
+		try {
+			yasoon.outlook.task.removeAsync(task, resolve, reject);
+		} catch (e) {
+			reject(e);
+		}
+
+	});
+}
+
+function jiraGetFolder(folderId) {
+	return new Promise(function (resolve, reject) {
+		try {
+			yasoon.outlook.task.getFolderAsync(folderId, resolve, reject);
+		} catch (e) {
+			reject(e);
+		}
+	});
+}
+
+function jiraAddFolder(id, name, data, group, pos) {
+	return new Promise(function (resolve, reject) {
+		try {
+			yasoon.outlook.task.addFolderAsync({
+				externalId: id,
+				externalData: data,
+				name: name,
+				group: group,
+				position: pos
+			}, resolve, reject);
+		} catch (e) {
+			reject(e);
+		}
+	});
+}
 function jiraGetProducts() {
 	return new Promise(function (resolve, reject) {
 		try {

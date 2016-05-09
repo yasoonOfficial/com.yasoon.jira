@@ -615,12 +615,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 
 	this.getSelectedIssueId = function getSelectedIssueId() {
-		var selectedIssueId = selectedOption.data('id');
-
-		if (!selectedIssueId) {
-			selectedIssueId = selectedOption.data('id');
-		}
-		return selectedIssueId;
+		return self.getSelectedIssueOption().data('id');
 	};
 
 	this.getSelectedIssueOption = function getSelectedIssueOption() {
