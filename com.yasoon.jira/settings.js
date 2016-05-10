@@ -19,6 +19,7 @@ function JiraSettingController() {
 		showFeedComment: true,
 		newCreationScreen: true,
 		syncCalendar: false,
+		syncTask: false,
 		hideResolvedIssues: false,
 		activeFilters: 'fields.project.id,fields.issuetype.id,fields.assignee.emailAddress,fields.status.id,fields.priority.id'
 	};
@@ -248,7 +249,6 @@ function JiraSettingController() {
 		settings = JSON.parse(settingsString);
 		settings = $.extend(defaults, jira.defaultSettings, settings);
 	}
-
 	$.each(settings, function (key, value) {
 		self[key] = value;
 	});

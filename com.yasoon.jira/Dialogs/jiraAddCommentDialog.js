@@ -620,8 +620,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 	this.getSelectedIssueOption = function getSelectedIssueOption() {
 		var selectedOption = $('#issue').find(':selected');
-
-		if (!selectedOption) {
+		var id = selectedOption.data('id');
+		if (!id) {
 			selectedOption = $('#issue');
 		}
 		return selectedOption;

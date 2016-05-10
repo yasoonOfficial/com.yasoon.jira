@@ -14,6 +14,7 @@
 			"general": {
 				"couldNotUploadAttachments": "Couldn't upload all attachments. Please try again.",
 				"loginFirst": "Please login to JIRA in settings menu first!",
+				"couldNotOpenIssue": "Issue could not be determined",
 				"couldNotDetectEmail": "Couldn't determine the current email. Please switch the focus to another email and try again",
 				"selectTextFirst": "Please select some text first!",
 				"couldNotRenderMarkup": "Could not render the selected text as JIRA markup. Please switch to plain text or contact us to get this fixed!",
@@ -215,7 +216,9 @@
 				"dialogs": "Dialogs",
 				"feed": "Feed",
 				"hideResolvedIssues": "Do not suggest resolved issues",
-				"filterChange":"Changes to filters will be available with the next Outlook restart."
+				"filterChange":"Changes to filters will be available with the next Outlook restart.",
+				"headingSyncTasks": "Task synchronization",
+				"syncTasks": "Enable Task sync"
 			}
 		}
 	}

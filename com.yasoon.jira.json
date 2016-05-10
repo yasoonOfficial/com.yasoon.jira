@@ -88,7 +88,12 @@
     "authorizations": [{
         "name": "calendar",
         "mode": "full"
-    }, {
+    },
+	{
+		"name":"tasks",
+		"mode":"full"
+	},
+	{
         "name": "files",
         "mode": "full"
     }],

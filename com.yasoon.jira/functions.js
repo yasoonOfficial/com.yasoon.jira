@@ -119,7 +119,45 @@ function JiraRibbonController() {
 				'Microsoft.Outlook.Mail.Read'
 			],
 			items: contextMenuItems
-		});		
+		});
+
+		//Add Task Ribbon
+		ribbonFactory.create({
+			type: 'ribbon',
+			renderTo: [
+				'Microsoft.Outlook.Task'
+			],
+			items: [{
+				type: 'tabs',
+				items: [{
+					type: 'tab',
+					idMso: 'TabTask',
+					items: [{
+						type: 'group',
+						id: 'buttonGroupTask',
+						insertAfterMso: 'GroupActions',
+						label: 'JIRA',
+						items: [{
+							type: 'button',
+							id: 'jiraOpenTask',
+							size: 'large',
+							label: 'Open Issue',
+							image: 'brandedlogo-64',
+							visible: 'appItem',
+							onAction: self.ribbonOpenIssue
+						}, {
+							type: 'button',
+							id: 'jiraEditTask',
+							size: 'large',
+							label: 'Edit Issue',
+							image: 'brandedlogo-64',
+							visible: 'appItem',
+							onAction: self.ribbonEditIssue
+						}]
+					}]
+				}]
+			}]
+		});
 	};
 
 	this.createContextRibbonItems = function createContextRibbonItems(label, id, action) {
@@ -352,7 +390,31 @@ function JiraRibbonController() {
 	};
 
 	this.ribbonOpenIssue = function ribbonOpenIssue(ribbonId, ribbonCtx) {
-		yasoon.openBrowser(jira.settings.baseUrl + '/browse/' + ribbonCtx.externalData);
+		console.log(arguments);
+		var issueKey = null;
+		if (ribbonCtx.externalData)
+			issueKey = ribbonCtx.externalData;
+		else if (ribbonCtx.items && ribbonCtx.items.length > 0)
+			issueKey = ribbonCtx.items[0].externalId;
+
+		if (issueKey)
+			yasoon.openBrowser(jira.settings.baseUrl + '/browse/' + issueKey);
+		else
+			yasoon.dialog.showMessageBox(yasoon.i18n('general.couldNotOpenIssue'));
+	};
+
+	this.ribbonEditIssue = function ribbonOpenIssue(ribbonId, ribbonCtx) {
+		if (!jiraIsLicensed(true)) {
+			return;
+		}
+
+		if (!ribbonCtx.items && ribbonCtx.items.length === 0) {
+			yasoon.dialog.showMessageBox(yasoon.i18n('general.couldNotOpenIssue'));
+			return;
+		}
+
+		var issue = JSON.parse(ribbonCtx.items[0].externalData);
+		new JiraIssueNotification(issue).editIssue();
 	};
 
 	this.uploadAttachment = function uploadAttachment(ribbonId, ribbonCtx) {
@@ -1046,6 +1108,21 @@ function getJiraMarkupRenderer() {
 	});
 }
 
+function jiraMinimizeIssue(issue) {
+	var copy = JSON.parse(JSON.stringify(issue));
+	delete copy.fields.comment;
+	delete copy.fields.worklog;
+	delete copy.fields.workratio; //Lead to a dump in JSON Convert due to Int64 Overflow
+	if (copy.fields.watches)
+		delete copy.fields.watches.watchers;
+
+	delete copy.renderedFields.comment;
+	delete copy.renderedFields.worklog;
+	delete copy.renderedFields.attachment;
+
+	return copy;
+}
+
 function jiraSyncQueue() {
 	var self = this;
 	var lastPromise = null;
@@ -1200,6 +1277,7 @@ function jiraAddFolder(id, name, data, group, pos) {
 		}
 	});
 }
+
 function jiraGetProducts() {
 	return new Promise(function (resolve, reject) {
 		try {

@@ -3,7 +3,7 @@ function JiraNotificationController() {
 	var notificationCounter = 0;
 	var notification = null;
 	var notificationEvent = null;
-	
+
 	var childQueue = [];
 
 	self.worklogTemplateLoaded = false;
@@ -13,7 +13,7 @@ function JiraNotificationController() {
 		var errorMessage = (error.statusCode === 500) ? yasoon.i18n('feed.connectionToJiraNotPossible') : error.errorText;
 		yasoon.alert.add({ type: yasoon.alert.alertType.error, message: yasoon.i18n('feed.couldNotCreateComment') + ': ' + errorMessage });
 	};
-	
+
 	self.handleAttachmentError = function (error) {
 		var errorMessage = (error.statusCode === 500) ? yasoon.i18n('feed.connectionToJiraNotPossible') : error.errorText;
 		yasoon.alert.add({ type: yasoon.alert.alertType.error, message: yasoon.i18n('feed.couldNotUploadAttachments') + ': ' + errorMessage });
@@ -152,7 +152,7 @@ function JiraNotificationController() {
 		--> find comments that are not in Database yet and add them manually
 		*/
 
-		
+
 		jiraLog('ProcessComments');
 		//Find comments in all chnaged issues that changed since last Sync date
 		var issues = jira.issues.all();
@@ -182,7 +182,7 @@ function JiraNotificationController() {
 		});
 	};
 
-	self.renderNotification = function renderNotification (feed) {
+	self.renderNotification = function renderNotification(feed) {
 		var event = self.createNotification(JSON.parse(feed.externalData));
 		if (event) {
 			event.renderBody(feed);
@@ -320,7 +320,7 @@ function JiraNotificationController() {
 }
 
 function JiraNotification() {
-	this.createNotification = function () {	};
+	this.createNotification = function () { };
 }
 
 JiraIssueNotification.prototype = new JiraNotification();
@@ -338,7 +338,7 @@ function JiraIssueNotification(issue) {
 			return false; //Do not sync Epics
 		}
 		//Check if Issue is relevant
-		
+
 		//Check if issue exist
 		var issue = yasoon.notification.getByExternalId(self.issue.id);
 		if (issue) {
@@ -399,7 +399,7 @@ function JiraIssueNotification(issue) {
 
 	function searchUser(mode, query, callback) {
 		//console.log('Search User');
-		jiraGet('/rest/api/2/user/viewissue/search?issueKey='+ self.issue.key +'&projectKey='+ self.issue.fields.project.key +'&maxResults=10&username='+query)
+		jiraGet('/rest/api/2/user/viewissue/search?issueKey=' + self.issue.key + '&projectKey=' + self.issue.fields.project.key + '&maxResults=10&username=' + query)
 		.then(function (users) {
 			//console.log('Result:',users);
 			var data = [];
@@ -453,7 +453,7 @@ function JiraIssueNotification(issue) {
 			self.issue.renderedFields.duedate = moment(new Date(self.issue.fields.duedate)).format('L');
 		if (self.issue.renderedFields.resolutiondate)
 			self.issue.renderedFields.resolutiondate = moment(new Date(self.issue.fields.resolutiondate)).format('L');
-		
+
 		//Start rendering
 		feed.setTemplate('templates/issueNotification.hbs', {
 			fields: self.issue.fields,
@@ -491,15 +491,15 @@ function JiraIssueNotification(issue) {
 
 		//Add Actions
 		feed.properties.customActions.push(
-		{ 
-			description: '<span><i class="fa fa-external-link"></i> ' + yasoon.i18n('notification.openAction')  + '</span>',
-			url: jira.settings.baseUrl + '/browse/' + self.issue.key 
+		{
+			description: '<span><i class="fa fa-external-link"></i> ' + yasoon.i18n('notification.openAction') + '</span>',
+			url: jira.settings.baseUrl + '/browse/' + self.issue.key
 		});
 
 		var changeStatusHtml = '' +
 			'<span style="position:relative;">' +
 			'   <span class="dropdown-toggle" data-toggle="dropdown">' +
-			'       <span><i class="fa fa-sign-in"></i> <span class="transitionChangeLabel">'+ yasoon.i18n('notification.setStatusAction') + '</span></span>' +
+			'       <span><i class="fa fa-sign-in"></i> <span class="transitionChangeLabel">' + yasoon.i18n('notification.setStatusAction') + '</span></span>' +
 			'       <span class="caret"></span>' +
 			'   </span>' +
 			'   <ul class="dropdown-menu" role="menu">';
@@ -519,7 +519,7 @@ function JiraIssueNotification(issue) {
 		var icon_url = yasoon.io.getLinkPath('Task-03.png');
 		feed.setIconHtml('<img src="' + icon_url + '" title="Issue" ></i>');
 		feed.afterRenderScript(function () {
-			$('[data-feed-id=' + feed.feedId+']').find('.jiraStatusChangeLink').unbind().click(function () {
+			$('[data-feed-id=' + feed.feedId + ']').find('.jiraStatusChangeLink').unbind().click(function () {
 				if (!jiraIsLicensed(true)) {
 					return;
 				}
@@ -541,7 +541,7 @@ function JiraIssueNotification(issue) {
 
 
 				//Get latest transition information
-				jiraGet('/rest/api/2/issue/'+ key + '/transitions?transitionId=' + transitionId)
+				jiraGet('/rest/api/2/issue/' + key + '/transitions?transitionId=' + transitionId)
 				.then(function (data) {
 					var transObj = JSON.parse(data);
 					if (transObj.transitions[0].hasScreen) {
@@ -616,7 +616,7 @@ function JiraIssueNotification(issue) {
 			if (self.issue.fields.description && typeof self.issue.fields.description != 'string') {
 				try {
 					yasoon.util.log('Description Object found:' + JSON.stringify(self.issue.fields.description) + ' --> Rendered Description: ' + JSON.stringify(self.issue.renderedFields.description));
-				}catch(e) {
+				} catch (e) {
 					//Should't dump
 				}
 			} else {
@@ -631,18 +631,7 @@ function JiraIssueNotification(issue) {
 			self.issue.type = 'issue';
 
 			/* Clean up data to save DB space */
-			var tempIssue = JSON.parse(JSON.stringify(self.issue)); // Performance Intensive but nessecary. Never change original object
-			delete tempIssue.fields.comment;
-			delete tempIssue.fields.worklog;
-			delete tempIssue.fields.workratio; //Lead to a dump in JSON Convert due to Int64 Overflow
-			if (tempIssue.fields.watches)
-				delete tempIssue.fields.watches.watchers;
-
-			delete tempIssue.renderedFields.comment;
-			delete tempIssue.renderedFields.worklog;
-			delete tempIssue.renderedFields.attachment;
-
-			yEvent.externalData = JSON.stringify(tempIssue);
+			yEvent.externalData = JSON.stringify(jiraMinimizeIssue(self.issue));
 
 			jira.filter.addNotif(self.issue);
 			if (creation) {
@@ -669,6 +658,11 @@ function JiraIssueNotification(issue) {
 					});
 				});
 			}
+		})
+		.then(function (notif) {
+			//Save tasks and return the notif again for outside usage
+			return new JiraIssueTask(self.issue).save()
+			.return(notif);
 		});
 	};
 
@@ -751,7 +745,7 @@ function JiraIssueActionNotification(event) {
 		var html;
 		if (self.event.type === 'IssueComment') {
 			html = '<span>' + self.event.renderedComment.body + '</span>';
-		} else if(self.event.title) {
+		} else if (self.event.title) {
 			html = '<span>' + self.event.title['#text'] + '</span>';
 			var title = null;
 			if (self.event.content) {
@@ -772,8 +766,8 @@ function JiraIssueActionNotification(event) {
 					}
 				}
 			}
-			if(title)
-				html += '<span class="small yasoon-tooltip" style="cursor:pointer;" data-toggle="tooltip" data-html="true" title="' + title + '">( <i class="fa fa-exclamation-circle"></i>' + yasoon.i18n('feed.more') +')</span>';
+			if (title)
+				html += '<span class="small yasoon-tooltip" style="cursor:pointer;" data-toggle="tooltip" data-html="true" title="' + title + '">( <i class="fa fa-exclamation-circle"></i>' + yasoon.i18n('feed.more') + ')</span>';
 		} else {
 			yasoon.util.log('Coulnd\'t determine title for:' + JSON.stringify(self.event), yasoon.util.severity.error);
 		}
@@ -860,7 +854,7 @@ function JiraIssueActionNotification(event) {
 			var externalId = '';
 			if (comment && comment.id) {
 				externalId = 'c' + comment.id;
-			} else if(self.event.id) {
+			} else if (self.event.id) {
 				externalId = self.event.id['#text'];
 			} else {
 				var logObj = JSON.parse(JSON.stringify(self.event));
@@ -906,7 +900,7 @@ function JiraIssueActionNotification(event) {
 
 		//Determine Renderd Comment
 		var renderedComment = $.grep(self.event.issue.renderedFields.comment.comments, function (c) { return c.id === comment.id; })[0];
-	   
+
 		yEvent.parentNotificationId = parent.notificationId;
 		yEvent.externalId = 'c' + comment.id;
 		//"Render" title for desktop notification
@@ -917,7 +911,7 @@ function JiraIssueActionNotification(event) {
 		yEvent.content = (renderedComment.body) ? renderedComment.body : yasoon.i18n('notification.noContent');
 		yEvent.contactId = comment.updateAuthor.name;
 		yEvent.createdAt = new Date(comment.updated);
-		yEvent.type = 1;		
+		yEvent.type = 1;
 
 		yEvent.externalData = JSON.stringify({
 			comment: comment,
@@ -946,7 +940,7 @@ function JiraIssueActionNotification(event) {
 			yEvent = {};
 			creation = true;
 		} else if (yEvent.createdAt >= new Date(self.event.updated['#text'])) {
-				return;
+			return;
 		}
 
 		//Update Author
@@ -959,7 +953,7 @@ function JiraIssueActionNotification(event) {
 
 		yEvent.parentNotificationId = parent.notificationId;
 		yEvent.externalId = self.event.id['#text'];
-		yEvent.title = $('<div>'+ self.event.title['#text']+'</div>').text();
+		yEvent.title = $('<div>' + self.event.title['#text'] + '</div>').text();
 		yEvent.content = (yEvent.title) ? yEvent.title : yasoon.i18n('notification.noContent');
 		yEvent.createdAt = new Date(self.event.updated['#text']);
 		yEvent.type = 2;
@@ -1053,36 +1047,53 @@ function JiraIssueAppointment(issue) {
 		});
 	};
 }
-/*
+
 function JiraIssueTask(issue) {
 	var self = this;
 	this.issue = issue;
 
-	this.save = function () {
-
+	this.isSyncNeeded = function isSyncNeeded() {
 		if (!jira.settings.syncTask)
+			return false;
+		if (!self.issue.fields.assignee || jira.data.ownUser.name != self.issue.fields.assignee.name)
+			return false;
+
+		return true;
+	};
+
+	this.save = function save() {
+		//Is sync nessecary?
+		if (!self.isSyncNeeded())
 			return Promise.resolve();
 
-		if (!self.issue.fields.duedate)
-			return Promise.resolve();
-
-		//Check if it's an update or creation
-		return jiraGetTaskItem(self.issue.id)
+		return jiraGetTask(self.issue.key)
 		.then(function (dbItem) {
+			//Check if it's an update or creation
+			console.log('Task save', dbItem);
 			var creation = false;
 			if (!dbItem) {
 				//Creation
 				creation = true;
 				dbItem = { categories: ['Jira', self.issue.fields.project.name] };
-			} else {
-				//Update nessecary?
+			} else if (self.issue.fields.updated) {
+				var oldIssue = JSON.parse(dbItem.externalData);
+				if (new Date(oldIssue.fields.updated) >= new Date(self.issue.fields.updated).getTime()) {
+					//not new and no update needed
+					return dbItem;
+				}
 			}
-	
-			dbItem.externalId = self.issue.id;
-			dbItem.subject = self.issue.fields.summary;
-			dbItem.body = self.issue.fields.description;
-			dbItem.isHtmlBody = false;
 
+			console.log('Task save 2', dbItem);
+			dbItem.externalId = self.issue.key;
+			dbItem.subject = self.issue.key + ': ' + self.issue.fields.summary;
+			dbItem.body = self.issue.renderedFields.description.replace(/\s*\<br\/\>/g, '<br>'); //jshint ignore:line
+			//dbItem.body = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' + dbItem.body + '</body></html>';
+			dbItem.isHtmlBody = true;
+
+			if (dbItem.externalId == 'DEMO-212') {
+				window.demo212 = dbItem.body;
+				console.log(dbItem.body);
+			}
 
 			if (self.issue.fields.duedate) {
 				//We need to use momentJS to parse the date correctly
@@ -1090,10 +1101,10 @@ function JiraIssueTask(issue) {
 				// If using new Date(json), this will result in a date:
 				//     14.04.2014 00:00 UTC!
 				// but we actually need 00:00 local time (moment does that)
-				self.task.dueDate = moment(self.issue.fields.duedate).toDate();
+				dbItem.dueDate = moment(self.issue.fields.duedate).toDate();
 			}
 			else {
-				self.task.dueDate = new Date(0);
+				dbItem.dueDate = new Date(0);
 			}
 
 			if (self.issue.fields.assignee)
@@ -1101,23 +1112,26 @@ function JiraIssueTask(issue) {
 			else
 				delete dbItem.owner;
 
-			//Really needed?!
-			dbItem.externalData = JSON.stringify(self.issue);
+
+			dbItem.externalData = JSON.stringify(jiraMinimizeIssue(self.issue));
 
 			//Does folder exist?
 			return jiraGetFolder(self.issue.fields.project.key)
-			.then(function(folder) {
-
+			.then(function (folder) {
+				if (!folder)
+					return jiraAddFolder(self.issue.fields.project.key, self.issue.fields.project.name, JSON.stringify(self.issue.fields.project), 'Jira');
 			})
-
-			if (creation)
-				return jiraAddTaskItem(dbItem);
-			else
-				return jiraSaveTaskItem(dbItem);
+			.then(function () {
+				console.log('Task save 3. Add? ' + creation, dbItem);
+				if (creation)
+					return jiraAddTask(dbItem, self.issue.fields.project.key);
+				else
+					return jiraSaveTask(dbItem);
+			});
 		});
 	};
 }
-*/
+
 function JiraIssueController() {
 	var self = this;
 	var issues = [];
@@ -1148,7 +1162,7 @@ function JiraIssueController() {
 			return result[0];
 		}
 		return jiraGet('/rest/api/2/issue/' + id + '?expand=transitions,renderedFields') //,schema,editmeta,names
-		.then(function(issueData) {
+		.then(function (issueData) {
 			var issue = JSON.parse(issueData);
 			issues.push(issue);
 			return issue;

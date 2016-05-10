@@ -14,6 +14,7 @@
 			"general": {
 				"couldNotUploadAttachments": "Es konnten nicht alle Anhänge hochgeladen werden. Bitte versuche es erneut.",
 				"loginFirst": "Bitte logge dich zunächst im Settings Menü ein!",
+				"couldNotOpenIssue": "Der Vorgang konnte nicht gefunden werden.",
 				"couldNotDetectEmail": "Die aktuelle E-Mail konnte nicht gefunden werden. Bitte setze den Fokus gezielt auf eine E-Mail und versuche es erneut.",
 				"selectTextFirst": "Bitte selektiere zunächst einen Text!",
 				"couldNotRenderMarkup": "Der selektierte Text konnte nicht als JIRA Markup gerendert werden. Bitte wechsel auf 'nur Text' oder benachrichtige uns, um das langfristig zu lösen.",
@@ -216,7 +217,8 @@
 				"feed": "Neuigkeiten",
 				"hideResolvedIssues": "Erledigte Vorgänge nicht vorschlagen",
 				"filterChange":"Änderungen am Filter sind erst mit dem nächsten Outlook Neustart aktiv.",
-
+				"headingSyncTasks": "Aufgaben Synchronisation",
+				"syncTasks": "Aufgaben Synchronisation aktivieren"
 			}
 		}
 	}

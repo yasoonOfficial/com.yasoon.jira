@@ -78,11 +78,13 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 
 	this.handleSelectionChange = function handleSelectionChange(item) {
+		console.log(item);
 		jira.ribbons.updateRibbons(item);
 		jira.ribbons.updateAttachmentRibbons(item);
 	};
 
 	this.handleNewInspector = function handleNewInspector(ribbonCtx) {
+		console.log(ribbonCtx);
 		jira.ribbons.updateRibbons(ribbonCtx.items[0], ribbonCtx.inspectorId);
 	};
 
@@ -254,7 +256,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		});
 	};
 
-	this.initData = function () {
+	this.initData = function initData() {
 		//First Get Own User Data
 		jiraLog('Get Own Data');
 		if (jira.firstTime) {
@@ -276,6 +278,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				jira.contacts.updateOwn(jira.data.ownUser);
 			})
 			.then(jira.filter.reIndex)
+			.then(self.syncTasks)
 			.then(function () {
 				//Second get all projects
 				jiraLog('Get Projects');
@@ -316,7 +319,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		}
 	};
 
-	this.cleanDeletedProjects = function (projects) {		
+	this.cleanDeletedProjects = function cleanDeletedProjects(projects) {
 		//Check templates for deleted projects
 		var templateString = yasoon.setting.getAppParameter('createTemplates');
 		if (templateString) {
@@ -350,7 +353,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		}		
 	};
 
-	this.loadProjectCache = function () {
+	this.loadProjectCache = function loadProjectCache() {
 		console.log('Start loading Cache', new Date());
 		var cacheProjects = [];
 		return Promise.resolve()
@@ -425,6 +428,25 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		})
 		.then(function () {
 			console.log('Cache loading finshed', new Date());
+		});
+	};
+
+	this.syncTasks = function syncTasks() {
+		var ownUserKey = jira.data.ownUser.key || jira.data.ownUser.name; //Depending on version >.<
+		return jiraGet('/rest/api/2/search?jql=assignee%20%3D%20%22' + ownUserKey + '%22%20AND%20status%20!%3D%20%22resolved%22%20ORDER%20BY%20created%20DESC&maxResults=200&expand=transitions,renderedFields')
+		.then(function (data) {
+			var ownIssues = JSON.parse(data);
+			if (ownIssues.total > 0) {
+				return ownIssues.issues;
+			}
+			return [];
+		})
+		.each(function (issue) {
+			console.log('Create Task for issue', issue);
+			return new JiraIssueTask(issue).save();
+		})
+		.then(function () {
+			return;
 		});
 	};
 
