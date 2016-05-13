@@ -218,7 +218,8 @@
 				"hideResolvedIssues": "Do not suggest resolved issues",
 				"filterChange":"Changes to filters will be available with the next Outlook restart.",
 				"headingSyncTasks": "Task synchronization",
-				"syncTasks": "Enable Task sync"
+				"syncTasks": "Enable Task sync",
+				"deleteCompletedTasks": "Remove completed Tasks"
 			}
 		}
 	}

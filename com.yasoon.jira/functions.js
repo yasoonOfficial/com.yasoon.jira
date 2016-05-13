@@ -1252,10 +1252,30 @@ function jiraRemoveTask(task) {
 	});
 }
 
+function jiraGetFolderTasks(folderId) {
+	return new Promise(function (resolve, reject) {
+		try {
+			yasoon.outlook.task.getFolderTasksAsync(folderId, resolve, reject);
+		} catch (e) {
+			reject(e);
+		}
+	});
+}
+
 function jiraGetFolder(folderId) {
 	return new Promise(function (resolve, reject) {
 		try {
 			yasoon.outlook.task.getFolderAsync(folderId, resolve, reject);
+		} catch (e) {
+			reject(e);
+		}
+	});
+}
+
+function jiraAllFolders() {
+	return new Promise(function (resolve, reject) {
+		try {
+			yasoon.outlook.task.allFoldersAsync(resolve, reject);
 		} catch (e) {
 			reject(e);
 		}

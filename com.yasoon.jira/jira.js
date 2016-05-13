@@ -432,6 +432,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 
 	this.syncTasks = function syncTasks() {
+		var updatedIssues = [];
 		var ownUserKey = jira.data.ownUser.key || jira.data.ownUser.name; //Depending on version >.<
 		return jiraGet('/rest/api/2/search?jql=assignee%20%3D%20%22' + ownUserKey + '%22%20AND%20status%20!%3D%20%22resolved%22%20ORDER%20BY%20created%20DESC&maxResults=200&expand=transitions,renderedFields')
 		.then(function (data) {
@@ -443,10 +444,41 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		})
 		.each(function (issue) {
 			console.log('Create Task for issue', issue);
-			return new JiraIssueTask(issue).save();
+			return new JiraIssueTask(issue).save()
+			.then(function () {
+				updatedIssues.push(issue.key);
+			})
+			.catch(function (e) {
+				yasoon.util.log('Error while updating task' + e);
+			});
 		})
 		.then(function () {
-			return;
+			//Check other way around and look for resolved or reassigned issues
+			return jiraAllFolders()
+			.each(function (folder) {
+				return jiraGetFolderTasks(folder.externalId)
+				.each(function (task) {
+					//First check if it has already been updated
+					if (updatedIssues.indexOf(task.externalId) > -1)
+						return;
+
+					//If we are here, we need to update the issue. it has either been assigned to someone else or it has been resolved
+					return jira.issues.get(task.externalId)
+					.then(function (issue) {
+						var taskIssue = new JiraIssueTask(issue);
+						if (!jira.settings.removeCompletedTasks && taskIssue.isSyncNeeded()) {
+							//Probably resolved or something. will be fixed with sync
+							return taskIssue.save();
+						} else {
+							jiraRemoveTask(task);
+						}
+					})
+					.catch(function (e) {
+						yasoon.util.log('Error while removing task' + e);
+					});
+				});
+			});
+
 		});
 	};
 

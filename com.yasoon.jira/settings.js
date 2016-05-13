@@ -20,6 +20,7 @@ function JiraSettingController() {
 		newCreationScreen: true,
 		syncCalendar: false,
 		syncTask: false,
+		deleteCompletedTasks: false,
 		hideResolvedIssues: false,
 		activeFilters: 'fields.project.id,fields.issuetype.id,fields.assignee.emailAddress,fields.status.id,fields.priority.id'
 	};

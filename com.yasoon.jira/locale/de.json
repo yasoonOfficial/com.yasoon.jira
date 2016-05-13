@@ -218,7 +218,8 @@
 				"hideResolvedIssues": "Erledigte Vorgänge nicht vorschlagen",
 				"filterChange":"Änderungen am Filter sind erst mit dem nächsten Outlook Neustart aktiv.",
 				"headingSyncTasks": "Aufgaben Synchronisation",
-				"syncTasks": "Aufgaben Synchronisation aktivieren"
+				"syncTasks": "Aufgaben Synchronisation aktivieren",
+				"deleteCompletedTasks": "Abgeschlossene Aufgaben löschen"
 			}
 		}
 	}

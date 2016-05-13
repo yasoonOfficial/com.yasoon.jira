@@ -1089,6 +1089,15 @@ function JiraIssueTask(issue) {
 			dbItem.body = self.issue.renderedFields.description.replace(/\s*\<br\/\>/g, '<br>'); //jshint ignore:line
 			//dbItem.body = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' + dbItem.body + '</body></html>';
 			dbItem.isHtmlBody = true;
+			if(self.issue.fields.status === 'resolved') {
+				dbItem.completionState = yasoon.outlook.task.completionState.Completed;
+				dbItem.completionPercent = 100;
+			} else if (dbItem.completionState == yasoon.outlook.task.completionState.Completed) {
+				//Do not always overwrite the status --> User may have set it to "pending" or similar to track the status
+				//Better: Only reset status to NotStarted if it is an old task AND this task was completed
+				dbItem.completionState = yasoon.outlook.task.completionState.NotStarted;
+				dbItem.completionPercent = 0;
+			}
 
 			if (dbItem.externalId == 'DEMO-212') {
 				window.demo212 = dbItem.body;
@@ -1159,7 +1168,7 @@ function JiraIssueController() {
 	self.get = function (id) {
 		var result = $.grep(issues, function (issue) { return (issue.id === id || issue.key === id); });
 		if (result.length > 0) {
-			return result[0];
+			return Promise.resolve(result[0]);
 		}
 		return jiraGet('/rest/api/2/issue/' + id + '?expand=transitions,renderedFields') //,schema,editmeta,names
 		.then(function (issueData) {
