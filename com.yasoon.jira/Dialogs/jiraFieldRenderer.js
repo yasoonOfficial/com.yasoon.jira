@@ -323,7 +323,7 @@ function DateRenderer() {
 		
 		$.datetimepicker.setLocale(country);
 
-		$('#' + id + '-trigger').unbind().click(function (e) {
+		$('#' + id + '-trigger').off().click(function (e) {
 			$('#' + id).datetimepicker("show");
 		});
 	};
@@ -377,7 +377,7 @@ function DateTimeRenderer() {
 		
 		$.datetimepicker.setLocale(country);
 
-		$('#' + id + '-trigger').unbind().click(function (e) {
+		$('#' + id + '-trigger').off().click(function (e) {
 			$('#' + id).datetimepicker("show");
 		});
 	};
@@ -853,7 +853,7 @@ function UserPickerRenderer() {
 
 		$(container).append(html);
 
-		$('#' + id + '-container').find('.assign-to-me-trigger').unbind().click(function (e) {
+		$('#' + id + '-container').find('.assign-to-me-trigger').off().click(function (e) {
 			if (jira.ownUser) {
 				$('#' + id)
 					.val(jira.ownUser.name)
@@ -867,7 +867,7 @@ function UserPickerRenderer() {
 			e.preventDefault();
 		});
 
-		$('#' + id + '-container').find('.create-sender').unbind().click(function (e) {
+		$('#' + id + '-container').find('.create-sender').off().click(function (e) {
 			var elem = $(this);
 			elem.prop('disabled', true);
 			var newUser = {
@@ -1005,7 +1005,7 @@ function AttachmentLinkRenderer() {
 		});
 
 		//Hook EventHandler
-		$('.attachmentRename').unbind().click(function (e) {
+		$('.attachmentRename').off().click(function (e) {
 			e.preventDefault();
 			//Save DOM References
 			var domAttachmentLink = $(this).closest('.jiraAttachmentLink');
@@ -1063,7 +1063,7 @@ function AttachmentLinkRenderer() {
 			domAttachmentLink.on('keyup', function (e) {
 				e.preventDefault();
 				if (e.keyCode == 13) {
-					domAttachmentLink.unbind();
+					domAttachmentLink.off();
 					var newName = domAttachmentNewNameInput.val();
 					if (attachmentName != newName) {
 						domAttachmentName.text(newName + extension);
@@ -1083,13 +1083,13 @@ function AttachmentLinkRenderer() {
 			});
 		});
 
-		$('.attachmentAddRef').unbind().click(function (e) {
+		$('.attachmentAddRef').off().click(function (e) {
 			e.preventDefault();
 			var attachmentName = $(this).closest('.jiraAttachmentLink').find('.attachmentName').text();
 			insertAtCursor($('#description')[0], '\n[^' + attachmentName + ']');
 		});
 
-		$('.attachmentDelete').unbind().click(function (e) {
+		$('.attachmentDelete').off().click(function (e) {
 			e.preventDefault();
 			var domAttachmentLink = $(this).closest('.jiraAttachmentLink');
 			var handleId = domAttachmentLink.data('id');

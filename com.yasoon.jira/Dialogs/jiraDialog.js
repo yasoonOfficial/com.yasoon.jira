@@ -316,9 +316,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		}
 
 		//Submit Button - (Create & Edit)
-		$('#create-issue-submit').unbind().click(self.submitForm);
+		$('#create-issue-submit').off().click(self.submitForm);
 
-		$('#create-issue-cancel').unbind().click(function () {
+		$('#create-issue-cancel').off().click(function () {
 			self.close({ action: 'cancel' });
 		});
 	}; 
@@ -590,7 +590,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			.spread(function (requestTypes) {
 				//New with JIRA 7: Depending on the project type, we render a little bit differently.
 				//Common stuff
-				$('#issuetype').empty().unbind();
+				$('#issuetype').empty().off();
 
 				//Render Issue Types
 				$.each(self.selectedProject.issueTypes, function (i, type) {
@@ -628,7 +628,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 				//Service Specific Stuff
 				if (jira.selectedProject.projectTypeKey == 'service_desk' && requestTypes) {
-					$('#requestType').empty().unbind();
+					$('#requestType').empty().off();
 					//Render Request Types if it's an service project
 					requestTypes.groups.forEach(function (group) {
 						$('#requestType').append('<optgroup label="' + group.name + '"></optgroup>');
@@ -659,7 +659,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					$('#behalfReporter-container label').addClass('hidden');
 					
 					//Event for show/ hide portal data
-					$('#switchServiceMode').removeClass('hidden').unbind().click(function () {
+					$('#switchServiceMode').removeClass('hidden').off().click(function () {
 						$('#ServiceArea').toggleClass('hidden');
 						$('#switchServiceMode').toggleClass('active');
 

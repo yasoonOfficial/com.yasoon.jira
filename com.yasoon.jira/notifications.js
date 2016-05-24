@@ -519,7 +519,7 @@ function JiraIssueNotification(issue) {
 		var icon_url = yasoon.io.getLinkPath('Task-03.png');
 		feed.setIconHtml('<img src="' + icon_url + '" title="Issue" ></i>');
 		feed.afterRenderScript(function () {
-			$('[data-feed-id=' + feed.feedId + ']').find('.jiraStatusChangeLink').unbind().click(function () {
+			$('[data-feed-id=' + feed.feedId + ']').find('.jiraStatusChangeLink').off().click(function () {
 				if (!jiraIsLicensed(true)) {
 					return;
 				}
@@ -563,12 +563,12 @@ function JiraIssueNotification(issue) {
 				});
 			});
 
-			$('[data-feed-id=' + feed.feedId + ']').find('.jiraFeedExpand').unbind().click(function () {
+			$('[data-feed-id=' + feed.feedId + ']').find('.jiraFeedExpand').off().click(function () {
 				$(this).parents('.body-collapsed').hide();
 				$(this).parents('.jiraContainer').find('.body-open').show();
 			});
 
-			$('[data-feed-id=' + feed.feedId + ']').find('.jiraFeedClose').unbind().click(function () {
+			$('[data-feed-id=' + feed.feedId + ']').find('.jiraFeedClose').off().click(function () {
 				$(this).parents('.body-open').hide();
 				$(this).parents('.jiraContainer').find('.body-collapsed').show();
 			});

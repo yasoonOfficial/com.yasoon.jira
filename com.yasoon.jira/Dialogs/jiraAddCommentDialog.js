@@ -215,8 +215,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		}).catch(jira.handleError);
 
 		//Submit Button - (Create & Edit)
-		$('#add-issue-submit').unbind().click(self.submitForm);
-		$('#add-issue-cancel').unbind().click(function () {
+		$('#add-issue-submit').off().click(self.submitForm);
+		$('#add-issue-cancel').off().click(function () {
 			self.close({ action: 'cancel' });
 		});
 

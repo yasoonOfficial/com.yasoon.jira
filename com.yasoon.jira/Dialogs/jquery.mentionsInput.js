@@ -108,15 +108,15 @@
             elmWrapperBox = elmInputWrapper.find('> div.mentions-input-box'); //Obtains the div elmWrapperBox that now contains the text area
 
             elmInputBox.attr('data-mentions-input', 'true'); //Sets the attribute data-mentions-input to true -> Defines if the text area is already configured
-            elmInputBox.bind('keydown', onInputBoxKeyDown); //Bind the keydown event to the text area
-            elmInputBox.bind('keypress', onInputBoxKeyPress); //Bind the keypress event to the text area
-            elmInputBox.bind('click', onInputBoxClick); //Bind the click event to the text area
-            elmInputBox.bind('blur', onInputBoxBlur); //Bind the blur event to the text area
+            elmInputBox.on('keydown', onInputBoxKeyDown); //Bind the keydown event to the text area
+            elmInputBox.on('keypress', onInputBoxKeyPress); //Bind the keypress event to the text area
+            elmInputBox.on('click', onInputBoxClick); //Bind the click event to the text area
+            elmInputBox.on('blur', onInputBoxBlur); //Bind the blur event to the text area
 
             if (navigator.userAgent.indexOf("MSIE 8") > -1) {
-                elmInputBox.bind('propertychange', onInputBoxInput); //IE8 won't fire the input event, so let's bind to the propertychange
+                elmInputBox.on('propertychange', onInputBoxInput); //IE8 won't fire the input event, so let's bind to the propertychange
             } else {
-                elmInputBox.bind('input', onInputBoxInput); //Bind the input event to the text area
+                elmInputBox.on('input', onInputBoxInput); //Bind the input event to the text area
             }
 
             // Elastic textareas, grow automatically
@@ -162,7 +162,7 @@
 
             elmInputBox.data('messageText', syntaxMessage); //Save the messageText to elmInputBox
 	        elmInputBox.trigger('updated');
-            elmMentionsOverlay.find('div').html(mentionText + '<br>'); //Insert into a div of the elmMentionsOverlay the mention text
+            elmMentionsOverlay.find('div').html(mentionText); //Insert into a div of the elmMentionsOverlay the mention text
         }
 
         //Cleans the buffer
@@ -184,14 +184,25 @@
 	    //Adds mention to mentions collections
         function addMention(mention) {
 
-            var currentMessage = getInputBoxValue(); //Get the actual value of the text area
+            var currentMessage = getInputBoxValue(),
+                caretStart = elmInputBox[0].selectionStart,
+                shortestDistance = false,
+                bestLastIndex = false;
 
             // Using a regex to figure out positions
-            var regex = new RegExp("\\" + settings.triggerChar + currentDataQuery, "gi");
-            regex.exec(currentMessage); //Executes a search for a match in a specified string. Returns a result array, or null
+            var regex = new RegExp("\\" + settings.triggerChar + currentDataQuery, "gi"),
+                regexMatch;
 
-            var startCaretPosition = regex.lastIndex - currentDataQuery.length - 1; //Set the star caret position
-            var currentCaretPosition = regex.lastIndex; //Set the current caret position
+            while(regexMatch = regex.exec(currentMessage)) {
+                if (shortestDistance === false || Math.abs(regex.lastIndex - caretStart) < shortestDistance) {
+                    shortestDistance = Math.abs(regex.lastIndex - caretStart);
+                    bestLastIndex = regex.lastIndex;
+                }
+            }
+
+            var startCaretPosition = bestLastIndex - currentDataQuery.length - 1; //Set the start caret position (right before the @)
+            var currentCaretPosition = bestLastIndex; //Set the current caret position (right after the end of the "mention")
+
 
             var start = currentMessage.substr(0, startCaretPosition);
             var end = currentMessage.substr(currentCaretPosition, currentMessage.length);
@@ -244,6 +255,25 @@
               }, h = ["boxSizing", "fontFamily", "fontSize", "fontStyle", "fontVariant", "fontWeight", "height", "letterSpacing", "lineHeight", "paddingBottom", "paddingLeft", "paddingRight", "paddingTop", "textDecoration", "textIndent", "textTransform", "width", "word-spacing"];
             for (j = 0, k = h.length; j < k; j++) e = h[j], g[e] = $(i).css(e);
             return c = document.createElement("div"), $(c).css(g), $(i).after(c), b = document.createTextNode(i.value.substring(0, i.selectionEnd)), a = document.createTextNode(i.value.substring(i.selectionEnd)), d = document.createElement("span"), d.innerHTML = "&nbsp;", c.appendChild(b), c.appendChild(d), c.appendChild(a), c.scrollTop = i.scrollTop, f = $(d).position(), $(c).remove(), f
+        }
+
+        //same as above function but return offset instead of position
+        function textareaSelectionOffset($el) {
+            var a, b, c, d, e, f, g, h, i, j, k;
+            if (!(i = $el[0])) return;
+            if (!$(i).is("textarea")) return;
+            if (i.selectionEnd == null) return;
+            g = {
+                position: "absolute",
+                overflow: "auto",
+                whiteSpace: "pre-wrap",
+                wordWrap: "break-word",
+                boxSizing: "content-box",
+                top: 0,
+                left: -9999
+            }, h = ["boxSizing", "fontFamily", "fontSize", "fontStyle", "fontVariant", "fontWeight", "height", "letterSpacing", "lineHeight", "paddingBottom", "paddingLeft", "paddingRight", "paddingTop", "textDecoration", "textIndent", "textTransform", "width", "word-spacing"];
+            for (j = 0, k = h.length; j < k; j++) e = h[j], g[e] = $(i).css(e);
+            return c = document.createElement("div"), $(c).css(g), $(i).after(c), b = document.createTextNode(i.value.substring(0, i.selectionEnd)), a = document.createTextNode(i.value.substring(i.selectionEnd)), d = document.createElement("span"), d.innerHTML = "&nbsp;", c.appendChild(b), c.appendChild(d), c.appendChild(a), c.scrollTop = i.scrollTop, f = $(d).offset(), $(c).remove(), f
         }
 
         //Scrolls back to the input after autocomplete if the window has scrolled past the input
@@ -444,18 +474,28 @@
         }
 
 	    function positionAutocomplete(elmAutocompleteList, elmInputBox) {
-            var position = textareaSelectionPosition(elmInputBox),
-            lineHeight = parseInt(elmInputBox.css('line-height'), 10) || 18;
-            elmAutocompleteList.css('width', '15em'); // Sort of a guess
-            elmAutocompleteList.css('left', position.left);
-            elmAutocompleteList.css('top', lineHeight + position.top);
+            var elmAutocompleteListPosition = elmAutocompleteList.css('position');
+            if (elmAutocompleteListPosition == 'absolute') {
+                var position = textareaSelectionPosition(elmInputBox),
+                    lineHeight = parseInt(elmInputBox.css('line-height'), 10) || 18;
+                elmAutocompleteList.css('width', '15em'); // Sort of a guess
+                elmAutocompleteList.css('left', position.left);
+                elmAutocompleteList.css('top', lineHeight + position.top);
 
-            //check if the right position of auto complete is larger than the right position of the input
-            //if yes, reset the left of auto complete list to make it fit the input
-            var elmInputBoxRight = elmInputBox.offset().left + elmInputBox.width(),
-                elmAutocompleteListRight = elmAutocompleteList.offset().left + elmAutocompleteList.width();
-            if (elmInputBoxRight <= elmAutocompleteListRight) {
-                elmAutocompleteList.css('left', Math.abs(elmAutocompleteList.position().left - (elmAutocompleteListRight - elmInputBoxRight)));
+                //check if the right position of auto complete is larger than the right position of the input
+                //if yes, reset the left of auto complete list to make it fit the input
+                var elmInputBoxRight = elmInputBox.offset().left + elmInputBox.width(),
+                    elmAutocompleteListRight = elmAutocompleteList.offset().left + elmAutocompleteList.width();
+                if (elmInputBoxRight <= elmAutocompleteListRight) {
+                    elmAutocompleteList.css('left', Math.abs(elmAutocompleteList.position().left - (elmAutocompleteListRight - elmInputBoxRight)));
+                }
+            }
+            else if (elmAutocompleteListPosition == 'fixed') {
+                var offset = textareaSelectionOffset(elmInputBox),
+                    lineHeight = parseInt(elmInputBox.css('line-height'), 10) || 18;
+                elmAutocompleteList.css('width', '15em'); // Sort of a guess
+                elmAutocompleteList.css('left', offset.left + 10000);
+                elmAutocompleteList.css('top', lineHeight + offset.top);
             }
         }
 
@@ -498,9 +538,14 @@
                 callback.call(this, mentionsCollection.length ? elmInputBox.data('messageText') : getInputBoxValue());
             },
 
-	        //Resets the text area value and clears all mentions
+        	//Resets the text area value and clears all mentions
             reset : function () {
                 resetInput();
+            },
+
+            //Reinit with the text area value if it was changed programmatically
+            reinit : function () {
+                resetInput(false);
             },
 
 	        //An async method which accepts a callback function and returns a collection of mentions as hash objects as a first parameter.
