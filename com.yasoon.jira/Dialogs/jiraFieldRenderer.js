@@ -1702,7 +1702,7 @@ function IssuePickerRenderer() {
 		 '		<span> ' + yasoon.i18n('dialog.issue') +'</span>' + 
 			((field.required) ? '<span class="aui-icon icon-required">' + yasoon.i18n('dialog.required') + '</span>' : '') +
 		 '	</label> ' +
-		 '	<select class="select input-field" id="' + id + '" name="' + id +'" style="width: 75%">' +
+		 '	<select class="select input-field" id="' + id + '" name="' + id +'" style="width: 80%">' +
 		 '		<option></option>' +
 		 '	</select>' +
 		 //'  <a id="' + id + '-advancedLink">advanced</a>' +
