@@ -142,7 +142,7 @@ function JiraRibbonController() {
 							id: 'jiraOpenTask',
 							size: 'large',
 							label: 'Open Issue',
-							image: 'brandedlogo-64',
+							image: 'images/ribbonOpen.png',
 							visible: 'appItem',
 							onAction: self.ribbonOpenIssue
 						}, {
@@ -153,6 +153,13 @@ function JiraRibbonController() {
 							image: 'brandedlogo-64',
 							visible: 'appItem',
 							onAction: self.ribbonEditIssue
+						}, {
+							id: 'jiraAddTask',
+							type: 'button',
+							size: 'large',
+							image: 'images/ribbonAdd.png',
+							label: yasoon.i18n('ribbon.addToIssue'),
+							onAction: self.ribbonOnAddToIssue
 						}]
 					}]
 				}]
@@ -249,6 +256,9 @@ function JiraRibbonController() {
 
 	this.updateRibbons = function updateRibbons(item, inspectorId) {
 		if (!item)
+			return;
+
+		if (!item.getConversationData)
 			return;
 
 		//This method can be called with or without inspector. In inspector it has another method to call(updateSingle instead of update) and different Ids
@@ -544,6 +554,11 @@ function JiraRibbonController() {
 
 		if (ribbonId == 'addToIssueFullMail' || ribbonId == 'addToIssueFromMailMain' || ribbonId == 'newIssueFromMailRead') {
 			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
+			yasoon.dialog.open(dialogOptions);
+			return;
+		} else if (ribbonId == 'jiraAddTask') {
+			var task = ribbonCtx.items[ribbonCtx.readingPaneItem];
+			initParams.issue = JSON.parse(task.externalData);
 			yasoon.dialog.open(dialogOptions);
 			return;
 		} else {
