@@ -1073,7 +1073,6 @@ function JiraIssueTask(issue) {
 		return jiraGetTask(self.issue.key)
 		.then(function (dbItem) {
 			//Check if it's an update or creation
-			console.log('Task save', dbItem);
 			var creation = false;
 			if (!dbItem) {
 				//Creation
@@ -1087,7 +1086,6 @@ function JiraIssueTask(issue) {
 				}
 			}
 
-			console.log('Task save 2', dbItem);
 			dbItem.externalId = self.issue.key;
 			dbItem.subject = self.issue.key + ': ' + self.issue.fields.summary;
 			dbItem.body = self.issue.renderedFields.description.replace(/\s*\<br\/\>/g, '<br>'); //jshint ignore:line
@@ -1130,7 +1128,6 @@ function JiraIssueTask(issue) {
 					return jiraAddFolder(self.issue.fields.project.key, self.issue.fields.project.name, JSON.stringify(self.issue.fields.project), 'Jira');
 			})
 			.then(function () {
-				console.log('Task save 3. Add? ' + creation, dbItem);
 				if (creation)
 					return jiraAddTask(dbItem, self.issue.fields.project.key);
 				else
@@ -1211,6 +1208,10 @@ function JiraTaskController() {
 	};
 
 	this.syncTasks = function () {
+		if (!jira.settings.syncTask) {
+			return Promise.resolve();
+		}
+
 		var updatedIssues = [];
 		var ownUserKey = jira.data.ownUser.key || jira.data.ownUser.name; //Depending on version >.<
 		var jql = 'assignee="' + ownUserKey + '" AND status != "resolved" AND status != "closed" AND status != "done" ORDER BY created DESC';
@@ -1223,7 +1224,6 @@ function JiraTaskController() {
 			return [];
 		})
 		.each(function (issue) {
-			console.log('Create Task for issue', issue);
 			return new JiraIssueTask(issue).save()
 			.then(function () {
 				updatedIssues.push(issue.key);
