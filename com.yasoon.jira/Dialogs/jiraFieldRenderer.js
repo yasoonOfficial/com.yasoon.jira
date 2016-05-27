@@ -1606,6 +1606,205 @@ function GroupSingleRenderer() {
 	};
 }
 
+function IssuePickerRenderer() {
+
+	this.getValue = function (id) {
+		return $('#' + id).val();
+	};
+
+	this.setValue = function (id, value) {
+		if (value) {
+			//We can only select elements that have an rendered option tag.
+			if ($('#' + id).find('option[value="' + value.id + '"]').length === 0) {
+				$('#' + id).append('<option value="' + value.id + '" selected="selected">' + value.fields.summary + ' (' + value.key + ')' + '</option>');
+				$('#' + id).data('id', value.id)
+					.data('text', value.fields.summary + ' (' + issue.key + ')')
+					.data('key', value.key)
+					.data('summary', value.fields.summary)
+					.data('projectId', value.fields.project.id)
+					.data('projectKey', value.fields.project.key);
+			}
+
+			$('#' + id)
+			.val(value.id)
+			.trigger('change');
+		} else {
+			$('#' + id).removeData();
+
+			$('#' + id)
+			.val('')
+			.trigger('change');
+		}
+	};
+
+	var lastQuery = '';
+	var searchIssue = debounce(function searchIssue(term, callback) {
+		console.log('Debounced searchIssue called');
+		//Concat JQL
+
+		var jql = '';
+
+		if (term) {
+			jql += 'Summary ~ "' + term + '"';
+		}
+		if (jira.selectedProjectKey) {
+			jql += ((jql) ? 'AND' : '') + ' project = "' + jira.selectedProjectKey + '"';
+		}
+		if (jira.settings.hideResolvedIssues) {
+			jql += ((jql) ? 'AND' : '') + ' status != "resolved" AND status != "closed" AND status != "done"';
+		}
+
+		jql = '( ' + jql + ' )';
+
+		if (term) {
+			jql += 'OR key = "' + term + '"';
+		}
+
+		console.log('JQL' + jql);
+
+		return jiraGet('/rest/api/2/search?jql=' + encodeURIComponent(jql) + '&maxResults=20&fields=summary,project&validateQuery=false')
+		.then(function (data) {
+			if (term === lastQuery) {
+				var jqlResult = JSON.parse(data);
+				var result = [];
+				//Transform Data
+				jqlResult.issues.forEach(function (issue) {
+					result.push({ id: issue.id, text: issue.fields.summary + ' (' + issue.key + ')', key: issue.key, summary: issue.fields.summary, project: issue.fields.project });
+				});
+
+				console.log('Result for ' + term, result);
+				callback(result);
+			}
+		})
+		.catch(function () {
+			if (term === lastQuery) {
+				$('#IssueSpinner').css('display', 'none');
+			}
+			yasoon.util.log('Couldn\'t find issues for Project' + jira.selectedProjectKey + ' || Term: ' + term, yasoon.util.severity.warning);
+			callback([]);
+		});
+	}, 250);
+
+	this.render = function (id, field, container) {
+		if ($('#' + id).data('select2')) {
+			$('#' + id).select2("destroy");
+
+			$('#' + id + '-Container').remove();
+			
+			//Second Clear Data
+			$('#' + id).removeData();
+		}
+
+		//Render Issue Picker
+		var html = '' +
+		 '<div class="field-group input-field" id="' + id + '-Container">'+ 
+		 '	<label for="' + id + '"> ' + 
+		 '		<span> ' + yasoon.i18n('dialog.issue') +'</span>' + 
+			((field.required) ? '<span class="aui-icon icon-required">' + yasoon.i18n('dialog.required') + '</span>' : '') +
+		 '	</label> ' +
+		 '	<select class="select input-field" id="' + id + '" name="' + id +'" style="width: 75%">' +
+		 '		<option></option>' +
+		 '	</select>' +
+		 //'  <a id="' + id + '-advancedLink">advanced</a>' +
+		 '  <img src="Dialogs/ajax-loader.gif" style="display:none;" id="' + id + '-Spinner" />' +
+		 '</div>';
+		 
+		$(container).append(html);
+
+		//Render Issue Advanced Search Dialog
+		//var path = yasoon.io.getLinkPath('templates/advancedIssueSearch.hbs');
+		//$.get(path, function (template) {
+		//	var issueAdvancedTemplate = Handlebars.compile(template);
+		//	$('body').append(template());
+		//});
+
+		//Register JS
+		$('#' + id).select2({
+			placeholder: yasoon.i18n('dialog.placeholderSelectIssue'),
+			templateResult: formatIssue,
+			templateSelection: formatIssue,
+			ajax: {
+				url: 'dummy',
+				transport: function (params, success, failure) {
+					console.log('Query Issue Data', params);
+					var queryTerm = '';
+					if (params && params.data && params.data.q) {
+						queryTerm = params.data.q;
+					}
+
+					//Set last Quety term so we know when the REST Call returns, if it has been the latest result for the correct term.
+					lastQuery = queryTerm;
+
+					if (queryTerm) {
+						//Case 1: A Query term has been entered.
+						//Search for all issues (filtered by settings and selectedProject)
+						console.log('Query JIRA Issue Data');
+						$('#IssueSpinner').css('display', 'inline');
+						searchIssue(queryTerm, function (params) {
+							$('#IssueSpinner').css('display', 'none');
+							success([{
+								id: 'Results',
+								text: yasoon.i18n('dialog.titleSearchResults', { term: queryTerm }),
+								children: params
+							}]);
+						});
+					} else if (jira.selectedProjectId && jira.projectIssues.length <= 1) {
+						//Case 2: A project has been selected without query term, but the project issues have not been loaded yet.
+						$('#' + id + '-Spinner').css('display', 'inline');
+						searchIssue(queryTerm, function (params) {
+							$('#' + id + '-Spinner').css('display', 'none');
+							jira.projectIssues = params;
+							success([{
+								id: 'Recent',
+								text: yasoon.i18n('dialog.recentIssues'),
+								children: jira.recentIssues
+							}, {
+								id: 'ProjectIssues',
+								text: yasoon.i18n('dialog.projectIssues'),
+								children: params
+							}]);
+						});
+					} else {
+						//Case 3: Default just show local data
+						console.log('Query Result Default data');
+						var result = [];
+						result.push({
+							id: 'Recent',
+							text: yasoon.i18n('dialog.recentIssues'),
+							children: jira.recentIssues
+						});
+
+						if (jira.selectedProjectId) {
+							result.push({
+								id: 'ProjectIssues',
+								text: yasoon.i18n('dialog.projectIssues'),
+								children: jira.projectIssues
+							});
+						}
+
+						success(result);
+					}
+				},
+				processResults: function (data, page) {
+					return { results: data };
+				}
+			}
+		});
+
+		var isLoaded = false;
+		$('#' + id + '-advancedLink').unbind().click(function () {
+			if (!isLoaded) {
+				$('#' + id + '-Spinner').show();
+				jiraGet('/rest/api/2/jql/autocompletedata').then(function (data) {
+					var jqlData = JSON.parse(data);
+					
+				});
+			}
+				
+		});
+	};
+}
+
 function renderSelectField(id, field, style) {
 	var html = '' +
 		'    <select class="select input-field" id="' + id + '" name="' + id + '" style="'+ style +'" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
@@ -1687,6 +1886,25 @@ function formatUser(user) {
 	} else {
 		return $('<span>' + user.text + '</span>');
 	}
+}
+
+function formatIssue(issue) {
+	if (!issue)
+		return '';
+
+	if (issue.element)
+		$(issue.element).removeData();
+
+	if (issue.element && issue.id && issue.project) {
+		$(issue.element).data('id', issue.id)
+				.data('text', issue.text)
+				.data('key', issue.key)
+			    .data('summary', issue.summary)
+				.data('projectId', issue.project.id)
+				.data('projectKey', issue.project.key);
+	}
+	return issue.text;
+
 }
 
 function getSelect2User(user) {

@@ -123,6 +123,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			self.recentProjects = JSON.parse(projectsString);
 		}
 
+		//Load Recent Issues from DB
+		var issuesString = yasoon.setting.getAppParameter('recentIssues');
+		if (issuesString) {
+			self.recentIssues = JSON.parse(issuesString);
+		}
+
 		//Load DB settings
 		var fieldOrderString = yasoon.setting.getAppParameter('fieldOrder');
 		if (fieldOrderString) {
@@ -381,6 +387,15 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				id: $('#issuetype').val()
 			};
 
+			// 2.1 Issue if it's a subtask
+			if (jira.currentMeta.subtask) {
+				var parent = $('#issue').val();
+				if (parent) {
+					result.fields.parent = {
+						key: parent
+					};
+				}
+			}
 			//Increment transaction for Greenhopper API
 			jira.transaction.currentCallCounter++;
 			//Get Generated Fields
@@ -594,11 +609,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 				//Render Issue Types
 				$.each(self.selectedProject.issueTypes, function (i, type) {
-					if (!type.subtask) {
-						type.iconUrl = jira.icons.mapIconUrl(type.iconUrl);
-						$('#issuetype').append('<option data-icon="' + type.iconUrl + '" value="' + type.id + '">' + type.name + '</option>');
-					}
+					type.iconUrl = jira.icons.mapIconUrl(type.iconUrl);
+					$('#issuetype').append('<option data-icon="' + type.iconUrl + '" value="' + type.id + '">' + type.name + '</option>');
 				});
+
 				$('#issuetype').select2("destroy");
 				$("#issuetype").select2({
 					templateResult: formatIcon,
@@ -736,8 +750,18 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.renderIssue = function (meta) {
 		//Set this as current meta
 		jira.currentMeta = meta;
-
-		return self.renderIssueUser()
+		$('#SubtaskArea').addClass('hidden');
+		return Promise.resolve()
+		.then(function() {
+			//If currentMeta is a subtask, render Issue Renderer
+			if (jira.currentMeta.subtask) {
+				new IssuePickerRenderer().render('issue', { required: true }, $('#SubtaskArea'));
+				$('#SubtaskArea').removeClass('hidden');
+			}
+		})
+		.then(function() {
+			return self.renderIssueUser();
+		})
 		.catch(function (e) {
 			console.log('Error in new renderLogic - switch to old one', e);
 			return self.renderIssueFixed(meta);
@@ -794,7 +818,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					return;
 
 				//Check if userPrefences allow current field
-				if (renderData.userPreferences.useQuickForm && renderData.userPreferences.fields.indexOf(field.id) == -1) {
+				if (renderData.userPreferences.useQuickForm && (renderData.userPreferences.fields.indexOf(field.id) === -1 && field.required === false)) {
 					return;
 				}
 

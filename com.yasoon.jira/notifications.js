@@ -3,7 +3,7 @@ function JiraNotificationController() {
 	var notificationCounter = 0;
 	var notification = null;
 	var notificationEvent = null;
-
+	var queueProcessingRunning = false;
 	var childQueue = [];
 
 	self.worklogTemplateLoaded = false;
@@ -79,7 +79,8 @@ function JiraNotificationController() {
 	};
 
 	self.addDesktopNotification = function (notif, event) {
-		if (jira.settings.showDesktopNotif && notif.contactId != jira.data.ownUser.key) {
+		if (jira.settings.showDesktopNotif && notif.contactId != jira.data.ownUser.key && !queueProcessingRunning) {
+			yasoon.notification.incrementCounter();
 			notificationCounter++;
 			notification = notif;
 			notificationEvent = event;
@@ -124,6 +125,8 @@ function JiraNotificationController() {
 		if (childQueue.length === 0) {
 			return;
 		}
+
+		queueProcessingRunning = true;
 		return Promise.resolve(childQueue)
 		.each(function (entry) {
 			return jira.syncStream('/activity?streams=issue-key+IS+' + entry.key, 500)
@@ -138,6 +141,7 @@ function JiraNotificationController() {
 			});
 		})
 		.then(function () {
+			queueProcessingRunning = false;
 			childQueue = [];
 		});
 	};
@@ -661,7 +665,7 @@ function JiraIssueNotification(issue) {
 		})
 		.then(function (notif) {
 			//Save tasks and return the notif again for outside usage
-			return new JiraIssueTask(self.issue).save()
+			return jira.tasks.handleTask(self.issue)
 			.return(notif);
 		});
 	};
@@ -973,13 +977,11 @@ function JiraIssueActionNotification(event) {
 		if (creation) {
 			return jiraAddNotification(yEvent)
 			.then(function (newNotif) {
-				yasoon.notification.incrementCounter();
 				jira.notifications.addDesktopNotification(newNotif, self.event);
 			});
 		} else {
 			return jiraSaveNotification(yEvent)
 			.then(function (newNotif) {
-				yasoon.notification.incrementCounter();
 				jira.notifications.addDesktopNotification(newNotif, self.event);
 			});
 		}
@@ -1057,6 +1059,8 @@ function JiraIssueTask(issue) {
 			return false;
 		if (!self.issue.fields.assignee || jira.data.ownUser.name != self.issue.fields.assignee.name)
 			return false;
+		if (jira.issues.isResolved(issue) && jira.settings.deleteCompletedTasks)
+			return false;
 
 		return true;
 	};
@@ -1069,7 +1073,6 @@ function JiraIssueTask(issue) {
 		return jiraGetTask(self.issue.key)
 		.then(function (dbItem) {
 			//Check if it's an update or creation
-			console.log('Task save', dbItem);
 			var creation = false;
 			if (!dbItem) {
 				//Creation
@@ -1083,13 +1086,12 @@ function JiraIssueTask(issue) {
 				}
 			}
 
-			console.log('Task save 2', dbItem);
 			dbItem.externalId = self.issue.key;
 			dbItem.subject = self.issue.key + ': ' + self.issue.fields.summary;
 			dbItem.body = self.issue.renderedFields.description.replace(/\s*\<br\/\>/g, '<br>'); //jshint ignore:line
 			//dbItem.body = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' + dbItem.body + '</body></html>';
 			dbItem.isHtmlBody = true;
-			if(self.issue.fields.status === 'resolved') {
+			if (jira.issues.isResolved(self.issue)) {
 				dbItem.completionState = yasoon.outlook.task.completionState.Completed;
 				dbItem.completionPercent = 100;
 			} else if (dbItem.completionState == yasoon.outlook.task.completionState.Completed) {
@@ -1097,11 +1099,6 @@ function JiraIssueTask(issue) {
 				//Better: Only reset status to NotStarted if it is an old task AND this task was completed
 				dbItem.completionState = yasoon.outlook.task.completionState.NotStarted;
 				dbItem.completionPercent = 0;
-			}
-
-			if (dbItem.externalId == 'DEMO-212') {
-				window.demo212 = dbItem.body;
-				console.log(dbItem.body);
 			}
 
 			if (self.issue.fields.duedate) {
@@ -1131,7 +1128,6 @@ function JiraIssueTask(issue) {
 					return jiraAddFolder(self.issue.fields.project.key, self.issue.fields.project.name, JSON.stringify(self.issue.fields.project), 'Jira');
 			})
 			.then(function () {
-				console.log('Task save 3. Add? ' + creation, dbItem);
 				if (creation)
 					return jiraAddTask(dbItem, self.issue.fields.project.key);
 				else
@@ -1181,6 +1177,83 @@ function JiraIssueController() {
 	self.all = function () {
 		return issues;
 	};
+
+	self.isResolved = function isResolved(issue) {
+		if(issue.fields && issue.fields.resolution) {
+			return true;
+		}
+		return false;
+	};
 }
 
+function JiraTaskController() {
+	var self = this;
+
+	this.handleTask = function handleTask(issue, task) {
+		return Promise.resolve()
+		.then(function () {
+			if (task)
+				return task;
+			else
+				return jiraGetTask(issue.key);
+		})
+		.then(function (dbTask) {
+			var taskIssue = new JiraIssueTask(issue);
+			if (taskIssue.isSyncNeeded()) {
+				return taskIssue.save();
+			} else if(dbTask){
+				return jiraRemoveTask(dbTask);
+			}
+		});
+	};
+
+	this.syncTasks = function () {
+		if (!jira.settings.syncTask) {
+			return Promise.resolve();
+		}
+
+		var updatedIssues = [];
+		var ownUserKey = jira.data.ownUser.key || jira.data.ownUser.name; //Depending on version >.<
+		var jql = 'assignee="' + ownUserKey + '" AND status != "resolved" AND status != "closed" AND status != "done" ORDER BY created DESC';
+		return jiraGet('/rest/api/2/search?jql=' + encodeURI(jql) + '&maxResults=200&expand=transitions,renderedFields')
+		.then(function (data) {
+			var ownIssues = JSON.parse(data);
+			if (ownIssues.total > 0) {
+				return ownIssues.issues;
+			}
+			return [];
+		})
+		.each(function (issue) {
+			return new JiraIssueTask(issue).save()
+			.then(function () {
+				updatedIssues.push(issue.key);
+			})
+			.catch(function (e) {
+				yasoon.util.log('Error while updating task' + e);
+			});
+		})
+		.then(function () {
+			//Check other way around and look for resolved or reassigned issues
+			return jiraAllFolders()
+			.each(function (folder) {
+				return jiraGetFolderTasks(folder.externalId)
+				.each(function (task) {
+					//First check if it has already been updated
+					if (updatedIssues.indexOf(task.externalId) > -1)
+						return;
+
+					//If we are here, we need to update the issue. it has either been assigned to someone else or it has been resolved
+					return jira.issues.get(task.externalId)
+					.then(function (issue) {
+						return jira.tasks.handleTask(issue, task);
+					})
+					.catch(function (e) {
+						yasoon.util.log('Error while removing task' + e);
+					});
+				});
+			});
+
+		});
+	};
+}
 //@ sourceURL=http://Jira/notifications.js
