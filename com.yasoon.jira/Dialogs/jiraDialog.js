@@ -222,7 +222,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			])
 			.spread(function (data) { //Result of getProjectValues is set to jira.selectedProject
 				self.currentIssue = JSON.parse(data);
-				console.log(JSON.parse(data));
+				
+				//Update title 
+				$('.jira-title').html(yasoon.i18n('dialog.titleEditIssue') + ' ' + self.currentIssue.key);
 				
 				self.projects.push(self.selectedProject);
 				//Select Issue Type

@@ -1077,7 +1077,7 @@ function JiraIssueTask(issue) {
 			if (!dbItem) {
 				//Creation
 				creation = true;
-				dbItem = { categories: ['Jira', self.issue.fields.project.name] };
+				dbItem = { categories: ['JIRA', self.issue.fields.project.name] };
 			} else if (self.issue.fields.updated) {
 				var oldIssue = JSON.parse(dbItem.externalData);
 				if (new Date(oldIssue.fields.updated) >= new Date(self.issue.fields.updated).getTime()) {
@@ -1118,14 +1118,13 @@ function JiraIssueTask(issue) {
 			else
 				delete dbItem.owner;
 
-
 			dbItem.externalData = JSON.stringify(jiraMinimizeIssue(self.issue));
 
 			//Does folder exist?
 			return jiraGetFolder(self.issue.fields.project.key)
 			.then(function (folder) {
 				if (!folder)
-					return jiraAddFolder(self.issue.fields.project.key, self.issue.fields.project.name, JSON.stringify(self.issue.fields.project), 'Jira');
+					return jiraAddFolder(self.issue.fields.project.key, self.issue.fields.project.name, JSON.stringify(self.issue.fields.project), 'JIRA');
 			})
 			.then(function () {
 				if (creation)
