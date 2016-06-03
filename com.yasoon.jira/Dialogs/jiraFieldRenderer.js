@@ -126,7 +126,7 @@ function MultilineTextRenderer() {
 				e.preventDefault();
 			});
 
-			$("#description").on("keyup paste", function (e) {
+			$("#description, #comment").on("keyup paste", function (e) {
 				$('#DescriptionOptionToolbar').addClass('hidden');
 			});
 
@@ -164,8 +164,9 @@ function MultilineTextRenderer() {
 			});
 
 			$('#DescriptionMailInformation').on('click', function (e) {
-				backup = $('#' + id).val();				
-				insertAtCursor($('#description')[0], renderMailHeaderText(jira.mail, useMarkup));
+				backup = $('#' + id).val();
+				var field = (jira.isAddCommentMode) ? $('#comment')[0] : $('#description')[0];
+				insertAtCursor(field, renderMailHeaderText(jira.mail, useMarkup));
 			});
 
 			$('#' + id).mentionsInput({
