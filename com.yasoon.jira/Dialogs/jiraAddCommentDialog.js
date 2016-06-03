@@ -41,6 +41,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		//Parameter taken over from Main JIRA
 		self.mail = initParams.mail;
 		self.isEditMode = false;
+		self.isAddCommentMode = true;
 		self.settings = initParams.settings;
 		self.selectedText = initParams.text;
 		self.cacheProjects = initParams.projects;

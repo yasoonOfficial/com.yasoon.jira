@@ -200,7 +200,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			//It's the edit case
 			//Set Title & Labels
 			$('.jira-title').html(yasoon.i18n('dialog.titleEditIssue'));
-			$('.qf-create-another').hide(); //Create another button
+			$('#createAnotherCheckbox').hide(); //Create another button
 			$('#create-issue-submit').html(yasoon.i18n('dialog.save'));
 
 			//Select issue project manually and immedeately for better layout.
