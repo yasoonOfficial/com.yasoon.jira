@@ -751,7 +751,7 @@ function UserPickerRenderer() {
 			return (name) ? value: null;
 		} else 
 			//In creation case: Only send if not null	
-			return (value) ? value : undefined;
+			return (name) ? value : undefined;
 	};
 
 	this.setValue = function (id, value) {
