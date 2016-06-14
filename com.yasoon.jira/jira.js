@@ -23,6 +23,19 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			jira.restartRequired = true;
 
 		}
+
+		if (action === yasoon.lifecycle.Upgrade && jiraIsVersionHigher(newVersion, '1.1.7') && !jiraIsVersionHigher(oldVersion, '1.1.7')) {
+			var templatesString = yasoon.setting.getAppParameter('createTemplates');
+			if (templatesString) {
+				var templates = JSON.parse(templatesString);
+				templates.forEach(function (t) {
+					var proj = t.project;
+					t.project = { id: proj.id, name: proj.name, key: proj.key };
+				});
+
+				yasoon.setting.setAppParameter('createTemplates', JSON.stringify(templates));
+			}
+		}
 		jira.downloadScript = true;
 	};
 

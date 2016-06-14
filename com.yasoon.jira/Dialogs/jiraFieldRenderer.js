@@ -319,6 +319,7 @@ function DateRenderer() {
 		$('#' + id).datetimepicker({
 			timepicker: false,
 			format: yasoon.i18n('dialog.datePickerDateFormat'),
+			scrollInput: false,
 			allowBlank: true
 		});
 		
