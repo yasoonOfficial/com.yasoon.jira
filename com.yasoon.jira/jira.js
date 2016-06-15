@@ -23,6 +23,28 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			jira.restartRequired = true;
 
 		}
+		if (action === yasoon.lifecycle.Upgrade && newVersion === '1.1.6') {
+			var templatesString = yasoon.setting.getAppParameter('createTemplates');
+			if (templatesString) {
+				var templates = JSON.parse(templatesString);
+				templates.forEach(function (t) {
+					var proj = t.project;
+					t.project = { id: proj.id, name: proj.name, key: proj.key };
+				});
+
+				yasoon.setting.setAppParameter('createTemplates', JSON.stringify(templates));
+			}
+
+			//Set new initial settings (not strictly nessecary, as extend should add them but we want to have consistent settings)
+			var settingsString = yasoon.setting.getAppParameter('settings');
+			var settings = null;
+			if (settingsString) {
+				//Load Settings
+				settings = JSON.parse(settingsString);
+				settings.syncFeed = true;
+				yasoon.setting.setAppParameter('settings', JSON.stringify(settings));
+			}
+		}
 		jira.downloadScript = true;
 	};
 
@@ -68,13 +90,13 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		yasoon.periodicCallback(300, function() {
 			//Don't pass the function directly, as yasoon will hook itself
 			// to the promise otherwise
-			jira.sync(); 
+			jira.sync(arguments[0]); 
 		});
 		
 		yasoon.on("sync", function() {
 			//Don't pass the function directly, as yasoon will hook itself
 			// to the promise otherwise
-			jira.sync(); 
+			jira.sync(arguments[0]); 
 		});
 	};
 
@@ -89,10 +111,18 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		jira.ribbons.updateRibbons(ribbonCtx.items[0], ribbonCtx.inspectorId);
 	};
 
-	this.sync = function sync() {
+	this.sync = function sync(source) {
+
+		//Technical check
 		if (!jira.settings.currentService || !yasoon.app.isOAuthed(jira.settings.currentService)) {
 			return;
 		}
+
+		//Settings Check, Do not sync regularly if turned off
+		if (!jira.settings.syncFeed && source === 'action')
+			return;
+
+		
 		return jira.queue.add(self.syncData);
 	};
 

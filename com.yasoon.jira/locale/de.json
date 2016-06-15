@@ -219,7 +219,8 @@
 				"filterChange":"Änderungen am Filter sind erst mit dem nächsten Outlook Neustart aktiv.",
 				"headingSyncTasks": "Aufgaben Synchronisation",
 				"syncTasks": "Aufgaben Synchronisation aktivieren",
-				"deleteCompletedTasks": "Abgeschlossene Aufgaben löschen"
+				"deleteCompletedTasks": "Abgeschlossene Aufgaben löschen",
+				"syncFeed": "Feed automatisch aktualisieren"
 			}
 		}
 	}

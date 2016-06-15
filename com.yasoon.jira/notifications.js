@@ -1141,6 +1141,9 @@ function JiraIssueController() {
 	var issues = [];
 
 	self.refreshBuffer = function () {
+		//Reset BUffer
+		issues = [];
+
 		//Download issues since last sync
 		var lastSync = moment(jira.settings.lastSync).format('YYYY/MM/DD HH:mm');
 		var jql = encodeURIComponent('updated > "' + lastSync + '"');
@@ -1155,7 +1158,7 @@ function JiraIssueController() {
 			}
 		})
 		.catch(function (e) {
-			issues = [];
+			
 			jiraLog('Refresh Buffer Error:', e);
 		});
 	};

@@ -147,6 +147,18 @@
 			</div>
 			<div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
 				<div class="panel-body">
+					<!-- Sync Feed -->
+					<div class="form-group" style="position:relative; margin-top:20px;">
+						<div class="col-sm-4 checkbox">
+							<b class="pull-right">{{i18n 'settings.syncFeed'}} </b>
+						</div>
+						<div class="col-sm-8">
+							<div class="checkbox awesome">
+								<input class="formValue" type="checkbox" id="syncFeed" name="syncFeed">
+								<label for="syncFeed"></label>
+							</div>
+						</div>
+					</div>
 					<!-- Sync Options -->
 					<div class="form-group" style="position:relative; margin-top:20px;">
 						<div class="col-sm-4 checkbox">
@@ -154,11 +166,11 @@
 						</div>
 						<div class="col-sm-8">
 							<div class="checkbox awesome">
-								<input class="formValue" type="checkbox" id="showFeedAssignee" name="showFeedAssignee" disabled checked>
+								<input class="formValue" type="checkbox" id="showFeedAssignee" name="showFeedAssignee" checked>
 								<label for="showFeedAssignee">{{i18n 'settings.syncAssignee'}}</label>
 							</div>
 							<div class="checkbox awesome">
-								<input class="formValue" type="checkbox" id="showFeedMentioned" name="showFeedMentioned" disabled checked>
+								<input class="formValue" type="checkbox" id="showFeedMentioned" name="showFeedMentioned" checked>
 								<label for="showFeedMentioned">{{i18n 'settings.syncMention'}}</label>
 							</div>
 							<div class="checkbox awesome">
