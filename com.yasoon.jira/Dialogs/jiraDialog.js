@@ -1198,11 +1198,12 @@ function submitSuccessHandler(data) {
 function createTemplate(email, sender, project, values) {
 	this.senderEmail = email;
 	this.senderName = sender;
-	this.project = project;
+	this.project = { id: project.id, name: project.name, key: project.key };
 	//Create deep copy
 	values = JSON.parse(JSON.stringify(values));
 	delete values.fields.summary;
 	delete values.fields.description;
+	delete values.fields.duedate;
 	this.values = values;
 
 	//Service Desk Data
