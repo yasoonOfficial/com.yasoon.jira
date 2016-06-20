@@ -368,6 +368,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.selectProject = function () {
 		jira.selectedProjectKey = $('#project').find(':selected').data('key');
 		jira.selectedProjectId = $('#project').val();
+		jira.projectIssues = [];
 
 		//Self.issue is provided by task object
 		var issueKey = null;

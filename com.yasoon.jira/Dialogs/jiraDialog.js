@@ -39,6 +39,11 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.savedTemplates = [];
 	this.userCommonValues = {};
 
+	//For IssuePicker
+	this.projectIssues = [];
+	this.selectedProjectId = null;
+	this.selectedProjectKey = null;
+
 	//Order of Fields in the form. Fields not part of the array will be rendered afterwards
 	//This can be customized by JIRA admin
 	var fieldOrder = [
@@ -593,6 +598,11 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				jira.selectedProject = $.grep(self.projects, function (proj) { return proj.id === selectedProject; })[0];
 			}
 			
+			//For issue Picker
+			jira.selectedProjectKey = jira.selectedProject.key;
+			jira.selectedProjectId = jira.selectedProject.id;
+			jira.projectIssues = [];
+
 			//Show Loader!
 			$('#ContentArea').css('visibility','hidden');
 			$('#LoaderArea').show();

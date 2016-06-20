@@ -196,6 +196,7 @@ function JiraSettingController() {
 
 	self.setLastSync = function (date) {
 		self.lastSync = date;
+		//yasoon.feed.saveSyncDate(date);
 		yasoon.setting.setAppParameter('settings', JSON.stringify(self));
 	};
 
