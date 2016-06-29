@@ -34,7 +34,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.mailAsMarkup = '';
 	this.recentProjects = [];
 	this.projects = [];
-	this.addedAttachmentIds = [];
 	this.selectedAttachments = [];
 	this.savedTemplates = [];
 	this.userCommonValues = {};
@@ -180,24 +179,19 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			//Add current mail to clipboard
 			var handle = self.mail.getFileHandle();
 			if (self.settings.addEmailOnNewAddIssue) {
-				self.selectedAttachments.push(handle);
-			} else {
-				var id = yasoon.clipboard.addFile(handle);
-				self.addedAttachmentIds.push(id);
+				handle.selected = true;
 			}
+			self.selectedAttachments.push(handle);
 		}
 		
 		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
-			self.mail.attachments.forEach(function(attachment) {				
-				var handle = attachment.getFileHandle();		
-				//Skip hidden attachments (mostly embedded images)	
-				if (self.settings.addAttachmentsOnNewAddIssue && !attachment.isHidden) {
-					self.selectedAttachments.push(handle);
+			self.mail.attachments.forEach(function (attachment) {
+				var handle = attachment.getFileHandle();
+				//Skip too small images	
+				if (self.settings.addAttachmentsOnNewAddIssue && attachment.fileSize > 10240) { 
+					handle.selected = true;
 				}
-				else {
-					var id = yasoon.clipboard.addFile(handle);
-					self.addedAttachmentIds.push(id);
-				}
+				self.selectedAttachments.push(handle);
 			});
 		}
 
@@ -356,12 +350,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		// due to pending dialog.close
 		yasoon.dialog.clearEvents();
 
-		//If there has been attachments loaded into yasoon clipboard, we need to remove them
-		if (self.addedAttachmentIds.length > 0) {
-			$.each(self.addedAttachmentIds, function (i, handleId) {
-				yasoon.clipboard.remove(handleId);
-			});
-		}
+		//Dispose all Attachments
+		jira.selectedAttachments.forEach(function (handle) {
+			handle.dispose();
+		});
 	};
 
 	this.submitForm = function (e) {
@@ -497,16 +489,18 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			}
 
 			//Attachments?
-			if (self.selectedAttachments.length > 0) {
-
-				var formData = [];
-				$.each(self.selectedAttachments, function (i, file) {
+			var formData = [];
+			self.selectedAttachments.forEach(function (file) {
+				if (file.selected) {
 					formData.push({
 						type: yasoon.formData.File,
 						name: 'file',
 						value: file
 					});
-				});
+				}
+			});
+
+			if (formData.length > 0) {
 				jira.transaction.currentCallCounter++;
 
 				jiraAjax('/rest/api/2/issue/' + issue.id + '/attachments', yasoon.ajaxMethod.Post, null, formData )
@@ -1110,39 +1104,21 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		//Check each attachment if it needs to be embedded
 		var clipboardContent = yasoon.clipboard.all();
 		attachments.forEach(function(attachment) {			
-			if (markup.indexOf('!' + attachment.contentId + '!') > -1) {				
-				//Replace the reference in the markup								
-				var handle = attachment.getFileHandle();								
-				var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
-				markup = markup.replace(regEx, '!' + handle.getFileName() + '!');		
-				handle.setInUse();
-				
-				//May have been added earlier
-				if (self.selectedAttachments.indexOf(handle) === -1) {
-					self.selectedAttachments.push(handle);
-					
-					//Remove it from the clipboard as well
-					var id = null;
-					
-					for (var key in clipboardContent) {
-						if (handle.contentId && clipboardContent[key].contentId === handle.contentId) {
-							id = key;
-							break;
-						}
-					}
-					
-					if (id) {
-						var index = self.addedAttachmentIds.indexOf(id);
-						if (index > -1) {
-							self.addedAttachmentIds.splice(index, 1);
-						}
-						yasoon.clipboard.remove(id);
-					}
+			if (markup.indexOf('!' + attachment.contentId + '!') > -1) {
+				//Mark attachments selected
+				var handle = self.selectedAttachments.filter(function (a) { return a.contentId === attachment.contentId; })[0];
+				if (handle) {
+					handle.selected = true;
+
+					//Replace the reference in the markup								
+					var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
+					markup = markup.replace(regEx, '!' + handle.getFileName() + '!');
+					handle.setInUse();
 				}
 			}
 		});
 		
-		jira.UIFormHandler.getRenderer('attachment').renderAttachments('attachment');		
+		jira.UIFormHandler.getRenderer('attachment').refresh('attachment');		
 		return markup;
 	};
 	

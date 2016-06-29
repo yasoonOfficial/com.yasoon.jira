@@ -960,7 +960,9 @@ function UserPickerRenderer() {
 
 function AttachmentLinkRenderer() {
 	var self = this;
-	
+	var template = null;
+	var parameters = [];
+
 	this.getValue = function (id) {
 		//Attachments are handled seperately
 	};
@@ -969,156 +971,148 @@ function AttachmentLinkRenderer() {
 		//Attachments are handled seperately
 	};
 	
-	
-	this.renderMoreActions = function renderMoreActions() {
-		return '<span class="dropup" style="position:relative;">' +
-				'	<span class="attachmentMore dropdown-toggle" data-toggle="dropdown" title="' + yasoon.i18n('dialog.attachmentLinkTitle') + '" style="cursor: pointer; color:grey;"><span style="font-size:6px;"> <i class="fa fa-circle-o" /><i class="fa fa-circle-o" style="margin-left: 1px;"/><i class="fa fa-circle-o" style="margin-left: 1px;"/></span>&nbsp;</span>' +
-				'	<ul class="dropdown-menu" style="cursor:pointer;">' +
-				'		<li class="attachmentRename"><a>' + yasoon.i18n('dialog.attachmentRename') + '</a></li>' +
-				'		<li class="attachmentAddRef"><a>' + yasoon.i18n('dialog.attachmentReference') + 'Add Reference to Text</a></li>' +
-				'		<li class="attachmentDelete"><a>' + yasoon.i18n('dialog.attachmentDelete') + '</a></li>' +
-				'	</ul>' +
-				'</span>';
+	this.getCurrentAttachment = function (elem) {
+		var domAttachmentLink = $(elem).closest('.jiraAttachmentLink');
+		var handleId = domAttachmentLink.data('id');
+
+		return jira.selectedAttachments.filter(function (item) { return item.id === handleId; })[0];
 	};
-	
-	this.renderAttachments = function(id) {
-		$('#' + id + '-selected-container').empty();
-		
-		//Render Attachments
-		jira.selectedAttachments.forEach(function (fileHandle, i) {
-			//To support references to this file, [ ] and ^ are not supported by JIRA --> replace them and change FileName if nessecary		
-			var oldFileName = fileHandle.getFileName();
+
+	this.submitRename = function (elem) {
+		var domAttachmentLink = elem.closest('.jiraAttachmentLink');
+		var handle = self.getCurrentAttachment(elem);
+		var newName = domAttachmentLink.find('.attachmentNewName input').val().trim() + handle.extension;
+		var oldName = handle.fileName;
+
+		if (handle.fileName != newName) {
+			domAttachmentLink.find('.attachmentNameValue').text(newName);
+			handle.setFileName(newName);
+			handle.fileName = newName;
+			handle.fileNameNoExtension = newName.substring(0, newName.lastIndexOf('.'));
+
+			//Replace references in description (if necessary)
+			var oldText = $('#description').val();
+			var regEx = new RegExp(oldName, 'g');
+			var newText = oldText.replace(regEx, newName);
+			$('#description').val(newText);
+		}
+		domAttachmentLink.find('.attachmentMain').removeClass('edit');
+	};
+
+	this.fillTemplate = function (id, container) {
+		var attachments = [];
+		jira.selectedAttachments.forEach(function (attachment) {
+			//Rename FileName if it contains unsupported characters
+			var oldFileName = attachment.getFileName();
 			var newFileName = oldFileName.replace(/\[/g, '(').replace(/\]/g, ')').replace(/\^/g, '_');
 			if (oldFileName != newFileName)
-				fileHandle.setFileName(newFileName);
+				attachment.setFileName(newFileName);
 
-			$('#' + id + '-selected-container').append(
-			'<div class="jiraAttachmentLink" data-id="' + fileHandle.id + '">'+
-				'<span>' +
-					'<img style="width:16px;" src="' + fileHandle.getFileIconPath(true) + '" />' +
-					'<span class="attachmentName">' + newFileName + '</span>' +
-					'<div style="display:inline-block" class="attachmentNewName hidden">' +  
-						'<div class="input-group" style="width:300px;display:inline-table;margin-top:10px;">' +
-							'<input class="text input-sm form-control" /><div class="input-group-addon attachmentExtension">.txt</div>' +
-						'</div>' +
-					'</div>' +
-				'</span>' + self.renderMoreActions() + 
-			'</div>');			
+			//Set Fields for template
+			attachment.fileName = newFileName;
+			attachment.extension = newFileName.substring(newFileName.lastIndexOf('.'));
+			attachment.fileIcon = attachment.getFileIconPath(true);
+			attachment.fileNameNoExtension = newFileName.substring(0, newFileName.lastIndexOf('.'));
+			attachments.push(attachment);
 		});
 
-		//Hook EventHandler
-		$('.attachmentRename').off().click(function (e) {
+
+		parameters[id].attachments = attachments;
+
+		var html = template(parameters[id]);
+		$(container).html(html);
+
+		$('#' + id).find('.addAttachmentLink').off().click(function (e) {
 			e.preventDefault();
-			//Save DOM References
-			var domAttachmentLink = $(this).closest('.jiraAttachmentLink');
-			var domAttachmentName = domAttachmentLink.find('.attachmentName');
-			var domAttachmentNewName = domAttachmentLink.find('.attachmentNewName');
-			var domAttachmentNewNameInput = domAttachmentNewName.find('input');
+			yasoon.view.fileChooser.open(function jiraFileChooserCloseHandler(selectedFiles) {
+				selectedFiles.forEach(function (handle) {
+					handle.selected = true;
+				});
 
-			//Hide Standard Stuff
-			domAttachmentName.addClass('hidden');
-			domAttachmentLink.find('.attachmentMore').addClass('hidden');
-
-			//Split FileName into pure name and extension
-			var attachmentName = domAttachmentName.text();
-			var extension = attachmentName.substring(attachmentName.lastIndexOf('.'));
-			attachmentName = attachmentName.substring(0, attachmentName.lastIndexOf('.'));
-
-			//Add Change Input Fields
-			domAttachmentNewName.removeClass('hidden');
-			domAttachmentNewNameInput.val(attachmentName).focus();
-			domAttachmentNewName.find('.attachmentExtension').text(extension);
-			domAttachmentNewName.after('<span class="attachmentRenameActions" style="font-size: 20px; margin-left: 5px; cursor: pointer;"><i class="fa fa-check attachmentRenameConfirm" /> <i class="fa fa-times attachmentRenameCancel" style="margin-left: 5px;" /></span>');
-
-			var closeHandler = function () {
-				domAttachmentName.removeClass('hidden');
-				domAttachmentLink.find('.attachmentMore').removeClass('hidden');
-
-				domAttachmentNewName.addClass('hidden');
-				domAttachmentLink.find('.attachmentRenameActions').remove();
-			};
-
-			//Create Click Handler
-			domAttachmentLink.find('.attachmentRenameConfirm').click(function (e) {
-				e.preventDefault();
-				var newName = domAttachmentNewNameInput.val();
-				if (attachmentName != newName) {
-					domAttachmentName.text(newName + extension);
-					var handleId = domAttachmentLink.data('id');
-					var currentHandle = jira.selectedAttachments.filter(function (item) { return item.id == handleId; })[0];
-					currentHandle.setFileName(newName + extension);
-					
-					//Replace references in description (if necessary)
-					var oldText = $('#description').val();
-					var regEx = new RegExp(attachmentName + extension, 'g');
-					var newText = oldText.replace(regEx, newName + extension);
-					$('#description').val(newText);
-				}
-				closeHandler();
+				jira.selectedAttachments = jira.selectedAttachments.concat(selectedFiles);
+				self.fillTemplate(id, $('#' + id));
 			});
+		});
 
-			domAttachmentLink.find('.attachmentRenameCancel').click(function (e) {
-				e.preventDefault();
-				closeHandler();
-			});
-
-			domAttachmentLink.on('keyup', function (e) {
-				e.preventDefault();
-				if (e.keyCode == 13) {
-					domAttachmentLink.off();
-					var newName = domAttachmentNewNameInput.val();
-					if (attachmentName != newName) {
-						domAttachmentName.text(newName + extension);
-						var handleId = domAttachmentLink.data('id');
-						var currentHandle = jira.selectedAttachments.filter(function (item) { return item.id == handleId; })[0];
-						currentHandle.setFileName(newName + extension);
-
-						//Replace references in description (if necessary)
-						var oldText = $('#description').val();
-						var regEx = new RegExp(attachmentName + extension, 'g');
-						var newText = oldText.replace(regEx, newName + extension);
-						$('#description').val(newText);
-					}
-					closeHandler();
-					return false;
-				}
-			});
+		$('.jiraAttachmentLink .checkbox input').off().on('change', function (e) {
+			var handle = self.getCurrentAttachment($(this));
+			handle.selected = !handle.selected;
 		});
 
 		$('.attachmentAddRef').off().click(function (e) {
 			e.preventDefault();
-			var attachmentName = $(this).closest('.jiraAttachmentLink').find('.attachmentName').text();
-			insertAtCursor($('#description')[0], '\n[^' + attachmentName + ']');
+			var handle = self.getCurrentAttachment($(this));
+			insertAtCursor($('#description')[0], '[^' + handle.fileName + ']\n');
 		});
 
-		$('.attachmentDelete').off().click(function (e) {
+		$('.attachmentRename').off().click(function (e) {
+			e.preventDefault();
+			$(this).closest('.attachmentMain').addClass('edit');
+		});
+
+		$('.attachmentRenameConfirm').off().click(function (e) {
+			e.preventDefault();
+			self.submitRename($(this));
+		});
+
+		$('.attachmentRenameCancel').click(function (e) {
 			e.preventDefault();
 			var domAttachmentLink = $(this).closest('.jiraAttachmentLink');
-			var handleId = domAttachmentLink.data('id');
-			jira.selectedAttachments = jira.selectedAttachments.filter(function (item) { return item.id != handleId; });
-			domAttachmentLink.remove();
+			domAttachmentLink.find('.attachmentMain').removeClass('edit');
+			var handle = self.getCurrentAttachment($(this));
+			domAttachmentLink.find('.attachmentNewName input').val(handle.fileNameNoExtension);
+
 		});
+
+		$('.attachmentNameValue').off().on('mouseenter', function (e) {
+			console.log(e);
+			var domAttachmentLink = $(this).closest('.jiraAttachmentLink');
+			var handle = self.getCurrentAttachment($(this));
+			var elem = $(this);
+			if (handle.hasFilePreview()) {
+				yasoon.io.getFilePreviewPath(handle)
+				.then(function (path) {
+					$('body').append('<img class="thumbnail-preview" src="' + path + '" style="z-index: 100000; cursor: pointer; background-color: white; position: absolute; left: ' + (e.originalEvent.x - 50) + 'px; top: ' + (e.originalEvent.y - 30) + 'px" />')
+					.find('.thumbnail-preview')
+					.on('mouseleave', function () {
+						$(this).unbind().remove();
+					});
+
+				});
+			}
+		});
+
+		$('.attachmentNewName input').off().on('keyup', function (e) {
+			e.preventDefault();
+			if (e.keyCode == 13) {
+				self.submitRename($(this));
+			}
+			return false;
+		});
+
+	};
+
+	this.refresh = function (id) {
+		self.fillTemplate(id, $('#' + id));
 	};
 
 	this.render = function (id, field, container) {
-		$(container).append('<div class="field-group" id="' + id + '-container">' +
-								'	<label for="description"><span class="descr">Attachment</span></label>' +
-								'	<div>' +
-								'		<div id="' + id + '"><a class="AddAttachmentLink" style="display:block; margin-top: 5px; cursor:pointer;">' + yasoon.i18n('dialog.attachmentAdd') + '</a></div>' +
-								'		<div id="' + id + '-selected-container"></div>' +
-								'	</div>' +
-								'</div>');
-		
-		if (jira.selectedAttachments.length > 0)
-			self.renderAttachments(id);
-		
-		$('#' + id + '-container').find('.AddAttachmentLink').click(function (e) {
-			e.preventDefault();
-			yasoon.view.fileChooser.open(function jiraFileChooserCloseHandler(selectedFiles) {
-				jira.selectedAttachments = jira.selectedAttachments.concat(selectedFiles);
-				self.renderAttachments(id);
+		$(container).append('<div id="' + id + '"></div>');
+		parameters[id] = {
+			id: id,
+			label: field.name
+		};
+
+		if (!template) {
+			var path = yasoon.io.getLinkPath('templates/attachmentFields.hbs');
+			$.get(path, function (tmpl) {
+				templateLoaded = true;
+				template = Handlebars.compile(tmpl);
+				self.fillTemplate(id, field, $('#'+ id));
 			});
-		});
+		} else {
+			self.fillTemplate(id, field, $('#' + id));
+		}
 	};
 }
 

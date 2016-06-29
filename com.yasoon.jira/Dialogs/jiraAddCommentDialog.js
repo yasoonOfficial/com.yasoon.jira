@@ -53,44 +53,35 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		// Resize Window if nessecary (sized are optimized for default Window - user may have changed that)
 		resizeWindow();
 		
-		//Init Select2
-		//initCustomIssueData();
-		
 		//Save FieldType for later reuse.
 		self.fieldTypes = {
 			comment: { name: yasoon.i18n('dialog.comment'), schema: { system: 'description' } },
 			attachment: { name: yasoon.i18n('dialog.attachment'), schema: { system: 'attachment' } }
 		};
 
+		//Add current mail to clipboard
+		var handle = self.mail.getFileHandle();
+		if (self.settings.addEmailOnNewAddIssue) {
+			handle.selected = true;
+		}
+		self.selectedAttachments.push(handle);
+
+		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
+			self.mail.attachments.forEach(function (attachment) {
+				var handle = attachment.getFileHandle();
+				//Skip too small images	
+				if (self.settings.addAttachmentsOnNewAddIssue && attachment.fileSize > 10240) {
+					handle.selected = true;
+				}
+				self.selectedAttachments.push(handle);
+			});
+		}
+
 		//Render fields
 		self.UIFormHandler.render('comment', self.fieldTypes.comment, $('#ContentArea'));
 		self.UIFormHandler.render('attachment', self.fieldTypes.attachment, $('#ContentArea'));
 		
-		//Add attachments to clipboard if requested
-		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
-			self.mail.attachments.forEach(function(attachment) {				
-				var handle = attachment.getFileHandle();		
-				//Skip hidden attachments (mostly embedded images)	
-				if (self.settings.addAttachmentsOnNewAddIssue && !attachment.isHidden) {
-					self.selectedAttachments.push(handle);
-				}
-				else {
-					var id = yasoon.clipboard.addFile(handle);
-					self.addedAttachmentIds.push(id);
-				}
-			});
-		}
 		
-		//Add current mail to clipboard
-		if (self.mail) {
-			var handle = self.mail.getFileHandle();
-			if (self.settings.addEmailOnNewAddIssue) {
-				self.selectedAttachments.push(handle);
-			} else {
-				var id = yasoon.clipboard.addFile(handle);
-				self.addedAttachmentIds.push(id);
-			}
-		}
 
 		//Load Recent Issues from DB
 		var projectsString = yasoon.setting.getAppParameter('recentProjects');
@@ -238,12 +229,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		// due to pending dialog.close
 		yasoon.dialog.clearEvents();
 
-		//If there has been attachments loaded into yasoon clipboard, we need to remove them
-		if (self.addedAttachmentIds.length > 0) {
-			$.each(self.addedAttachmentIds, function (i, handleId) {
-				yasoon.clipboard.remove(handleId);
-			});
-		}
+		//Dispose all Attachments
+		jira.selectedAttachments.forEach(function (handle) {
+			handle.dispose();
+		});
 	};
 
 	this.submitForm = function (e) {
@@ -322,12 +311,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		if (jira.selectedAttachments.length > 0) {
 			//Upload files
 			var formData = [];
-			$.each(jira.selectedAttachments, function (i, file) {
-				formData.push({
-					type: yasoon.formData.File,
-					name: 'file',
-					value: file
-				});
+			self.selectedAttachments.forEach(function (file) {
+				if (file.selected) {
+					formData.push({
+						type: yasoon.formData.File,
+						name: 'file',
+						value: file
+					});
+				}
 			});
 
 			promises.push(
@@ -512,46 +503,22 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.handleAttachments = function (markup, attachments) {
 		//Check each attachment if it needs to be embedded
 		var clipboardContent = yasoon.clipboard.all();
-		attachments.forEach(function(attachment) {			
-			if (markup.indexOf('!' + attachment.contentId + '!') > -1) {								
-				var handle = attachment.getFileHandle();
-				var uniqueKey = getUniqueKey();
-				var oldFileName = handle.getFileName();
-				var newFileName = oldFileName.substring(0, oldFileName.lastIndexOf('.'));
-				newFileName = newFileName + '_' + uniqueKey + oldFileName.substring(oldFileName.lastIndexOf('.'));
-				handle.setFileName(newFileName);
-				handle.setInUse();
-				
-				//Replace the reference in the markup
-				var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
-				markup = markup.replace(regEx, '!' + newFileName + '!');		
-				
-				//May have been added earlier
-				if (self.selectedAttachments.indexOf(handle) === -1) {
-					self.selectedAttachments.push(handle);
-					
-					//Remove it from the clipboard as well
-					var id = null;
-					
-					for (var key in clipboardContent) {
-						if (handle.contentId && clipboardContent[key].contentId === handle.contentId) {
-							id = key;
-							break;
-						}
-					}
-					
-					if (id) { 
-						var index = self.addedAttachmentIds.indexOf(id);
-						if (index > -1) {
-							self.addedAttachmentIds.splice(index, 1);
-						}
-						yasoon.clipboard.remove(id);
-					}
+		attachments.forEach(function (attachment) {
+			if (markup.indexOf('!' + attachment.contentId + '!') > -1) {
+				//Mark attachments selected
+				var handle = self.selectedAttachments.filter(function (a) { return a.contentId === attachment.contentId; })[0];
+				if (handle) {
+					handle.selected = true;
+
+					//Replace the reference in the markup								
+					var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
+					markup = markup.replace(regEx, '!' + handle.getFileName() + '!');
+					handle.setInUse();
 				}
 			}
 		});
-		
-		jira.UIFormHandler.getRenderer('attachment').renderAttachments('attachment');		
+
+		jira.UIFormHandler.getRenderer('attachment').refresh('attachment');
 		return markup;
 	};
 
