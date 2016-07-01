@@ -118,7 +118,9 @@
 				"sprintSuggestion": "Vorschläge",
 				"sprintAll": "Alle",
 				"unassigned": "Nicht zugewiesen",
-				"automatic": "Automatisch"
+				"automatic": "Automatisch",
+				"addCustomer": "Share with Customer",
+				"addInternal": "Share internally"
 			},
 			"filter": {
 				"projectFilter": "Projekt",

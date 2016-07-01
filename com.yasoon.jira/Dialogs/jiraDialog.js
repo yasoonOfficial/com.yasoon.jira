@@ -182,19 +182,19 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				handle.selected = true;
 			}
 			self.selectedAttachments.push(handle);
+
+			if (self.mail.attachments && self.mail.attachments.length > 0) {
+				self.mail.attachments.forEach(function (attachment) {
+					var handle = attachment.getFileHandle();
+					//Skip too small images	
+					if (self.settings.addAttachmentsOnNewAddIssue && attachment.fileSize > 10240) {
+						handle.selected = true;
+					}
+					self.selectedAttachments.push(handle);
+				});
+			}
 		}
 		
-		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
-			self.mail.attachments.forEach(function (attachment) {
-				var handle = attachment.getFileHandle();
-				//Skip too small images	
-				if (self.settings.addAttachmentsOnNewAddIssue && attachment.fileSize > 10240) { 
-					handle.selected = true;
-				}
-				self.selectedAttachments.push(handle);
-			});
-		}
-
 		if (self.isEditMode) {
 			//It's the edit case
 			//Set Title & Labels

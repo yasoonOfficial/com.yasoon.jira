@@ -59,30 +59,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			attachment: { name: yasoon.i18n('dialog.attachment'), schema: { system: 'attachment' } }
 		};
 
-		//Add current mail to clipboard
-		var handle = self.mail.getFileHandle();
-		if (self.settings.addEmailOnNewAddIssue) {
-			handle.selected = true;
-		}
-		self.selectedAttachments.push(handle);
-
-		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
-			self.mail.attachments.forEach(function (attachment) {
-				var handle = attachment.getFileHandle();
-				//Skip too small images	
-				if (self.settings.addAttachmentsOnNewAddIssue && attachment.fileSize > 10240) {
-					handle.selected = true;
-				}
-				self.selectedAttachments.push(handle);
-			});
-		}
-
 		//Render fields
 		self.UIFormHandler.render('comment', self.fieldTypes.comment, $('#ContentArea'));
 		self.UIFormHandler.render('attachment', self.fieldTypes.attachment, $('#ContentArea'));
 		
-		
-
 		//Load Recent Issues from DB
 		var projectsString = yasoon.setting.getAppParameter('recentProjects');
 		if (projectsString) {
@@ -112,7 +92,26 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		}
 
 		//Render current mail (just in case we need it as it probably needs some time)
-		if (self.mail) {			
+		if (self.mail) {
+
+			//Add current mail to clipboard
+			var handle = self.mail.getFileHandle();
+			if (self.settings.addEmailOnNewAddIssue) {
+				handle.selected = true;
+			}
+			self.selectedAttachments.push(handle);
+
+			if (self.mail.attachments && self.mail.attachments.length > 0) {
+				self.mail.attachments.forEach(function (attachment) {
+					var handle = attachment.getFileHandle();
+					//Skip too small images	
+					if (self.settings.addAttachmentsOnNewAddIssue && attachment.fileSize > 10240) {
+						handle.selected = true;
+					}
+					self.selectedAttachments.push(handle);
+				});
+			}
+
 			//Only show loader if no text is rendered yet 
 			if (!self.selectedText)
 				$('#markupLoader').show();
@@ -212,7 +211,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		}).catch(jira.handleError);
 
 		//Submit Button - (Create & Edit)
-		$('#add-issue-submit').off().click(self.submitForm);
+		$('.submit-button').off().click(self.submitForm);
 		$('#add-issue-cancel').off().click(function () {
 			self.close({ action: 'cancel' });
 		});
@@ -270,10 +269,24 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		var promises = [];
 
+		var url = '';
+		var body = null;
+		var type = $(this).data('type');
+		if (type == 'submit') {
+			url = '/rest/api/2/issue/' + selectedIssueId + '/comment';
+			body = { body: comment };
+		} else if (type == 'submitCustomer') {
+			url = '/rest/servicedeskapi/request/' + issueKey + '/comment';
+			body = { body: comment, "public": true };
+		} else if (type == 'submitInternal') {
+			url = '/rest/servicedeskapi/request/' + issueKey + '/comment';
+			body = { body: comment, "public": false };
+		}
+
 		if (comment) {
 			//Upload comment
 			promises.push(
-				jiraAjax('/rest/api/2/issue/' + selectedIssueId + '/comment', yasoon.ajaxMethod.Post, JSON.stringify({ body: comment }))
+				jiraAjax(url, yasoon.ajaxMethod.Post, JSON.stringify(body))
 				.catch(jiraSyncError, function (e) {
 					$('#MainAlert .errorText').text(yasoon.i18n('dialog.errorSubmitComment', { error: e.getUserFriendlyError() }));
 					$('#MainAlert').show();
@@ -361,6 +374,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		jira.selectedProjectId = $('#project').val();
 		jira.projectIssues = [];
 
+		var project = self.projects.filter(function (p) { return p.id === jira.selectedProjectId; })[0];
+		if (project && project.projectTypeKey === 'service_desk') {
+			$('.buttons').addClass('servicedesk');
+		} else {
+			$('.buttons').removeClass('servicedesk');
+		}
 		//Self.issue is provided by task object
 		var issueKey = null;
 		if (self.issue) {

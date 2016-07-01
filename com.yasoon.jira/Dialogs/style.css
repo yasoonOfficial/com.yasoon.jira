@@ -2949,3 +2949,18 @@ body {
 	margin-top: 5px;
 	cursor:pointer;
 }
+
+
+/* Add to issue Service Comment Buttons */
+button.servicedesk {
+	display:none !important;
+}
+
+.servicedesk button.jira {
+	display:none !important;
+}
+
+.servicedesk button.servicedesk {
+	display: inline !important;
+}
+

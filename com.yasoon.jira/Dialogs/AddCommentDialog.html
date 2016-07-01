@@ -47,7 +47,9 @@
 						<div class="buttons-container form-footer">
 							<div class="buttons">
 								<img src="Dialogs/ajax-loader.gif" style="display:none; margin-right: 20px; margin-top: -12px;" id="JiraSpinner">
-								<button type="button" accesskey="s" title="" class="button" id="add-issue-submit" data-bind="localizedText: 'dialog.add'"></button>
+								<button type="button" accesskey="s" title="" class="button jira submit-button" id="add-issue-submit" data-type="submit" data-bind="localizedText: 'dialog.add'"></button>
+								<button type="button" accesskey="s" title="" class="aui-button aui-button-primary servicedesk submit-button" data-type="submitCustomer" data-bind="localizedText: 'dialog.addCustomer'"> Share with customer</button>
+								<button type="button" accesskey="s" title="" class="button servicedesk submit-button" data-type="submitInternal"  data-bind="localizedText: 'dialog.addInternal'"> Share internally</button>
 								<a href="#" accesskey="`" title="" id="add-issue-cancel" class="cancel" data-bind="localizedText: 'dialog.cancel'"></a>
 							</div>
 						</div>

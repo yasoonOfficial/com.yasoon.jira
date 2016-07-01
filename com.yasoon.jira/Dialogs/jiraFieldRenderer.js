@@ -992,9 +992,11 @@ function AttachmentLinkRenderer() {
 
 			//Replace references in description (if necessary)
 			var oldText = $('#description').val();
-			var regEx = new RegExp(oldName, 'g');
-			var newText = oldText.replace(regEx, newName);
-			$('#description').val(newText);
+			if (oldText) {
+				var regEx = new RegExp(oldName, 'g');
+				var newText = oldText.replace(regEx, newName);
+				$('#description').val(newText);
+			}
 		}
 		domAttachmentLink.find('.attachmentMain').removeClass('edit');
 	};
