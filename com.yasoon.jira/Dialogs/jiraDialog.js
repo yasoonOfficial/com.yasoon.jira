@@ -662,7 +662,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 						requestTypes.forEach(function (rt) {
 							if (rt.groups.filter(function (g) { return g.id === group.id; }).length > 0) {
 								//This request type is assigned to current group --> display.
-								if (jira.systemInfo.versionNumbers[0] === 7 && jira.systemInfo.versionNumbers[1] > 0) {
+								if ((jira.systemInfo.versionNumbers[0] === 7 && jira.systemInfo.versionNumbers[1] > 0) || jira.systemInfo.versionNumbers[0] >= 1000) {
 									currentGroup.append('<option data-icon = "' + rt.iconUrl + '" data-requesttype="' + rt.portalKey + '/' + rt.key + '" data-issuetype="' + rt.issueType + '" value="' + rt.id + '">' + rt.name + '</option>');
 								} else {
 									currentGroup.append('<option data-iconclass = "vp-rq-icon vp-rq-icon-' + rt.icon + '" data-requesttype="' + rt.portalKey + '/' + rt.key + '" data-issuetype="' + rt.issueType + '" value="' + rt.id + '">' + rt.name + '</option>');
@@ -1010,12 +1010,48 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		}
 
 		//Only call for service desk projects
-		return jiraGet('/rest/servicedesk/1/servicedesk/' + project.key.toLowerCase() + '/request-types')
+		var request = Promise.resolve();
+
+		//New cloud versioning
+		if (jira.systemInfo.versionNumbers[0] >= 1000) {
+			request = jiraGet('/rest/servicedesk/1/servicedesk/' + project.key.toLowerCase() + '/groups')
+				.then(function(data) {
+					var groups = JSON.parse(data);
+					return groups;
+				})
+				.map(function(group) {
+					return jiraGet('/rest/servicedesk/1/servicedesk/' + project.key.toLowerCase() + '/groups/' + group.id + '/request-types');
+				})
+				.map(function(typesData) {
+					return JSON.parse(typesData);
+				})
+				.then(function(types) {
+					var allTypes = [];
+					types.forEach(function(typesInner) {
+						typesInner.forEach(function(type) {
+							if (allTypes.filter(function(t) { return t.id === type.id; }).length === 0) {
+								allTypes.push(type);
+							}
+						});
+					});
+
+					return allTypes;
+				});
+		}
+		else {
+			request = jiraGet('/rest/servicedesk/1/servicedesk/' + project.key.toLowerCase() + '/request-types')
+				.then(function(data) {
+					return JSON.parse(data);
+				});
+		}
+
+		return request
 		.then(function (data) {
-			var requestTypes = JSON.parse(data);
+			var requestTypes = data;
 
 			//Get all Groups to make rendering easier
 			var groups = [];
+
 			requestTypes.forEach(function (rt) {
 				//a request type can be assigned to multiple groups:
 				if (!rt.groups) {
