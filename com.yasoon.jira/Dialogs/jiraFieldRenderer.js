@@ -1067,13 +1067,13 @@ function AttachmentLinkRenderer() {
 		});
 
 		$('.attachmentNameValue').off().on('mouseenter', function (e) {
-			console.log(e);
 			var domAttachmentLink = $(this).closest('.jiraAttachmentLink');
 			var handle = self.getCurrentAttachment($(this));
 			var elem = $(this);
 			if (handle.hasFilePreview()) {
 				yasoon.io.getFilePreviewPath(handle)
 				.then(function (path) {
+					$('.thumbnail-preview').remove();
 					$('body').append('<img class="thumbnail-preview" src="' + path + '" style="z-index: 100000; cursor: pointer; background-color: white; position: absolute; left: ' + (e.originalEvent.x - 50) + 'px; top: ' + (e.originalEvent.y - 30) + 'px" />')
 					.find('.thumbnail-preview')
 					.on('mouseleave', function () {

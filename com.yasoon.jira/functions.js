@@ -1139,21 +1139,6 @@ function getJiraMarkupRenderer() {
 	});
 }
 
-function jiraMinimizeIssue(issue) {
-	var copy = JSON.parse(JSON.stringify(issue));
-	delete copy.fields.comment;
-	delete copy.fields.worklog;
-	delete copy.fields.workratio; //Lead to a dump in JSON Convert due to Int64 Overflow
-	if (copy.fields.watches)
-		delete copy.fields.watches.watchers;
-
-	delete copy.renderedFields.comment;
-	delete copy.renderedFields.worklog;
-	delete copy.renderedFields.attachment;
-
-	return copy;
-}
-
 function jiraSyncQueue() {
 	var self = this;
 	var lastPromise = null;

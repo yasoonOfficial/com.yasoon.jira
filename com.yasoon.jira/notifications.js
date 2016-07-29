@@ -520,8 +520,8 @@ function JiraIssueNotification(issue) {
 		feed.properties.baseUrl = jira.settings.baseUrl;
 		feed.setProperties(feed.properties);
 
-		var icon_url = yasoon.io.getLinkPath('Task-03.png');
-		feed.setIconHtml('<img src="' + icon_url + '" title="Issue" ></i>');
+		var icon_url = jira.icons.mapIconUrl(self.issue.fields.issuetype.iconUrl);
+		feed.setIconHtml('<img src="' + icon_url + '" title="' + self.issue.fields.issuetype.name + '" ></i>');
 		feed.afterRenderScript(function () {
 			$('[data-feed-id=' + feed.feedId + ']').find('.jiraStatusChangeLink').off().click(function () {
 				if (!jiraIsLicensed(true)) {
@@ -965,24 +965,22 @@ function JiraIssueActionNotification(event) {
 		self.event.type = 'IssueAction';
 
 		///* Clear unused data to save DB space*/
-		var tempIssue = JSON.parse(JSON.stringify(self.event.issue)); // Performance Intensive but nessecary. Never change original object
-		delete tempIssue.fields;
-		delete tempIssue.renderedFields;
-		delete tempIssue.transitions;
-		delete self.event.link;
+		var event = jiraMinimizeIssue(self.event); // Performance Intensive but nessecary. Never change original object
+		delete event.issue.fields;
+		delete event.issue.renderedFields;
+		delete event.issue.transitions;
+		delete event.link;
 
-		self.event.issue = tempIssue;
-
-		yEvent.externalData = JSON.stringify(self.event);
+		yEvent.externalData = JSON.stringify(event);
 		if (creation) {
 			return jiraAddNotification(yEvent)
 			.then(function (newNotif) {
-				jira.notifications.addDesktopNotification(newNotif, self.event);
+				jira.notifications.addDesktopNotification(newNotif, event);
 			});
 		} else {
 			return jiraSaveNotification(yEvent)
 			.then(function (newNotif) {
-				jira.notifications.addDesktopNotification(newNotif, self.event);
+				jira.notifications.addDesktopNotification(newNotif, event);
 			});
 		}
 	};
