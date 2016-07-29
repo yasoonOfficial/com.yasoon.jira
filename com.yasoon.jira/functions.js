@@ -679,12 +679,34 @@ function JiraContactController() {
 		if (!avatarUrl)
 			avatarUrl = c.externalAvatarUrl;
 
-		if ( c.externalAvatarUrl != avatarUrl) {
+		var oldOwnUser = {};
+		if(c.externalData) 
+		    oldOwnUser = JSON.parse(c.externalData);
 
-			c.externalAvatarUrl = avatarUrl;
-			c.useAuthedDownloadService = jira.settings.currentService;
+		if (ownUser.displayName != oldOwnUser.displayName || c.externalAvatarUrl != avatarUrl) {
+		    //Admins may have [Administrator] added to their name. Maybe there are more roles
 
-			yasoon.contact.updateOwnUser(c);
+		    var cleanName = ownUser.displayName.replace(/\[.*\]/g, '').trim();
+		    var nameParts = cleanName.split(' ');
+		    var firstName = '';
+		    var lastName = '';
+
+		    if (nameParts.length === 1) {
+		        lastName = ' ';
+		        firstName = cleanName;
+		    }
+		    else {
+		        lastName = nameParts[nameParts.length - 1];
+		        firstName = cleanName.replace(lastName, '').trim();
+		    }
+            
+		    c.externalAvatarUrl = avatarUrl;
+		    c.useAuthedDownloadService = jira.settings.currentService;
+		    c.contactFirstName = firstName;
+		    c.contactLastName = lastName;
+		    c.externalData = JSON.stringify(ownUser);
+		    yasoon.contact.updateOwnUser(c);
+		    yasoon.setup.updateProfile(JSON.stringify({ firstName: firstName, lastName: lastName }));
 		}
 	};
 
