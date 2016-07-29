@@ -101,13 +101,11 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 
 	this.handleSelectionChange = function handleSelectionChange(item) {
-		console.log(item);
 		jira.ribbons.updateRibbons(item);
 		jira.ribbons.updateAttachmentRibbons(item);
 	};
 
 	this.handleNewInspector = function handleNewInspector(ribbonCtx) {
-		console.log(ribbonCtx);
 		jira.ribbons.updateRibbons(ribbonCtx.items[0], ribbonCtx.inspectorId);
 	};
 

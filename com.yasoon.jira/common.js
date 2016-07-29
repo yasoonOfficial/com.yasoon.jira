@@ -356,4 +356,11 @@ function jiraIsVersionHigher(systemInfo, versionString) {
 
 	return result;
 }
+
+function jiraIsTask(item) {
+    if (item.__entityType && item.__entityType.indexOf('yasoonBase.Model.Entities.Task') >= -1)
+        return true;
+
+    return false;
+}
 //@ sourceURL=http://Jira/common.js

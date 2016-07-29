@@ -158,8 +158,19 @@ function JiraRibbonController() {
 							type: 'button',
 							size: 'large',
 							image: 'images/ribbonAdd.png',
+							visible: 'appItem',
 							label: yasoon.i18n('ribbon.addToIssue'),
 							onAction: self.ribbonOnAddToIssue
+						}, {
+						    type: 'dynamicMenu',
+						    id: 'jiraTransitionDynamicMenu',
+						    label: yasoon.i18n('ribbon.changeTransition'),
+						    image: 'logo_icon1.png',
+						    items: [{
+						        type: 'menu',
+						        id: 'jiraTransitionMenu',
+						        items: []
+						    }]
 						}]
 					}]
 				}]
@@ -258,77 +269,82 @@ function JiraRibbonController() {
 		if (!item)
 			return;
 
-		if (!item.getConversationData)
-			return;
+		if (jiraIsTask(item)) {
 
-		//This method can be called with or without inspector. In inspector it has another method to call(updateSingle instead of update) and different Ids
-		var where = (inspectorId) ? 'MailRead' : 'MailMain';
-		var ribbonButton = 'openIssueFrom' + where;
-		var ribbonDynamicMenu = 'openIssueDynamicMenuFrom' + where;
-		var ribbonInnerMenu = 'openIssueMenuFrom' + where;
+		} else {
+		    if (!item.getConversationData)
+		        return;
 
-		var parameters = (inspectorId) ? inspectorId : true;
-		var method = (inspectorId) ? 'updateSingle' : 'update';
+		    //This method can be called with or without inspector. In inspector it has another method to call(updateSingle instead of update) and different Ids
+		    var where = (inspectorId) ? 'MailRead' : 'MailMain';
+		    var ribbonButton = 'openIssueFrom' + where;
+		    var ribbonDynamicMenu = 'openIssueDynamicMenuFrom' + where;
+		    var ribbonInnerMenu = 'openIssueMenuFrom' + where;
 
-		var convData = item.getConversationData();
+		    var parameters = (inspectorId) ? inspectorId : true;
+		    var method = (inspectorId) ? 'updateSingle' : 'update';
 
-		if (convData) {
-			convData = JSON.parse(convData);
+		    var convData = item.getConversationData();
+		    console.log('Arguments:', arguments);
+		    if (convData) {
+		        convData = JSON.parse(convData);
 
-			if (convData.issues) {
-				if (Object.keys(convData.issues).length > 1) {
-					//Create Items for Dyn Menu
-					var convItems = [];
-					Object.keys(convData.issues).forEach(function (key) {
-						var currentItem = convData.issues[key];
-						convItems.push({
-							type: 'button',
-							id: 'openIssueMenu-' + currentItem.id,
-							label: yasoon.i18n('ribbon.openIssueWithKey', { key: currentItem.key }),
-							externalData: currentItem.key,
-							image: 'images/ribbonOpen.png',
-							onAction: self.ribbonOpenIssue
-						});
-					});
+		        if (convData.issues) {
+		            if (Object.keys(convData.issues).length > 1) {
+		                //Create Items for Dyn Menu
+		                var convItems = [];
+		                Object.keys(convData.issues).forEach(function (key) {
+		                    var currentItem = convData.issues[key];
+		                    convItems.push({
+		                        type: 'button',
+		                        id: 'openIssueMenu-' + currentItem.id,
+		                        label: yasoon.i18n('ribbon.openIssueWithKey', { key: currentItem.key }),
+		                        externalData: currentItem.key,
+		                        image: 'images/ribbonOpen.png',
+		                        onAction: self.ribbonOpenIssue
+		                    });
+		                });
 
-					jira.ribbonFactory[method](ribbonButton, {
-						visible: false
-					}, parameters);
+		                jira.ribbonFactory[method](ribbonButton, {
+		                    visible: false
+		                }, parameters);
 
-					jira.ribbonFactory[method](ribbonDynamicMenu, {
-						visible: true
-					}, parameters);
-					jira.ribbonFactory[method](ribbonInnerMenu, {
-						items: convItems
-					}, parameters);
+		                jira.ribbonFactory[method](ribbonDynamicMenu, {
+		                    visible: true
+		                }, parameters);
+		                jira.ribbonFactory[method](ribbonInnerMenu, {
+		                    items: convItems
+		                }, parameters);
 
-				} else {
-					var key = convData.issues[Object.keys(convData.issues)[0]].key;
-					jira.ribbonFactory[method](ribbonButton, {
-						label: yasoon.i18n('ribbon.openIssueWithKey', { key: key }),
-						externalData: key,
-						enabled: true,
-						visible: true
-					}, parameters);
+		            } else {
+		                var key = convData.issues[Object.keys(convData.issues)[0]].key;
+		                jira.ribbonFactory[method](ribbonButton, {
+		                    label: yasoon.i18n('ribbon.openIssueWithKey', { key: key }),
+		                    externalData: key,
+		                    enabled: true,
+		                    visible: true
+		                }, parameters);
 
-					jira.ribbonFactory[method](ribbonDynamicMenu, {
-						visible: false
-					}, parameters);
-				}
+		                jira.ribbonFactory[method](ribbonDynamicMenu, {
+		                    visible: false
+		                }, parameters);
+		            }
 
-				return;
-			}
+		            return;
+		        }
+		    }
+
+		    jira.ribbonFactory[method](ribbonButton, {
+		        label: yasoon.i18n('ribbon.openIssue'),
+		        enabled: false,
+		        visible: true
+		    }, parameters);
+
+		    jira.ribbonFactory[method](ribbonDynamicMenu, {
+		        visible: false
+		    }, parameters);
+
 		}
-
-		jira.ribbonFactory[method](ribbonButton, {
-			label: yasoon.i18n('ribbon.openIssue'),
-			enabled: false,
-			visible: true
-		}, parameters);
-
-		jira.ribbonFactory[method](ribbonDynamicMenu, {
-			visible: false
-		}, parameters);
 	};
 
 	this.updateAttachmentRibbons = function updateAttachmentRibbons(item, inspectorId) {

@@ -175,7 +175,8 @@ function JiraSettingController() {
 		//Create deep copy
 		$.each(form, function (i, param) {
 			//Special Case for activeFilters
-			if (param.key === 'activeFilters' && self[param.key] != param.value ) {
+		    if (param.key === 'activeFilters' && self[param.key] != param.value) {
+		        console.log('Filters', self[param.key], param.value);
 				yasoon.dialog.showMessageBox(yasoon.i18n('settings.filterChange'));
 			}
 			
