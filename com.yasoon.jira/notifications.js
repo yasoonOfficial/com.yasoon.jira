@@ -520,7 +520,11 @@ function JiraIssueNotification(issue) {
 		feed.properties.baseUrl = jira.settings.baseUrl;
 		feed.setProperties(feed.properties);
 
-		var icon_url = jira.icons.mapIconUrl(self.issue.fields.issuetype.iconUrl);
+		var icon_url = yasoon.io.getLinkPath('Task-03.png');
+        //In JIRA 7 issue types icons are svg so we can display them in the feed
+		if (jiraIsVersionHigher(jira.sysInfo, 7)) {
+		    icon_url = jira.icons.mapIconUrl(self.issue.fields.issuetype.iconUrl);
+		}
 		feed.setIconHtml('<img src="' + icon_url + '" title="' + self.issue.fields.issuetype.name + '" ></i>');
 		feed.afterRenderScript(function () {
 			$('[data-feed-id=' + feed.feedId + ']').find('.jiraStatusChangeLink').off().click(function () {

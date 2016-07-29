@@ -14,7 +14,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	var self = this;
 
 	jira = this;
-	jira.CONST_HEADER = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
 	
 	this.UIFormHandler = UIRenderer;
 	this.icons = new JiraIconController();
@@ -932,70 +931,45 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 
 	this.getProjectValues = function () {
-		return new Promise(function (resolve, reject) {
-			//Check in Cache
-			if (jira.cacheProjects && jira.cacheProjects.length > 0) {
-				var project = jira.cacheProjects.filter(function (p) { return p.key === jira.selectedProject.key; })[0];
-				if (project) {
-					jira.selectedProject = project;
-					return resolve();
-				}
-			}
+	    //Check in Cache
+	    if (jira.cacheProjects && jira.cacheProjects.length > 0) {
+	        var project = jira.cacheProjects.filter(function (p) { return p.key === jira.selectedProject.key; })[0];
+	        if (project) {
+	            jira.selectedProject = project;
+	            return Promise.resolve();
+	        }
+	    }
 
-			//Get Values of a single project
-			yasoon.oauth({
-				url: self.settings.baseUrl + '/rest/api/2/project/' + jira.selectedProject.key,
-				oauthServiceName: jira.settings.currentService,
-				headers: jira.CONST_HEADER,
-				type: yasoon.ajaxMethod.Get,
-				error: function () {
-					reject.apply(this, arguments);
-				},
-				success: function (data) {
-					jira.selectedProject = JSON.parse(data);
+	    return jiraGet('/rest/api/2/project/' + jira.selectedProject.key)
+        .then(function(data) {
+            jira.selectedProject = JSON.parse(data);
 
-					//Sort Issue Types
-					jira.selectedProject.issueTypes.sort(function (a, b) {
-						if (a.id > b.id)
-							return 1;
-						else
-							return -1;
-					});
-					resolve();
-				}
-			});
-		});
+            //Sort Issue Types
+            jira.selectedProject.issueTypes.sort(function (a, b) {
+                if (a.id > b.id)
+                    return 1;
+                else
+                    return -1;
+            });
+        });
 	};
 
 	this.getMetaData = function () {
-		return new Promise(function (resolve, reject) {
-			//Check in Cache
-			if (jira.cacheCreateMetas && jira.cacheCreateMetas.length > 0) {
-				var projectMeta = jira.cacheCreateMetas.filter(function (m) { return m.key === jira.selectedProject.key; })[0];
-				if (projectMeta) {
-					jira.projectMeta = projectMeta;
-					return resolve();
-				}
-			}
+	    //Check in Cache
+	    if (jira.cacheCreateMetas && jira.cacheCreateMetas.length > 0) {
+	        var projectMeta = jira.cacheCreateMetas.filter(function (m) { return m.key === jira.selectedProject.key; })[0];
+	        if (projectMeta) {
+	            jira.projectMeta = projectMeta;
+	            return Promise.resolve();
+	        }
+	    }
 
-			//Meta Data for custom fields
-			yasoon.oauth({
-				url: self.settings.baseUrl + '/rest/api/2/issue/createmeta?projectIds=' + jira.selectedProject.id + '&expand=projects.issuetypes.fields',
-				oauthServiceName: jira.settings.currentService,
-				headers: jira.CONST_HEADER,
-				type: yasoon.ajaxMethod.Get,
-				error: function () {
-					reject.apply(this, arguments);
-				},
-				success: function (data) {
-					var meta = JSON.parse(data);
-					//Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
-					self.projectMeta = $.grep(meta.projects, function (p) { return p.id === jira.selectedProject.id; })[0];
-					resolve();
-				}
-			});
-
-		});
+	    return jiraGet('/rest/api/2/issue/createmeta?projectIds=' + jira.selectedProject.id + '&expand=projects.issuetypes.fields')
+        .then(function (data) {
+            var meta = JSON.parse(data);
+            //Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
+            self.projectMeta = $.grep(meta.projects, function (p) { return p.id === jira.selectedProject.id; })[0];
+        });
 	};
 
 	this.getRequestTypes = function getRequestTypes(project) {
@@ -1003,23 +977,37 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			return;
 		}
 
-		//Only call for service desk projects
-		var request = Promise.resolve();
+	    //We are not sure with which JIRA version they added servicedesk API. Using the project key is default, but does not work if project Key has been changed.
+	    //Use serviceDeskApi if possible.
+		var serviceDeskKey = project.key.toLowerCase();
+		request = jiraGet('/rest/servicedesk/1/servicedesk-data')
+        .then(function (data) {
+            var serviceData = JSON.parse(data);
+            console.log(serviceData);
+            if(serviceData.length > 0)
+                serviceDeskKey = serviceData.filter(function (s) { return s.projectId == project.id; })[0].key;
+        })
+        .catch(function (e) {
+            console.log(e);
+            yasoon.util.log(e.toString(), yasoon.util.severity.warning);
+        });
 
 		//New cloud versioning
 		if (jira.systemInfo.versionNumbers[0] >= 1000) {
-			request = jiraGet('/rest/servicedesk/1/servicedesk/' + project.key.toLowerCase() + '/groups')
+		    request = request.then(function() {
+                    return jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey + '/groups')
+                })
 				.then(function(data) {
 					var groups = JSON.parse(data);
 					return groups;
 				})
 				.map(function(group) {
-					return jiraGet('/rest/servicedesk/1/servicedesk/' + project.key.toLowerCase() + '/groups/' + group.id + '/request-types');
+				    return jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey + '/groups/' + group.id + '/request-types');
 				})
 				.map(function(typesData) {
 					return JSON.parse(typesData);
 				})
-				.then(function(types) {
+				.then(function (types) {
 					var allTypes = [];
 					types.forEach(function(typesInner) {
 						typesInner.forEach(function(type) {
@@ -1033,10 +1021,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				});
 		}
 		else {
-			request = jiraGet('/rest/servicedesk/1/servicedesk/' + project.key.toLowerCase() + '/request-types')
-				.then(function(data) {
-					return JSON.parse(data);
-				});
+		    request = request.then(function () {
+                return jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey + '/request-types')
+            })
+			.then(function(data) {
+				return JSON.parse(data);
+			});
 		}
 
 		return request

@@ -285,7 +285,6 @@ function JiraRibbonController() {
 		    var method = (inspectorId) ? 'updateSingle' : 'update';
 
 		    var convData = item.getConversationData();
-		    console.log('Arguments:', arguments);
 		    if (convData) {
 		        convData = JSON.parse(convData);
 
