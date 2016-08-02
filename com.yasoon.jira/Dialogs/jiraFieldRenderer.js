@@ -1889,10 +1889,8 @@ function formatIssue(issue) {
 	if (!issue)
 		return '';
 
-	if (issue.element)
-		$(issue.element).removeData();
-
 	if (issue.element && issue.id && issue.project) {
+		$(issue.element).removeData();
 		$(issue.element).data('id', issue.id)
 				.data('text', issue.text)
 				.data('key', issue.key)
