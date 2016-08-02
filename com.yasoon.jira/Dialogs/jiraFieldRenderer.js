@@ -1108,12 +1108,11 @@ function AttachmentLinkRenderer() {
 		if (!template) {
 			var path = yasoon.io.getLinkPath('templates/attachmentFields.hbs');
 			$.get(path, function (tmpl) {
-				templateLoaded = true;
 				template = Handlebars.compile(tmpl);
-				self.fillTemplate(id, field, $('#'+ id));
+				self.fillTemplate(id, $('#'+ id));
 			});
 		} else {
-			self.fillTemplate(id, field, $('#' + id));
+			self.fillTemplate(id, $('#' + id));
 		}
 	};
 }
@@ -1790,7 +1789,7 @@ function IssuePickerRenderer() {
 		});
 
 		var isLoaded = false;
-		$('#' + id + '-advancedLink').unbind().click(function () {
+		$('#' + id + '-advancedLink').off().on('click', function () {
 			if (!isLoaded) {
 				$('#' + id + '-Spinner').show();
 				jiraGet('/rest/api/2/jql/autocompletedata').then(function (data) {
