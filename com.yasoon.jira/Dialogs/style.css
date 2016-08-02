@@ -2830,10 +2830,6 @@ body {
 	padding:0px;
 }
 
-.jiraAttachmentLink {
-	margin-bottom: 2px
-}
-
 #markupLoader { 
 	display: none;
 	position:absolute;
@@ -2866,3 +2862,105 @@ body {
 	margin: 5px 2px 5px 97px;
 	z-index: 1000;
 }
+
+
+/* Attachments */
+
+.jiraAttachmentLink{
+	margin-bottom: 2px;
+	position: relative;
+}
+
+.attachmentCheckbox{
+	position: absolute !important;
+}
+
+.attachmentIcon{
+	position: absolute;
+	left: 20px;
+	top: 7px;
+}
+
+.attachmentIcon img {
+	width:16px;
+}
+
+.attachmentMain{
+	margin-left: 40px;
+	margin-right: 40px;
+}
+
+.attachmentName{
+	padding-top: 7px;
+}
+
+.attachmentNewName{
+	display: none;
+	padding-top: 3px;
+}
+
+.edit .attachmentName {
+	display:none;
+}
+
+.edit .attachmentNewName {
+	display: block !important;
+}
+
+.attachmentNewName .input-group{
+	display: inline-table;
+	width: 350px;
+}
+
+.attachmentRenameActions{
+	font-size: 20px; 
+	margin-left: 5px;
+	color: #707070;
+	vertical-align: top;
+	display: inline-block;
+}
+
+.attachmentRenameActions i {
+	cursor: pointer;
+}
+
+.attachmentRenameActions i:not(:first-child) {
+	margin-left: 5px;
+}
+
+.attachmentMoreDropup {
+	display: inline-block;
+}
+
+.attachmentMore{
+	cursor: pointer;
+	color:grey;
+}
+
+.attachmentMoreIcons{
+	font-size:6px;
+}
+
+.attachmentMoreIcons i:not(:first-child) {
+	margin-left: 1px;
+}
+
+.addAttachmentLink{
+	margin-top: 5px;
+	cursor:pointer;
+}
+
+
+/* Add to issue Service Comment Buttons */
+button.servicedesk {
+	display:none !important;
+}
+
+.servicedesk button.jira {
+	display:none !important;
+}
+
+.servicedesk button.servicedesk {
+	display: inline !important;
+}
+

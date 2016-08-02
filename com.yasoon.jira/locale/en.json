@@ -9,7 +9,8 @@
 				"uploadToIssues": "Upload to Issues",
 				"openIssue": "Open Issue",
 				"openIssues": "Open Issues",
-				"openIssueWithKey": "Open Issue {{key}}"
+                "openIssueWithKey": "Open Issue {{key}}",
+                "changeTransition": "Change Transition"
 			},
 			"general": {
 				"couldNotUploadAttachments": "Couldn't upload all attachments. Please try again.",
@@ -118,7 +119,9 @@
 				"sprintSuggestion": "Suggestions",
 				"sprintAll": "All",
 				"unassigned": "Unassigned",
-				"automatic": "Automatic"
+				"automatic": "Automatic",
+				"addCustomer": "Share with Customer",
+				"addInternal": "Share internally"
 			},
 			"filter": {
 				"projectFilter": "Project",

@@ -99,7 +99,7 @@ function jiraHandleImageFallback(img) {
 	}
 	img.src = yasoon.io.getLinkPath('Images\\unknown.png');
 
-	if (enteredContext !== '0') {
+	if (enteredContext !== 0) {
 		yasoon.app.leaveContext(enteredContext);
 	}
 	
@@ -355,5 +355,51 @@ function jiraIsVersionHigher(systemInfo, versionString) {
 	});
 
 	return result;
+}
+
+function jiraMinimizeIssue(issue) {
+	var copy = JSON.parse(JSON.stringify(issue));
+	jiraCompressObject(copy);
+	return copy;
+}
+
+function jiraCompressObject(obj) {
+	var keys = Object.keys(obj);
+	var unnecessaryKeys = [
+		"expand",
+		"self",
+		"32x32",
+		"24x24",
+		"16x16",
+		"votes",
+		"comment",
+		"worklog",
+		"attachment",
+		"watchers",
+		"workratio",
+		"statusCategory",
+		"votes",
+		"timeZone",
+		"atlassian:timezone-offset"
+	];
+
+	for (var i in keys) {
+		var key = keys[i];
+		var value = obj[key];
+		if (unnecessaryKeys.indexOf(key) > -1) {
+			delete obj[key];
+		} else if (typeof value === 'object' && value !== null) {
+			jiraCompressObject(value);
+		}  else if (!value) {
+			delete obj[key];
+		}
+	}
+}
+
+function jiraIsTask(item) {
+    if (item.__entityType && item.__entityType.indexOf('yasoonBase.Model.Entities.Task') >= -1)
+        return true;
+
+    return false;
 }
 //@ sourceURL=http://Jira/common.js

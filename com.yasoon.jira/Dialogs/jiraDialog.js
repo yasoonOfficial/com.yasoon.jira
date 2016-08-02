@@ -14,7 +14,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	var self = this;
 
 	jira = this;
-	jira.CONST_HEADER = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
 	
 	this.UIFormHandler = UIRenderer;
 	this.icons = new JiraIconController();
@@ -34,7 +33,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.mailAsMarkup = '';
 	this.recentProjects = [];
 	this.projects = [];
-	this.addedAttachmentIds = [];
 	this.selectedAttachments = [];
 	this.savedTemplates = [];
 	this.userCommonValues = {};
@@ -180,27 +178,22 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			//Add current mail to clipboard
 			var handle = self.mail.getFileHandle();
 			if (self.settings.addEmailOnNewAddIssue) {
-				self.selectedAttachments.push(handle);
-			} else {
-				var id = yasoon.clipboard.addFile(handle);
-				self.addedAttachmentIds.push(id);
+				handle.selected = true;
+			}
+			self.selectedAttachments.push(handle);
+
+			if (self.mail.attachments && self.mail.attachments.length > 0) {
+				self.mail.attachments.forEach(function (attachment) {
+					var handle = attachment.getFileHandle();
+					//Skip too small images	
+					if (self.settings.addAttachmentsOnNewAddIssue && attachment.fileSize > 10240) {
+						handle.selected = true;
+					}
+					self.selectedAttachments.push(handle);
+				});
 			}
 		}
 		
-		if (self.mail && self.mail.attachments && self.mail.attachments.length > 0) {
-			self.mail.attachments.forEach(function(attachment) {				
-				var handle = attachment.getFileHandle();		
-				//Skip hidden attachments (mostly embedded images)	
-				if (self.settings.addAttachmentsOnNewAddIssue && !attachment.isHidden) {
-					self.selectedAttachments.push(handle);
-				}
-				else {
-					var id = yasoon.clipboard.addFile(handle);
-					self.addedAttachmentIds.push(id);
-				}
-			});
-		}
-
 		if (self.isEditMode) {
 			//It's the edit case
 			//Set Title & Labels
@@ -356,12 +349,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		// due to pending dialog.close
 		yasoon.dialog.clearEvents();
 
-		//If there has been attachments loaded into yasoon clipboard, we need to remove them
-		if (self.addedAttachmentIds.length > 0) {
-			$.each(self.addedAttachmentIds, function (i, handleId) {
-				yasoon.clipboard.remove(handleId);
-			});
-		}
+		//Dispose all Attachments
+		jira.selectedAttachments.forEach(function (handle) {
+			handle.dispose();
+		});
 	};
 
 	this.submitForm = function (e) {
@@ -497,16 +488,18 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			}
 
 			//Attachments?
-			if (self.selectedAttachments.length > 0) {
-
-				var formData = [];
-				$.each(self.selectedAttachments, function (i, file) {
+			var formData = [];
+			self.selectedAttachments.forEach(function (file) {
+				if (file.selected) {
 					formData.push({
 						type: yasoon.formData.File,
 						name: 'file',
 						value: file
 					});
-				});
+				}
+			});
+
+			if (formData.length > 0) {
 				jira.transaction.currentCallCounter++;
 
 				jiraAjax('/rest/api/2/issue/' + issue.id + '/attachments', yasoon.ajaxMethod.Post, null, formData )
@@ -938,70 +931,45 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 
 	this.getProjectValues = function () {
-		return new Promise(function (resolve, reject) {
-			//Check in Cache
-			if (jira.cacheProjects && jira.cacheProjects.length > 0) {
-				var project = jira.cacheProjects.filter(function (p) { return p.key === jira.selectedProject.key; })[0];
-				if (project) {
-					jira.selectedProject = project;
-					return resolve();
-				}
-			}
+	    //Check in Cache
+	    if (jira.cacheProjects && jira.cacheProjects.length > 0) {
+	        var project = jira.cacheProjects.filter(function (p) { return p.key === jira.selectedProject.key; })[0];
+	        if (project) {
+	            jira.selectedProject = project;
+	            return Promise.resolve();
+	        }
+	    }
 
-			//Get Values of a single project
-			yasoon.oauth({
-				url: self.settings.baseUrl + '/rest/api/2/project/' + jira.selectedProject.key,
-				oauthServiceName: jira.settings.currentService,
-				headers: jira.CONST_HEADER,
-				type: yasoon.ajaxMethod.Get,
-				error: function () {
-					reject.apply(this, arguments);
-				},
-				success: function (data) {
-					jira.selectedProject = JSON.parse(data);
+	    return jiraGet('/rest/api/2/project/' + jira.selectedProject.key)
+        .then(function(data) {
+            jira.selectedProject = JSON.parse(data);
 
-					//Sort Issue Types
-					jira.selectedProject.issueTypes.sort(function (a, b) {
-						if (a.id > b.id)
-							return 1;
-						else
-							return -1;
-					});
-					resolve();
-				}
-			});
-		});
+            //Sort Issue Types
+            jira.selectedProject.issueTypes.sort(function (a, b) {
+                if (a.id > b.id)
+                    return 1;
+                else
+                    return -1;
+            });
+        });
 	};
 
 	this.getMetaData = function () {
-		return new Promise(function (resolve, reject) {
-			//Check in Cache
-			if (jira.cacheCreateMetas && jira.cacheCreateMetas.length > 0) {
-				var projectMeta = jira.cacheCreateMetas.filter(function (m) { return m.key === jira.selectedProject.key; })[0];
-				if (projectMeta) {
-					jira.projectMeta = projectMeta;
-					return resolve();
-				}
-			}
+	    //Check in Cache
+	    if (jira.cacheCreateMetas && jira.cacheCreateMetas.length > 0) {
+	        var projectMeta = jira.cacheCreateMetas.filter(function (m) { return m.key === jira.selectedProject.key; })[0];
+	        if (projectMeta) {
+	            jira.projectMeta = projectMeta;
+	            return Promise.resolve();
+	        }
+	    }
 
-			//Meta Data for custom fields
-			yasoon.oauth({
-				url: self.settings.baseUrl + '/rest/api/2/issue/createmeta?projectIds=' + jira.selectedProject.id + '&expand=projects.issuetypes.fields',
-				oauthServiceName: jira.settings.currentService,
-				headers: jira.CONST_HEADER,
-				type: yasoon.ajaxMethod.Get,
-				error: function () {
-					reject.apply(this, arguments);
-				},
-				success: function (data) {
-					var meta = JSON.parse(data);
-					//Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
-					self.projectMeta = $.grep(meta.projects, function (p) { return p.id === jira.selectedProject.id; })[0];
-					resolve();
-				}
-			});
-
-		});
+	    return jiraGet('/rest/api/2/issue/createmeta?projectIds=' + jira.selectedProject.id + '&expand=projects.issuetypes.fields')
+        .then(function (data) {
+            var meta = JSON.parse(data);
+            //Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
+            self.projectMeta = $.grep(meta.projects, function (p) { return p.id === jira.selectedProject.id; })[0];
+        });
 	};
 
 	this.getRequestTypes = function getRequestTypes(project) {
@@ -1009,23 +977,36 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			return;
 		}
 
-		//Only call for service desk projects
-		var request = Promise.resolve();
+	    //We are not sure with which JIRA version they added servicedesk API. Using the project key is default, but does not work if project Key has been changed.
+	    //Use serviceDeskApi if possible.
+		var serviceDeskKey = project.key.toLowerCase();
+		request = jiraGet('/rest/servicedesk/1/servicedesk-data')
+				.then(function(data) {
+            var serviceData = JSON.parse(data);
+            if(serviceData.length > 0)
+                serviceDeskKey = serviceData.filter(function (s) { return s.projectId == project.id; })[0].key;
+        })
+        .catch(function (e) {
+            console.log(e);
+            yasoon.util.log(e.toString(), yasoon.util.severity.warning);
+        });
 
 		//New cloud versioning
 		if (jira.systemInfo.versionNumbers[0] >= 1000) {
-			request = jiraGet('/rest/servicedesk/1/servicedesk/' + project.key.toLowerCase() + '/groups')
+		    request = request.then(function() {
+                    return jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey + '/groups')
+                })
 				.then(function(data) {
 					var groups = JSON.parse(data);
 					return groups;
 				})
 				.map(function(group) {
-					return jiraGet('/rest/servicedesk/1/servicedesk/' + project.key.toLowerCase() + '/groups/' + group.id + '/request-types');
+				    return jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey + '/groups/' + group.id + '/request-types');
 				})
 				.map(function(typesData) {
 					return JSON.parse(typesData);
 				})
-				.then(function(types) {
+				.then(function (types) {
 					var allTypes = [];
 					types.forEach(function(typesInner) {
 						typesInner.forEach(function(type) {
@@ -1039,10 +1020,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				});
 		}
 		else {
-			request = jiraGet('/rest/servicedesk/1/servicedesk/' + project.key.toLowerCase() + '/request-types')
-				.then(function(data) {
-					return JSON.parse(data);
-				});
+		    request = request.then(function () {
+                return jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey + '/request-types')
+            })
+			.then(function(data) {
+				return JSON.parse(data);
+			});
 		}
 
 		return request
@@ -1146,39 +1129,21 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		//Check each attachment if it needs to be embedded
 		var clipboardContent = yasoon.clipboard.all();
 		attachments.forEach(function(attachment) {			
-			if (markup.indexOf('!' + attachment.contentId + '!') > -1) {				
-				//Replace the reference in the markup								
-				var handle = attachment.getFileHandle();								
-				var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
-				markup = markup.replace(regEx, '!' + handle.getFileName() + '!');		
-				handle.setInUse();
-				
-				//May have been added earlier
-				if (self.selectedAttachments.indexOf(handle) === -1) {
-					self.selectedAttachments.push(handle);
-					
-					//Remove it from the clipboard as well
-					var id = null;
-					
-					for (var key in clipboardContent) {
-						if (handle.contentId && clipboardContent[key].contentId === handle.contentId) {
-							id = key;
-							break;
-						}
-					}
-					
-					if (id) {
-						var index = self.addedAttachmentIds.indexOf(id);
-						if (index > -1) {
-							self.addedAttachmentIds.splice(index, 1);
-						}
-						yasoon.clipboard.remove(id);
-					}
+			if (markup.indexOf('!' + attachment.contentId + '!') > -1) {
+				//Mark attachments selected
+				var handle = self.selectedAttachments.filter(function (a) { return a.contentId === attachment.contentId; })[0];
+				if (handle) {
+					handle.selected = true;
+
+					//Replace the reference in the markup								
+					var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
+					markup = markup.replace(regEx, '!' + handle.getFileName() + '!');
+					handle.setInUse();
 				}
 			}
 		});
 		
-		jira.UIFormHandler.getRenderer('attachment').renderAttachments('attachment');		
+		jira.UIFormHandler.getRenderer('attachment').refresh('attachment');		
 		return markup;
 	};
 	

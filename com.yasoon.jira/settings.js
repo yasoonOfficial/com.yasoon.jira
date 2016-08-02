@@ -83,7 +83,7 @@ function JiraSettingController() {
 				selectionHeader: yasoon.i18n('settings.filterActive')
 			});
 
-			$('#jiraLogin').unbind().click(function () {
+			$('#jiraLogin').off().click(function () {
 				var selectedServiceName = $('#currentService').val();
 				var newService = $.grep(parameter.oAuthServices, function (s) { return s.serviceName == selectedServiceName; })[0];
 
@@ -118,7 +118,7 @@ function JiraSettingController() {
 			$('#addMailHeaderAutomatically').select2({ minimumResultsForSearch: 5 })
 				.val(jira.settings.addMailHeaderAutomatically).trigger('change');
 
-			$('#jiraLogout').unbind().click(function () {
+			$('#jiraLogout').off().click(function () {
 				yasoon.app.invalidateOAuthToken(self.currentService);
 				self.baseUrl = '';
 				self.currentService = '';
@@ -138,17 +138,17 @@ function JiraSettingController() {
 				// - it has already been clicked and processing is not finished yet
 				// - it's currently an version running from a shadow folder 
 				// - Or the downloaded app is newer (prevent implicit updates)
-				$('#jiraReloadOAuth').prop('disabled', true).unbind();
+				$('#jiraReloadOAuth').prop('disabled', true).off();
 				var app = yasoon.model.apps.get('com.yasoon.jira');
 				yasoon.store.getLatestVersions(function (storeApp) {
 					if (storeApp.id > app.origin.versionId) {
 						yasoon.dialog.showMessageBox(yasoon.i18n('settings.pendingUpdates'));
-						$('#jiraReloadOAuth').unbind().prop('disabled', false).click(reloadOAuthHandler);
+						$('#jiraReloadOAuth').off().prop('disabled', false).click(reloadOAuthHandler);
 						return;
 					}
 					if (app.origin.basePath.indexOf('update') > -1) {
 						yasoon.dialog.showMessageBox(yasoon.i18n('settings.pendingUpdatesApp'));
-						$('#jiraReloadOAuth').unbind().prop('disabled', false).click(reloadOAuthHandler);
+						$('#jiraReloadOAuth').off().prop('disabled', false).click(reloadOAuthHandler);
 						return;
 					}
 
@@ -166,7 +166,7 @@ function JiraSettingController() {
 				return false;
 			}
 			
-			$('#jiraReloadOAuth').unbind().click(reloadOAuthHandler);
+			$('#jiraReloadOAuth').off().click(reloadOAuthHandler);
 		};
 		container.setContent(elem.html());
 	};
@@ -175,7 +175,8 @@ function JiraSettingController() {
 		//Create deep copy
 		$.each(form, function (i, param) {
 			//Special Case for activeFilters
-			if (param.key === 'activeFilters' && self[param.key] != param.value ) {
+		    if (param.key === 'activeFilters' && self[param.key] != param.value) {
+		        console.log('Filters', self[param.key], param.value);
 				yasoon.dialog.showMessageBox(yasoon.i18n('settings.filterChange'));
 			}
 			
@@ -196,7 +197,7 @@ function JiraSettingController() {
 
 	self.setLastSync = function (date) {
 		self.lastSync = date;
-		//yasoon.feed.saveSyncDate(date);
+		yasoon.feed.saveSyncDate(date);
 		yasoon.setting.setAppParameter('settings', JSON.stringify(self));
 	};
 

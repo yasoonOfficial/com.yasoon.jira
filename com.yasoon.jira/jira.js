@@ -101,13 +101,11 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 
 	this.handleSelectionChange = function handleSelectionChange(item) {
-		console.log(item);
 		jira.ribbons.updateRibbons(item);
 		jira.ribbons.updateAttachmentRibbons(item);
 	};
 
 	this.handleNewInspector = function handleNewInspector(ribbonCtx) {
-		console.log(ribbonCtx);
 		jira.ribbons.updateRibbons(ribbonCtx.items[0], ribbonCtx.inspectorId);
 	};
 
@@ -289,6 +287,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 
 	this.initData = function initData() {
 		//First Get Own User Data
+		var detailedProjects = [];
 		jiraLog('Get Own Data');
 		if (jira.firstTime) {
 			return jiraGetWithHeaders('/rest/api/2/serverInfo')
@@ -327,8 +326,11 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 					return jiraGet('/rest/api/2/project/' + project.key)
 					.then(function (singleProject) {
 						var proj = JSON.parse(singleProject);
-						jira.data.projects.push(proj);
+						detailedProjects.push(proj);
 					});
+				})
+				.then(function () {
+					jira.data.projects = detailedProjects;
 				});
 			})
 			.then(function () {
