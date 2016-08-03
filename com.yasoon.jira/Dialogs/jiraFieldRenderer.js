@@ -1095,7 +1095,8 @@ function AttachmentLinkRenderer() {
 	};
 
 	this.refresh = function (id) {
-		self.fillTemplate(id, $('#' + id));
+        if(template)
+		    self.fillTemplate(id, $('#' + id));
 	};
 
 	this.render = function (id, field, container) {

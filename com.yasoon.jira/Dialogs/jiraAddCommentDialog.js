@@ -75,26 +75,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		if (issuesString) {
 			self.recentIssues = JSON.parse(issuesString);
 		}
-		
-		//Add Default Data
-		if (self.selectedText) {
-			var text = self.selectedText;
-			
-			//Handle auto header add setting
-			if (self.settings.addMailHeaderAutomatically === 'top') {
-				text = renderMailHeaderText(self.mail, true) + '\n' + text;
-			}
-			else if (self.settings.addMailHeaderAutomatically === 'bottom') {
-				text = text + '\n' + renderMailHeaderText(self.mail, true);
-			}
-			
-			text = self.handleAttachments(text, self.mail.attachments);
-			$('#comment').val(text);
-		}
 
 		//Render current mail (just in case we need it as it probably needs some time)
 		if (self.mail) {
-
 			//Add current mail to clipboard
 			var handle = self.mail.getFileHandle();
 			if (self.settings.addEmailOnNewAddIssue) {
@@ -145,6 +128,21 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			});
 		}		
 
+	    //Add Default Data
+		if (self.selectedText) {
+		    var text = self.selectedText;
+
+		    //Handle auto header add setting
+		    if (self.settings.addMailHeaderAutomatically === 'top') {
+		        text = renderMailHeaderText(self.mail, true) + '\n' + text;
+		    }
+		    else if (self.settings.addMailHeaderAutomatically === 'bottom') {
+		        text = text + '\n' + renderMailHeaderText(self.mail, true);
+		    }
+
+		    text = self.handleAttachments(text, self.mail.attachments);
+		    $('#comment').val(text);
+		}
 		self.loadingFinished();
 
 		//Init Projects
@@ -516,7 +514,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 	this.handleAttachments = function (markup, attachments) {
 		//Check each attachment if it needs to be embedded
-		var clipboardContent = yasoon.clipboard.all();
 		attachments.forEach(function (attachment) {
 			if (markup.indexOf('!' + attachment.contentId + '!') > -1) {
 				//Mark attachments selected
