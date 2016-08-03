@@ -1788,6 +1788,29 @@ function IssuePickerRenderer() {
 			}
 		});
 
+		$('#' + id).on('select2:select', function (evt) {
+		    if (jira.mode !== 'jiraAddCommentDialog' || !evt.params || !evt.params.data) {
+		        $('.buttons').removeClass('servicedesk');
+		        return;
+		    }
+
+		    var issue = evt.params.data;
+		    var currentProject = jira.projects.filter(function (p) { return p.id === issue.project.id; })[0];
+		    if (!currentProject || currentProject.projectTypeKey !== 'service_desk') {
+		        $('.buttons').removeClass('servicedesk');
+		        return;
+		    }
+
+            //We have a service Project... Check if it is a service request
+		    jiraGet('/rest/servicedeskapi/request/' + issue.id)
+            .then(function (data) {
+                $('.buttons').addClass('servicedesk');
+            })
+            .catch(function (e) {
+                $('.buttons').removeClass('servicedesk');
+            });
+		});
+
 		var isLoaded = false;
 		$('#' + id + '-advancedLink').off().on('click', function () {
 			if (!isLoaded) {

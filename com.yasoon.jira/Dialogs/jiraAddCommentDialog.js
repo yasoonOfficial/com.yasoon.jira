@@ -28,6 +28,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.projects = [];
 	this.selectedProjectId = null;
 	this.selectedProjectKey = null;
+	this.mode = 'jiraAddCommentDialog';
 
 	this.mailAsMarkup = '';
 	this.recentIssues = [];
@@ -374,12 +375,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		jira.selectedProjectId = $('#project').val();
 		jira.projectIssues = [];
 
-		var project = self.projects.filter(function (p) { return p.id === jira.selectedProjectId; })[0];
-		if (project && project.projectTypeKey === 'service_desk') {
-			$('.buttons').addClass('servicedesk');
-		} else {
-			$('.buttons').removeClass('servicedesk');
-		}
 		//Self.issue is provided by task object
 		var issueKey = null;
 		if (self.issue) {

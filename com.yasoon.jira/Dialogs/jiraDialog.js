@@ -41,6 +41,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.projectIssues = [];
 	this.selectedProjectId = null;
 	this.selectedProjectKey = null;
+	this.mode = 'jiraDialog';
 
 	//Order of Fields in the form. Fields not part of the array will be rendered afterwards
 	//This can be customized by JIRA admin
