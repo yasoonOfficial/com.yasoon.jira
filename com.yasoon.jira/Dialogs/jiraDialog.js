@@ -187,7 +187,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				self.mail.attachments.forEach(function (attachment) {
 					var handle = attachment.getFileHandle();
 					//Skip too small images	
-					if (self.settings.addAttachmentsOnNewAddIssue && attachment.fileSize > 10240) {
+					if (self.settings.addAttachmentsOnNewAddIssue && attachment.fileSize > 2048) {
 						handle.selected = true;
 					}
 					self.selectedAttachments.push(handle);
@@ -1132,14 +1132,18 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		attachments.forEach(function(attachment) {			
 			if (markup.indexOf('!' + attachment.contentId + '!') > -1) {
 				//Mark attachments selected
-				var handle = self.selectedAttachments.filter(function (a) { return a.contentId === attachment.contentId; })[0];
-				if (handle) {
+			    var handle = self.selectedAttachments.filter(function (a) { return a.contentId === attachment.contentId; })[0];
+			    var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
+
+				if (handle && attachment.fileSize > 2048) {
 					handle.selected = true;
 
 					//Replace the reference in the markup								
-					var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
+					
 					markup = markup.replace(regEx, '!' + handle.getFileName() + '!');
 					handle.setInUse();
+				} else {
+				    markup = markup.replace(regEx, '');
 				}
 			}
 		});
