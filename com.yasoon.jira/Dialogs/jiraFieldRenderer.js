@@ -126,7 +126,7 @@ function MultilineTextRenderer() {
 				e.preventDefault();
 			});
 
-			$("#description, #comment").on("keyup paste", function (e) {
+			$(getDescriptionId()).on("keyup paste", function (e) {
 				$('#DescriptionOptionToolbar').addClass('hidden');
 			});
 
@@ -157,15 +157,15 @@ function MultilineTextRenderer() {
 				$('#DescriptionUndoAction').removeClass('hidden');
 
 				if (useMarkup) {
-					$('#description').val(jira.mailAsMarkup);
+				    $(getDescriptionId()).val(jira.mailAsMarkup);
 				} else {
-					$('#description').val(jira.mail.getBody(0));
+				    $(getDescriptionId()).val(jira.mail.getBody(0));
 				}
 			});
 
 			$('#DescriptionMailInformation').on('click', function (e) {
 				backup = $('#' + id).val();
-				var field = (jira.isAddCommentMode) ? $('#comment')[0] : $('#description')[0];
+				var field = $(getDescriptionId())[0];
 				insertAtCursor(field, renderMailHeaderText(jira.mail, useMarkup));
 			});
 
@@ -991,11 +991,11 @@ function AttachmentLinkRenderer() {
 			handle.fileNameNoExtension = newName.substring(0, newName.lastIndexOf('.'));
 
 			//Replace references in description (if necessary)
-			var oldText = $('#description').val();
+			var oldText = $(getDescriptionId()).val();
 			if (oldText) {
 				var regEx = new RegExp(oldName, 'g');
 				var newText = oldText.replace(regEx, newName);
-				$('#description').val(newText);
+				$(getDescriptionId()).val(newText);
 			}
 		}
 		domAttachmentLink.find('.attachmentMain').removeClass('edit');
@@ -1044,7 +1044,7 @@ function AttachmentLinkRenderer() {
 		$('.attachmentAddRef').off().click(function (e) {
 			e.preventDefault();
 			var handle = self.getCurrentAttachment($(this));
-			insertAtCursor($('#description')[0], '[^' + handle.fileName + ']\n');
+			insertAtCursor($(getDescriptionId())[0], '[^' + handle.fileName + ']\n');
 		});
 
 		$('.attachmentRename').off().click(function (e) {
@@ -1950,6 +1950,13 @@ function insertAtCursor(myField, myValue) {
 
 }
 
+function getDescriptionId() {
+
+    if (jira.mode === 'jiraAddCommentDialog')
+        return '#comment';
+    else
+        return '#description';
+}
 var timeoutSearchUser = null;
 function searchUser(mode, query, callback) {
 	//First try to get an issue key ... if it doesn't exist, get project
