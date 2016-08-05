@@ -229,7 +229,11 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		//Dispose all Attachments
 		jira.selectedAttachments.forEach(function (handle) {
-			handle.dispose();
+		    try {
+		        handle.dispose();
+		    } catch (e) {
+		        //System.Exception: TrackedObjectRegistry: Tried to access object which not found! (probably already de-referenced)
+		    }
 		});
 	};
 

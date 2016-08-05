@@ -1611,6 +1611,7 @@ function IssuePickerRenderer() {
 	};
 
 	this.setValue = function (id, value) {
+	    console.log('SetValue', value);
 		if (value) {
 			//We can only select elements that have an rendered option tag.
 			if ($('#' + id).find('option[value="' + value.id + '"]').length === 0) {
@@ -1625,13 +1626,15 @@ function IssuePickerRenderer() {
 
 			$('#' + id)
 			.val(value.id)
-			.trigger('change');
+			.trigger('change')
+			.trigger('select2:select', value);
 		} else {
 			$('#' + id).removeData();
 
 			$('#' + id)
 			.val('')
-			.trigger('change');
+			.trigger('change')
+			.trigger('select2:select');
 		}
 	};
 
@@ -1789,13 +1792,23 @@ function IssuePickerRenderer() {
 			}
 		});
 
-		$('#' + id).on('select2:select', function (evt) {
-		    if (jira.mode !== 'jiraAddCommentDialog' || !evt.params || !evt.params.data) {
+		$('#' + id).on('select2:select', function (evt, data) {
+		    //We trigger this event manually in setValue.
+		    //This leads to different eventData :/
+		    var issue = null;
+		    if (data) {
+		        issue = {
+		            project: data.fields.project,
+		            id: data.id
+		        };
+		    } else if (jira.mode === 'jiraAddCommentDialog' && evt.params && evt.params.data) {
+		        issue = evt.params.data;
+		    } else {
 		        $('.buttons').removeClass('servicedesk');
 		        return;
 		    }
 
-		    var issue = evt.params.data;
+		    
 		    var currentProject = jira.projects.filter(function (p) { return p.id === issue.project.id; })[0];
 		    if (!currentProject || currentProject.projectTypeKey !== 'service_desk') {
 		        $('.buttons').removeClass('servicedesk');
