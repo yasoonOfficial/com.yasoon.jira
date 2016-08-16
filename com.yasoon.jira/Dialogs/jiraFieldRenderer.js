@@ -1071,16 +1071,23 @@ function AttachmentLinkRenderer() {
 			var handle = self.getCurrentAttachment($(this));
 			var elem = $(this);
 			if (handle.hasFilePreview()) {
-				yasoon.io.getFilePreviewPath(handle)
-				.then(function (path) {
-					$('.thumbnail-preview').remove();
-					$('body').append('<img class="thumbnail-preview" src="' + path + '" style="z-index: 100000; cursor: pointer; background-color: white; position: absolute; left: ' + (e.originalEvent.x - 50) + 'px; top: ' + (e.originalEvent.y - 30) + 'px" />')
-					.find('.thumbnail-preview')
-					.on('mouseleave', function () {
-						$(this).unbind().remove();
-					});
+			    var timeoutFct = setTimeout(function () {
+			        yasoon.io.getFilePreviewPath(handle)
+                    .then(function (path) {
+                        $('.thumbnail-preview').remove();
+                        $('body').append('<img class="thumbnail-preview" src="' + path + '" style="z-index: 100000; cursor: pointer; background-color: white; position: absolute; left: ' + (e.originalEvent.x - 50) + 'px; top: ' + (e.originalEvent.y - 30) + 'px" />')
+                        .find('.thumbnail-preview')
+                        .on('mouseleave', function () {
+                            $(this).unbind().remove();
+                        });
 
-				});
+                    });
+			    }, 500);
+
+			    $('.attachmentNameValue').on('mouseleave', function (e) {
+			        clearTimeout(timeoutFct);
+			    });
+
 			}
 		});
 
@@ -1970,6 +1977,7 @@ function getDescriptionId() {
     else
         return '#description';
 }
+
 var timeoutSearchUser = null;
 function searchUser(mode, query, callback) {
 	//First try to get an issue key ... if it doesn't exist, get project
