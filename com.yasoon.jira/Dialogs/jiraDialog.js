@@ -352,11 +352,11 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		//Dispose all Attachments
 		jira.selectedAttachments.forEach(function (handle) {
-		    try {
-		        handle.dispose();
-		    } catch (e) {
-		        //System.Exception: TrackedObjectRegistry: Tried to access object which not found! (probably already de-referenced)
-		    }
+			try {
+				handle.dispose();
+			} catch (e) {
+				//System.Exception: TrackedObjectRegistry: Tried to access object which not found! (probably already de-referenced)
+			}
 		});
 	};
 
@@ -936,45 +936,45 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 
 	this.getProjectValues = function () {
-	    //Check in Cache
-	    if (jira.cacheProjects && jira.cacheProjects.length > 0) {
-	        var project = jira.cacheProjects.filter(function (p) { return p.key === jira.selectedProject.key; })[0];
-	        if (project) {
-	            jira.selectedProject = project;
-	            return Promise.resolve();
-	        }
-	    }
+		//Check in Cache
+		if (jira.cacheProjects && jira.cacheProjects.length > 0) {
+			var project = jira.cacheProjects.filter(function (p) { return p.key === jira.selectedProject.key; })[0];
+			if (project) {
+				jira.selectedProject = project;
+				return Promise.resolve();
+			}
+		}
 
-	    return jiraGet('/rest/api/2/project/' + jira.selectedProject.key)
-        .then(function(data) {
-            jira.selectedProject = JSON.parse(data);
+		return jiraGet('/rest/api/2/project/' + jira.selectedProject.key)
+		.then(function(data) {
+			jira.selectedProject = JSON.parse(data);
 
-            //Sort Issue Types
-            jira.selectedProject.issueTypes.sort(function (a, b) {
-                if (a.id > b.id)
-                    return 1;
-                else
-                    return -1;
-            });
-        });
+			//Sort Issue Types
+			jira.selectedProject.issueTypes.sort(function (a, b) {
+				if (a.id > b.id)
+					return 1;
+				else
+					return -1;
+			});
+		});
 	};
 
 	this.getMetaData = function () {
-	    //Check in Cache
-	    if (jira.cacheCreateMetas && jira.cacheCreateMetas.length > 0) {
-	        var projectMeta = jira.cacheCreateMetas.filter(function (m) { return m.key === jira.selectedProject.key; })[0];
-	        if (projectMeta) {
-	            jira.projectMeta = projectMeta;
-	            return Promise.resolve();
-	        }
-	    }
+		//Check in Cache
+		if (jira.cacheCreateMetas && jira.cacheCreateMetas.length > 0) {
+			var projectMeta = jira.cacheCreateMetas.filter(function (m) { return m.key === jira.selectedProject.key; })[0];
+			if (projectMeta) {
+				jira.projectMeta = projectMeta;
+				return Promise.resolve();
+			}
+		}
 
-	    return jiraGet('/rest/api/2/issue/createmeta?projectIds=' + jira.selectedProject.id + '&expand=projects.issuetypes.fields')
-        .then(function (data) {
-            var meta = JSON.parse(data);
-            //Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
-            self.projectMeta = $.grep(meta.projects, function (p) { return p.id === jira.selectedProject.id; })[0];
-        });
+		return jiraGet('/rest/api/2/issue/createmeta?projectIds=' + jira.selectedProject.id + '&expand=projects.issuetypes.fields')
+		.then(function (data) {
+			var meta = JSON.parse(data);
+			//Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
+			self.projectMeta = $.grep(meta.projects, function (p) { return p.id === jira.selectedProject.id; })[0];
+		});
 	};
 
 	this.getRequestTypes = function getRequestTypes(project) {
@@ -982,31 +982,31 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			return;
 		}
 
-	    //We are not sure with which JIRA version they added servicedesk API. Using the project key is default, but does not work if project Key has been changed.
-	    //Use serviceDeskApi if possible.
+		//We are not sure with which JIRA version they added servicedesk API. Using the project key is default, but does not work if project Key has been changed.
+		//Use serviceDeskApi if possible.
 		var serviceDeskKey = project.key.toLowerCase();
 		request = jiraGet('/rest/servicedesk/1/servicedesk-data')
 				.then(function(data) {
-            var serviceData = JSON.parse(data);
-            if(serviceData.length > 0)
-                serviceDeskKey = serviceData.filter(function (s) { return s.projectId == project.id; })[0].key;
-        })
-        .catch(function (e) {
-            console.log(e);
-            yasoon.util.log(e.toString(), yasoon.util.severity.warning);
-        });
+			var serviceData = JSON.parse(data);
+			if(serviceData.length > 0)
+				serviceDeskKey = serviceData.filter(function (s) { return s.projectId == project.id; })[0].key;
+		})
+		.catch(function (e) {
+			console.log(e);
+			yasoon.util.log(e.toString(), yasoon.util.severity.warning);
+		});
 
 		//New cloud versioning
 		if (jira.systemInfo.versionNumbers[0] >= 1000) {
-		    request = request.then(function() {
-                    return jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey + '/groups')
-                })
+			request = request.then(function() {
+					return jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey + '/groups')
+				})
 				.then(function(data) {
 					var groups = JSON.parse(data);
 					return groups;
 				})
 				.map(function(group) {
-				    return jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey + '/groups/' + group.id + '/request-types');
+					return jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey + '/groups/' + group.id + '/request-types');
 				})
 				.map(function(typesData) {
 					return JSON.parse(typesData);
@@ -1025,9 +1025,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				});
 		}
 		else {
-		    request = request.then(function () {
-                return jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey + '/request-types')
-            })
+			request = request.then(function () {
+				return jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey + '/request-types')
+			})
 			.then(function(data) {
 				return JSON.parse(data);
 			});
@@ -1136,8 +1136,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		attachments.forEach(function(attachment) {			
 			if (markup.indexOf('!' + attachment.contentId + '!') > -1) {
 				//Mark attachments selected
-			    var handle = self.selectedAttachments.filter(function (a) { return a.contentId === attachment.contentId; })[0];
-			    var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
+				var handle = self.selectedAttachments.filter(function (a) { return a.contentId === attachment.contentId; })[0];
+				var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
 
 				if (handle && attachment.fileSize > 2048) {
 					handle.selected = true;
@@ -1147,7 +1147,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					markup = markup.replace(regEx, '!' + handle.getFileName() + '!');
 					handle.setInUse();
 				} else {
-				    markup = markup.replace(regEx, '');
+					markup = markup.replace(regEx, '');
 				}
 			}
 		});

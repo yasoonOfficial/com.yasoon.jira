@@ -397,7 +397,7 @@ function jiraCompressObject(obj) {
 }
 
 function jiraIsTask(item) {
-    if (item.__entityType && item.__entityType.indexOf('yasoonBase.Model.Entities.Task') >= -1)
+    if (item.__entity_type && item.__entity_type.indexOf('yasoonBase.Model.Entities.Task') > -1)
         return true;
 
     return false;

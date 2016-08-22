@@ -193,7 +193,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		yasoon.setting.setAppParameter('settings', JSON.stringify(jira.settings));
 		oAuthSuccess = true;
 		self.sync();
-
+		window.oAuthSuccess();
 		self.checkLicense();
 	};
 

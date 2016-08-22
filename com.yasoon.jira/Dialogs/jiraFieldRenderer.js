@@ -157,9 +157,9 @@ function MultilineTextRenderer() {
 				$('#DescriptionUndoAction').removeClass('hidden');
 
 				if (useMarkup) {
-				    $(getDescriptionId()).val(jira.mailAsMarkup);
+					$(getDescriptionId()).val(jira.mailAsMarkup);
 				} else {
-				    $(getDescriptionId()).val(jira.mail.getBody(0));
+					$(getDescriptionId()).val(jira.mail.getBody(0));
 				}
 			});
 
@@ -1071,22 +1071,22 @@ function AttachmentLinkRenderer() {
 			var handle = self.getCurrentAttachment($(this));
 			var elem = $(this);
 			if (handle.hasFilePreview()) {
-			    var timeoutFct = setTimeout(function () {
-			        yasoon.io.getFilePreviewPath(handle)
-                    .then(function (path) {
-                        $('.thumbnail-preview').remove();
-                        $('body').append('<img class="thumbnail-preview" src="' + path + '" style="z-index: 100000; cursor: pointer; background-color: white; position: absolute; left: ' + (e.originalEvent.x - 50) + 'px; top: ' + (e.originalEvent.y - 30) + 'px" />')
-                        .find('.thumbnail-preview')
-                        .on('mouseleave', function () {
-                            $(this).unbind().remove();
-                        });
+				var timeoutFct = setTimeout(function () {
+					yasoon.io.getFilePreviewPath(handle)
+					.then(function (path) {
+						$('.thumbnail-preview').remove();
+						$('body').append('<img class="thumbnail-preview" src="' + path + '" style="z-index: 100000; cursor: pointer; background-color: white; position: absolute; left: ' + (e.originalEvent.x - 50) + 'px; top: ' + (e.originalEvent.y - 30) + 'px" />')
+						.find('.thumbnail-preview')
+						.on('mouseleave', function () {
+							$(this).unbind().remove();
+						});
 
-                    });
-			    }, 500);
+					});
+				}, 500);
 
-			    $('.attachmentNameValue').on('mouseleave', function (e) {
-			        clearTimeout(timeoutFct);
-			    });
+				$('.attachmentNameValue').on('mouseleave', function (e) {
+					clearTimeout(timeoutFct);
+				});
 
 			}
 		});
@@ -1102,8 +1102,8 @@ function AttachmentLinkRenderer() {
 	};
 
 	this.refresh = function (id) {
-        if(template)
-		    self.fillTemplate(id, $('#' + id));
+		if(template)
+			self.fillTemplate(id, $('#' + id));
 	};
 
 	this.render = function (id, field, container) {
@@ -1355,8 +1355,14 @@ function EpicLinkRenderer() {
 function SprintLinkRenderer() {
 	this.getValue = function (id) {
 		//Bug in JIRA --> Edit is not supported via normal REST api --> See type com.pyxis.greenhopper.jira:gh-epic-link for more information.
-		if (!jira.editIssueId && $('#' + id).val())
-			return parseInt($('#' + id).val()); 
+		if (!jira.editIssueId && $('#' + id).val()) {
+			//We aren't sure with which version this change happened. 7.0.0 definitely requires a string, 7.1.6. requires an int :)
+			if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
+				return parseInt($('#' + id).val());
+			} else {
+				return $('#' + id).val();
+			}
+		}
 	};
 
 	this.setValue = function (id, value) {
@@ -1618,7 +1624,7 @@ function IssuePickerRenderer() {
 	};
 
 	this.setValue = function (id, value) {
-	    console.log('SetValue', value);
+		console.log('SetValue', value);
 		if (value) {
 			//We can only select elements that have an rendered option tag.
 			if ($('#' + id).find('option[value="' + value.id + '"]').length === 0) {
@@ -1800,36 +1806,36 @@ function IssuePickerRenderer() {
 		});
 
 		$('#' + id).on('select2:select', function (evt, data) {
-		    //We trigger this event manually in setValue.
-		    //This leads to different eventData :/
-		    var issue = null;
-		    if (data) {
-		        issue = {
-		            project: data.fields.project,
-		            id: data.id
-		        };
-		    } else if (jira.mode === 'jiraAddCommentDialog' && evt.params && evt.params.data) {
-		        issue = evt.params.data;
-		    } else {
-		        $('.buttons').removeClass('servicedesk');
-		        return;
-		    }
+			//We trigger this event manually in setValue.
+			//This leads to different eventData :/
+			var issue = null;
+			if (data) {
+				issue = {
+					project: data.fields.project,
+					id: data.id
+				};
+			} else if (jira.mode === 'jiraAddCommentDialog' && evt.params && evt.params.data) {
+				issue = evt.params.data;
+			} else {
+				$('.buttons').removeClass('servicedesk');
+				return;
+			}
 
-		    
-		    var currentProject = jira.projects.filter(function (p) { return p.id === issue.project.id; })[0];
-		    if (!currentProject || currentProject.projectTypeKey !== 'service_desk') {
-		        $('.buttons').removeClass('servicedesk');
-		        return;
-		    }
+			
+			var currentProject = jira.projects.filter(function (p) { return p.id === issue.project.id; })[0];
+			if (!currentProject || currentProject.projectTypeKey !== 'service_desk') {
+				$('.buttons').removeClass('servicedesk');
+				return;
+			}
 
-            //We have a service Project... Check if it is a service request
-		    jiraGet('/rest/servicedeskapi/request/' + issue.id)
-            .then(function (data) {
-                $('.buttons').addClass('servicedesk');
-            })
-            .catch(function (e) {
-                $('.buttons').removeClass('servicedesk');
-            });
+			//We have a service Project... Check if it is a service request
+			jiraGet('/rest/servicedeskapi/request/' + issue.id)
+			.then(function (data) {
+				$('.buttons').addClass('servicedesk');
+			})
+			.catch(function (e) {
+				$('.buttons').removeClass('servicedesk');
+			});
 		});
 
 		var isLoaded = false;
@@ -1938,7 +1944,7 @@ function formatIssue(issue) {
 		$(issue.element).data('id', issue.id)
 				.data('text', issue.text)
 				.data('key', issue.key)
-			    .data('summary', issue.summary)
+				.data('summary', issue.summary)
 				.data('projectId', issue.project.id)
 				.data('projectKey', issue.project.key);
 	}
@@ -1972,10 +1978,10 @@ function insertAtCursor(myField, myValue) {
 
 function getDescriptionId() {
 
-    if (jira.mode === 'jiraAddCommentDialog')
-        return '#comment';
-    else
-        return '#description';
+	if (jira.mode === 'jiraAddCommentDialog')
+		return '#comment';
+	else
+		return '#description';
 }
 
 var timeoutSearchUser = null;

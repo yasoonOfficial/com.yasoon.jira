@@ -162,15 +162,17 @@ function JiraRibbonController() {
 							label: yasoon.i18n('ribbon.addToIssue'),
 							onAction: self.ribbonOnAddToIssue
 						}, {
-						    type: 'dynamicMenu',
-						    id: 'jiraTransitionDynamicMenu',
-						    label: yasoon.i18n('ribbon.changeTransition'),
-						    image: 'logo_icon1.png',
-						    items: [{
-						        type: 'menu',
-						        id: 'jiraTransitionMenu',
-						        items: []
-						    }]
+							type: 'dynamicMenu',
+							id: 'jiraTransitionDynamicMenu',
+							size: 'large',
+							label: yasoon.i18n('ribbon.changeTransition'),
+							image: 'logo_icon1.png',
+							visible: 'appItem',
+							items: [{
+								type: 'menu',
+								id: 'jiraTransitionMenu',
+								items: []
+							}]
 						}]
 					}]
 				}]
@@ -269,79 +271,105 @@ function JiraRibbonController() {
 		if (!item)
 			return;
 
+		var parameters = (inspectorId) ? inspectorId : true;
+		var method = (inspectorId) ? 'updateSingle' : 'update';
+		console.log(item);
 		if (jiraIsTask(item)) {
+		    var issue = JSON.parse(item.externalData);
+		    
+		    if (issue.transitions) {
+		        var transitionItems = [];
+		        issue.transitions.forEach(function (t) {
+		            transitionItems.push({
+		                type: 'button',
+		                id: 'transition-' + t.id,
+		                label: t.name,
+		                externalData: JSON.stringify({ transitionId: t.id, issueKey: issue.key, issueId: issue.id }),
+		                onAction: self.ribbonExecuteTransition
+		            });
+		        });
 
-		} else {
-		    if (!item.getConversationData)
-		        return;
+		        jira.ribbonFactory[method]('jiraTransitionMenu', {
+		            items: transitionItems
+		        }, parameters);
 
-		    //This method can be called with or without inspector. In inspector it has another method to call(updateSingle instead of update) and different Ids
-		    var where = (inspectorId) ? 'MailRead' : 'MailMain';
-		    var ribbonButton = 'openIssueFrom' + where;
-		    var ribbonDynamicMenu = 'openIssueDynamicMenuFrom' + where;
-		    var ribbonInnerMenu = 'openIssueMenuFrom' + where;
-
-		    var parameters = (inspectorId) ? inspectorId : true;
-		    var method = (inspectorId) ? 'updateSingle' : 'update';
-
-		    var convData = item.getConversationData();
-		    if (convData) {
-		        convData = JSON.parse(convData);
-
-		        if (convData.issues) {
-		            if (Object.keys(convData.issues).length > 1) {
-		                //Create Items for Dyn Menu
-		                var convItems = [];
-		                Object.keys(convData.issues).forEach(function (key) {
-		                    var currentItem = convData.issues[key];
-		                    convItems.push({
-		                        type: 'button',
-		                        id: 'openIssueMenu-' + currentItem.id,
-		                        label: yasoon.i18n('ribbon.openIssueWithKey', { key: currentItem.key }),
-		                        externalData: currentItem.key,
-		                        image: 'images/ribbonOpen.png',
-		                        onAction: self.ribbonOpenIssue
-		                    });
-		                });
-
-		                jira.ribbonFactory[method](ribbonButton, {
-		                    visible: false
-		                }, parameters);
-
-		                jira.ribbonFactory[method](ribbonDynamicMenu, {
-		                    visible: true
-		                }, parameters);
-		                jira.ribbonFactory[method](ribbonInnerMenu, {
-		                    items: convItems
-		                }, parameters);
-
-		            } else {
-		                var key = convData.issues[Object.keys(convData.issues)[0]].key;
-		                jira.ribbonFactory[method](ribbonButton, {
-		                    label: yasoon.i18n('ribbon.openIssueWithKey', { key: key }),
-		                    externalData: key,
-		                    enabled: true,
-		                    visible: true
-		                }, parameters);
-
-		                jira.ribbonFactory[method](ribbonDynamicMenu, {
-		                    visible: false
-		                }, parameters);
-		            }
-
-		            return;
-		        }
+		        jira.ribbonFactory[method]('jiraTransitionDynamicMenu', {
+		            visible: 'appItem'
+		        }, parameters);
+		    } else {
+		        jira.ribbonFactory[method]('jiraTransitionDynamicMenu', {
+		            visible: false
+		        }, parameters);
 		    }
 
-		    jira.ribbonFactory[method](ribbonButton, {
-		        label: yasoon.i18n('ribbon.openIssue'),
-		        enabled: false,
-		        visible: true
-		    }, parameters);
+		} else {
+			if (!item.getConversationData)
+				return;
 
-		    jira.ribbonFactory[method](ribbonDynamicMenu, {
-		        visible: false
-		    }, parameters);
+			//This method can be called with or without inspector. In inspector it has another method to call(updateSingle instead of update) and different Ids
+			var where = (inspectorId) ? 'MailRead' : 'MailMain';
+			var ribbonButton = 'openIssueFrom' + where;
+			var ribbonDynamicMenu = 'openIssueDynamicMenuFrom' + where;
+			var ribbonInnerMenu = 'openIssueMenuFrom' + where;
+
+			var convData = item.getConversationData();
+			if (convData) {
+				convData = JSON.parse(convData);
+
+				if (convData.issues) {
+					if (Object.keys(convData.issues).length > 1) {
+						//Create Items for Dyn Menu
+						var convItems = [];
+						Object.keys(convData.issues).forEach(function (key) {
+							var currentItem = convData.issues[key];
+							convItems.push({
+								type: 'button',
+								id: 'openIssueMenu-' + currentItem.id,
+								label: yasoon.i18n('ribbon.openIssueWithKey', { key: currentItem.key }),
+								externalData: currentItem.key,
+								image: 'images/ribbonOpen.png',
+								onAction: self.ribbonOpenIssue
+							});
+						});
+
+						jira.ribbonFactory[method](ribbonButton, {
+							visible: false
+						}, parameters);
+
+						jira.ribbonFactory[method](ribbonDynamicMenu, {
+							visible: true
+						}, parameters);
+						jira.ribbonFactory[method](ribbonInnerMenu, {
+							items: convItems
+						}, parameters);
+
+					} else {
+						var key = convData.issues[Object.keys(convData.issues)[0]].key;
+						jira.ribbonFactory[method](ribbonButton, {
+							label: yasoon.i18n('ribbon.openIssueWithKey', { key: key }),
+							externalData: key,
+							enabled: true,
+							visible: true
+						}, parameters);
+
+						jira.ribbonFactory[method](ribbonDynamicMenu, {
+							visible: false
+						}, parameters);
+					}
+
+					return;
+				}
+			}
+
+			jira.ribbonFactory[method](ribbonButton, {
+				label: yasoon.i18n('ribbon.openIssue'),
+				enabled: false,
+				visible: true
+			}, parameters);
+
+			jira.ribbonFactory[method](ribbonDynamicMenu, {
+				visible: false
+			}, parameters);
 
 		}
 	};
@@ -475,10 +503,45 @@ function JiraRibbonController() {
 		
 	};
 
+	this.ribbonExecuteTransition = function (ribbonId, ribbonCtx) {
+	    if (!jiraIsLicensed(true)) {
+	        return;
+	    }
+
+	    console.log(ribbonCtx);
+	    var extData = JSON.parse(ribbonCtx.externalData);
+	    var issueKey = extData.issueKey;
+	    var issueId = extData.issueId;
+	    var transitionId = extData.transitionId;
+	    var body = JSON.stringify({
+	        "transition": {
+	            "id": transitionId
+	        }
+	    });
+
+	    jiraGet('/rest/api/2/issue/' + issueKey + '/transitions?transitionId=' + transitionId)
+		.then(function (data) {
+		    var transObj = JSON.parse(data);
+		    if (transObj.transitions[0].hasScreen) {
+		        yasoon.openBrowser(jira.settings.baseUrl + '/login.jsp?os_destination=' + encodeURIComponent('/secure/CommentAssignIssue!default.jspa?id=' + issueId + '&action=' + transitionId));
+		    } else {
+		        return jiraAjax('/rest/api/2/issue/' + issueKey + '/transitions', yasoon.ajaxMethod.Post, body)
+				.then(function () {
+				    jira.sync();
+				});
+		    }
+		})
+		.catch(function (error) {
+		    var msg = (error.getUserFriendlyError) ? error.getUserFriendlyError() : error;
+		    yasoon.dialog.showMessageBox(yasoon.i18n('notification.changeStatusNotPossible', { error: msg }));
+		    yasoon.util.log('Unexpected error in Set Transition in Task: ' + error, yasoon.util.severity.error, getStackTrace(error));
+		});
+	};
+
 	this.ribbonOnNewIssue = function ribbonOnNewIssue(ribbonId, ribbonCtx) {
-		if (!jiraIsLicensed(true)) {
-			return;
-		}
+	    if (!jiraIsLicensed(true)) {
+	        return;
+	    }
 		if (!jira.settings.currentService || !yasoon.app.isOAuthed(jira.settings.currentService)) {
 			yasoon.dialog.showMessageBox(yasoon.i18n('general.loginFirst'));
 			return;
@@ -681,32 +744,32 @@ function JiraContactController() {
 
 		var oldOwnUser = {};
 		if(c.externalData) 
-		    oldOwnUser = JSON.parse(c.externalData);
+			oldOwnUser = JSON.parse(c.externalData);
 
 		if (ownUser.displayName != oldOwnUser.displayName || c.externalAvatarUrl != avatarUrl) {
-		    //Admins may have [Administrator] added to their name. Maybe there are more roles
+			//Admins may have [Administrator] added to their name. Maybe there are more roles
 
-		    var cleanName = ownUser.displayName.replace(/\[.*\]/g, '').trim();
-		    var nameParts = cleanName.split(' ');
-		    var firstName = '';
-		    var lastName = '';
+			var cleanName = ownUser.displayName.replace(/\[.*\]/g, '').trim();
+			var nameParts = cleanName.split(' ');
+			var firstName = '';
+			var lastName = '';
 
-		    if (nameParts.length === 1) {
-		        lastName = ' ';
-		        firstName = cleanName;
-		    }
-		    else {
-		        lastName = nameParts[nameParts.length - 1];
-		        firstName = cleanName.replace(lastName, '').trim();
-		    }
-            
-		    c.externalAvatarUrl = avatarUrl;
-		    c.useAuthedDownloadService = jira.settings.currentService;
-		    c.contactFirstName = firstName;
-		    c.contactLastName = lastName;
-		    c.externalData = JSON.stringify(ownUser);
-		    yasoon.contact.updateOwnUser(c);
-		    yasoon.setup.updateProfile(JSON.stringify({ firstName: firstName, lastName: lastName }));
+			if (nameParts.length === 1) {
+				lastName = ' ';
+				firstName = cleanName;
+			}
+			else {
+				lastName = nameParts[nameParts.length - 1];
+				firstName = cleanName.replace(lastName, '').trim();
+			}
+			
+			c.externalAvatarUrl = avatarUrl;
+			c.useAuthedDownloadService = jira.settings.currentService;
+			c.contactFirstName = firstName;
+			c.contactLastName = lastName;
+			c.externalData = JSON.stringify(ownUser);
+			yasoon.contact.updateOwnUser(c);
+			yasoon.setup.updateProfile(JSON.stringify({ firstName: firstName, lastName: lastName }));
 		}
 	};
 
