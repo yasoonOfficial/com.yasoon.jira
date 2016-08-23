@@ -150,13 +150,14 @@
 					<!-- Sync Feed -->
 					<div class="form-group" style="position:relative; margin-top:20px;">
 						<div class="col-sm-4 checkbox">
-							<b class="pull-right">{{i18n 'settings.syncFeed'}} </b>
+							<b class="pull-right">{{i18n 'settings.syncFeed'}}</b>
 						</div>
 						<div class="col-sm-8">
-							<div class="checkbox awesome">
-								<input class="formValue" type="checkbox" id="syncFeed" name="syncFeed">
-								<label for="syncFeed"></label>
-							</div>
+							<select class="formValue" style="width: 200px" id="syncFeed" name="syncFeed">
+								<option value="auto">{{i18n 'settings.syncFeedAuto'}}</option>
+								<option value="manual">{{i18n 'settings.syncFeedManual'}}</option>
+								<option value="off">{{i18n 'settings.syncFeedOff'}}</option>
+							</select>
 						</div>
 					</div>
 					<!-- Sync Options -->

@@ -45,6 +45,17 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				yasoon.setting.setAppParameter('settings', JSON.stringify(settings));
 			}
 		}
+
+		if (action === yasoon.lifecycle.Upgrade && newVersion === '1.2.3') {
+		    var settingsString = yasoon.setting.getAppParameter('settings');
+		    var settings = null;
+		    if (settingsString) {
+		        //Load Settings
+		        settings = JSON.parse(settingsString);
+		        settings.syncFeed = auto;
+		        yasoon.setting.setAppParameter('settings', JSON.stringify(settings));
+		    }
+		}
 		jira.downloadScript = true;
 	};
 
@@ -116,11 +127,16 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			return;
 		}
 
-		//Settings Check, Do not sync regularly if turned off
-		if (!jira.settings.syncFeed && source === 'action')
-			return;
+	    //Settings Check, Do not sync regularly if turned off.
+	    //If sync is turned off, we still need to sync data if task sync is active
+	    //+ For intial sync
+		if (!self.firstTime) {
+		    if (jira.settings.syncFeed == "manual" && source == 'action')
+		        return;
 
-		
+		    if (jira.settings.syncFeed == "off" && !jira.settings.syncTasks)
+		        return;
+		}
 		return jira.queue.add(self.syncData);
 	};
 

@@ -337,6 +337,10 @@ function JiraIssueNotification(issue) {
 	function isSyncNeeded() {
 		var found = false;
 
+	    //Do not sync 
+		if (jira.settings.syncFeed == 'off')
+		    return false;
+
 		//Do not sync epics
 		if (self.issue.fields.issuetype && self.issue.fields.issuetype.iconUrl.indexOf('ico_epic.png') > -1) {
 			return false; //Do not sync Epics
@@ -521,9 +525,9 @@ function JiraIssueNotification(issue) {
 		feed.setProperties(feed.properties);
 
 		var icon_url = yasoon.io.getLinkPath('Task-03.png');
-        //In JIRA 7 issue types icons are svg so we can display them in the feed
+		//In JIRA 7 issue types icons are svg so we can display them in the feed
 		if (jiraIsVersionHigher(jira.sysInfo, '7')) {
-		    icon_url = jira.icons.mapIconUrl(self.issue.fields.issuetype.iconUrl);
+			icon_url = jira.icons.mapIconUrl(self.issue.fields.issuetype.iconUrl);
 		}
 		feed.setIconHtml('<img src="' + icon_url + '" title="' + self.issue.fields.issuetype.name + '" ></i>');
 		feed.afterRenderScript(function () {
@@ -585,7 +589,7 @@ function JiraIssueNotification(issue) {
 
 	self.save = function () {
 		if (!isSyncNeeded()) {
-			return jiraGetNotification(self.issue.id);
+		    return;
 		}
 		//Save contacts
 		if (self.issue.fields.assignee)
@@ -607,70 +611,65 @@ function JiraIssueNotification(issue) {
 
 		return jiraGetNotification(self.issue.id)
 		.then(function (yEvent) {
-			var creation = false;
-			if (!yEvent) {
-				//New Notification
-				yEvent = {};
-				creation = true;
-			} else if (yEvent.createdAt.getTime() >= new Date(self.issue.fields.updated).getTime()) {
-				//not new and no update needed
-				return yEvent;
-			} else {
-				self.issue.childrenLoaded = JSON.parse(yEvent.externalData).childrenLoaded; // Take over childrenLoaded flag from old Entity
-			}
+		    var creation = false;
+		    if (!yEvent) {
+		        //New Notification
+		        yEvent = {};
+		        creation = true;
+		    } else if (yEvent.createdAt.getTime() >= new Date(self.issue.fields.updated).getTime()) {
+		        //not new and no update needed
+		        return yEvent;
+		    } else {
+		        self.issue.childrenLoaded = JSON.parse(yEvent.externalData).childrenLoaded; // Take over childrenLoaded flag from old Entity
+		    }
 
-			//Description is sometimes an object. WTF?! check for it and log so we can probably figure out what's inside
-			var content = yasoon.i18n('notification.noContent');
-			if (self.issue.fields.description && typeof self.issue.fields.description != 'string') {
-				try {
-					yasoon.util.log('Description Object found:' + JSON.stringify(self.issue.fields.description) + ' --> Rendered Description: ' + JSON.stringify(self.issue.renderedFields.description));
-				} catch (e) {
-					//Should't dump
-				}
-			} else {
-				content = self.issue.fields.description || content;
-			}
-			yEvent.content = content;
-			yEvent.title = self.issue.fields.summary;
-			yEvent.type = 1;
-			yEvent.createdAt = new Date(self.issue.fields.updated);
-			yEvent.contactId = ((self.issue.fields.creator) ? self.issue.fields.creator.name : ((self.issue.fields.reporter) ? self.issue.fields.reporter.name : ''));
-			yEvent.externalId = self.issue.id;
-			self.issue.type = 'issue';
+		    //Description is sometimes an object. WTF?! check for it and log so we can probably figure out what's inside
+		    var content = yasoon.i18n('notification.noContent');
+		    if (self.issue.fields.description && typeof self.issue.fields.description != 'string') {
+		        try {
+		            yasoon.util.log('Description Object found:' + JSON.stringify(self.issue.fields.description) + ' --> Rendered Description: ' + JSON.stringify(self.issue.renderedFields.description));
+		        } catch (e) {
+		            //Should't dump
+		        }
+		    } else {
+		        content = self.issue.fields.description || content;
+		    }
+		    yEvent.content = content;
+		    yEvent.title = self.issue.fields.summary;
+		    yEvent.type = 1;
+		    yEvent.createdAt = new Date(self.issue.fields.updated);
+		    yEvent.contactId = ((self.issue.fields.creator) ? self.issue.fields.creator.name : ((self.issue.fields.reporter) ? self.issue.fields.reporter.name : ''));
+		    yEvent.externalId = self.issue.id;
+		    self.issue.type = 'issue';
 
-			/* Clean up data to save DB space */
-			yEvent.externalData = JSON.stringify(jiraMinimizeIssue(self.issue));
+		    /* Clean up data to save DB space */
+		    yEvent.externalData = JSON.stringify(jiraMinimizeIssue(self.issue));
 
-			jira.filter.addNotif(self.issue);
-			if (creation) {
-				return jiraAddNotification(yEvent)
+		    jira.filter.addNotif(self.issue);
+		    if (creation) {
+		        return jiraAddNotification(yEvent)
 				.then(function (newNotif) {
-					jira.notifications.queueChildren(self.issue); // Trigger Sync of all children. If successfull it will set childrenLoaded!
+				    jira.notifications.queueChildren(self.issue); // Trigger Sync of all children. If successfull it will set childrenLoaded!
 
-					//return newNotif;
-					return new JiraIssueAppointment(self.issue).save()
+				    //return newNotif;
+				    return new JiraIssueAppointment(self.issue).save()
 					.then(function () {
-						return newNotif;
+					    return newNotif;
 					});
 				});
-			} else {
-				return jiraSaveNotification(yEvent)
+		    } else {
+		        return jiraSaveNotification(yEvent)
 				.then(function (newNotif) {
-					if (!self.issue.childrenLoaded)
-						jira.notifications.queueChildren(self.issue); // Trigger Sync of all children. If successfull it will set childrenLoaded!
+				    if (!self.issue.childrenLoaded)
+				        jira.notifications.queueChildren(self.issue); // Trigger Sync of all children. If successfull it will set childrenLoaded!
 
-					//return newNotif;
-					return new JiraIssueAppointment(self.issue).save()
+				    //return newNotif;
+				    return new JiraIssueAppointment(self.issue).save()
 					.then(function () {
-						return newNotif;
+					    return newNotif;
 					});
 				});
-			}
-		})
-		.then(function (notif) {
-			//Save tasks and return the notif again for outside usage
-			return jira.tasks.handleTask(self.issue)
-			.return(notif);
+		    }
 		});
 	};
 
@@ -746,7 +745,7 @@ function JiraIssueActionNotification(event) {
 	self.event = event;
 
 	self.isSyncNeeded = function () {
-		return true;
+	    return true;
 	};
 
 	self.renderBody = function (feed) {

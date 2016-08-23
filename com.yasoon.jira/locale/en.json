@@ -9,8 +9,8 @@
 				"uploadToIssues": "Upload to Issues",
 				"openIssue": "Open Issue",
 				"openIssues": "Open Issues",
-                "openIssueWithKey": "Open Issue {{key}}",
-                "changeTransition": "Change Transition"
+				"openIssueWithKey": "Open Issue {{key}}",
+				"changeTransition": "Change Transition"
 			},
 			"general": {
 				"couldNotUploadAttachments": "Couldn't upload all attachments. Please try again.",
@@ -223,7 +223,10 @@
 				"headingSyncTasks": "Task Synchronization",
 				"syncTasks": "Enable task sync",
 				"deleteCompletedTasks": "Remove completed Tasks",
-				"syncFeed": "Refresh Feed automatically"
+				"syncFeed":  "Feed Synchronisation",
+				"syncFeedAuto": "automatically",
+				"syncFeedManual": "manually",
+				"syncFeedOff":  "off"
 			}
 		}
 	}

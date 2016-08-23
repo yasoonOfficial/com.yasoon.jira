@@ -20,7 +20,7 @@ function JiraSettingController() {
 		newCreationScreen: true,
 		syncCalendar: false,
 		syncTask: false,
-		syncFeed: true,
+		syncFeed: 'auto',
 		deleteCompletedTasks: false,
 		hideResolvedIssues: false,
 		activeFilters: 'fields.project.id,fields.issuetype.id,fields.assignee.emailAddress,fields.status.id,fields.priority.id'
@@ -118,6 +118,9 @@ function JiraSettingController() {
 			$('#addMailHeaderAutomatically').select2({ minimumResultsForSearch: 5 })
 				.val(jira.settings.addMailHeaderAutomatically).trigger('change');
 
+			$('#syncFeed').select2({ minimumResultsForSearch: 5 })
+				.val(jira.settings.syncFeed).trigger('change');
+
 			$('#jiraLogout').off().click(function () {
 				yasoon.app.invalidateOAuthToken(self.currentService);
 				self.baseUrl = '';
@@ -175,8 +178,8 @@ function JiraSettingController() {
 		//Create deep copy
 		$.each(form, function (i, param) {
 			//Special Case for activeFilters
-		    if (param.key === 'activeFilters' && self[param.key] != param.value) {
-		        console.log('Filters', self[param.key], param.value);
+			if (param.key === 'activeFilters' && self[param.key] != param.value) {
+				console.log('Filters', self[param.key], param.value);
 				yasoon.dialog.showMessageBox(yasoon.i18n('settings.filterChange'));
 			}
 			

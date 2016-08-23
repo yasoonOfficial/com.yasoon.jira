@@ -9,8 +9,8 @@
 				"uploadToIssues": "Zu Vorgängen hochladen",
 				"openIssue": "Vorgang öffnen",
 				"openIssues": "Vorgänge öffnen",
-                "openIssueWithKey": "Vorgang {{key}} öffnen",
-                "changeTransition": "Status ändern"
+				"openIssueWithKey": "Vorgang {{key}} öffnen",
+				"changeTransition": "Status ändern"
 			},
 			"general": {
 				"couldNotUploadAttachments": "Es konnten nicht alle Anhänge hochgeladen werden. Bitte versuche es erneut.",
@@ -223,7 +223,10 @@
 				"headingSyncTasks": "Aufgaben Synchronisation",
 				"syncTasks": "Aufgaben Synchronisation aktivieren",
 				"deleteCompletedTasks": "Abgeschlossene Aufgaben löschen",
-				"syncFeed": "Feed automatisch aktualisieren"
+				"syncFeed":  "Feed Synchronisation",
+				"syncFeedAuto": "automatisch",
+				"syncFeedManual": "manuell",
+				"syncFeedOff":  "deaktiviert"
 			}
 		}
 	}
