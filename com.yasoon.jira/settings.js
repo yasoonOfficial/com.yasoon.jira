@@ -51,10 +51,10 @@ function JiraSettingController() {
 		};
 
 		if (!templateLoaded) {
-			var path = yasoon.io.getLinkPath('templates/settings.hbs');
-			$.get(path, function (template) {
+			var path = yasoon.io.getLinkPath('templates/settings.hbs.js');
+			$.getScript(path, function (template) {
 				templateLoaded = true;
-				settingTemplate = Handlebars.compile(template);
+				settingTemplate = jira.templates.settings;
 				self.fillSettingsContainer(container, settingTemplate, templateParams);
 			});
 		} else {

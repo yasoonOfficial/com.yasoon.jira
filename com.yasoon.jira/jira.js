@@ -466,7 +466,11 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 					promises.push(
 						jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + project.id + '&issuetype=' + issueType.id)
 						.then(function (data) {
-							var userMeta = JSON.parse(data);
+							var userMeta = JSON.parse(data, function(k, v) {
+								if (k !== 'editHtml')
+									return v;
+							});
+
 							jira.cache.userMeta[project.id][issueType.id] = userMeta;
 						}).catch(function () { })
 					);
