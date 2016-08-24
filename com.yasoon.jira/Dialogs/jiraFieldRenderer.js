@@ -1114,9 +1114,9 @@ function AttachmentLinkRenderer() {
 		};
 
 		if (!template) {
-			var path = yasoon.io.getLinkPath('templates/attachmentFields.hbs');
-			$.get(path, function (tmpl) {
-				template = Handlebars.compile(tmpl);
+			var path = yasoon.io.getLinkPath('templates/attachmentFields.hbs.js');
+			$.getScript(path, function (tmpl) {
+			    template = jira.templates.attachmentFields;
 				self.fillTemplate(id, $('#'+ id));
 			});
 		} else {

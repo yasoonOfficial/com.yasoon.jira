@@ -107,13 +107,10 @@ function program5(depth0,data) {
     + "</b>\r\n						</div>\r\n						<div class=\"col-sm-8\">\r\n							<select multiple id=\"activeFilters\" class=\"formValue\">\r\n								";
   stack1 = helpers.each.call(depth0, (depth0 && depth0.filters), {hash:{},inverse:self.noop,fn:self.program(6, program6, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += "\r\n							</select>\r\n						</div>\r\n					</div>\r\n				</div>\r\n			</div>\r\n		</div>\r\n		<div class=\"panel panel-default\">\r\n			<div class=\"panel-heading\" role=\"tab\" id=\"headingFour\">\r\n				<h4 class=\"panel-title\">\r\n					<a role=\"button\" data-toggle=\"collapse\" href=\"#collapseFour\" aria-expanded=\"false\" aria-controls=\"collapseFour\">\r\n						"
-    + escapeExpression((helper = helpers.i18n || (depth0 && depth0.i18n),options={hash:{},data:data},helper ? helper.call(depth0, "settings.headingSyncTasks", options) : helperMissing.call(depth0, "i18n", "settings.headingSyncTasks", options)))
-    + "\r\n					</a>\r\n				</h4>\r\n			</div>\r\n			<div id=\"collapseFour\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingFour\">\r\n				<div class=\"panel-body\">\r\n					<div class=\"form-group\" style=\"position:relative; margin-top:20px;\">\r\n						<div class=\"col-sm-4 checkbox\">\r\n							<b class=\"pull-right\">"
-    + escapeExpression((helper = helpers.i18n || (depth0 && depth0.i18n),options={hash:{},data:data},helper ? helper.call(depth0, "settings.syncTasks", options) : helperMissing.call(depth0, "i18n", "settings.syncTasks", options)))
-    + "</b>\r\n						</div>\r\n						<div class=\"col-sm-8\">\r\n							<div class=\"checkbox awesome\">\r\n								<input class=\"formValue\" type=\"checkbox\" id=\"syncTask\" name=\"syncTask\">\r\n								<label for=\"syncTask\"></label>\r\n							</div>\r\n						</div>\r\n					</div>\r\n					<div class=\"form-group\" style=\"position:relative; margin-top:20px;\">\r\n						<div class=\"col-sm-4 checkbox\">\r\n							<b class=\"pull-right\">"
-    + escapeExpression((helper = helpers.i18n || (depth0 && depth0.i18n),options={hash:{},data:data},helper ? helper.call(depth0, "settings.deleteCompletedTasks", options) : helperMissing.call(depth0, "i18n", "settings.deleteCompletedTasks", options)))
-    + "</b>\r\n						</div>\r\n						<div class=\"col-sm-8\">\r\n							<div class=\"checkbox awesome\">\r\n								<input class=\"formValue\" type=\"checkbox\" id=\"deleteCompletedTasks\" name=\"deleteCompletedTasks\">\r\n								<label for=\"deleteCompletedTasks\"></label>\r\n							</div>\r\n						</div>\r\n					</div>\r\n				</div>\r\n			</div>\r\n		</div>\r\n	</div>\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n	<!-- Calendar Integration -->\r\n	<!--\r\n	<div class=\"form-group\" style=\"position:relative; margin-top:20px;\">\r\n		<div class=\"col-sm-4 checkbox\">\r\n			<b class=\"pull-right\">"
+  buffer += "\r\n							</select>\r\n						</div>\r\n					</div>\r\n				</div>\r\n			</div>\r\n		</div>\r\n		";
+  stack1 = helpers['if'].call(depth0, (depth0 && depth0.taskSyncEnabled), {hash:{},inverse:self.noop,fn:self.program(9, program9, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\r\n	</div>\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n	<!-- Calendar Integration -->\r\n	<!--\r\n	<div class=\"form-group\" style=\"position:relative; margin-top:20px;\">\r\n		<div class=\"col-sm-4 checkbox\">\r\n			<b class=\"pull-right\">"
     + escapeExpression((helper = helpers.i18n || (depth0 && depth0.i18n),options={hash:{},data:data},helper ? helper.call(depth0, "settings.calendarIntegration", options) : helperMissing.call(depth0, "i18n", "settings.calendarIntegration", options)))
     + "</b>\r\n		</div>\r\n	<div class=\"col-sm-8\">\r\n			 <label>\r\n				 <input class=\"formValue\" type=\"checkbox\" id=\"syncCalendar\" name=\"syncCalendar\" />\r\n			</label>\r\n		</div>\r\n	</div>\r\n		-->\r\n\r\n</form>\r\n\r\n";
   return buffer;
@@ -139,6 +136,19 @@ function program7(depth0,data) {
   
   
   return "selected";
+  }
+
+function program9(depth0,data) {
+  
+  var buffer = "", helper, options;
+  buffer += "\r\n		<div class=\"panel panel-default\">\r\n			<div class=\"panel-heading\" role=\"tab\" id=\"headingFour\">\r\n				<h4 class=\"panel-title\">\r\n					<a role=\"button\" data-toggle=\"collapse\" href=\"#collapseFour\" aria-expanded=\"false\" aria-controls=\"collapseFour\">\r\n						"
+    + escapeExpression((helper = helpers.i18n || (depth0 && depth0.i18n),options={hash:{},data:data},helper ? helper.call(depth0, "settings.headingSyncTasks", options) : helperMissing.call(depth0, "i18n", "settings.headingSyncTasks", options)))
+    + "\r\n					</a>\r\n				</h4>\r\n			</div>\r\n			<div id=\"collapseFour\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingFour\">\r\n				<div class=\"panel-body\">\r\n					<div class=\"form-group\" style=\"position:relative; margin-top:20px;\">\r\n						<div class=\"col-sm-4 checkbox\">\r\n							<b class=\"pull-right\">"
+    + escapeExpression((helper = helpers.i18n || (depth0 && depth0.i18n),options={hash:{},data:data},helper ? helper.call(depth0, "settings.syncTasks", options) : helperMissing.call(depth0, "i18n", "settings.syncTasks", options)))
+    + "</b>\r\n						</div>\r\n						<div class=\"col-sm-8\">\r\n							<div class=\"checkbox awesome\">\r\n								<input class=\"formValue\" type=\"checkbox\" id=\"syncTask\" name=\"syncTask\">\r\n								<label for=\"syncTask\"></label>\r\n							</div>\r\n						</div>\r\n					</div>\r\n					<div class=\"form-group\" style=\"position:relative; margin-top:20px;\">\r\n						<div class=\"col-sm-4 checkbox\">\r\n							<b class=\"pull-right\">"
+    + escapeExpression((helper = helpers.i18n || (depth0 && depth0.i18n),options={hash:{},data:data},helper ? helper.call(depth0, "settings.deleteCompletedTasks", options) : helperMissing.call(depth0, "i18n", "settings.deleteCompletedTasks", options)))
+    + "</b>\r\n						</div>\r\n						<div class=\"col-sm-8\">\r\n							<div class=\"checkbox awesome\">\r\n								<input class=\"formValue\" type=\"checkbox\" id=\"deleteCompletedTasks\" name=\"deleteCompletedTasks\">\r\n								<label for=\"deleteCompletedTasks\"></label>\r\n							</div>\r\n						</div>\r\n					</div>\r\n				</div>\r\n			</div>\r\n		</div>\r\n		";
+  return buffer;
   }
 
   stack1 = helpers.unless.call(depth0, (depth0 && depth0.loggedIn), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});

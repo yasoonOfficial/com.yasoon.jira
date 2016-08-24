@@ -209,10 +209,10 @@ function JiraNotificationController() {
 
 	self.loadWorklogTemplate = function (issueKey, cbk) {
 		if (!self.templateLoaded) {
-			var path = yasoon.io.getLinkPath('templates/addWorklog.hbs');
-			$.get(path, function (template) {
+		    var path = yasoon.io.getLinkPath('templates/addWorklog.hbs.js');
+		    $.getScript(path, function (template) {
 				self.templateLoaded = true;
-				self.worklogTemplate = Handlebars.compile(template);
+				self.worklogTemplate = jira.templates.addWorklog;
 				$('body').append(self.worklogTemplate());
 				$('#jiraAddWorklog').data('key', issueKey);
 

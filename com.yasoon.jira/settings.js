@@ -21,6 +21,7 @@ function JiraSettingController() {
 		syncCalendar: false,
 		syncTask: false,
 		syncFeed: 'auto',
+		taskSyncEnabled: false,
 		deleteCompletedTasks: false,
 		hideResolvedIssues: false,
 		activeFilters: 'fields.project.id,fields.issuetype.id,fields.assignee.emailAddress,fields.status.id,fields.priority.id'
@@ -47,7 +48,8 @@ function JiraSettingController() {
 		var templateParams = {
 			oAuthServices: oAuthServices,
 			loggedIn: !!jira.settings.currentService,
-			filters: jira.filter.filterObj
+			filters: jira.filter.filterObj,
+			taskSyncEnabled: jira.settings.taskSyncEnabled
 		};
 
 		if (!templateLoaded) {
