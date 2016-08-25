@@ -52,7 +52,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		    if (settingsString) {
 		        //Load Settings
 		        settings = JSON.parse(settingsString);
-		        settings.syncFeed = auto;
+		        settings.syncFeed = 'auto';
 		        yasoon.setting.setAppParameter('settings', JSON.stringify(settings));
 		    }
 		}
