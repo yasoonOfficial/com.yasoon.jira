@@ -1,0 +1,1 @@
+if (!yasoon.license) {  yasoon.license = {openPurchaseWindow: function(productId,cbk) { native function openPurchaseWindow();return openPurchaseWindow(productId,cbk);},getActiveProducts: function(callback,error) { native function getActiveProducts();return getActiveProducts(callback,error);}}; }

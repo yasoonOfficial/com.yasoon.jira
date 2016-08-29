@@ -1,0 +1,1 @@
+if (!yasoon.alert) {  yasoon.alert = {add: function(alert) { native function add();return add(alert);}, on: function( eventName, func ) { native function on(); return on(eventName, func); } , new: function( func ) { yasoon.alert.on( 'new', func); }}; }if (!yasoon.alert.alertType) {  yasoon.alert.alertType = {error: 1, warning: 2, info: 3, success: 4}; }

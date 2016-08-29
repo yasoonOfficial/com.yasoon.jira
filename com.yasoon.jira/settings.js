@@ -256,8 +256,9 @@ function JiraSettingController() {
 		settings = JSON.parse(settingsString);
 		settings = $.extend(defaults, jira.defaultSettings, settings);
 	}
-	$.each(settings, function (key, value) {
-		self[key] = value;
+	
+	Object.keys(settings).forEach(function (key) {
+		self[key] = settings[key];
 	});
 	self.lastSync = new Date(self.lastSync);
 }
