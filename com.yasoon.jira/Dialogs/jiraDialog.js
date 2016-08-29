@@ -1139,11 +1139,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				var handle = self.selectedAttachments.filter(function (a) { return a.contentId === attachment.contentId; })[0];
 				var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
 
-				if (handle && attachment.fileSize > 2048) {
+				if (handle) {
 					handle.selected = true;
 
-					//Replace the reference in the markup								
-					
+					//Replace the reference in the markup					
 					markup = markup.replace(regEx, '!' + handle.getFileName() + '!');
 					handle.setInUse();
 				} else {

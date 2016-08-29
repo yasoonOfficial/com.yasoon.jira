@@ -88,8 +88,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			if (self.mail.attachments && self.mail.attachments.length > 0) {
 				self.mail.attachments.forEach(function (attachment) {
 					var handle = attachment.getFileHandle();
-					//Skip too small images	
-					if (self.settings.addAttachmentsOnNewAddIssue && attachment.fileSize > 10240) {
+					if (self.settings.addAttachmentsOnNewAddIssue) {
 						handle.selected = true;
 					}
 					self.selectedAttachments.push(handle);
@@ -523,6 +522,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				//Mark attachments selected
 				var handle = self.selectedAttachments.filter(function (a) { return a.contentId === attachment.contentId; })[0];
 				if (handle) {
+					//Provide unique name for attachments
+					var uniqueKey = getUniqueKey();
+					var oldFileName = handle.getFileName();
+					var newFileName = oldFileName.substring(0, oldFileName.lastIndexOf('.'));
+					newFileName = newFileName + '_' + uniqueKey + oldFileName.substring(oldFileName.lastIndexOf('.'));
+					handle.setFileName(newFileName);
 					handle.selected = true;
 
 					//Replace the reference in the markup								

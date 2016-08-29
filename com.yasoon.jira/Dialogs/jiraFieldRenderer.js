@@ -1045,6 +1045,9 @@ function AttachmentLinkRenderer() {
 			e.preventDefault();
 			var handle = self.getCurrentAttachment($(this));
 			insertAtCursor($(getDescriptionId())[0], '[^' + handle.fileName + ']\n');
+
+			//Select attachment to be uploaded
+			$(this).closest('.jiraAttachmentLink').find('.checkbox input').prop('checked', true);
 		});
 
 		$('.attachmentRename').off().click(function (e) {
