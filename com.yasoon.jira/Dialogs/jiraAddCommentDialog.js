@@ -53,6 +53,16 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		
 		// Resize Window if nessecary (sized are optimized for default Window - user may have changed that)
 		resizeWindow();
+
+		//Popover for Service Desk Warning
+		$('.servicedesk-popover').popover({
+			content: yasoon.i18n('dialog.serviceDeskWarningBody'),
+			title: yasoon.i18n('dialog.serviceDeskWarning'),
+			placement: 'top',
+			html: true,
+			template: '<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title" style="background-color:#fcf8e3;"></h3><div class="popover-content"></div></div>',
+			trigger: 'click' //'click'
+		});
 		
 		//Save FieldType for later reuse.
 		self.fieldTypes = {
@@ -127,20 +137,20 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			});
 		}		
 
-	    //Add Default Data
+		//Add Default Data
 		if (self.selectedText) {
-		    var text = self.selectedText;
+			var text = self.selectedText;
 
-		    //Handle auto header add setting
-		    if (self.settings.addMailHeaderAutomatically === 'top') {
-		        text = renderMailHeaderText(self.mail, true) + '\n' + text;
-		    }
-		    else if (self.settings.addMailHeaderAutomatically === 'bottom') {
-		        text = text + '\n' + renderMailHeaderText(self.mail, true);
-		    }
+			//Handle auto header add setting
+			if (self.settings.addMailHeaderAutomatically === 'top') {
+				text = renderMailHeaderText(self.mail, true) + '\n' + text;
+			}
+			else if (self.settings.addMailHeaderAutomatically === 'bottom') {
+				text = text + '\n' + renderMailHeaderText(self.mail, true);
+			}
 
-		    text = self.handleAttachments(text, self.mail.attachments);
-		    $('#comment').val(text);
+			text = self.handleAttachments(text, self.mail.attachments);
+			$('#comment').val(text);
 		}
 		self.loadingFinished();
 
@@ -228,11 +238,11 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		//Dispose all Attachments
 		jira.selectedAttachments.forEach(function (handle) {
-		    try {
-		        handle.dispose();
-		    } catch (e) {
-		        //System.Exception: TrackedObjectRegistry: Tried to access object which not found! (probably already de-referenced)
-		    }
+			try {
+				handle.dispose();
+			} catch (e) {
+				//System.Exception: TrackedObjectRegistry: Tried to access object which not found! (probably already de-referenced)
+			}
 		});
 	};
 

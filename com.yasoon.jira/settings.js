@@ -24,7 +24,7 @@ function JiraSettingController() {
 		taskSyncEnabled: false,
 		deleteCompletedTasks: false,
 		hideResolvedIssues: false,
-		activeFilters: 'fields.project.id,fields.issuetype.id,fields.assignee.emailAddress,fields.status.id,fields.priority.id'
+		activeFilters: 'fields.project.id,fields.issuetype.id,fields.status.id,fields.priority.id,fields.assignee.emailAddress'
 	};
 
 	self.renderSettingsContainer = function renderSettingsContainer(container) {

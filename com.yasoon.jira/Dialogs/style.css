@@ -2964,3 +2964,14 @@ button.servicedesk {
 	display: inline !important;
 }
 
+.servicedesk-warning {
+	display: none;
+}
+.no-requesttype .servicedesk-warning {
+	display: inline !important;
+}
+
+.buttons-container {
+	overflow: visible !important;
+}
+

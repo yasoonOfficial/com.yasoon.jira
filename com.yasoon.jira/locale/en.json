@@ -121,7 +121,9 @@
 				"unassigned": "Unassigned",
 				"automatic": "Automatic",
 				"addCustomer": "Share with Customer",
-				"addInternal": "Share internally"
+				"addInternal": "Share internally",
+				"serviceDeskWarningBody": "The issue does not have a request type. </br> Even it is a Service Desk issue, you cannot share comments with the customer.",
+				"serviceDeskWarning":  "No Request Type"
 			},
 			"filter": {
 				"projectFilter": "Project",

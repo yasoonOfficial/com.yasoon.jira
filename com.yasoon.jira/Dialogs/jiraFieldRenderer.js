@@ -1820,23 +1820,27 @@ function IssuePickerRenderer() {
 			} else if (jira.mode === 'jiraAddCommentDialog' && evt.params && evt.params.data) {
 				issue = evt.params.data;
 			} else {
-				$('.buttons').removeClass('servicedesk');
+			    $('.buttons').removeClass('servicedesk');
+			    $('.buttons').removeClass('no-requesttype');
 				return;
 			}
 
 			
 			var currentProject = jira.projects.filter(function (p) { return p.id === issue.project.id; })[0];
 			if (!currentProject || currentProject.projectTypeKey !== 'service_desk') {
-				$('.buttons').removeClass('servicedesk');
+			    $('.buttons').removeClass('servicedesk');
+			    $('.buttons').removeClass('no-requesttype');
 				return;
 			}
 
 			//We have a service Project... Check if it is a service request
 			jiraGet('/rest/servicedeskapi/request/' + issue.id)
 			.then(function (data) {
-				$('.buttons').addClass('servicedesk');
+			    $('.buttons').addClass('servicedesk');
+			    $('.buttons').removeClass('no-requesttype');
 			})
 			.catch(function (e) {
+			    $('.buttons').addClass('no-requesttype');
 				$('.buttons').removeClass('servicedesk');
 			});
 		});

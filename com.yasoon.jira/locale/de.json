@@ -120,8 +120,10 @@
 				"sprintAll": "Alle",
 				"unassigned": "Nicht zugewiesen",
 				"automatic": "Automatisch",
-				"addCustomer": "Share with Customer",
-				"addInternal": "Share internally"
+				"addCustomer": "Mit Kunden teilen",
+				"addInternal": "Interner Kommentar",
+				"serviceDeskWarningBody": "Der Vorgang hat keinen Anfragetyp.</br >Obwohl es sich um einen Service Desk Vorgang handelt, ist ein Kommentar an den Kunden nicht möglich.",
+				"serviceDeskWarning":  "Kein Anfragetyp"
 			},
 			"filter": {
 				"projectFilter": "Projekt",

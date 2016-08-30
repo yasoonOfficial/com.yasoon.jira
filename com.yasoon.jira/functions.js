@@ -273,7 +273,7 @@ function JiraRibbonController() {
 
 		var parameters = (inspectorId) ? inspectorId : true;
 		var method = (inspectorId) ? 'updateSingle' : 'update';
-		console.log(item);
+
 		if (jiraIsTask(item)) {
 		    var issue = JSON.parse(item.externalData);
 		    
