@@ -1018,11 +1018,30 @@ function AttachmentLinkRenderer() {
 			attachments.push(attachment);
 		});
 
-
-		parameters[id].attachments = attachments;
+		parameters[id].attachments = attachments.filter(function(val) { return !val.blacklisted; });
+		parameters[id].blacklistedAttachments = attachments.filter(function(val) { return val.blacklisted; });
 
 		var html = template(parameters[id]);
 		$(container).html(html);
+
+		var blacklistedCount = parameters[id].blacklistedAttachments.length;
+		if (blacklistedCount > 0) {
+			$('#' + id).find('#blacklistedAttachmentCount').text(blacklistedCount);
+			$('#' + id).find('.show-blacklisted-attachments').show();
+			$('#' + id).find('.show-blacklisted-attachments').off().click(function(e) {
+				e.preventDefault();
+				$('#' + id + '-blacklisted').show();
+				$('#' + id).find('.hide-blacklisted-attachments').show();
+				$(this).hide();
+			});
+
+			$('#' + id).find('.hide-blacklisted-attachments').off().click(function(e) {
+				e.preventDefault();
+				$('#' + id + '-blacklisted').hide();
+				$('#' + id).find('.show-blacklisted-attachments').show();
+				$(this).hide();
+			});
+		}
 
 		$('#' + id).find('.addAttachmentLink').off().click(function (e) {
 			e.preventDefault();
@@ -1048,6 +1067,20 @@ function AttachmentLinkRenderer() {
 
 			//Select attachment to be uploaded
 			$(this).closest('.jiraAttachmentLink').find('.checkbox input').prop('checked', true);
+		});
+
+		$('.attachmentAddToBlacklist').off().click(function(e) {
+			e.preventDefault();
+			var handle = self.getCurrentAttachment($(this));
+			bootbox.confirm({
+				size: 'small',
+				locale: yasoon.setting.getProjectSetting('locale'),
+				backdrop: false,
+				message: yasoon.i18n('dialog.attachmentAddToBlacklistDialog'),
+				callback: function(result) {
+					console.log(result);
+				}
+			});
 		});
 
 		$('.attachmentRename').off().click(function (e) {
@@ -1117,8 +1150,14 @@ function AttachmentLinkRenderer() {
 		};
 
 		if (!template) {
-			var path = yasoon.io.getLinkPath('templates/attachmentFields.hbs.js');
-			$.getScript(path, function (tmpl) {
+			var path1 = yasoon.io.getLinkPath('templates/attachmentFields.hbs.js');
+			var path2 = yasoon.io.getLinkPath('templates/attachmentLink.hbs.js');
+			Promise.all([
+				$.getScript(path1),
+				$.getScript(path2),
+			])
+			.spread(function () {
+				Handlebars.registerPartial("attachmentLink", jira.templates.attachmentLink);
 			    template = jira.templates.attachmentFields;
 				self.fillTemplate(id, $('#'+ id));
 			});

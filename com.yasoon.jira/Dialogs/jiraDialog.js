@@ -187,7 +187,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				self.mail.attachments.forEach(function (attachment) {
 					var handle = attachment.getFileHandle();
 					//Skip too small images	
-					if (self.settings.addAttachmentsOnNewAddIssue && attachment.fileSize > 2048) {
+					if (self.settings.addAttachmentsOnNewAddIssue) {
 						handle.selected = true;
 					}
 					self.selectedAttachments.push(handle);
@@ -776,6 +776,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			console.log('Error in new renderLogic - switch to old one', e);
 			return self.renderIssueFixed(meta);
 		})
+		.delay(1)
 		.then(function () {
 			//self.UIFormHandler.triggerEvent('afterRender'); //Not needed yet!
 
@@ -861,7 +862,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		});
 	};
 
-	this.markupRenderProcess = null;
 	this.insertValues = function () {
 		//Always default Reporter
 		self.setDefaultReporter(fieldMapping.sender);
@@ -869,61 +869,38 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		//Values if created by mail
 		if (self.mail) {
 			//Subject
-			if (self.mail.subject && fieldMapping.subject) {
+			var hasSubjectField = !!jira.currentMeta.fields[fieldMapping.subject];
+			var hasBodyField = !!jira.currentMeta.fields[fieldMapping.body];
+
+			if (self.mail.subject && hasSubjectField) {
 				var subjectType = $('#' + fieldMapping.subject).data('type');
 				jira.UIFormHandler.setValue(fieldMapping.subject, { schema: { custom: subjectType }}, self.mail.subject);
 			}
 
-			//Description			
-			var bodyType = $('#' + fieldMapping.body).data('type');	
-			if (self.selectedText && fieldMapping.body) {			
-				var text = self.selectedText;
-				
-				//Handle auto header add setting
-				if (self.settings.addMailHeaderAutomatically === 'top') {
-					text = renderMailHeaderText(self.mail, true) + '\n' + text;
-				}
-				else if (self.settings.addMailHeaderAutomatically === 'bottom') {
-					text = text + '\n' + renderMailHeaderText(self.mail, true);
-				}
-				
-				text = self.handleAttachments(text, self.mail.attachments);
-				jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, text);				
-			}
-			
-			if (jira.mailAsMarkup) {
-				jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, jira.mailAsMarkup);	
-			}
-			else if (!self.markupRenderProcess && $('#' + fieldMapping.body).length > 0) {
-				//Rendering may take some time, so we add a loader.
-				var descriptionPos = $('#' + fieldMapping.body).offset();
-				var scrollPos = $('#' + fieldMapping.body).scrollTop();
-				//56 px = height of header
-				$('#markupLoader').css('top', (descriptionPos.top + scrollPos - 66) + 'px').show();
-				self.markupRenderProcess = yasoon.outlook.mail.renderBody(self.mail, 'jiraMarkup')
-				.then(function (markup) {
-					//If there is no selection, set this as description;
-					if (!self.selectedText && fieldMapping.body) {
-						//Handle auto header add setting
-						if (self.settings.addMailHeaderAutomatically === 'top') {
-							markup = renderMailHeaderText(self.mail, true) + '\n' + markup;
-						}
-						else if (self.settings.addMailHeaderAutomatically === 'bottom') {
-							markup = markup + '\n' + renderMailHeaderText(self.mail, true);
-						}
+			if (hasBodyField) {
+				//Rendering may take some time, so we add a loader -- 66 px = height of header
+				var descriptionPos = $('#' + fieldMapping.body).offset().top + $('.form-body').scrollTop();				
+				$('#markupLoader').css('top', (descriptionPos - 66) + 'px').show();
 
-						markup = self.handleAttachments(markup, self.mail.attachments);
-						jira.mailAsMarkup = markup;
-						jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, markup);
+				Promise.resolve().then(function() {
+					var tasks = [];
+					if (self.selectedText) {			
+						tasks.push(self.setBodyMarkup(self.selectedText).then(function() { $('#markupLoader').hide(); }));
 					}
-				})
-				.catch(function () {
-					jira.mailAsMarkup = yasoon.i18n('general.couldNotRenderMarkup');
-					if (!self.selectedText && fieldMapping.body) {
-						jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, jira.mailAsMarkup);
+					else if (jira.mailAsMarkup) {
+						tasks.push(self.setBodyMarkup(jira.mailAsMarkup, true));
 					}
+
+					if (!jira.mailAsMarkup) {
+						tasks.push(self.renderMailMarkup());
+					}
+
+					return tasks;
 				})
-				.finally(function () {
+				.catch(function(e) {
+
+				})
+				.finally(function() {
 					$('#markupLoader').hide();
 				});
 			}
@@ -933,6 +910,56 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		if (self.currentIssue) {
 			self.UIFormHandler.setFormData(self.currentIssue);
 		}
+	};
+
+	this.markupRenderProcess = null;
+	this.renderMailMarkup = function() {
+		if (!self.markupRenderProcess) {					
+			self.markupRenderProcess = yasoon.outlook.mail.renderBody(self.mail, 'jiraMarkup')
+			.then(function (markup) {
+				//If there was selected text provided, only store this
+				// => Otherwise, set this as new body					
+				if (self.selectedText) {
+					jira.mailAsMarkup = markup;
+				}
+				else {
+					return self.setBodyMarkup(markup);
+				}
+			})
+			.catch(function () {					
+				if (self.selectedText) {
+					jira.mailAsMarkup = yasoon.i18n('general.couldNotRenderMarkup');
+				}
+				else {
+					self.setBodyMarkup(yasoon.i18n('general.couldNotRenderMarkup'), true);
+				}
+			});
+
+			return self.markupRenderProcess;
+		}
+	}
+
+	this.setBodyMarkup = function(baseMarkup, noProcessing) {
+		var markup = baseMarkup;		
+		var bodyType = self.UIFormHandler.getFieldType(jira.currentMeta.fields[fieldMapping.body]);	
+		
+		if (noProcessing) {
+			jira.mailAsMarkup = markup;
+			jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, jira.mailAsMarkup);
+			return;
+		}		
+
+		if (self.settings.addMailHeaderAutomatically === 'top') {
+			markup = renderMailHeaderText(self.mail, true) + '\n' + markup;
+		}
+		else if (self.settings.addMailHeaderAutomatically === 'bottom') {
+			markup = markup + '\n' + renderMailHeaderText(self.mail, true);
+		}
+
+		return self.handleAttachments(markup, self.mail).then(function(newMarkup) {
+			jira.mailAsMarkup = newMarkup;
+			jira.UIFormHandler.setValue(fieldMapping.body, { schema: { custom: bodyType } }, newMarkup);
+		});
 	};
 
 	this.getProjectValues = function () {
@@ -1130,29 +1157,68 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		}
 	};
 	
-	this.handleAttachments = function (markup, attachments) {
+	this.handleAttachments = function (originalMarkup, mail) {
 		//Check each attachment if it needs to be embedded
+		var attachments = mail.attachments;		
 		var clipboardContent = yasoon.clipboard.all();
+		var embeddedItems = [];
+		var markup = originalMarkup;
+
 		attachments.forEach(function(attachment) {			
 			if (markup.indexOf('!' + attachment.contentId + '!') > -1) {
-				//Mark attachments selected
+				//Mark attachments selected				
 				var handle = self.selectedAttachments.filter(function (a) { return a.contentId === attachment.contentId; })[0];
-				var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
-
 				if (handle) {
-					handle.selected = true;
-
-					//Replace the reference in the markup					
-					markup = markup.replace(regEx, '!' + handle.getFileName() + '!');
-					handle.setInUse();
+					embeddedItems.push(handle);
 				} else {
+					var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
 					markup = markup.replace(regEx, '');
 				}
 			}
 		});
-		
-		jira.UIFormHandler.getRenderer('attachment').refresh('attachment');		
-		return markup;
+
+		if (embeddedItems.length === 0)
+			return Promise.resolve();
+
+		//Ensure they are persisted (performance)
+		var persist = new Promise(function(resolve, reject) {
+			mail.persistAttachments(embeddedItems, resolve, reject);
+		});
+
+		return persist.then(function() {
+			return embeddedItems;
+		})
+		.map(function(handle) {
+			return yasoon.io.getFileHash(handle).then(function(hash) {
+				handle.hash = hash;
+				return hash;
+			});
+		})
+		.then(function(hashes) {
+			return yasoon.valueStore.queryAttachmentHashes(hashes);
+		})
+		.then(function(result) {
+			embeddedItems.forEach(function(handle) {		
+				//Skip files whose hashes that were blocked	
+				var regEx = new RegExp('!' + handle.contentId + '!', 'g');	
+				if (result.foundHashes.indexOf(handle.hash) >= 0) {
+					markup = markup.replace(regEx, '');
+					handle.blacklisted = true;
+					return;
+				}
+
+				//Replace the reference in the markup	
+				handle.selected = true;
+				markup = markup.replace(regEx, '!' + handle.getFileName() + '!');
+				handle.setInUse();
+			});
+
+			jira.UIFormHandler.getRenderer('attachment').refresh('attachment');		
+			return markup;
+		})
+		.catch(function(e) {
+
+		});
 	};
 	
 }); //jshint ignore:line

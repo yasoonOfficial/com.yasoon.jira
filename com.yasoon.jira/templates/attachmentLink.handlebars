@@ -1,0 +1,48 @@
+<div class="jiraAttachmentLink" data-id="{{id}}">
+    <div class="attachmentCheckbox checkbox awesome pull-left">
+        <input class="formValue" type="checkbox" id="attachment-{{id}}" name="attachment-{{id}}" {{#if selected}}checked{{/if}} />
+        <label for="attachment-{{id}}"></label>
+    </div>
+    <div class="attachmentIcon">
+        <img src="{{fileIcon}}" />
+    </div>
+    <div class="attachmentMain">
+        <div class="attachmentName">
+            <span class="attachmentNameValue">
+                {{fileName}}
+            </span>
+            <div class="attachmentMoreDropup dropdown">
+                <span class="attachmentMore dropdown-toggle" data-toggle="dropdown" title="{{i18n 'dialog.attachmentLinkTitle'}}">
+                    <span class="attachmentMoreIcons">
+                        <i class="fa fa-circle-o" />
+                        <i class="fa fa-circle-o" />
+                        <i class="fa fa-circle-o" />
+                    </span>&nbsp;
+                </span>
+                <ul class="dropdown-menu" style="cursor:pointer;">
+                    <li class="attachmentRename">
+                        <a>{{i18n 'dialog.attachmentRename'}}</a>
+                    </li>
+                    <li class="attachmentAddRef">
+                        <a>{{i18n 'dialog.attachmentReference'}}</a>
+                    </li>
+                    {{#if selected}}
+                    <li class="attachmentAddToBlacklist">
+                        <a>{{i18n 'dialog.attachmentAddToBlacklist'}}</a>
+                    </li>
+                    {{/if}}
+                </ul>
+            </div>
+        </div>
+        <div class="attachmentNewName">
+            <div class="input-group">
+                <input class="text input-sm form-control" value="{{fileNameNoExtension}}"/>
+                <div class="input-group-addon">{{extension}}</div>
+            </div>
+            <div class="attachmentRenameActions">
+                <i class="fa fa-check attachmentRenameConfirm" />
+                <i class="fa fa-times attachmentRenameCancel" />
+            </div>
+        </div>
+    </div>    
+</div>
