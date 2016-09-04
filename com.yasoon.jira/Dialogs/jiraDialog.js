@@ -611,7 +611,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				self.getMetaData(),
 				self.loadSenderUser()
 			])
-			.delay(1)
 			.spread(function (requestTypes) {
 				//New with JIRA 7: Depending on the project type, we render a little bit differently.
 				//Common stuff

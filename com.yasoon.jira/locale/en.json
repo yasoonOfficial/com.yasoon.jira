@@ -50,7 +50,9 @@
 				"add": "Add",
 				"create": "Create",
 				"save": "Save",
-				"cancel": "Cancel",  
+				"cancel": "Cancel",
+				"ok": "OK",
+				"dontAskAgain": "Don't ask again",
 				"recentProjects": "Recent Projects",
 				"allProjects":"All Projects",
 				"comment": "Comment",
@@ -125,7 +127,9 @@
 				"addCustomer": "Share with Customer",
 				"addInternal": "Share internally",
 				"serviceDeskWarningBody": "The issue does not have a request type. </br> Even it is a Service Desk issue, you cannot share comments with the customer.",
-				"serviceDeskWarning":  "No Request Type"
+				"serviceDeskWarning":  "No Request Type",
+				"attachmentAddToBlacklistDialog": "Do you want to ignore this image for future uploads? This can be used to exclude small, recurring images (like signatures) from being selected/included automatically. Please note, that this ignore list will distribute to your colleagues!",
+				"attachmentAddToBlacklist": "Mark image as excluded"
 			},
 			"filter": {
 				"projectFilter": "Project",

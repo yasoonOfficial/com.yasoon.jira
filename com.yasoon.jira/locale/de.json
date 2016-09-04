@@ -51,6 +51,8 @@
 				"create": "Anlegen",
 				"save": "Speichern",
 				"cancel": "Abbrechen",  
+				"ok": "OK",
+				"dontAskAgain": "Nicht erneut nachfragen",
 				"recentProjects": "Letzte Projekte",
 				"allProjects":"Alle Projekte",
 				"comment": "Kommentar",
@@ -125,7 +127,9 @@
 				"addCustomer": "Mit Kunden teilen",
 				"addInternal": "Interner Kommentar",
 				"serviceDeskWarningBody": "Der Vorgang hat keinen Anfragetyp.</br >Obwohl es sich um einen Service Desk Vorgang handelt, ist ein Kommentar an den Kunden nicht möglich.",
-				"serviceDeskWarning":  "Kein Anfragetyp"
+				"serviceDeskWarning":  "Kein Anfragetyp",
+				"attachmentAddToBlacklistDialog": "Willst du dieses Bild zukünftig ignorieren? Dies ist sinnvoll, um kleine, oft verwendete Bilder auszuschließen (wie z.B. Signaturbilder). Bitte beachte, dass die ignorierten Bilder automatisch auch bei deinen Kollegen ignoriert werden!",
+				"attachmentAddToBlacklist": "Bild zukünftig ignorieren"
 			},
 			"filter": {
 				"projectFilter": "Projekt",

@@ -1073,12 +1073,35 @@ function AttachmentLinkRenderer() {
 			e.preventDefault();
 			var handle = self.getCurrentAttachment($(this));
 			bootbox.confirm({
-				size: 'small',
-				locale: yasoon.setting.getProjectSetting('locale'),
+				size: 'large',
 				backdrop: false,
 				message: yasoon.i18n('dialog.attachmentAddToBlacklistDialog'),
-				callback: function(result) {
-					console.log(result);
+				callback: function(ok) { 
+					if (ok) {
+						//First, set as blacklisted
+						yasoon.io.getFileHash(handle).then(function(hash) {
+							return yasoon.valueStore.putAttachmentHash(hash);
+						});
+
+						//Now, update UI
+						handle.blacklisted = true;
+						handle.selected = false;
+						self.refresh(id);
+					}
+				},
+				checkbox: {
+					id: 'dontAskAgain',
+					label: yasoon.i18n('dialog.dontAskAgain')
+				},
+				buttons: {
+					cancel: {
+						label: yasoon.i18n('dialog.cancel'),
+						className: "btn-secondary"
+					},
+					confirm: {
+						label: yasoon.i18n('dialog.ok'),
+						className: "btn-primary"
+					},
 				}
 			});
 		});
@@ -1099,7 +1122,6 @@ function AttachmentLinkRenderer() {
 			domAttachmentLink.find('.attachmentMain').removeClass('edit');
 			var handle = self.getCurrentAttachment($(this));
 			domAttachmentLink.find('.attachmentNewName input').val(handle.fileNameNoExtension);
-
 		});
 
 		$('.attachmentNameValue').off().on('mouseenter', function (e) {
@@ -1116,7 +1138,6 @@ function AttachmentLinkRenderer() {
 						.on('mouseleave', function () {
 							$(this).unbind().remove();
 						});
-
 					});
 				}, 500);
 

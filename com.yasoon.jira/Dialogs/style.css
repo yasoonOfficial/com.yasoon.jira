@@ -2830,7 +2830,19 @@ body {
 }
 
 .attachmentMoreIcons{
-	font-size:6px;
+	font-size:6px;	
+    position: relative;
+	top: -1px;
+}
+
+.attachmentMoreIcons:after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  bottom: -8px;
+  left: -2px;
+  right: -2px;
+  cursor: pointer;
 }
 
 .attachmentMoreIcons i:not(:first-child) {
@@ -2859,6 +2871,26 @@ body {
 	margin-right: 10px; 
 	display: none;
 	cursor:pointer;
+}
+
+.modal-dialog {
+	margin-top: 30%;
+}
+
+.modal-footer {
+	padding: 10px !important;
+	margin-top: 0px !important;
+}
+
+.modal-footer .checkbox {
+	float: left;
+	margin-bottom: 0;
+	margin-top: 6px;
+}
+
+.modal-footer .awesome.checkbox label::after {
+	left: -2px !important;
+	top: -1px !important;
 }
 
 /* Add to issue Service Comment Buttons */
