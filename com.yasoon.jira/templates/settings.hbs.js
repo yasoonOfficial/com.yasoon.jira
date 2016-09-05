@@ -140,14 +140,69 @@ function program7(depth0,data) {
 
 function program9(depth0,data) {
   
-  var buffer = "", helper, options;
+  var buffer = "", stack1, helper, options;
   buffer += "\r\n		<div class=\"panel panel-default\">\r\n			<div class=\"panel-heading\" role=\"tab\" id=\"headingFour\">\r\n				<h4 class=\"panel-title\">\r\n					<a role=\"button\" data-toggle=\"collapse\" href=\"#collapseFour\" aria-expanded=\"false\" aria-controls=\"collapseFour\">\r\n						"
     + escapeExpression((helper = helpers.i18n || (depth0 && depth0.i18n),options={hash:{},data:data},helper ? helper.call(depth0, "settings.headingSyncTasks", options) : helperMissing.call(depth0, "i18n", "settings.headingSyncTasks", options)))
-    + "\r\n					</a>\r\n				</h4>\r\n			</div>\r\n			<div id=\"collapseFour\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingFour\">\r\n				<div class=\"panel-body\">\r\n					<div class=\"form-group\" style=\"position:relative; margin-top:20px;\">\r\n						<div class=\"col-sm-4 checkbox\">\r\n							<b class=\"pull-right\">"
+    + "\r\n					</a>\r\n				</h4>\r\n			</div>\r\n			<div id=\"collapseFour\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingFour\">\r\n				<div class=\"panel-body\">\r\n					<!-- Enable Task Sync-->\r\n					<div class=\"form-group\" style=\"position:relative; margin-top:20px;\">\r\n						<div class=\"col-sm-4 checkbox\">\r\n							<b class=\"pull-right\">"
     + escapeExpression((helper = helpers.i18n || (depth0 && depth0.i18n),options={hash:{},data:data},helper ? helper.call(depth0, "settings.syncTasks", options) : helperMissing.call(depth0, "i18n", "settings.syncTasks", options)))
-    + "</b>\r\n						</div>\r\n						<div class=\"col-sm-8\">\r\n							<div class=\"checkbox awesome\">\r\n								<input class=\"formValue\" type=\"checkbox\" id=\"syncTask\" name=\"syncTask\">\r\n								<label for=\"syncTask\"></label>\r\n							</div>\r\n						</div>\r\n					</div>\r\n					<div class=\"form-group\" style=\"position:relative; margin-top:20px;\">\r\n						<div class=\"col-sm-4 checkbox\">\r\n							<b class=\"pull-right\">"
+    + "</b>\r\n						</div>\r\n						<div class=\"col-sm-8\">\r\n							<div class=\"checkbox awesome\">\r\n								<input class=\"formValue\" type=\"checkbox\" id=\"syncTask\" name=\"syncTask\">\r\n								<label for=\"syncTask\"></label>\r\n							</div>\r\n						</div>\r\n					</div>\r\n\r\n					<!-- Choose Projects for Task Sync -->\r\n					<div class=\"form-group\" style=\"position:relative; margin-top:20px;\">\r\n						<div class=\"col-sm-4 checkbox\">\r\n							<b class=\"pull-right\">"
+    + escapeExpression((helper = helpers.i18n || (depth0 && depth0.i18n),options={hash:{},data:data},helper ? helper.call(depth0, "settings.tasksProjectsSync", options) : helperMissing.call(depth0, "i18n", "settings.tasksProjectsSync", options)))
+    + "</b>\r\n						</div>\r\n						<div class=\"col-sm-8\">\r\n							<div class=\"checkbox awesome\">\r\n								<input class=\"formValue\" type=\"checkbox\" id=\"tasksSyncAllProjects\" name=\"tasksSyncAllProjects\">\r\n								<label for=\"tasksSyncAllProjects\">"
+    + escapeExpression((helper = helpers.i18n || (depth0 && depth0.i18n),options={hash:{},data:data},helper ? helper.call(depth0, "settings.tasksSyncAllProjects", options) : helperMissing.call(depth0, "i18n", "settings.tasksSyncAllProjects", options)))
+    + "</label>\r\n							</div>\r\n							<div style=\"margin-top: 20px;\" id=\"tasksProjectfilterContainer\">\r\n								";
+  stack1 = helpers['if'].call(depth0, (depth0 && depth0.projects), {hash:{},inverse:self.program(15, program15, data),fn:self.program(10, program10, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\r\n							</div>\r\n						</div>\r\n					</div>\r\n\r\n					<!-- Keep completed Tasks-->\r\n					<div class=\"form-group\" style=\"position:relative; margin-top:20px;\">\r\n						<div class=\"col-sm-4 checkbox\">\r\n							<b class=\"pull-right\">"
     + escapeExpression((helper = helpers.i18n || (depth0 && depth0.i18n),options={hash:{},data:data},helper ? helper.call(depth0, "settings.deleteCompletedTasks", options) : helperMissing.call(depth0, "i18n", "settings.deleteCompletedTasks", options)))
     + "</b>\r\n						</div>\r\n						<div class=\"col-sm-8\">\r\n							<div class=\"checkbox awesome\">\r\n								<input class=\"formValue\" type=\"checkbox\" id=\"deleteCompletedTasks\" name=\"deleteCompletedTasks\">\r\n								<label for=\"deleteCompletedTasks\"></label>\r\n							</div>\r\n						</div>\r\n					</div>\r\n				</div>\r\n			</div>\r\n		</div>\r\n		";
+  return buffer;
+  }
+function program10(depth0,data) {
+  
+  var buffer = "", stack1;
+  buffer += "\r\n								<select multiple id=\"tasksActiveProjects\" class=\"formValue ";
+  stack1 = helpers['if'].call(depth0, (depth0 && depth0.tasksSyncAllProjects), {hash:{},inverse:self.noop,fn:self.program(11, program11, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\">\r\n									";
+  stack1 = helpers.each.call(depth0, (depth0 && depth0.projects), {hash:{},inverse:self.noop,fn:self.program(13, program13, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\r\n								</select>\r\n								";
+  return buffer;
+  }
+function program11(depth0,data) {
+  
+  
+  return " hidden ";
+  }
+
+function program13(depth0,data) {
+  
+  var buffer = "", stack1, helper;
+  buffer += "\r\n									<option value=\"";
+  if (helper = helpers.key) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.key); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "\" ";
+  stack1 = helpers['if'].call(depth0, (depth0 && depth0.selected), {hash:{},inverse:self.noop,fn:self.program(3, program3, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += ">";
+  if (helper = helpers.name) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.name); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "</option>\r\n\r\n									";
+  return buffer;
+  }
+
+function program15(depth0,data) {
+  
+  var buffer = "", stack1, helper, options;
+  buffer += "\r\n								<div>\r\n									<img src=\"";
+  if (helper = helpers.loaderPath) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.loaderPath); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "\" />\r\n									"
+    + escapeExpression((helper = helpers.i18n || (depth0 && depth0.i18n),options={hash:{},data:data},helper ? helper.call(depth0, "settings.projectsNotLoaded", options) : helperMissing.call(depth0, "i18n", "settings.projectsNotLoaded", options)))
+    + "\r\n								</div>\r\n								";
   return buffer;
   }
 

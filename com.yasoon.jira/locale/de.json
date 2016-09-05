@@ -235,7 +235,12 @@
 				"syncFeed":  "Feed Synchronisation",
 				"syncFeedAuto": "automatisch",
 				"syncFeedManual": "manuell",
-				"syncFeedOff":  "deaktiviert"
+				"syncFeedOff": "deaktiviert",
+				"tasksProjectsSync": "Projects",
+				"tasksSyncAllProjects": "All Projects",
+				"projectsNotLoaded": "Projects not loaded yet",
+				"taskProjectAvailable": "All Projects",
+				"taskProjectActive":  "Active Projects"
 			}
 		}
 	}

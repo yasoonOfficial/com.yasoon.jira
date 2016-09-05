@@ -223,6 +223,7 @@
 			</div>
 			<div id="collapseFour" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
 				<div class="panel-body">
+					<!-- Enable Task Sync-->
 					<div class="form-group" style="position:relative; margin-top:20px;">
 						<div class="col-sm-4 checkbox">
 							<b class="pull-right">{{i18n 'settings.syncTasks'}}</b>
@@ -234,6 +235,36 @@
 							</div>
 						</div>
 					</div>
+
+					<!-- Choose Projects for Task Sync -->
+					<div class="form-group" style="position:relative; margin-top:20px;">
+						<div class="col-sm-4 checkbox">
+							<b class="pull-right">{{i18n 'settings.tasksProjectsSync'}}</b>
+						</div>
+						<div class="col-sm-8">
+							<div class="checkbox awesome">
+								<input class="formValue" type="checkbox" id="tasksSyncAllProjects" name="tasksSyncAllProjects">
+								<label for="tasksSyncAllProjects">{{i18n 'settings.tasksSyncAllProjects'}}</label>
+							</div>
+							<div style="margin-top: 20px;" id="tasksProjectfilterContainer">
+								{{#if projects}}
+								<select multiple id="tasksActiveProjects" class="formValue {{#if tasksSyncAllProjects}} hidden {{/if}}">
+									{{#each projects}}
+									<option value="{{key}}" {{#if selected}} selected {{/if}}>{{name}}</option>
+
+									{{/each}}
+								</select>
+								{{else}}
+								<div>
+									<img src="{{loaderPath}}" />
+									{{i18n 'settings.projectsNotLoaded'}}
+								</div>
+								{{/if}}
+							</div>
+						</div>
+					</div>
+
+					<!-- Keep completed Tasks-->
 					<div class="form-group" style="position:relative; margin-top:20px;">
 						<div class="col-sm-4 checkbox">
 							<b class="pull-right">{{i18n 'settings.deleteCompletedTasks'}}</b>

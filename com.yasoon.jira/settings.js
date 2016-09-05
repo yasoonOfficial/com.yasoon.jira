@@ -3,6 +3,8 @@ function JiraSettingController() {
 	var templateLoaded = false;
 	var settingTemplate = null;
 
+	var settingsContainer = null;
+
 	var defaults = {
 		currentService: '',
 		lastSync: new Date( new Date().getTime() - (1000 * 60* 60* 24 * 14) ),// If nothing in db, set it to 14 days ago
@@ -22,16 +24,22 @@ function JiraSettingController() {
 		syncTask: false,
 		syncFeed: 'auto',
 		taskSyncEnabled: false,
+		tasksActiveProjects: '',
 		deleteCompletedTasks: false,
 		hideResolvedIssues: false,
+		tasksSyncAllProjects: true,
 		activeFilters: 'fields.project.id,fields.issuetype.id,fields.status.id,fields.priority.id,fields.assignee.emailAddress'
 	};
 
 	self.renderSettingsContainer = function renderSettingsContainer(container) {
 		if (!container) {
-			return;
+			container = settingsContainer;
 		}
 
+		if (!container)
+			return;
+
+		settingsContainer = container;
 		//Prepare Data for handlebar Template
 		//We need all oAuth Services + determine the description
 		var oAuthServices = yasoon.app.getOAuthServices();
@@ -39,17 +47,33 @@ function JiraSettingController() {
 			service.description = (service.appParams) ? service.appParams.description: service.serviceName;
 		});
 
-		//Check selecte filters
+		//Check selected filters
 		jira.filter.filterObj.forEach(function (f) {
-			//Is in selected?!
+			//Is in selected?!            
 			f.selected = jira.filter.getSelectedFilters().filter(function (key) { return key === f.key; }).length > 0;
 		});
+
+		//Active Projects for Task Sync
+		var projects = [];
+		if (jira.data.projects) {
+			projects = JSON.parse(JSON.stringify(jira.data.projects));
+		}
+		if (self.tasksActiveProjects) {
+			var activeProjects = self.tasksActiveProjects.split(',');
+			projects.forEach(function (p) {
+				p.selected = activeProjects.filter(function (key) { return key === p.key; }).length > 0;
+			});
+		}
 
 		var templateParams = {
 			oAuthServices: oAuthServices,
 			loggedIn: !!jira.settings.currentService,
 			filters: jira.filter.filterObj,
-			taskSyncEnabled: jira.settings.taskSyncEnabled
+			taskSyncEnabled: jira.settings.taskSyncEnabled,
+			tasksSyncAllProjects: jira.settings.tasksSyncAllProjects,
+			projects: projects,
+			loaderPath: yasoon.io.getLinkPath('Dialogs/ajax-loader.gif')
+
 		};
 
 		if (!templateLoaded) {
@@ -57,10 +81,10 @@ function JiraSettingController() {
 			$.getScript(path, function (template) {
 				templateLoaded = true;
 				settingTemplate = jira.templates.settings;
-				self.fillSettingsContainer(container, settingTemplate, templateParams);
+				self.fillSettingsContainer(settingsContainer, settingTemplate, templateParams);
 			});
 		} else {
-			self.fillSettingsContainer(container, settingTemplate, templateParams);
+			self.fillSettingsContainer(settingsContainer, settingTemplate, templateParams);
 		}
 
 
@@ -84,6 +108,23 @@ function JiraSettingController() {
 				selectableHeader: yasoon.i18n('settings.filterAvailable'),
 				selectionHeader: yasoon.i18n('settings.filterActive')
 			});
+
+			$('#tasksActiveProjects').multiSelect({
+				selectableHeader: yasoon.i18n('settings.taskProjectAvailable'),
+				selectionHeader: yasoon.i18n('settings.taskProjectActive')
+			});
+
+			$('#tasksSyncAllProjects').off().on('change', function (e) {
+				e.preventDefault();
+
+				if ($('#tasksSyncAllProjects').getValue() === true) {
+					$('#tasksProjectfilterContainer').slideUp();
+				} else {
+					$('#tasksProjectfilterContainer').slideDown();
+				}
+				return true;
+			});
+			$('#tasksSyncAllProjects').trigger('change');
 
 			$('#jiraLogin').off().click(function () {
 				var selectedServiceName = $('#currentService').val();
@@ -181,10 +222,16 @@ function JiraSettingController() {
 		$.each(form, function (i, param) {
 			//Special Case for activeFilters
 			if (param.key === 'activeFilters' && self[param.key] != param.value) {
-				console.log('Filters', self[param.key], param.value);
 				yasoon.dialog.showMessageBox(yasoon.i18n('settings.filterChange'));
+				console.log('Old Values:', self[param.key]);
+				console.log('New Values:', param.value);
 			}
-			
+			if (param.key === 'tasksActiveProjects' && self[param.key] != param.value ||
+				param.key === 'taskSyncEnabled' && self[param.key] != param.value || 
+				param.key === 'tasksSyncAllProjects' && self[param.key] != param.value) {
+			    jira.tasks.requireFullSync = true;
+			    jira.sync();
+			}
 			if (param.value == "true") {
 				self[param.key] = true;
 			} else if (param.value == "false") {

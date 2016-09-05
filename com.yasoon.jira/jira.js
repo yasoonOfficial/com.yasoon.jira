@@ -47,14 +47,14 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		}
 
 		if (action === yasoon.lifecycle.Upgrade && newVersion === '1.2.3') {
-		    var settingsString = yasoon.setting.getAppParameter('settings');
-		    var settings = null;
-		    if (settingsString) {
-		        //Load Settings
-		        settings = JSON.parse(settingsString);
-		        settings.syncFeed = 'auto';
-		        yasoon.setting.setAppParameter('settings', JSON.stringify(settings));
-		    }
+			var settingsString = yasoon.setting.getAppParameter('settings');
+			var settings = null;
+			if (settingsString) {
+				//Load Settings
+				settings = JSON.parse(settingsString);
+				settings.syncFeed = 'auto';
+				yasoon.setting.setAppParameter('settings', JSON.stringify(settings));
+			}
 		}
 		jira.downloadScript = true;
 	};
@@ -127,15 +127,15 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			return;
 		}
 
-	    //Settings Check, Do not sync regularly if turned off.
-	    //If sync is turned off, we still need to sync data if task sync is active
-	    //+ For intial sync
+		//Settings Check, Do not sync regularly if turned off.
+		//If sync is turned off, we still need to sync data if task sync is active
+		//+ For intial sync
 		if (!self.firstTime) {
-		    if (jira.settings.syncFeed == "manual" && source == 'action')
-		        return;
+			if (jira.settings.syncFeed == "manual" && source == 'action')
+				return;
 
-		    if (jira.settings.syncFeed == "off" && !jira.settings.syncTasks)
-		        return;
+			if (jira.settings.syncFeed == "off" && !jira.settings.syncTasks)
+				return;
 		}
 		return jira.queue.add(self.syncData);
 	};
@@ -155,6 +155,9 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		.then(jira.issues.refreshBuffer)
 		.then(function () {
 			return self.syncStream('/activity?streams=update-date+BETWEEN+' + oldTs + '+' + currentTs);
+		})
+		.then(function () {
+		   return jira.tasks.syncLatestChanges();
 		})
 		.then(function () {
 			//Only on first sync, make sure there are at least some own issues.
@@ -284,8 +287,12 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				if (oAuthSuccess)
 					jira.firstSyncedNotifications++;
 
-				if (notif)
-					return notif.save();
+				if (notif) {
+					return notif.save()
+					.catch(function (e) {
+						yasoon.util.log(((e.message) ? e.message : e), yasoon.util.severity.warning, getStackTrace(e));
+					});
+				}
 			}
 		})
 		.then(function (entries) {
@@ -347,6 +354,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				})
 				.then(function () {
 					jira.data.projects = detailedProjects;
+					jira.settings.renderSettingsContainer();
 				});
 			})
 			.then(function () {
