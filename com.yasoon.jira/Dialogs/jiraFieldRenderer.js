@@ -1001,6 +1001,10 @@ function AttachmentLinkRenderer() {
 		domAttachmentLink.find('.attachmentMain').removeClass('edit');
 	};
 
+	this.hasReference = function(handle) {
+		return $(getDescriptionId()).val().indexOf(handle.contentId) >= 0;
+	}
+
 	this.removeAttachmentFromBody = function(handle) {
 		var regEx = self.getContentIdRegex(handle.contentId);
 		//Todo: Do this via renderer?
@@ -1070,6 +1074,21 @@ function AttachmentLinkRenderer() {
 		$('.jiraAttachmentLink .checkbox input').off().on('change', function (e) {
 			var handle = self.getCurrentAttachment($(this));
 			handle.selected = !handle.selected;
+
+			if (!this.checked && self.hasReference(handle)) {
+				showConfirmation({
+					message: yasoon.i18n('dialog.attachmentReferenceStillActive'),
+					checkbox: {
+						id: 'dontAskAgain',
+						label: yasoon.i18n('dialog.dontAskAgain')
+					}
+				})
+				.then(function(ok) {
+					if (ok) {
+						self.removeAttachmentFromBody(handle);
+					}
+				});
+			}
 		});
 
 		$('.attachmentAddRef').off().click(function (e) {
@@ -1084,39 +1103,27 @@ function AttachmentLinkRenderer() {
 		$('.attachmentAddToBlacklist').off().click(function(e) {
 			e.preventDefault();
 			var handle = self.getCurrentAttachment($(this));
-			bootbox.confirm({
-				size: 'large',
-				backdrop: false,
+			showConfirmation({
 				message: yasoon.i18n('dialog.attachmentAddToBlacklistDialog'),
-				callback: function(ok) { 
-					if (ok) {
-						//First, set as blacklisted
-						yasoon.io.getFileHash(handle).then(function(hash) {
-							return yasoon.valueStore.putAttachmentHash(hash);
-						});
-
-						//Now remove all references from the description field
-						self.removeAttachmentFromBody(handle);
-
-						//Now, update UI
-						handle.blacklisted = true;
-						handle.selected = false;
-						self.refresh(id);
-					}
-				},
 				checkbox: {
 					id: 'dontAskAgain',
 					label: yasoon.i18n('dialog.dontAskAgain')
-				},
-				buttons: {
-					cancel: {
-						label: yasoon.i18n('dialog.cancel'),
-						className: "btn-secondary"
-					},
-					confirm: {
-						label: yasoon.i18n('dialog.ok'),
-						className: "btn-primary"
-					},
+				}
+			})
+			.then(function(ok) {
+				if (ok) {
+					//First, set as blacklisted
+					yasoon.io.getFileHash(handle).then(function(hash) {
+						return yasoon.valueStore.putAttachmentHash(hash);
+					});
+
+					//Now remove all references from the description field
+					self.removeAttachmentFromBody(handle);
+
+					//Now, update UI
+					handle.blacklisted = true;
+					handle.selected = false;
+					self.refresh(id);
 				}
 			});
 		});
@@ -2055,7 +2062,32 @@ function insertAtCursor(myField, myValue) {
 	myField.value = myField.value.substring(0, startPos) +
 		myValue +
 		myField.value.substring(endPos, myField.value.length);
+}
 
+function showConfirmation(options) {
+	return new Promise(function(resolve, reject) {
+		var optionsInt = {
+			size: 'large',
+			backdrop: false,
+			message: options.message,
+			callback: function(ok) { 
+				resolve(ok);
+			},
+			buttons: {
+				cancel: {
+					label: yasoon.i18n('dialog.cancel'),
+					className: "btn-secondary"
+				},
+				confirm: {
+					label: yasoon.i18n('dialog.ok'),
+					className: "btn-primary"
+				},
+			}
+		};
+
+		optionsInt.checkbox = options.checkbox;
+		bootbox.confirm(optionsInt);
+	})
 }
 
 function getDescriptionId() {

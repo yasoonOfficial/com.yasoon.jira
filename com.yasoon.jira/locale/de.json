@@ -129,7 +129,8 @@
 				"serviceDeskWarningBody": "Der Vorgang hat keinen Anfragetyp.</br >Obwohl es sich um einen Service Desk Vorgang handelt, ist ein Kommentar an den Kunden nicht möglich.",
 				"serviceDeskWarning":  "Kein Anfragetyp",
 				"attachmentAddToBlacklistDialog": "Willst du dieses Bild zukünftig ignorieren? Dies ist sinnvoll, um kleine, oft verwendete Bilder auszuschließen (wie z.B. Signaturbilder). Bitte beachte, dass die ignorierten Bilder automatisch auch bei deinen Kollegen ignoriert werden!",
-				"attachmentAddToBlacklist": "Bild zukünftig ignorieren"
+				"attachmentAddToBlacklist": "Bild zukünftig ignorieren",
+				"attachmentReferenceStillActive": "Die Beschreibung enthält noch eine Referenz zu dem de-selektieren Anhang - ebenfalls entfernen?"
 			},
 			"filter": {
 				"projectFilter": "Projekt",
