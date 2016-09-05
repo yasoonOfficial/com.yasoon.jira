@@ -1006,11 +1006,12 @@ function AttachmentLinkRenderer() {
 	}
 
 	this.removeAttachmentFromBody = function(handle) {
-		var regEx = self.getContentIdRegex(handle.contentId);
+	    var regEx = self.getContentIdRegex(handle.contentId);
+	    var description = $(getDescriptionId());
 		//Todo: Do this via renderer?
 		var oldDescr = description.val();
 		var newDescr = oldDescr.replace(regEx, '');
-		$(getDescriptionId()).val(newDescr);
+		description.val(newDescr);
 	};
 
 	this.getContentIdRegex = function(contentId) {
@@ -1977,7 +1978,7 @@ function DynamicSingleSelect(selector) {
 		}
 		else {
 			//In creation case: Only send if not null	
-			return (val) ? parseInt(val) : undefined;
+		    return (val) ? { value: 'Apple' } : undefined;
 		}
 	};
 
