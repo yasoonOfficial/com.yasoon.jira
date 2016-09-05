@@ -1001,6 +1001,18 @@ function AttachmentLinkRenderer() {
 		domAttachmentLink.find('.attachmentMain').removeClass('edit');
 	};
 
+	this.removeAttachmentFromBody = function(handle) {
+		var regEx = self.getContentIdRegex(handle.contentId);
+		//Todo: Do this via renderer?
+		var oldDescr = description.val();
+		var newDescr = oldDescr.replace(regEx, '');
+		$(getDescriptionId()).val(newDescr);
+	};
+
+	this.getContentIdRegex = function(contentId) {
+		return new RegExp('!' + contentId + '!', 'g');	
+	};
+
 	this.fillTemplate = function (id, container) {
 		var attachments = [];
 		jira.selectedAttachments.forEach(function (attachment) {
@@ -1082,6 +1094,9 @@ function AttachmentLinkRenderer() {
 						yasoon.io.getFileHash(handle).then(function(hash) {
 							return yasoon.valueStore.putAttachmentHash(hash);
 						});
+
+						//Now remove all references from the description field
+						self.removeAttachmentFromBody(handle);
 
 						//Now, update UI
 						handle.blacklisted = true;
