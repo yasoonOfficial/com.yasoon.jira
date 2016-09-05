@@ -1002,11 +1002,11 @@ function AttachmentLinkRenderer() {
 	};
 
 	this.hasReference = function(handle) {
-		return $(getDescriptionId()).val().indexOf(handle.contentId) >= 0;
+		return $(getDescriptionId()).val().indexOf(handle.fileName) >= 0;
 	}
 
 	this.removeAttachmentFromBody = function(handle) {
-	    var regEx = self.getContentIdRegex(handle.contentId);
+	    var regEx = self.getDescriptionRegex(handle.fileName);
 	    var description = $(getDescriptionId());
 		//Todo: Do this via renderer?
 		var oldDescr = description.val();
@@ -1014,8 +1014,8 @@ function AttachmentLinkRenderer() {
 		description.val(newDescr);
 	};
 
-	this.getContentIdRegex = function(contentId) {
-		return new RegExp('!' + contentId + '!', 'g');	
+	this.getDescriptionRegex = function(id) {
+		return new RegExp('!' + id + '!', 'g');	
 	};
 
 	this.fillTemplate = function (id, container) {
@@ -1076,17 +1076,24 @@ function AttachmentLinkRenderer() {
 			var handle = self.getCurrentAttachment($(this));
 			handle.selected = !handle.selected;
 
-			if (!this.checked && self.hasReference(handle)) {
+			var autoRemove = yasoon.setting.getAppParameter('dialog.autoRemoveAttachmentReference');
+			if (autoRemove && autoRemove === 'true') {
+				self.removeAttachmentFromBody(handle);
+			}
+			else if (!autoRemove && !this.checked && self.hasReference(handle)) {
 				showConfirmation({
 					message: yasoon.i18n('dialog.attachmentReferenceStillActive'),
-					checkbox: {
-						id: 'dontAskAgain',
-						label: yasoon.i18n('dialog.dontAskAgain')
-					}
+					checkbox: yasoon.i18n('dialog.rememberDecision'),
+					primary: yasoon.i18n('dialog.yes'),
+					secondary: yasoon.i18n('dialog.no')
 				})
-				.then(function(ok) {
-					if (ok) {
+				.then(function(result) {										
+					if (result.ok) {
 						self.removeAttachmentFromBody(handle);
+					}
+
+					if (result.checkbox) {//rememberDecision
+						yasoon.setting.setAppParameter('dialog.autoRemoveAttachmentReference', result.ok.toString());
 					}
 				});
 			}
@@ -1104,15 +1111,24 @@ function AttachmentLinkRenderer() {
 		$('.attachmentAddToBlacklist').off().click(function(e) {
 			e.preventDefault();
 			var handle = self.getCurrentAttachment($(this));
-			showConfirmation({
-				message: yasoon.i18n('dialog.attachmentAddToBlacklistDialog'),
-				checkbox: {
-					id: 'dontAskAgain',
-					label: yasoon.i18n('dialog.dontAskAgain')
-				}
-			})
-			.then(function(ok) {
-				if (ok) {
+
+
+			var hideInfo = yasoon.setting.getAppParameter('dialog.hideAttachmentBlacklistExplanation');
+			var showInfoDialog;
+			if (hideInfo && hideInfo === 'true') {
+				showInfoDialog = Promise.resolve({ ok: true }); //Skip
+			}
+			else {
+				showInfoDialog = showConfirmation({
+					message: yasoon.i18n('dialog.attachmentAddToBlacklistDialog'),
+					checkbox: yasoon.i18n('dialog.dontShowAgain'),
+					primary: yasoon.i18n('dialog.ok'),
+					secondary: yasoon.i18n('dialog.cancel')
+				});
+			}
+			
+			showInfoDialog.then(function(result) {
+				if (result.ok) {
 					//First, set as blacklisted
 					yasoon.io.getFileHash(handle).then(function(hash) {
 						return yasoon.valueStore.putAttachmentHash(hash);
@@ -1125,6 +1141,11 @@ function AttachmentLinkRenderer() {
 					handle.blacklisted = true;
 					handle.selected = false;
 					self.refresh(id);
+
+					//Only accept dont ask again if was confirmed with ok					
+					if (result.checkbox) { //dont show again
+						yasoon.setting.setAppParameter('dialog.hideAttachmentBlacklistExplanation', 'true');					
+					}
 				}
 			});
 		});
@@ -2261,21 +2282,31 @@ function showConfirmation(options) {
 			backdrop: false,
 			message: options.message,
 			callback: function(ok) { 
-				resolve(ok);
+				var checkState = $('#checkboxConfirm').prop( "checked" );
+				resolve({
+					checkbox: checkState,
+					ok: ok
+				});
 			},
 			buttons: {
 				cancel: {
-					label: yasoon.i18n('dialog.cancel'),
+					label: options.secondary,
 					className: "btn-secondary"
 				},
 				confirm: {
-					label: yasoon.i18n('dialog.ok'),
+					label: options.primary,
 					className: "btn-primary"
 				},
 			}
 		};
 
-		optionsInt.checkbox = options.checkbox;
+		if (options.checkbox) {
+			optionsInt.checkbox = {
+				id: 'checkboxConfirm',
+				label: options.checkbox
+			};
+		}
+		
 		bootbox.confirm(optionsInt);
 	})
 }

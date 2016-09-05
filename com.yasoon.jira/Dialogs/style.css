@@ -2890,7 +2890,11 @@ body {
 
 .modal-footer .awesome.checkbox label::after {
 	left: -2px !important;
-	top: -1px !important;
+	top: 1px !important;
+}
+
+.modal-footer .awesome.checkbox label::before {
+	top: 1px;
 }
 
 /* Add to issue Service Comment Buttons */

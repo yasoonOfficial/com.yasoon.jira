@@ -1216,7 +1216,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			return markup;
 		})
 		.catch(function(e) {
-
+			console.log(e);
 		});
 	};
 	
