@@ -253,7 +253,7 @@ function jiraAjax(relativeUrl, method, data, formData) {
 		var request = {
 			url: jira.settings.baseUrl + relativeUrl,
 			oauthServiceName: jira.settings.currentService,
-			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck', 'X-ExperimentalApi': 'true' },
+			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck', 'X-ExperimentalApi': 'true' }, //nocheck is deprecated since REST 3.0.0 - us no-check instead
 			data: data,
 			formData: formData,
 			type: method,
@@ -397,9 +397,9 @@ function jiraCompressObject(obj) {
 }
 
 function jiraIsTask(item) {
-    if (item.__entity_type && item.__entity_type.indexOf('yasoonBase.Model.Entities.Task') > -1)
-        return true;
+	if (item.__entity_type && item.__entity_type.indexOf('yasoonBase.Model.Entities.Task') > -1)
+		return true;
 
-    return false;
+	return false;
 }
 //@ sourceURL=http://Jira/common.js

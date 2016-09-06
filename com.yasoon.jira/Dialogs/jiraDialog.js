@@ -987,17 +987,18 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 	this.getMetaData = function () {
 		//Check in Cache
-		if (jira.cacheCreateMetas && jira.cacheCreateMetas.length > 0) {
+		//Do not check cache for Teamlead Instance to have latest data every time.
+		if (jira.cacheCreateMetas && jira.cacheCreateMetas.length > 0 && !jira.settings.teamleadApiKey) {
 			var projectMeta = jira.cacheCreateMetas.filter(function (m) { return m.key === jira.selectedProject.key; })[0];
 			if (projectMeta) {
-				jira.projectMeta = projectMeta;
+			    jira.projectMeta = projectMeta;
 				return Promise.resolve();
 			}
 		}
 
 		return jiraGet('/rest/api/2/issue/createmeta?projectIds=' + jira.selectedProject.id + '&expand=projects.issuetypes.fields')
 		.then(function (data) {
-			var meta = JSON.parse(data);
+		    var meta = JSON.parse(data);
 			//Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
 			self.projectMeta = $.grep(meta.projects, function (p) { return p.id === jira.selectedProject.id; })[0];
 		});
