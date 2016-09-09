@@ -202,7 +202,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		.catch(function (e) {
 			yasoon.util.log(((e.message) ? e.message : e), yasoon.util.severity.error, getStackTrace(e));
 		})
-		.finally(function() {
+		.finally(function () {
 			jira.notifications.showDesktopNotif();
 		});
 	};

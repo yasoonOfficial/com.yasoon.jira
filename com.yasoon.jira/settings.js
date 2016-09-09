@@ -21,13 +21,13 @@ function JiraSettingController() {
 		showFeedComment: true,
 		newCreationScreen: true,
 		syncCalendar: false,
-		syncTask: false,
 		syncFeed: 'auto',
+		syncTask: false,
 		taskSyncEnabled: false,
 		tasksActiveProjects: '',
 		deleteCompletedTasks: false,
-		hideResolvedIssues: false,
 		tasksSyncAllProjects: true,
+		hideResolvedIssues: false,
 		activeFilters: 'fields.project.id,fields.issuetype.id,fields.status.id,fields.priority.id,fields.assignee.emailAddress'
 	};
 
@@ -223,8 +223,8 @@ function JiraSettingController() {
 			//Special Case for activeFilters
 			if (param.key === 'activeFilters' && self[param.key] != param.value) {
 				yasoon.dialog.showMessageBox(yasoon.i18n('settings.filterChange'));
-				console.log('Old Values:', self[param.key]);
-				console.log('New Values:', param.value);
+				if (param.value === null) //Null filter is not good :D
+				    param.value = '';
 			}
 			if (param.key === 'tasksActiveProjects' && self[param.key] != param.value ||
 				param.key === 'taskSyncEnabled' && self[param.key] != param.value || 
@@ -244,13 +244,17 @@ function JiraSettingController() {
 	};
 
 	self.save = function () {
+	    var result = {};
+	    Object.keys(defaults).forEach(function (key) {
+	        result[key] = self[key] || defaults[key];
+	    });
 		yasoon.setting.setAppParameter('settings', JSON.stringify(self));
 	};
 
 	self.setLastSync = function (date) {
 		self.lastSync = date;
 		yasoon.feed.saveSyncDate(date);
-		yasoon.setting.setAppParameter('settings', JSON.stringify(self));
+		self.save();
 	};
 
 	self.updateData = function () {

@@ -10,7 +10,10 @@
 				"openIssue": "Vorgang öffnen",
 				"openIssues": "Vorgänge öffnen",
 				"openIssueWithKey": "Vorgang {{key}} öffnen",
-				"changeTransition": "Status ändern"
+				"changeTransition": "Status ändern",
+				"syncTasks": "Aufgaben synchronisieren",
+				"syncTasksScreenTip": "Die Synchronisation erfolgt normal automatisch und ist nicht notwendig. Sollte jedoch einmal etwas schief gehen, kannst du hier die Synchronisation wieder herstellen.",
+				"forceSyncTasks":  "Aufgaben vollständig synchronisieren"
 			},
 			"general": {
 				"couldNotUploadAttachments": "Es konnten nicht alle Anhänge hochgeladen werden. Bitte versuche es erneut.",
@@ -25,7 +28,9 @@
 				"timestampRefused": "JIRA hat die Verbindung abgelehnt wegen zeitlicher Unterschiede. Entweder dein Computer oder der Server nutzen nicht die aktuelle Uhrzeit. (Beide Systeme können in einer unterschiedlichen Zeitzone sein)",
 				"certificateInvalid": "Das Zertifikat der Anwendungsverknüpfung ist nicht gültig. Stelle bitte sicher, dass dieser nach den Vorgaben des Guides angelegt wurde. Anschließend kannst du in den Settings auf \"Systeminformationen neu laden\" drücken und den login erneut versuchen.",
 				"unexpectedJiraError": "Es gab einen unbekannten JIRA Fehler. Bitte prüfe nochmal den Guide, ob du alle Schritte bei der Einrichtung beachtet hast.",
-				"connectionToJiraNotPossible": "Die Verbindung zu JIRA konnte nicht hergestellt werden. (fehlen Proxy oder VPN?)"
+				"connectionToJiraNotPossible": "Die Verbindung zu JIRA konnte nicht hergestellt werden. (fehlen Proxy oder VPN?)",
+				"taskSyncSuccess": "Alle Aufgaben sind synchronisiert.",
+				"taskSyncFailed": "Es ist ein unerwarteter Fehler aufgetreten. Stelle bitte sicher, dass du verbunden bist oder kontaktiere den yasoon Support"
 			},
 			"feed": {
 				"couldNotCreateComment": "Der Kommentar konnte nicht angelegt werden",
@@ -194,7 +199,7 @@
 				"nobody": "Niemand",
 				"updating": "aktualisiere...",
 				"changeStatusNotPossible": "Der Status konnte nicht geändert werden: {{error}}"
-			}, 
+			},
 			"settings": {
 				"headingLogin": "Bitte wähle dein JIRA System aus und melde dich an.",
 				"headingChooseSettings": "Hier kannst du deine Einstellungen anpassen. Bitte melde dich nur ab, wenn du dich mit einem anderen JIRA System verbinden möchtest.",
@@ -216,26 +221,26 @@
 				"enableUserConfig": "Verwende meine benutzerdefinierte Feld-Konfiguration",
 				"configureFilter": "Filter konfigurieren",
 				"calendarIntegration": "Kalendar Integration verwenden",
-				"logoutButton":"Abmelden",
-				"optionDisabled":"Deaktiviert",
+				"logoutButton": "Abmelden",
+				"optionDisabled": "Deaktiviert",
 				"optionTop": "Am Anfang",
 				"optionBottom": "Am Ende",
 				"showFeedIf": "Zeige Neuigkeiten für Vorgänge, wenn:",
 				"filterActive": "Aktiv",
 				"filterAvailable": "Verfügbar",
-				"loginNotPossible":"Login in JIRA ist wegen fehlender Konfigurationen nicht möglich. Bitte kontaktiere deinen Administrator.",
-				"pendingUpdates":"Es gibt wartende Updates die diese Aktion verhinden. Bitte lade zunächst das aktuellste Update über das Outlook Menü: Datei --> JIRA. Anschließend bitte Outlook neustarten und Login erneut probieren.",
+				"loginNotPossible": "Login in JIRA ist wegen fehlender Konfigurationen nicht möglich. Bitte kontaktiere deinen Administrator.",
+				"pendingUpdates": "Es gibt wartende Updates die diese Aktion verhinden. Bitte lade zunächst das aktuellste Update über das Outlook Menü: Datei --> JIRA. Anschließend bitte Outlook neustarten und Login erneut probieren.",
 				"pendingUpdatesApp": "Es gibt wartende Updates die diese Aktion verhindern. Bitte starte Outlook zunächst neu und versuche es anschließend erneut.",
 				"reloadSuccess": "Neue System Informationen wurden erfolgreich geladen.",
 				"general": "Allgemein",
 				"dialogs": "Dialoge",
 				"feed": "Neuigkeiten",
 				"hideResolvedIssues": "Erledigte Vorgänge nicht vorschlagen",
-				"filterChange":"Änderungen am Filter sind erst mit dem nächsten Outlook Neustart aktiv.",
+				"filterChange": "Änderungen am Filter sind erst mit dem nächsten Outlook Neustart aktiv.",
 				"headingSyncTasks": "Aufgaben Synchronisation",
 				"syncTasks": "Aufgaben Synchronisation aktivieren",
 				"deleteCompletedTasks": "Abgeschlossene Aufgaben löschen",
-				"syncFeed":  "Feed Synchronisation",
+				"syncFeed": "Feed Synchronisation",
 				"syncFeedAuto": "automatisch",
 				"syncFeedManual": "manuell",
 				"syncFeedOff": "deaktiviert",
@@ -243,7 +248,24 @@
 				"tasksSyncAllProjects": "All Projects",
 				"projectsNotLoaded": "Projects not loaded yet",
 				"taskProjectAvailable": "All Projects",
-				"taskProjectActive":  "Active Projects"
+				"taskProjectActive": "Active Projects"
+			},
+
+			"purchase": {
+				"heading": "Jira for Outlook Trial expired",
+				"introText": "Thanks for using JIRA for Outlook. We hope, it saved you a lot of time and it has been useful for you. <br /> Unfortunately your JIRA for Outlook is currently running in a trial and it has come to an end.",
+				"adminValue": "Don't worry, it's not too late to take advantage of JIRA for Outlook and make it absolutely easy to work with JIRA issues.",
+				"adminSteps": "Simply follow these steps to proceed. If you have any questions, just send a mail to <a class=\"mailSupport\">our support team</a>.",
+				"adminServerStep1": "<b>Get licenses</b> for your company. Choose the tier that fits best for you.",
+				"adminServerStep2": "Setup a <b>personal welcome message</b> <a id=\"openSettings\">in the admin panel</a> to have the best experience for your users.",
+				"adminServerStep3": "<b>Share the setup</b> with all users. If you need help for the rollout, <a class=\"mailSupport\">our support team</a> will help you out.",
+				"adminCloudStep1": "<b>Subscribe to the Outlook App JIRA addon</b> <a id=\"OpenAddonPage\">here</a>.",
+				"adminCloudStep2": "Setup a <b>personal welcome message</b> <a id=\"openSettings\">in the admin panel</a> to have the best experience for your users.",
+				"adminCloudStep3": "<b>Share the setup</b> with all users. If you need help for the rollout, <a class=\"mailSupport\">our support team</a> will help you out.",
+				"adminActionButton": "Get Licenses",
+				"userText": "If you like to continue to use, please ask your JIRA admin to get a full license for you. <br />Here is some help who to contact: <br />",
+				"userEmailLabel": "Email",
+				"userActionButton":  "Send your admin a mail now"
 			}
 		}
 	}

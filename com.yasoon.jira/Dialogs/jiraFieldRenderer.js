@@ -2541,4 +2541,8 @@ UIRenderer.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:conta
 UIRenderer.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contacts-field', new MultiSelectListRenderer());
 UIRenderer.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:single-product-select-field', new SelectListRenderer());
 UIRenderer.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:multi-products-select-field', new MultiSelectListRenderer());
+
+//Intenso Dynamic Fields
+UIRenderer.register('com.intenso.jira.plugin.dynamic-forms:dynamic-select-customfield', new SelectListRenderer());
+
 //@ sourceURL=http://Jira/Dialog/jiraFieldRenderer.js

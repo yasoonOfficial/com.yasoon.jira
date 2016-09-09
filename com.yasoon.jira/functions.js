@@ -84,6 +84,41 @@ function JiraRibbonController() {
 						image: 'brandedlogo-64',
 						items: self.createJiraRibbonGroup('MailMain')
 					}]
+				},
+				{
+					type: 'tab',
+					idMso: 'TabTasks',
+					items: [{
+						type: 'group',
+						id: 'jiraTaskExplorerGroup',
+						insertAfterMso: 'GroupTaskRespond',
+						label: 'JIRA',
+						image: 'brandedlogo-64',
+						items: [{
+						    type: 'splitButton',
+						    id: 'jiraTaskSync',
+						    size: 'large',
+						    items: [{
+						        type: 'button',
+						        id: 'jiraTaskRefresh',
+						        label: yasoon.i18n('ribbon.syncTasks'),
+						        screentip: yasoon.i18n('ribbon.syncTasks'),
+						        image: 'images/ribbonSyncing.png',
+						        supertip: yasoon.i18n('ribbon.syncTasksScreenTip'),
+						        enabled: true,
+						        onAction: self.ribbonRefreshTasks
+						    }, {
+						        type: 'menu',
+						        id: 'RefreshMenu',
+						        items: [{
+						            type: 'button',
+						            id: 'jiraTaskForceRefresh',
+						            label: yasoon.i18n('ribbon.forceSyncTasks'),
+						            onAction: self.ribbonRefreshTasks
+						        }]
+						    }]
+						}]
+					}]
 				}]
 			}]
 		});
@@ -166,7 +201,7 @@ function JiraRibbonController() {
 							id: 'jiraTransitionDynamicMenu',
 							size: 'large',
 							label: yasoon.i18n('ribbon.changeTransition'),
-							image: 'logo_icon1.png',
+							image: 'images/ribbonTransition.png',
 							visible: 'appItem',
 							items: [{
 								type: 'menu',
@@ -274,33 +309,35 @@ function JiraRibbonController() {
 		var parameters = (inspectorId) ? inspectorId : true;
 		var method = (inspectorId) ? 'updateSingle' : 'update';
 
-		if (jiraIsTask(item)) {
-		    var issue = JSON.parse(item.externalData);
-		    
-		    if (issue.transitions) {
-		        var transitionItems = [];
-		        issue.transitions.forEach(function (t) {
-		            transitionItems.push({
-		                type: 'button',
-		                id: 'transition-' + t.id,
-		                label: t.name,
-		                externalData: JSON.stringify({ transitionId: t.id, issueKey: issue.key, issueId: issue.id }),
-		                onAction: self.ribbonExecuteTransition
-		            });
-		        });
+		if (jiraIsTask(item) || item.fields) { //In update we do not have an up-to-date task, so we insert the issue.
+			var issue = item;
+			if(!issue.fields)
+				issue = JSON.parse(item.externalData);
+			
+			if (issue.transitions) {
+				var transitionItems = [];
+				issue.transitions.forEach(function (t) {
+					transitionItems.push({
+						type: 'button',
+						id: 'transition-' + t.id,
+						label: t.name,
+						externalData: JSON.stringify({ transitionId: t.id, issueKey: issue.key, issueId: issue.id }),
+						onAction: self.ribbonExecuteTransition
+					});
+				});
 
-		        jira.ribbonFactory[method]('jiraTransitionMenu', {
-		            items: transitionItems
-		        }, parameters);
+				jira.ribbonFactory[method]('jiraTransitionMenu', {
+					items: transitionItems
+				}, parameters);
 
-		        jira.ribbonFactory[method]('jiraTransitionDynamicMenu', {
-		            visible: 'appItem'
-		        }, parameters);
-		    } else {
-		        jira.ribbonFactory[method]('jiraTransitionDynamicMenu', {
-		            visible: false
-		        }, parameters);
-		    }
+				jira.ribbonFactory[method]('jiraTransitionDynamicMenu', {
+					visible: 'appItem'
+				}, parameters);
+			} else {
+				jira.ribbonFactory[method]('jiraTransitionDynamicMenu', {
+					visible: false
+				}, parameters);
+			}
 
 		} else {
 			if (!item.getConversationData)
@@ -504,44 +541,83 @@ function JiraRibbonController() {
 	};
 
 	this.ribbonExecuteTransition = function (ribbonId, ribbonCtx) {
-	    if (!jiraIsLicensed(true)) {
-	        return;
-	    }
+		if (!jiraIsLicensed(true)) {
+			return;
+		}
 
-	    console.log(ribbonCtx);
-	    var extData = JSON.parse(ribbonCtx.externalData);
-	    var issueKey = extData.issueKey;
-	    var issueId = extData.issueId;
-	    var transitionId = extData.transitionId;
-	    var body = JSON.stringify({
-	        "transition": {
-	            "id": transitionId
-	        }
-	    });
+		var extData = JSON.parse(ribbonCtx.externalData);
+		var issue = ribbonCtx.items[0];
+		var issueKey = extData.issueKey;
+		var issueId = extData.issueId;
+		var transitionId = extData.transitionId;
+		var body = JSON.stringify({
+			"transition": {
+				"id": transitionId
+			}
+		});
 
-	    jiraGet('/rest/api/2/issue/' + issueKey + '/transitions?transitionId=' + transitionId)
+		jira.ribbonFactory.updateSingle('jiraTransitionDynamicMenu', {
+		    enabled: false
+		}, issue.inspectorId);
+
+		jiraGet('/rest/api/2/issue/' + issueKey + '/transitions?transitionId=' + transitionId)
 		.then(function (data) {
-		    var transObj = JSON.parse(data);
-		    if (transObj.transitions[0].hasScreen) {
-		        yasoon.openBrowser(jira.settings.baseUrl + '/login.jsp?os_destination=' + encodeURIComponent('/secure/CommentAssignIssue!default.jspa?id=' + issueId + '&action=' + transitionId));
-		    } else {
-		        return jiraAjax('/rest/api/2/issue/' + issueKey + '/transitions', yasoon.ajaxMethod.Post, body)
+			var transObj = JSON.parse(data);
+			if (transObj.transitions[0].hasScreen) {
+				yasoon.openBrowser(jira.settings.baseUrl + '/login.jsp?os_destination=' + encodeURIComponent('/secure/CommentAssignIssue!default.jspa?id=' + issueId + '&action=' + transitionId));
+			} else {
+				return jiraAjax('/rest/api/2/issue/' + issueKey + '/transitions', yasoon.ajaxMethod.Post, body)
 				.then(function () {
-				    jira.sync();
+					return jira.issues.get(issueKey, true);
+				})
+				.then(function (newIssue) {
+				    jira.ribbonFactory.updateSingle('jiraTransitionDynamicMenu', {
+				        enabled: true
+				    }, issue.inspectorId);
+
+					self.updateRibbons(newIssue, issue.inspectorId);
+
+					new JiraIssueTask(newIssue).saveInspector(issue);
+
+					jira.sync();
 				});
-		    }
+			}
 		})
 		.catch(function (error) {
-		    var msg = (error.getUserFriendlyError) ? error.getUserFriendlyError() : error;
-		    yasoon.dialog.showMessageBox(yasoon.i18n('notification.changeStatusNotPossible', { error: msg }));
-		    yasoon.util.log('Unexpected error in Set Transition in Task: ' + error, yasoon.util.severity.error, getStackTrace(error));
+			var msg = (error.getUserFriendlyError) ? error.getUserFriendlyError() : error;
+			yasoon.dialog.showMessageBox(yasoon.i18n('notification.changeStatusNotPossible', { error: msg }));
+			yasoon.util.log('Unexpected error in Set Transition in Task: ' + error, yasoon.util.severity.error, getStackTrace(error));
+
+			jira.ribbonFactory.updateSingle('jiraTransitionDynamicMenu', {
+			    enabled: true
+			}, issue.inspectorId);
+		});
+	};
+
+	this.ribbonRefreshTasks = function (ribbonId, ribbonCtx) {
+		jira.ribbonFactory.update('jiraTaskSync', {
+			enabled: false
+		}, true);
+
+		var forceSync = (ribbonId == 'jiraTaskForceRefresh');
+
+		jira.tasks.syncTasks(forceSync)
+		.then(function () {
+			yasoon.dialog.showMessageBox(yasoon.i18n('general.taskSyncSuccess'));
+
+			jira.ribbonFactory.update('jiraTaskSync', {
+				enabled: true
+			}, true);
+		})
+		.catch(function () {
+			yasoon.dialog.showMessageBox(yasoon.i18n('general.taskSyncFailed'));
 		});
 	};
 
 	this.ribbonOnNewIssue = function ribbonOnNewIssue(ribbonId, ribbonCtx) {
-	    if (!jiraIsLicensed(true)) {
-	        return;
-	    }
+		if (!jiraIsLicensed(true)) {
+			return;
+		}
 		if (!jira.settings.currentService || !yasoon.app.isOAuthed(jira.settings.currentService)) {
 			yasoon.dialog.showMessageBox(yasoon.i18n('general.loginFirst'));
 			return;

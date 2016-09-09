@@ -1076,9 +1076,48 @@ function JiraIssueTask(issue) {
 		return true;
 	};
 
-	this.save = function save() {
+	this.getDbItem = function getDbItem(dbItem) {
+		dbItem.externalId = self.issue.key;
+		dbItem.subject = self.issue.key + ': ' + self.issue.fields.summary;
+		dbItem.body = self.issue.renderedFields.description.replace(/\s*\<br\/\>/g, '<br>'); //jshint ignore:line
+		//dbItem.body = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' + dbItem.body + '</body></html>';
+		dbItem.isHtmlBody = true;
+		if (jira.issues.isResolved(self.issue)) {
+			dbItem.completionState = yasoon.outlook.task.completionState.Completed;
+			dbItem.completionPercent = 100;
+		} else if (dbItem.completionState == yasoon.outlook.task.completionState.Completed) {
+			//Do not always overwrite the status --> User may have set it to "pending" or similar to track the status
+			//Better: Only reset status to NotStarted if it is an old task AND this task was completed
+			dbItem.completionState = yasoon.outlook.task.completionState.NotStarted;
+			dbItem.completionPercent = 0;
+		}
+
+		if (self.issue.fields.duedate) {
+			//We need to use momentJS to parse the date correctly
+			// Wunderlist JSON contains "2014-04-14"
+			// If using new Date(json), this will result in a date:
+			//     14.04.2014 00:00 UTC!
+			// but we actually need 00:00 local time (moment does that)
+			dbItem.dueDate = moment(self.issue.fields.duedate).toDate();
+		}
+		else {
+			dbItem.dueDate = new Date(0);
+		}
+
+		if (self.issue.fields.assignee)
+			dbItem.owner = self.issue.fields.assignee.displayName;
+		else
+			delete dbItem.owner;
+
+		dbItem.externalData = JSON.stringify(jiraMinimizeIssue(self.issue));
+
+		return dbItem;
+
+	}
+
+	this.save = function save(forceSync) {
 		//Is sync nessecary?
-		if (!self.isSyncNeeded())
+		if (!forceSync && !self.isSyncNeeded())
 			return Promise.resolve();
 
 		return jiraGetTask(self.issue.key)
@@ -1088,8 +1127,8 @@ function JiraIssueTask(issue) {
 			if (!dbItem) {
 				//Creation
 				creation = true;
-				dbItem = { categories: ['JIRA', self.issue.fields.project.name] };
-			} else if (self.issue.fields.updated) {
+				dbItem = { categories: ['JIRA'] };
+			} else if (!forceSync && self.issue.fields.updated) {
 				var oldIssue = JSON.parse(dbItem.externalData);
 				if (new Date(oldIssue.fields.updated) >= new Date(self.issue.fields.updated).getTime()) {
 					//not new and no update needed
@@ -1097,40 +1136,8 @@ function JiraIssueTask(issue) {
 				}
 			}
 
-			dbItem.externalId = self.issue.key;
-			dbItem.subject = self.issue.key + ': ' + self.issue.fields.summary;
-			dbItem.body = self.issue.renderedFields.description.replace(/\s*\<br\/\>/g, '<br>'); //jshint ignore:line
-			//dbItem.body = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' + dbItem.body + '</body></html>';
-			dbItem.isHtmlBody = true;
-			if (jira.issues.isResolved(self.issue)) {
-				dbItem.completionState = yasoon.outlook.task.completionState.Completed;
-				dbItem.completionPercent = 100;
-			} else if (dbItem.completionState == yasoon.outlook.task.completionState.Completed) {
-				//Do not always overwrite the status --> User may have set it to "pending" or similar to track the status
-				//Better: Only reset status to NotStarted if it is an old task AND this task was completed
-				dbItem.completionState = yasoon.outlook.task.completionState.NotStarted;
-				dbItem.completionPercent = 0;
-			}
-
-			if (self.issue.fields.duedate) {
-				//We need to use momentJS to parse the date correctly
-				// Wunderlist JSON contains "2014-04-14"
-				// If using new Date(json), this will result in a date:
-				//     14.04.2014 00:00 UTC!
-				// but we actually need 00:00 local time (moment does that)
-				dbItem.dueDate = moment(self.issue.fields.duedate).toDate();
-			}
-			else {
-				dbItem.dueDate = new Date(0);
-			}
-
-			if (self.issue.fields.assignee)
-				dbItem.owner = self.issue.fields.assignee.displayName;
-			else
-				delete dbItem.owner;
-
-			dbItem.externalData = JSON.stringify(jiraMinimizeIssue(self.issue));
-
+			dbItem = self.getDbItem(dbItem);
+			
 			//Does folder exist?
 			return jiraGetFolder(self.issue.fields.project.key)
 			.then(function (folder) {
@@ -1144,6 +1151,18 @@ function JiraIssueTask(issue) {
 					return jiraSaveTask(dbItem);
 			});
 		});
+	};
+
+	this.saveInspector = function saveInspector(inspectorItem) {
+		var item = self.getDbItem({});
+		inspectorItem.setSubject(item.subject);
+		//inspectorItem.setBody(item.body);
+		inspectorItem.setCompletionPercentage(item.completionPercent);
+		inspectorItem.setCompletionState(item.completionState);
+		inspectorItem.setOwner(item.owner);
+		inspectorItem.setExternalData(item.externalData);
+
+		inspectorItem.save(function () { }, function () { });
 	};
 }
 
@@ -1180,15 +1199,20 @@ function JiraIssueController() {
 		});
 	};
 
-	self.get = function (id) {
-		var result = $.grep(issues, function (issue) { return (issue.id === id || issue.key === id); });
-		if (result.length > 0) {
-			return Promise.resolve(result[0]);
+	self.get = function (id, bypassBuffer) {
+		if (!bypassBuffer) {
+			var result = $.grep(issues, function (issue) { return (issue.id === id || issue.key === id); });
+			if (result.length > 0) {
+				return Promise.resolve(result[0]);
+			}
 		}
 		return jiraGet('/rest/api/2/issue/' + id + '?expand=transitions,renderedFields') //,schema,editmeta,names
 		.then(function (issueData) {
 			var issue = JSON.parse(issueData);
-			issues.push(issue);
+
+			if(!bypassBuffer)
+				issues.push(issue);
+
 			return issue;
 		});
 	};
@@ -1248,7 +1272,7 @@ function JiraTaskController() {
 		});
 	};
 
-	this.syncTasks = function () {
+	this.syncTasks = function (forceSync) {
 		if (!jira.settings.syncTask) {
 			return Promise.resolve();
 		}
@@ -1280,7 +1304,7 @@ function JiraTaskController() {
 			return ownIssues;
 		})
 		.each(function (issue) {
-			return new JiraIssueTask(issue).save()
+		    return new JiraIssueTask(issue).save(forceSync)
 			.then(function () {
 				updatedIssues.push(issue.key);
 			})
