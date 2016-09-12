@@ -2060,5 +2060,6 @@ UIRenderer.register('com.pyxis.greenhopper.jira:gh-sprint', new SprintLinkRender
 UIRenderer.register('com.tempoplugin.tempo-accounts:accounts.customfield', new TempoAccountRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:cascadingselect', new CascadedListRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:grouppicker', new GroupSingleRenderer());
+UIRenderer.register('security', new SelectListRenderer());
 
 //@ sourceURL=http://Jira/Dialog/jiraFieldRenderer.js
