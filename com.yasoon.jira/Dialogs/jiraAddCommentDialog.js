@@ -345,16 +345,17 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					});
 				}
 			});
-
-			promises.push(
-				jiraAjax('/rest/api/2/issue/' + selectedIssueId + '/attachments', yasoon.ajaxMethod.Post, null, formData)
-				.catch(jiraSyncError, function (e) {
-					yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data + ' || ' + e.getUserFriendlyError() + ' || ' + JSON.stringify(formData), yasoon.util.severity.warning);
-					$('#MainAlert .errorText').text(yasoon.i18n('dialog.errorAttachment', { error: e.getUserFriendlyError() }));
-					$('#MainAlert').show();
-					throw e;
-				})
-			);
+			if (formData.length > 0) {
+				promises.push(
+					jiraAjax('/rest/api/2/issue/' + selectedIssueId + '/attachments', yasoon.ajaxMethod.Post, null, formData)
+					.catch(jiraSyncError, function (e) {
+						yasoon.util.log(e.message + ' || ' + e.statusCode + ' || ' + e.errorText + ' || ' + e.result + ' || ' + e.data + ' || ' + e.getUserFriendlyError() + ' || ' + JSON.stringify(formData), yasoon.util.severity.warning);
+						$('#MainAlert .errorText').text(yasoon.i18n('dialog.errorAttachment', { error: e.getUserFriendlyError() }));
+						$('#MainAlert').show();
+						throw e;
+					})
+				);
+			}
 		}
 
 		Promise.all(promises)
