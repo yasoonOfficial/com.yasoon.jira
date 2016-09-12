@@ -2532,6 +2532,7 @@ UIRenderer.register('com.pyxis.greenhopper.jira:gh-epic-link', new EpicLinkRende
 UIRenderer.register('com.pyxis.greenhopper.jira:gh-sprint', new SprintLinkRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:cascadingselect', new CascadedListRenderer());
 UIRenderer.register('com.atlassian.jira.plugin.system.customfieldtypes:grouppicker', new GroupSingleRenderer());
+UIRenderer.register('security', new SelectListRenderer());
 //Tempo
 UIRenderer.register('com.tempoplugin.tempo-accounts:accounts.customfield', new TempoAccountRenderer());
 //TeamLead CRM
