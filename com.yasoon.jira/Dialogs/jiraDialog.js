@@ -764,7 +764,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		.then(function() {
 			//If currentMeta is a subtask, render Issue Renderer
 			if (jira.currentMeta.subtask) {
-				new IssuePickerRenderer().render('issue', { required: true }, $('#SubtaskArea'));
+				new IssuePickerRenderer().render('issue', { required: true, excludeSubtasks: true }, $('#SubtaskArea'));
 				$('#SubtaskArea').removeClass('hidden');
 			}
 		})

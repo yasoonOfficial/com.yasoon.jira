@@ -1759,7 +1759,7 @@ function IssuePickerRenderer() {
 	};
 
 	var lastQuery = '';
-	var searchIssue = debounce(function searchIssue(term, callback) {
+	var searchIssue = debounce(function searchIssue(term, excludeSubtasks, callback) {
 		console.log('Debounced searchIssue called');
 		//Concat JQL
 
@@ -1768,11 +1768,17 @@ function IssuePickerRenderer() {
 		if (term) {
 			jql += 'Summary ~ "' + term + '"';
 		}
+
 		if (jira.selectedProjectKey) {
-			jql += ((jql) ? 'AND' : '') + ' project = "' + jira.selectedProjectKey + '"';
+			jql += ((jql) ? ' AND' : '') + ' project = "' + jira.selectedProjectKey + '"';
 		}
+
 		if (jira.settings.hideResolvedIssues) {
-			jql += ((jql) ? 'AND' : '') + ' status != "resolved" AND status != "closed" AND status != "done"';
+			jql += ((jql) ? ' AND' : '') + ' status != "resolved" AND status != "closed" AND status != "done"';
+		}
+
+		if (excludeSubtasks) {
+			jql +=  ((jql) ? ' AND': '') + ' type NOT IN subtaskIssueTypes()';
 		}
 
 		jql = '( ' + jql + ' )';
@@ -1861,7 +1867,7 @@ function IssuePickerRenderer() {
 						//Search for all issues (filtered by settings and selectedProject)
 						console.log('Query JIRA Issue Data');
 						$('#IssueSpinner').css('display', 'inline');
-						searchIssue(queryTerm, function (params) {
+						searchIssue(queryTerm, field.excludeSubtasks, function (params) {
 							$('#IssueSpinner').css('display', 'none');
 							success([{
 								id: 'Results',
@@ -1872,7 +1878,7 @@ function IssuePickerRenderer() {
 					} else if (jira.selectedProjectId && jira.projectIssues.length <= 1) {
 						//Case 2: A project has been selected without query term, but the project issues have not been loaded yet.
 						$('#' + id + '-Spinner').css('display', 'inline');
-						searchIssue(queryTerm, function (params) {
+						searchIssue(queryTerm, field.excludeSubtasks, function (params) {
 							$('#' + id + '-Spinner').css('display', 'none');
 							jira.projectIssues = params;
 							success([{
