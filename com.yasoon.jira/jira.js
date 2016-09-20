@@ -131,7 +131,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		//If sync is turned off, we still need to sync data if task sync is active
 		//+ For intial sync
 		if (!self.firstTime) {
-			if (jira.settings.syncFeed == "manual" && source == 'action')
+			if (jira.settings.syncFeed == "manual" && source != 'manualRefresh')
 				return;
 
 			if (jira.settings.syncFeed == "off" && !jira.settings.syncTasks)
