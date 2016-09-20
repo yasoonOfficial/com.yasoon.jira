@@ -1,14 +1,14 @@
-<link rel="stylesheet" href="Dialogs/style.css">
-<link rel="stylesheet" href="Dialogs/select2.min.css">
-<link rel="stylesheet" href="Dialogs/jquery-date.min.css" />
-<link rel="stylesheet" href="Dialogs/jquery.mentionsInput.css" />
-<link rel="stylesheet" href="Dialogs/switch.css">
-<script src="Dialogs/select2.full.min.js"></script>
-<script src="Dialogs/jquery.mentionsInput.js"></script>
+<link rel="stylesheet" href="dialogs/style.css">
+<link rel="stylesheet" href="dialogs/select2.min.css">
+<link rel="stylesheet" href="dialogs/jquery-date.min.css" />
+<link rel="stylesheet" href="dialogs/jquery.mentionsInput.css" />
+<link rel="stylesheet" href="dDialogs/switch.css">
+<script src="dialogs/select2.full.min.js"></script>
+<script src="dialogs/jquery.mentionsInput.js"></script>
 <script src="common.js"></script>
-<script src="Dialogs/jiraFieldRendererCore.js"></script>
-<script src="Dialogs/jiraFieldRenderer.js"></script>
-<script src="Dialogs/jiraAddCommentDialog.js"></script>
+<script src="dialogs/jiraFieldRendererCore.js"></script>
+<script src="dialogs/jiraFieldRenderer.js"></script>
+<script src="dialogs/jiraAddToIssue.js"></script>
 
 <div style="padding: 10px;">
 	<div style="display:block; width: 100%; min-width: 550px;" class="jira-dialog addToIssue box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready" id="add-to-issue-dialog">
@@ -32,7 +32,7 @@
 											<optgroup class="recent" label="Recent Projects" data-bind="localizedText: {'label' : 'dialog.recentProjects' }"></optgroup>
 											<optgroup class="all" label="All Projects" data-bind="localizedText: {'label' : 'dialog.allProjects' }"></optgroup>
 										</select>
-										<img src="Dialogs/ajax-loader.gif" style="display:none;" id="ProjectSpinner" />
+										<img src="images/ajax-loader.gif" style="display:none;" id="ProjectSpinner" />
 									</div>
 								</div>
 								<div id="IssueArea" class="qf-field qf-field-issuetype qf-required">
@@ -41,12 +41,12 @@
 							<div id="ContentArea" class="content">
 								<div id="markupLoader"></div>
 							</div>
-							<div id="LoaderArea" style="display: none; position:absolute; background: url(Dialogs/ajax-loader.gif) no-repeat center center; width: 500px; height: 350px;">
+							<div id="LoaderArea" style="display: none; position:absolute; background: url(images/ajax-loader.gif) no-repeat center center; width: 500px; height: 350px;">
 							</div>
 						</div>
 						<div class="buttons-container form-footer">
 							<div class="buttons">
-								<img src="Dialogs/ajax-loader.gif" style="display:none; margin-right: 20px; margin-top: -12px;" id="JiraSpinner">
+								<img src="images/ajax-loader.gif" style="display:none; margin-right: 20px; margin-top: -12px;" id="JiraSpinner">
 								<span class="servicedesk-warning"><i class="fa fa-exclamation-circle servicedesk-popover" style="color:#ffd800; font-size: 20px; cursor:pointer; margin-right: 10px;" aria-hidden="true"></i></span>
 								<button type="button" accesskey="s" title="" class="button jira submit-button" id="add-issue-submit" data-type="submit" data-bind="localizedText: 'dialog.add'"></button>
 								<button type="button" accesskey="s" title="" class="aui-button aui-button-primary servicedesk submit-button" data-type="submitCustomer" data-bind="localizedText: 'dialog.addCustomer'"> Share with customer</button>

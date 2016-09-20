@@ -28,6 +28,69 @@ function debounce(func, wait, immediate) {
 	};
 }
 
+function handleAttachments(originalMarkup, mail) {
+	//Check each attachment if it needs to be embedded
+	var attachments = mail.attachments;
+	var embeddedItems = [];
+	var markup = originalMarkup;
+
+	attachments.forEach(function(attachment) {			
+		if (markup.indexOf('!' + attachment.contentId + '!') > -1) {
+			//Mark attachments selected				
+			var handle = self.selectedAttachments.filter(function (a) { return a.contentId === attachment.contentId; })[0];
+			if (handle) {
+				embeddedItems.push(handle);
+			} else {
+				var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
+				markup = markup.replace(regEx, '');
+			}
+		}
+	});
+
+	if (embeddedItems.length === 0)
+		return Promise.resolve();
+
+	//Ensure they are persisted (performance)
+	var persist = new Promise(function(resolve, reject) {
+		mail.persistAttachments(embeddedItems, resolve, reject);
+	});
+
+	return persist.then(function() {
+		return embeddedItems;
+	})
+	.map(function(handle) {
+		return yasoon.io.getFileHash(handle).then(function(hash) {
+			handle.hash = hash;
+			return hash;
+		});
+	})
+	.then(function(hashes) {
+		return yasoon.valueStore.queryAttachmentHashes(hashes);
+	})
+	.then(function(result) {
+		embeddedItems.forEach(function(handle) {		
+			//Skip files whose hashes that were blocked	
+			var regEx = new RegExp('!' + handle.contentId + '!', 'g');	
+			if (result.foundHashes.indexOf(handle.hash) >= 0) {
+				markup = markup.replace(regEx, '');
+				handle.blacklisted = true;
+				return;
+			}
+
+			//Replace the reference in the markup	
+			handle.selected = true;
+			markup = markup.replace(regEx, '!' + handle.getFileName() + '!');
+			handle.setInUse();
+		});
+
+		jira.UIFormHandler.getRenderer('attachment').refresh('attachment');		
+		return markup;
+	})
+	.catch(function(e) {
+		yasoon.util.log('Error during handling of attachments', yasoon.util.severity.warning, getStackTrace(e));
+	});
+}
+
 function getUniqueKey() {
 	//Use current time to get something short unique
 	var currentTime = Math.round(new Date().getTime() / 1000);

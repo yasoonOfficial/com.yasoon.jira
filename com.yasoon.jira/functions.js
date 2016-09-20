@@ -645,7 +645,7 @@ function JiraRibbonController() {
 			height: 700,
 			title: yasoon.i18n('dialog.newIssueDialogTitle'),
 			resizable: true,
-			htmlFile: 'Dialogs/newIssueDialog.html',
+			htmlFile: 'dialogs/jiraNewEditIssue.html',
 			initParameter: initParams,
 			closeCallback: self.ribbonOnCloseNewIssue
 		};
@@ -710,7 +710,7 @@ function JiraRibbonController() {
 			height: 575,
 			title: yasoon.i18n('dialog.addToIssueDialogTitle'),
 			resizable: true,
-			htmlFile: 'Dialogs/AddCommentDialog.html',
+			htmlFile: 'Dialogs/jiraAddToIssue.html',
 			initParameter: initParams,
 			closeCallback: self.ribbonOnCloseAddToIssue
 		};
@@ -1176,7 +1176,7 @@ function jiraOpenPurchaseDialog() {
 		height: 610,
 		title: yasoon.i18n('dialog.trialExpiredDialogTitle'),
 		resizable: false,
-		htmlFile: 'Dialogs/purchase.html',
+		htmlFile: 'dialogs/purchase.html',
 		initParameter: {
 			baseUrl: jira.settings.baseUrl
 		},

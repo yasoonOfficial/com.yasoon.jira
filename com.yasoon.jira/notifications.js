@@ -711,7 +711,7 @@ function JiraIssueNotification(issue) {
 			height: 700,
 			title: yasoon.i18n('dialog.editJiraIssueDialogTitle'),
 			resizable: true,
-			htmlFile: 'Dialogs/newIssueDialog.html',
+			htmlFile: 'dialogs/jiraNewEditIssue.html',
 			initParameter: {
 				'settings': jira.settings,
 				'ownUser': jira.data.ownUser,

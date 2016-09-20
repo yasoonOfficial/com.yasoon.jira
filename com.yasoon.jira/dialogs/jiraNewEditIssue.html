@@ -1,19 +1,17 @@
-<link rel="stylesheet" href="Dialogs/request-types.css">
-<link rel="stylesheet" href="Dialogs/style.css">
-<link rel="stylesheet" href="Dialogs/select2.min.css">
-<link rel="stylesheet" href="Dialogs/jquery.datetimepicker.css">
-<link rel="stylesheet" href="Dialogs/jquery.mentionsInput.css" />
-<link rel="stylesheet" href="Dialogs/switch.css">
-<link rel="stylesheet" href="Dialogs/jquery-date.min.css" />
-<script src="Dialogs/select2.full.min.js"></script>
-<script src="Dialogs/jquery.datetimepicker.full.min.js"></script>
-<script src="Dialogs/jquery.mentionsInput.js"></script>
+<link rel="stylesheet" href="dialogs/request-types.css">
+<link rel="stylesheet" href="dialogs/style.css">
+<link rel="stylesheet" href="dialogs/select2.min.css">
+<link rel="stylesheet" href="dialogs/jquery.datetimepicker.css">
+<link rel="stylesheet" href="dialogs/jquery.mentionsInput.css" />
+<link rel="stylesheet" href="dialogs/switch.css">
+<link rel="stylesheet" href="dialogs/jquery-date.min.css" />
+<script src="dialogs/select2.full.min.js"></script>
+<script src="dialogs/jquery.datetimepicker.full.min.js"></script>
+<script src="dialogs/jquery.mentionsInput.js"></script>
 <script src="common.js"></script>
-<script src="Dialogs/jiraFieldRendererCore.js"></script>
-<script src="Dialogs/jiraFieldRenderer.js"></script>
-<script src="Dialogs/jiraDialog.js"></script>
-
-
+<script src="dialogs/jiraFieldRendererCore.js"></script>
+<script src="dialogs/jiraFieldRenderer.js"></script>
+<script src="dialogs/jiraNewIssue.js"></script>
 
 <div style="padding:10px; position: fixed; width: 100%">
 	<div style="display: block; width: 100%; min-width: 690px;" class="jira-dialog box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready" id="create-issue-dialog">
@@ -38,7 +36,7 @@
 											<optgroup class="recent" label="Recent Projects" data-bind="localizedText: {'label' : 'dialog.recentProjects' }"></optgroup>
 											<optgroup class="all" label="All Projects" data-bind="localizedText: {'label' : 'dialog.allProjects' }"></optgroup>
 										</select>
-										<img src="Dialogs/ajax-loader.gif" style="display:none;" id="ProjectSpinner" />
+										<img src="images/ajax-loader.gif" style="display:none;" id="ProjectSpinner" />
 									</div>
 								</div>
 								<div id="IssueArea" class="qf-field qf-field-issuetype issue-setup-fields qf-required" style="display:none;">
@@ -69,18 +67,18 @@
 								</div>
 							</div>
 							<div id="ContentArea" class="content" style="visibility:hidden;">
-								<div id="markupLoader" style="display: none; position:absolute; background: url(Dialogs/ajax-loader.gif) no-repeat center center; width: 36px; height: 36px; left: 175px; z-index: 100; margin-top: 10px"></div>
+								<div id="markupLoader" style="display: none; position:absolute; background: url(images/ajax-loader.gif) no-repeat center center; width: 36px; height: 36px; left: 175px; z-index: 100; margin-top: 10px"></div>
 								<ul id="tab-list" class="nav nav-tabs" role="tablist"></ul>
 								<div id="ContainerFields">
 									
 								</div>
 							</div>
-							<div id="LoaderArea" style="display: none; position: absolute; top: 0px; background: url(Dialogs/ajax-loader.gif) no-repeat center center; width: 600px; height: 350px;">
+							<div id="LoaderArea" style="display: none; position: absolute; top: 0px; background: url(images/ajax-loader.gif) no-repeat center center; width: 600px; height: 350px;">
 							</div>
 						</div>
 						<div class="buttons-container form-footer">
 							<div class="buttons">
-								<img src="Dialogs/ajax-loader.gif" style="display:none; margin-right: 20px; margin-top: -12px;" id="JiraSpinner">
+								<img src="images/ajax-loader.gif" style="display:none; margin-right: 20px; margin-top: -12px;" id="JiraSpinner">
 								<div id="createAnotherCheckbox" class="checkbox awesome" style="display: inline-block">
 									<input id="qf-create-another" type="checkbox" />
 									<label for="qf-create-another" class="qf-create-another" style="margin-bottom: 2px;text-align: initial;" data-bind="localizedText: 'dialog.createAnother'"></label>

@@ -115,15 +115,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				//If there is no selection, set this as description;
 				if (!self.selectedText) {
 					//Handle auto header add setting
-					if (self.settings.addMailHeaderAutomatically === 'top') {
-						markup = renderMailHeaderText(self.mail, true) + '\n' + markup;
-					}
-					else if (self.settings.addMailHeaderAutomatically === 'bottom') {
-						markup = markup + '\n' + renderMailHeaderText(self.mail, true);
-					}
-					
-					markup = self.handleAttachments(markup, self.mail.attachments);
-					$('#comment').val(markup);
+					return self.setBodyMarkup(markup);
 				}
 			})
 			.catch(function () {
@@ -139,20 +131,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		//Add Default Data
 		if (self.selectedText) {
-			var text = self.selectedText;
-
-			//Handle auto header add setting
-			if (self.settings.addMailHeaderAutomatically === 'top') {
-				text = renderMailHeaderText(self.mail, true) + '\n' + text;
-			}
-			else if (self.settings.addMailHeaderAutomatically === 'bottom') {
-				text = text + '\n' + renderMailHeaderText(self.mail, true);
-			}
-
-			text = self.handleAttachments(text, self.mail.attachments);
-			$('#comment').val(text);
+			self.setBodyMarkup(self.selectedText);
 		}
-		self.loadingFinished();
 
 		//Init Projects
 		$('#project').select2({
@@ -226,6 +206,22 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 		self.createIssueLoader();
 	}; 
+
+	this.setBodyMarkup = function(baseMarkup) {
+		var markup = baseMarkup;		
+
+		if (self.settings.addMailHeaderAutomatically === 'top') {
+			markup = renderMailHeaderText(self.mail, true) + '\n' + markup;
+		}
+		else if (self.settings.addMailHeaderAutomatically === 'bottom') {
+			markup = markup + '\n' + renderMailHeaderText(self.mail, true);
+		}
+
+		return handleAttachments(markup, self.mail).then(function(newMarkup) {
+			jira.mailAsMarkup = newMarkup;
+			$('#comment').val(newMarkup);
+		});
+	};
 
 	this.close = function (params) {
 		yasoon.dialog.close(params);
@@ -553,10 +549,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		return markup;
 	};
 
-	this.loadingFinished = function () {
-		$('#create-issue-dialog-loader').css('display', 'none');
-		$('#create-issue-dialog').css('display', 'block');
-	};
 }); //jshint ignore:line
 
 function resizeWindow() {
