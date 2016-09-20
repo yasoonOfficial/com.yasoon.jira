@@ -503,8 +503,17 @@ function JiraRibbonController() {
 			return;
 		}
 
-		var issue = JSON.parse(ribbonCtx.items[0].externalData);
-		new JiraIssueNotification(issue).editIssue();
+		var outlookTask = ribbonCtx.items[0];
+		var issue = JSON.parse(outlookTask.externalData);
+		new JiraIssueNotification(issue).editIssue(function (type, data) {
+		    if (data && data.action === 'success') {
+		        return jira.issues.get(issue.key, true)
+		        .then(function (newIssue) {
+		            new JiraIssueTask(newIssue).saveInspector(outlookTask);
+		            jira.sync();
+		        });
+		    }
+		});
 	};
 
 	this.uploadAttachment = function uploadAttachment(ribbonId, ribbonCtx) {

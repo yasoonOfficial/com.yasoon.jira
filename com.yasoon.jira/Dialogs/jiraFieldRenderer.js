@@ -1006,7 +1006,7 @@ function AttachmentLinkRenderer() {
 	}
 
 	this.removeAttachmentFromBody = function(handle) {
-	    var regEx = self.getDescriptionRegex(handle.fileName);
+		var regEx = self.getDescriptionRegex(handle.fileName);
 		var description = $(getDescriptionId());
 		//Todo: Do this via renderer?
 		var oldDescr = description.val();
@@ -1725,7 +1725,6 @@ function GroupSingleRenderer() {
 }
 
 function IssuePickerRenderer() {
-
 	this.getValue = function (id) {
 		return $('#' + id).val();
 	};
@@ -1760,9 +1759,7 @@ function IssuePickerRenderer() {
 
 	var lastQuery = '';
 	var searchIssue = debounce(function searchIssue(term, excludeSubtasks, callback) {
-		console.log('Debounced searchIssue called');
 		//Concat JQL
-
 		var jql = '';
 
 		if (term) {
@@ -1780,6 +1777,11 @@ function IssuePickerRenderer() {
 		if (excludeSubtasks) {
 			jql +=  ((jql) ? ' AND': '') + ' type NOT IN subtaskIssueTypes()';
 		}
+
+		if (mode == 'subtask') {
+			jql += ((jql) ? 'AND' : '') + ' issuetype NOT IN subtaskIssueTypes()';
+		}
+
 
 		jql = '( ' + jql + ' )';
 

@@ -700,10 +700,12 @@ function JiraIssueNotification(issue) {
 		});
 	};
 
-	self.editIssue = function () {
+	self.editIssue = function (callback) {
 		if (!jiraIsLicensed(true)) {
 			return;
 		}
+
+		var cbk = callback || jira.ribbons.ribbonOnCloseNewIssue;
 		yasoon.dialog.open({
 			width: 725,
 			height: 700,
@@ -717,7 +719,7 @@ function JiraIssueNotification(issue) {
 				'editProject': self.issue.fields.project,
 				'systemInfo': jira.sysInfo
 			},
-			closeCallback: jira.ribbons.ribbonOnCloseNewIssue
+			closeCallback: cbk
 		});
 	};
 
@@ -1160,6 +1162,7 @@ function JiraIssueTask(issue) {
 		inspectorItem.setCompletionPercentage(item.completionPercent);
 		inspectorItem.setCompletionState(item.completionState);
 		inspectorItem.setOwner(item.owner);
+		inspectorItem.setDueDate(new Date(item.dueDate));
 		inspectorItem.setExternalData(item.externalData);
 
 		inspectorItem.save(function () { }, function () { });

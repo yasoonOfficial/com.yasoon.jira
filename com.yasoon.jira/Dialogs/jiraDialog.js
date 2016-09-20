@@ -216,7 +216,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 			//Load issue Meta in edit case and render UI!
 			Promise.all([
-				jiraGet('/rest/api/2/issue/' + self.editIssueId + '?expand=editmeta,renderedFields,transitions,changelog,operations,names'),
+				jiraGet('/rest/api/2/issue/' + self.editIssueId + '?expand=editmeta,renderedFields'),
 				self.getProjectValues()
 			])
 			.spread(function (data) { //Result of getProjectValues is set to jira.selectedProject
