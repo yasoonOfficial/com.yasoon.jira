@@ -48,7 +48,7 @@ function handleAttachments(originalMarkup, mail) {
 	});
 
 	if (embeddedItems.length === 0)
-		return Promise.resolve();
+		return Promise.resolve(originalMarkup);
 
 	//Ensure they are persisted (performance)
 	var persist = new Promise(function(resolve, reject) {
