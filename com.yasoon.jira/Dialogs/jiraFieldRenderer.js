@@ -1778,11 +1778,6 @@ function IssuePickerRenderer() {
 			jql +=  ((jql) ? ' AND': '') + ' type NOT IN subtaskIssueTypes()';
 		}
 
-		if (mode == 'subtask') {
-			jql += ((jql) ? 'AND' : '') + ' issuetype NOT IN subtaskIssueTypes()';
-		}
-
-
 		jql = '( ' + jql + ' )';
 
 		if (term) {

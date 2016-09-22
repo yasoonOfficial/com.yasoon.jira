@@ -37,7 +37,7 @@ function handleAttachments(originalMarkup, mail) {
 	attachments.forEach(function(attachment) {			
 		if (markup.indexOf('!' + attachment.contentId + '!') > -1) {
 			//Mark attachments selected				
-			var handle = self.selectedAttachments.filter(function (a) { return a.contentId === attachment.contentId; })[0];
+			var handle = jira.selectedAttachments.filter(function (a) { return a.contentId === attachment.contentId; })[0];
 			if (handle) {
 				embeddedItems.push(handle);
 			} else {
