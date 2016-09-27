@@ -27,6 +27,8 @@
                 "applicationLinkUnknown": "The application link is unknown. Please make sure you have an application link in JIRA called: yasoonjira",
                 "timestampRefused": "JIRA refused the request because of time differences. Either your local time is not set correctly or the JIRA server has a wrong time (Different timezones are ok).",
                 "certificateInvalid": "The certificate you are using in the application link is invalid. Please make sure you have setup JIRA correctly. Afterwards visit the settings and click on \"Reload System Information\"",
+                "oauthParameterAbsent": "JIRA refused the request due to a missing Authorization. Please check the following help article: \r\nhttps://bit.ly/parameterAbsent",
+                "ssoActive": "JIRA refused the request due to a missing Authorization. Please check the following help article: \r\nhttps://bit.ly/ssoActive",
                 "unexpectedJiraError": "This did not work due to an unexpected JIRA error.",
                 "connectionToJiraNotPossible": "Connection to JIRA not possible",
                 "taskSyncSuccess": "All tasks are in sync!",

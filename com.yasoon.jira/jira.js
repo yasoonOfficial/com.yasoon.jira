@@ -217,16 +217,16 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 
 	this.handleOAuthError = function (serviceName, statusCode, error) {
-		console.log('OAuth Error', error, statusCode);
-		var initialError = error;
-		if (statusCode == 500) {
+		if (statusCode === 500) {
 			yasoon.dialog.showMessageBox(yasoon.i18n('general.couldNotReachJira'));
+		} else if (statusCode === 401) {
+			yasoon.dialog.showMessageBox(yasoon.i18n('general.ssoActive'));
 		} else if (error.indexOf('oauth_problem') > -1) {
 			//Standard OAuth Messages => http://wiki.oauth.net/w/page/12238543/ProblemReporting
-			var messages = error.split('&');
-			error = messages[0].split('=')[1];
-			if (error) {
-				switch (error) {
+			var regex = /oauth_problem=([^&]+)/g;
+			var oauthError = regex.exec(error)[1];
+			if (oauthError) {
+				switch (oauthError) {
 					case 'consumer_key_unknown':
 						yasoon.dialog.showMessageBox(yasoon.i18n('general.applicationLinkUnknown'));
 						break;
@@ -236,8 +236,11 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 					case 'signature_invalid':
 						yasoon.dialog.showMessageBox(yasoon.i18n('general.certificateInvalid'));
 						break;
+					case 'parameter_absent':
+						yasoon.dialog.showMessageBox(yasoon.i18n('general.oauthParameterAbsent'));
+						break;
 					default:
-						yasoon.alert.add({ type: yasoon.alert.alertType.error, message: initialError });
+						yasoon.alert.add({ type: yasoon.alert.alertType.error, message: error });
 				}
 
 				return;
