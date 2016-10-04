@@ -137,10 +137,11 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			if (jira.settings.syncFeed == "off" && !jira.settings.syncTasks)
 				return;
 		}
-		return jira.queue.add(self.syncData);
+		return jira.queue.add(self.syncData, source);
 	};
 
-	this.syncData = function () {
+	this.syncData = function (source) {
+	    console.log('Source', source);
 		if (jira.restartRequired) {
 			//Notify user about recent update
 			yasoon.dialog.showMessageBox(yasoon.i18n('general.restartNecessary'));
@@ -150,10 +151,13 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		var currentTs = new Date().getTime();
 		var oldTs = jira.settings.lastSync.getTime() - 1000;
 
-		jiraLog('Sync starts: ' + new Date().toISOString());
+		jiraLog('Sync starts: ' + new Date().toISOString() + ' Source: ' + source);
 		return self.initData()
 		.then(jira.issues.refreshBuffer)
 		.then(function () {
+		    if (jira.settings.syncFeed == "off" ||(jira.settings.syncFeed == "manual" && source != 'manualRefresh'))
+		        return;
+
 			return self.syncStream('/activity?streams=update-date+BETWEEN+' + oldTs + '+' + currentTs);
 		})
 		.then(function () {
@@ -181,7 +185,10 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			return jira.notifications.processCommentEdits();
 		})
 		.then(function () {
-			jira.settings.setLastSync(startSync);
+		    if (!(jira.settings.syncFeed == "off" || (jira.settings.syncFeed == "manual" && source != 'manualRefresh'))) {
+		        jira.settings.setLastSync(startSync);
+		    }
+
 			jiraLog('Sync done: ' + new Date().toISOString());
 
 			if (oAuthSuccess) {

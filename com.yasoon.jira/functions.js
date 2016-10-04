@@ -1312,15 +1312,18 @@ function jiraSyncQueue() {
 	var self = this;
 	var lastPromise = null;
 
-	this.add = function (fct) {
+	this.add = function (fct, args) {
+	    if (!$.isArray(args))
+	        args = [args];
+
 		return new Promise(function (resolve, reject) {
 			var promise = null;
 			if (lastPromise) {
 				promise = lastPromise.finally(function () {
-					return fct();
+					return fct.apply(this, args);
 				});
 			} else {
-				promise = fct();
+			    promise = Promise.resolve().then(function() { return fct.apply(this, args) });
 			}
 
 			lastPromise = promise
