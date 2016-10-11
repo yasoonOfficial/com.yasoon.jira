@@ -14,7 +14,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	jira.restartRequired = false;
 	jira.firstSyncedNotifications = 0;
 	var startSync = new Date();
-	var currentPage = 1;
+	var ignoreEntriesAtSync = 0;
 	var oAuthSuccess = false;
 
 	this.lifecycle = function (action, oldVersion, newVersion) {
@@ -141,7 +141,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 
 	this.syncData = function (source) {
-	    console.log('Source', source);
+		console.log('Source', source);
 		if (jira.restartRequired) {
 			//Notify user about recent update
 			yasoon.dialog.showMessageBox(yasoon.i18n('general.restartNecessary'));
@@ -155,10 +155,10 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		return self.initData()
 		.then(jira.issues.refreshBuffer)
 		.then(function () {
-		    if (jira.settings.syncFeed == "off" ||(jira.settings.syncFeed == "manual" && source != 'manualRefresh'))
-		        return;
+			if (jira.settings.syncFeed == "off" ||(jira.settings.syncFeed == "manual" && source != 'manualRefresh'))
+				return;
 
-		    return self.syncStream('/activity?providers=issues&streams=update-date+BETWEEN+' + oldTs + '+' + currentTs);
+			return self.syncStream('/activity?providers=issues&streams=update-date+BETWEEN+' + oldTs + '+' + currentTs);
 		})
 		.then(function () {
 		   return jira.tasks.syncLatestChanges();
@@ -185,9 +185,9 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			return jira.notifications.processCommentEdits();
 		})
 		.then(function () {
-		    if (!(jira.settings.syncFeed == "off" || (jira.settings.syncFeed == "manual" && source != 'manualRefresh'))) {
-		        jira.settings.setLastSync(startSync);
-		    }
+			if (!(jira.settings.syncFeed == "off" || (jira.settings.syncFeed == "manual" && source != 'manualRefresh'))) {
+				jira.settings.setLastSync(startSync);
+			}
 
 			jiraLog('Sync done: ' + new Date().toISOString());
 
@@ -289,8 +289,13 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			return [];
 		})
 		.each(function (feedEntry, index) {
+			//These entries have already been fetched...
+			if (index < ignoreEntriesAtSync)
+				return;
+
 			jiraLog('Item #' + index + ':', feedEntry);
 			//Only for jira!
+			
 			if (feedEntry['atlassian:application'] && feedEntry['atlassian:application']['#text'].toLowerCase().indexOf('jira') > -1) {
 				var notif = jira.notifications.createNotification(feedEntry);
 
@@ -310,10 +315,21 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			if (entries && entries.length > 0) {
 				var lastObj = entries[entries.length - 1];
 				var lastObjDate = new Date(lastObj.updated['#text']);
+				var firstObjDate = new Date(entries[0].updated['#text']);
 
 				if (entries.length == maxResults && lastObjDate > jira.settings.lastSync) {
-				    var newSyncDate = new Date(lastObjDate.getTime() + 20);
-				    return self.syncStream('/activity?providers=issues&streams=update-date+BEFORE+' + newSyncDate.getTime(), maxResults);
+					var newSyncDate = new Date(lastObjDate.getTime() + 2000);
+					if ((firstObjDate.getTime() - lastObjDate.getTime()) <= 2000) {
+						//Special Case... If all page entries are within 2 seconds, newSyncDate will be bigger than the lastSync date and we will receive exactly the same page again --> endless loop.
+						//We need to fetch more data and ignore the first maxResults data.
+						ignoreEntriesAtSync = maxResults;
+						return self.syncStream('/activity?providers=issues&streams=update-date+BEFORE+' + firstObjDate.getTime(), maxResults + 50);
+					} else {
+						ignoreEntriesAtSync = 0;
+					    //MaxResults remembers the increased value from case above.
+						//Complicated!!  We thought about it and if it happens once, we want to pull the larger list till end of sync!
+						return self.syncStream('/activity?providers=issues&streams=update-date+BEFORE+' + newSyncDate.getTime(), maxResults);
+					}
 				}
 			}
 		});
