@@ -158,7 +158,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		    if (jira.settings.syncFeed == "off" ||(jira.settings.syncFeed == "manual" && source != 'manualRefresh'))
 		        return;
 
-			return self.syncStream('/activity?streams=update-date+BETWEEN+' + oldTs + '+' + currentTs);
+		    return self.syncStream('/activity?providers=issues&streams=update-date+BETWEEN+' + oldTs + '+' + currentTs);
 		})
 		.then(function () {
 		   return jira.tasks.syncLatestChanges();
@@ -312,7 +312,8 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				var lastObjDate = new Date(lastObj.updated['#text']);
 
 				if (entries.length == maxResults && lastObjDate > jira.settings.lastSync) {
-					return self.syncStream('/activity?streams=update-date+BEFORE+' + (lastObjDate.getTime() + 2000), maxResults);
+				    var newSyncDate = new Date(lastObjDate.getTime() + 20);
+				    return self.syncStream('/activity?providers=issues&streams=update-date+BEFORE+' + newSyncDate.getTime(), maxResults);
 				}
 			}
 		});
