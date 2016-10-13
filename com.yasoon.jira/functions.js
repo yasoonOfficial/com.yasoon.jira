@@ -840,8 +840,7 @@ function JiraContactController() {
 			var lastName = '';
 
 			if (nameParts.length === 1) {
-				lastName = ' ';
-				firstName = cleanName;
+				lastName = cleanName;
 			}
 			else {
 				lastName = nameParts[nameParts.length - 1];
