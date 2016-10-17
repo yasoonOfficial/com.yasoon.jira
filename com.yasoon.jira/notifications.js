@@ -486,7 +486,7 @@ function JiraIssueNotification(issue) {
 		//Add Components
 		if (self.issue.fields.components) {
 			$.each(self.issue.fields.components, function (i, comp) {
-				feed.properties.customLabels.push({ description: comp.name, labelColor: '#0B96AA', url: jira.settings.baseUrl + '/browse/' + self.issue.fields.project.key + '/component/' + comp.id });
+				feed.properties.customLabels.push({ description: comp.name, labelColor: '#0B96AA', url: jira.settings.baseUrl + 'issues/?jql=project+%3D+' + self.issue.fields.project.key + '+AND+component+%3D+' + comp.id });
 			});
 		}
 
