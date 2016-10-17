@@ -2041,7 +2041,7 @@ function TeamLeadCompaniesSingleRenderer() {
 				var selectedOption = $(this).val();
 				var entry = field.allowedValues.filter(function (opt) { return opt.id == selectedOption; });
 				if (entry.length === 0) {
-					var ownUserKey = jira.ownUser.key || jira.datownUser.name; //Depending on version >.<
+					var ownUserKey = jira.ownUser.key || jira.ownUser.name; //Depending on version >.<
 					return jiraGet('/plugins/servlet/crm/api?apiKey=' + jira.settings.teamleadApiKey + '&userName=' + ownUserKey + '&command=addcompany&clients-org_name=' + encodeURI(selectedOption) + '&clients-org_type=2')
 					.then(function (data) {
 						var result = JSON.parse(data);
@@ -2106,6 +2106,9 @@ function TeamLeadContactsSingleRenderer() {
 		var values = field.allowedValues;
 		values.sort(function (a, b) { return (a.value.toLowerCase() > b.value.toLowerCase()) ? 1 : -1; });
 		
+	    //just start sync
+		var ownUserKey = jira.ownUser.key || jira.ownUser.name; //Depending on version >.<
+		jiraGet('/plugins/servlet/crm/api?apiKey=' + jira.settings.teamleadApiKey + '&userName=' + ownUserKey + '&command=sync');
 
 		var html = '<div class="field-group input-field">' +
 				'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
@@ -2127,70 +2130,56 @@ function TeamLeadContactsSingleRenderer() {
 
 		$('#' + id).select2(options);
 
-		$('#'+jira.settings.teamleadMapping[id]).on('change', function (e) {
-			var newCompany = $(this).find(':selected').data('name');
-			console.log('Change triggered', newCompany);
-			var ownUserKey = jira.ownUser.key || jira.datownUser.name; //Depending on version >.<
-			return jiraGet('/plugins/servlet/crm/api?apiKey=' + jira.settings.teamleadApiKey + '&userName=' + ownUserKey + '&command=searchEntities&crm_param_1=Company&crm_param_1_value=' + newCompany + '&tableName=CONTACTS')
-			.then(function (data) {
-				var result = JSON.parse(data);
-				console.log(result);
-				if (result.success) {
-					$('#' + id).html('<option value="">' + yasoon.i18n('dialog.selectNone') + '</option>');
-					result.records.forEach(function (c) {
-						var text = c.name;
-						$('#'+id).append('<option value="' + c.id + '">' + text + '</option>')
-					});
+		//Is this contact field connected with company field?
+		if (jira.settings.teamleadMapping && jira.settings.teamleadMapping[id]) {
+			$('#' + jira.settings.teamleadMapping[id]).on('change', function (e) {
+				var newCompany = $(this).find(':selected').data('name');
+				console.log('Change triggered', newCompany);
+				var ownUserKey = jira.ownUser.key || jira.datownUser.name; //Depending on version >.<
+				return jiraGet('/plugins/servlet/crm/api?apiKey=' + jira.settings.teamleadApiKey + '&userName=' + ownUserKey + '&command=searchEntities&crm_param_1=Company&crm_param_1_value=' + newCompany + '&tableName=CONTACTS')
+				.then(function (data) {
+					var result = JSON.parse(data);
+					console.log(result);
+					if (result.success) {
+						$('#' + id).html('<option value="">' + yasoon.i18n('dialog.selectNone') + '</option>');
+						result.records.forEach(function (c) {
+							var text = c.name;
+							$('#' + id).append('<option value="' + c.id + '">' + text + '</option>')
+						});
 
-					$('#' + id).select2('destroy').select2(options);
-				}
+						$('#' + id).select2('destroy').select2(options);
+					}
+				});
+
 			});
-
-		});
+		}
 
 		if (jira.settings.teamleadAllowContactCreate) {
 			$('#' + id).on('change', function (e) {
 				var selectedOption = $(this).val();
 				var entry = field.allowedValues.filter(function (opt) { return opt.id == selectedOption; });
 				if (entry.length === 0) {
-					var ownUserKey = jira.ownUser.key || jira.datownUser.name; //Depending on version >.<
 					//First Get company Id
-					var companyName = $('#' + jira.settings.teamleadMapping[id]).find(':selected').data('name');
-					return jiraGet('/plugins/servlet/crm/api?apiKey=' + jira.settings.teamleadApiKey + '&userName=' + ownUserKey + '&command=getcompanybyname&companyName=' + companyName)
-					.then(function (companyData) {
-						var company = JSON.parse(companyData);
-						if (company.success) {
-							jiraGet('/rest/catalog-rest/1.0/catalog/updateNom?nomId=&tableName=CONTACTS&clients-contact_name=' + encodeURI(selectedOption) + '&view-clients-contact_company=Any&clients-contact_company=(' + company.id + ')')
-							.then(function () {
-								//Load new meta data and update select Box
-								jira.getMetaData()
-								.then(function () {
-									var newMeta = $.grep(jira.projectMeta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
-									var newOption = newMeta.fields[id].allowedValues.filter(function (v) {
-										return v.value === selectedOption;
-									})[0];
-
-									if (newOption) {
-										var text = newOption.name || newOption.value;
-										$('#' + id).append('<option value="' + newOption.id + '">' + text + '</option>');
-
-										$('#' + id).select2('destroy').select2(options).val(newOption.id);
-									} else {
-										yasoon.dialog.showMessageBox('Contact created but couldn\'t load new id. Please restart the dialog to use the new contact');
-									}
-								});
-							})
+					return Promise.resolve()
+					.then(function () {
+						if (jira.settings.teamleadMapping && jira.settings.teamleadMapping[id]) {
+							var companyName = $('#' + jira.settings.teamleadMapping[id]).find(':selected').data('name');
+							return jiraGet('/plugins/servlet/crm/api?apiKey=' + jira.settings.teamleadApiKey + '&userName=' + ownUserKey + '&command=getcompanybyname&companyName=' + companyName);
 						}
 					})
-
-
-				   
-					return jiraGet('/plugins/servlet/crm/api?apiKey=' + jira.settings.teamleadApiKey + '&userName=' + ownUserKey + '&command=addcompany&clients-org_name=' + encodeURI(selectedOption) + '&clients-org_type=2')
-					.then(function (data) {
-						var result = JSON.parse(data);
-						if (result.success) {
+					.then(function (companyData) {
+						var company = { id: jira.settings.teamleadFallbackId || 1 };
+						if (companyData) {
+							var company = JSON.parse(companyData);
+							if (!company.success) {
+								return;
+							}
+						}
+					   
+						return jiraGet('/rest/catalog-rest/1.0/catalog/updateNom?nomId=&tableName=CONTACTS&clients-contact_name=' + encodeURI(selectedOption) + '&view-clients-contact_company=Any&clients-contact_company=(' + company.id + ')')
+						.then(function () {
 							//Load new meta data and update select Box
-							jira.getMetaData()
+							return jira.getMetaData()
 							.then(function () {
 								var newMeta = $.grep(jira.projectMeta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
 								var newOption = newMeta.fields[id].allowedValues.filter(function (v) {
@@ -2203,18 +2192,84 @@ function TeamLeadContactsSingleRenderer() {
 
 									$('#' + id).select2('destroy').select2(options).val(newOption.id);
 								} else {
-									yasoon.dialog.showMessageBox('Company created but couldn\'t load new id. Please restart the dialog to use the new company');
+									yasoon.dialog.showMessageBox('Contact created but couldn\'t load new id. Please restart the dialog to use the new contact');
 								}
 							});
-						} else {
-							yasoon.dialog.showMessageBox('Company creation failed: ' + result.details);
-						}
+						});
 					});
 				}
 			});
 		}
 	};
 
+}
+
+function TeamLeadContactsMultiRenderer() {
+	this.getValue = function (id) {
+		var values = $('#' + id).val() || [];
+		var selectedValues = [];
+		values.forEach(function (id) {
+			selectedValues.push(id);
+		});
+
+		//In edit case: Only send changes
+		if (jira.isEditMode) {
+			//Both empty
+			if (!jira.currentIssue.fields[id] && selectedValues.length === 0)
+				return;
+
+			//If length the same, all other values have to match too
+			if (jira.currentIssue.fields[id] && jira.currentIssue.fields[id].length == selectedValues.length) {
+				var isSame = jira.currentIssue.fields[id].every(function (c) { return selectedValues.filter(function (e) { return e.id === c.id; }).length > 0; });
+				if (isSame)
+					return;
+			}
+			return selectedValues;
+		} else {
+			//In creation case: Only send if not null	
+			return (selectedValues.length > 0) ? selectedValues.join(',') : undefined;
+		}
+	};
+
+	this.setValue = function (id, value) {
+		if (value) {
+			var selectedValues = [];
+			$.each(value, function (i, item) {
+				selectedValues.push(item.id);
+			});
+			$('#' + id).val(selectedValues).trigger('change');
+		}
+	};
+
+	this.render = function (id, field, container) {
+	    //just start sync
+	    var ownUserKey = jira.ownUser.key || jira.ownUser.name; //Depending on version >.<
+	    jiraGet('/plugins/servlet/crm/api?apiKey=' + jira.settings.teamleadApiKey + '&userName=' + ownUserKey + '&command=sync');
+
+
+		var html = '<div class="field-group input-field">' +
+				'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+				'    <select data-container-class="issuetype-ss" class="select text" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">';
+		html += '      </select>' +
+				'</div>';
+
+		$(container).append(html);
+
+		$('#' + id).select2();
+
+		var ownUserKey = jira.ownUser.key || jira.ownUser.name; //Depending on version >.<
+		jiraGet('/plugins/servlet/crm/api?apiKey=' + jira.settings.teamleadApiKey + '&userName=' + ownUserKey + '&command=getcontacts')
+		.then(function (contactsData) {
+			var result = JSON.parse(contactsData);
+			if (result.success) {
+				var selectElem = $('#' + id);
+				result.contacts.forEach(function (c) {
+					selectElem.append('<option value="' + c.id + '">' + c.name + ' </option>');
+				});
+				$('#' + id).select2('destroy').select2();
+			}
+		});
+	};
 }
 
 function DynamicMultiSelect(selector) {
@@ -2542,7 +2597,7 @@ UIRenderer.register('com.tempoplugin.tempo-accounts:accounts.customfield', new T
 UIRenderer.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:company-select-field', new TeamLeadCompaniesSingleRenderer());
 UIRenderer.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:companies-select-field', new MultiSelectListRenderer());
 UIRenderer.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contact-select-field', new TeamLeadContactsSingleRenderer())
-UIRenderer.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contacts-field', new MultiSelectListRenderer());
+UIRenderer.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contacts-field', new TeamLeadContactsMultiRenderer());
 UIRenderer.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:single-product-select-field', new SelectListRenderer());
 UIRenderer.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:multi-products-select-field', new MultiSelectListRenderer());
 

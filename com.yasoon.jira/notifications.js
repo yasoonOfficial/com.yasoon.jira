@@ -35,6 +35,7 @@ function JiraNotificationController() {
 			return jiraAjax('/rest/api/2/issue/' + issue.key + '/comment', yasoon.ajaxMethod.Post, body)
 			.then(function (data) {
 				successCbk();
+				yasoon.feed.allowUpdate(parent.feedId);
 				jira.sync();
 			})
 			.catch(function () {
@@ -207,7 +208,7 @@ function JiraNotificationController() {
 		};
 	};
 
-	self.loadWorklogTemplate = function (issueKey, cbk) {
+	self.loadWorklogTemplate = function (issueKey, issueId, cbk) {
 		if (!self.templateLoaded) {
 			var path = yasoon.io.getLinkPath('templates/addWorklog.hbs.js');
 			$.getScript(path, function (template) {
@@ -302,6 +303,10 @@ function JiraNotificationController() {
 					jiraAjax(url, yasoon.ajaxMethod.Post, JSON.stringify(data))
 					.then(function () {
 						$('#jiraAddWorklog').modal('hide');
+						return jiraGetNotification(issueId);
+					})
+					.then(function (notif) {
+						yasoon.feed.allowUpdate(notif.feedId);
 						jira.sync();
 					})
 					.finally(function () {
@@ -561,7 +566,8 @@ function JiraIssueNotification(issue) {
 					} else {
 						return jiraAjax('/rest/api/2/issue/' + key + '/transitions', yasoon.ajaxMethod.Post, body)
 						.then(function () {
-							jira.sync();
+							yasoon.feed.allowUpdate(feed.feedId);
+							return jira.sync();
 						});
 					}
 				})
@@ -728,7 +734,7 @@ function JiraIssueNotification(issue) {
 			return;
 
 		worklogOpenInProgress = true;
-		jira.notifications.loadWorklogTemplate(self.issue.key, self.openLogWorkDialog);
+		jira.notifications.loadWorklogTemplate(self.issue.key, self.issue.id, self.openLogWorkDialog);
 	};
 
 	self.openLogWorkDialog = function () {
@@ -778,7 +784,7 @@ function JiraIssueActionNotification(event) {
 				}
 			}
 			if (title)
-				html += '<span class="small yasoon-tooltip" style="cursor:pointer;" data-toggle="tooltip" data-html="true" title="' + title + '">( <i class="fa fa-exclamation-circle"></i>' + yasoon.i18n('feed.more') + ')</span>';
+				html += '<span class="small yasoon-tooltip" style="cursor:pointer;" data-toggle="tooltip" data-html="true" title="' + title + '">( <i class="fa fa-exclamation-circle"></i> ' + yasoon.i18n('feed.more') + ')</span>';
 		} else {
 			yasoon.util.log('Coulnd\'t determine title for:' + JSON.stringify(self.event), yasoon.util.severity.error);
 		}
@@ -1307,7 +1313,7 @@ function JiraTaskController() {
 			return ownIssues;
 		})
 		.each(function (issue) {
-		    return new JiraIssueTask(issue).save(forceSync)
+			return new JiraIssueTask(issue).save(forceSync)
 			.then(function () {
 				updatedIssues.push(issue.key);
 			})
