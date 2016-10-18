@@ -705,27 +705,45 @@ function VersionMultiSelectListRenderer() {
 		}
 	};
 
+	function renderReleasedVersions(field) {
+	    var html = '<optgroup label="'+ yasoon.i18n('dialog.releasedVersions') +'">';
+	    $.each(field.allowedValues, function (i, option) {
+	        if (option.released && !option.archived) {
+	            var text = option.name || option.value;
+	            html += '<option value="' + option.id + '">' + text + '</option>';
+	        }
+	    });
+	    html += '</optgroup>';
+
+	    return html;
+	}
+
+	function renderUnreleasedVersions(field) {
+	    var html = '<optgroup label="' + yasoon.i18n('dialog.unreleasedVersions') + '">';
+	    $.each(field.allowedValues, function (i, option) {
+	        if (!option.released && !option.archived) {
+	            var text = option.name || option.value;
+	            html += '<option value="' + option.id + '">' + text + '</option>';
+	        }
+	    });
+	    html += '</optgroup>';
+
+	    return html;
+	}
+
 	this.render = function (id, field, container) {
-		var html = '<div class="field-group input-field">' +
+	    var html = '<div class="field-group input-field">' +
 				'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-				'    <select data-container-class="issuetype-ss" class="select text" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">' +
-				'		<optgroup label="'+ yasoon.i18n('dialog.releasedVersions') +'">';
-		$.each(field.allowedValues, function (i, option) {
-			if (option.released) {
-				var text = option.name || option.value;
-				html += '<option value="' + option.id + '">' + text + '</option>';
-			}
-		});
-		html += '		</optgroup>' + 
-				'		<optgroup label="' + yasoon.i18n('dialog.unreleasedVersions') + '">';
-		$.each(field.allowedValues, function (i, option) {
-			if (!option.released) {
-				var text = option.name || option.value;
-				html += '<option value="' + option.id + '">' + text + '</option>';
-			}
-		});
-		html += '		</optgroup>' +
-				'    </select>' +
+				'    <select data-container-class="issuetype-ss" class="select text" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">';
+	    if (id == 'fixVersions') {
+	        //Fix versions should show unreleased Versions first
+	        html += renderUnreleasedVersions(field);
+	        html += renderReleasedVersions(field);
+	    } else {
+	        html += renderReleasedVersions(field);
+	        html += renderUnreleasedVersions(field);
+	    }
+		html +=	'    </select>' +
 				'</div>';
 
 		$(container).append(html);
