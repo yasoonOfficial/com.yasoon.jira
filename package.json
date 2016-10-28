@@ -1,0 +1,22 @@
+{
+  "name": "yasoonNodeBackend",
+  "private": true,
+  "version": "0.1.0",
+  "description": "a Sails application",
+  "dependencies": {
+    "handlebars": "1.3.0"
+  },
+  "scripts": {
+    "build": "handlebars"
+  },
+  "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/anonymous node/sails user/yasoonNodeBackend.git"
+  },
+  "author": {
+    "name": "Tobias",
+    "email": "tobias.viehweger@yasoon.com"
+  },
+  "devDependencies": {}
+}

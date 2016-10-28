@@ -717,7 +717,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 					}
 				}
 
-
 				$('#IssueArea').show();
 
 				//Get Meta of first issue type and start rendering
