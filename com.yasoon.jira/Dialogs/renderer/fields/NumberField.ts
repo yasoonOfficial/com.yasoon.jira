@@ -3,10 +3,10 @@
 
 @getter(GetterType.Text)
 @setter(SetterType.Text)
-class SingleTextField extends Field {
+class NumberField extends Field {
 
-	getDomValue(): string {
-		return $('#' + this.id).val();
+	getDomValue(): number {
+		return parseFloat($('#' + this.id).val());
 	}
 
 	hookEventHandler(): void {
@@ -14,7 +14,7 @@ class SingleTextField extends Field {
 	};
 
 	render(container: JQuery) {
-		container.append($(`<input class="text long-field" id="${this.id}" name="${this.id}" type="text" />`));
+		container.append($(`<input class="text long-field" id="${this.id}" name="${this.id}" type="number" />`));
 	};
 }
 

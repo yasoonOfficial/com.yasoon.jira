@@ -1,8 +1,12 @@
 {
     "compilerOptions": {
-		"experimentalDecorators": true
+        "experimentalDecorators": true,
+        "outDir": "./dist/"
     },
-    "include": [
-        "Dialogs/renderer/*"
+    "exclude": [
+        "client",
+        "node_modules",
+        "typings/browser",
+        "typings/browser.d.ts"
     ]
 }

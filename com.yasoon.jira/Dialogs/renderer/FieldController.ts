@@ -2,8 +2,6 @@
 declare var jira;
 declare var yasoon;
 
-var jiraFields = {};
-
 namespace FieldController {
     let fieldTypes: any = {};
     let metaFields: { [id: string]: Field } = {};
@@ -20,14 +18,28 @@ namespace FieldController {
         return metaFields[id];
     }
 
+    export function enrichFieldMeta(field: JiraMetaField): boolean {
+        let hasChanged = false;
+        //Look up in config and set mandatory flag
+
+        //Look up in config and set Hidden field
+        if (field.isHidden) {
+            field.isHidden = false;
+            hasChanged = true;
+        }
+
+        return hasChanged;
+    }
+
     export function loadMeta(fields: any): void {
         for (let key in fields) {
-            let field = fields[key];
+            let field: JiraMetaField = fields[key];
             let type = getFieldType(field);
             if (type) {
                 let buffer = fieldTypes[type];
+                enrichFieldMeta(field);
                 let handler: Field = new buffer.field(key, field, buffer.params);
-                metaFields[field.id] = handler;
+                metaFields[key] = handler;
             }
         }
     }
@@ -35,7 +47,7 @@ namespace FieldController {
     export function render(id: string, container: JQuery): void {
         let renderer = getField(id);
         if (renderer) {
-            renderer.render(container);
+            renderer.renderField(container);
         }
     }
 
@@ -61,109 +73,93 @@ namespace FieldController {
         return result;
     }
 
-    export function setValue(id, value): void {
+    export function setValue(id: string, value: any, isInitialValue?: boolean): void {
         let field = getField(id);
         if (field) {
             try {
-                return field.setValue(value);
+                field.setValue(value);
+                if (isInitialValue)
+                    field.setInitialValue(value);
             } catch (e) {
                 yasoon.util.log('Error: ' + e.message + '. Couldn\'t setValue for field ' + id, yasoon.util.severity.warning);
             }
         }
     }
 
-    export function setFormData(issue): void {
+    export function setFormData(issue: any): void {
         for (let key in metaFields) {
-            setValue(key, issue.fields[key]);
+            setValue(key, issue.fields[key], true);
+        }
+    }
+
+    export function raiseEvent(eventType: EventType, id: string, newValue: any) {
+        //Check for Event Type
+        switch (eventType) {
+            case EventType.FieldChange:
+                //Check if we have a dynamic config for this field.
+                if (id === "1") {
+
+                }
+                break;
         }
     }
 }
-/*
-function UIFormHandler() {
-    function getFieldType(field) {
-        return field.schema.custom || field.schema.system;
+
+
+
+//Util Stuff --> New File
+function findWithAttr(array, attr, value) {
+    for (var i = 0; i < array.length; i += 1) {
+        if (array[i][attr] === value) {
+            return i;
+        }
     }
-
-    renderer = {};
-
-    return {
-        register: function (key, newRenderer) {
-            renderer[key] = newRenderer;
-        },
-        getFieldType: function (field) {
-            return getFieldType(field);
-        },
-        getRenderer: function (key) {
-            return renderer[key];
-        },
-        render: function (id, field, container) {
-            var type = getFieldType(field);
-            if (type) {
-                var responsibleRenderer = renderer[type];
-                if (responsibleRenderer)
-                    responsibleRenderer.render(id, field, container);
-            }
-        },
-
-        getValue: function (id, field) {
-            var type = getFieldType(field);
-            if (type) {
-                var responsibleRenderer = renderer[type];
-                if (responsibleRenderer)
-                    return responsibleRenderer.getValue(id);
-            }
-        },
-
-        getFormData: function (result) {
-            result = result || { fields: {} };
-            var self = this;
-            //Find Meta for current Issue Type
-            if (jira.currentMeta) {
-                $.each(jira.currentMeta.fields, function (key, field) {
-                    var newValue = self.getValue(key, field);
-                    if (newValue !== undefined)
-                        result.fields[key] = newValue;
-                });
-            }
-        },
-
-        setValue: function (id, field, value) {
-            var type = getFieldType(field);
-            if (type) {
-                var responsibleRenderer = renderer[type];
-                if (responsibleRenderer)
-                    return responsibleRenderer.setValue(id, value);
-            }
-        },
-
-        setFormData: function (issue) {
-            var self = this;
-            if (jira.currentMeta) {
-                $.each(jira.currentMeta.fields, function (key, field) {
-                    try {
-                        self.setValue(key, field, issue.fields[key]);
-                    } catch (e) {
-                        console.log('Error SetValue for Field: ', field, e.message);
-                        yasoon.util.log('Error: ' + e.message + '. Couldn\'t setValue for field' + JSON.stringify(field), yasoon.util.severity.warning);
-                    }
-                });
-            }
-        },
-
-        triggerEvent: function (eventType, data) {
-            if (jira.currentMeta) {
-                $.each(jira.currentMeta.fields, function (key, field) {
-                    var type = getFieldType(field);
-                    if (type) {
-                        var responsibleRenderer = renderer[type];
-                        if (responsibleRenderer && responsibleRenderer.hasOwnProperty('handleEvent')) {
-                            responsibleRenderer.handleEvent(eventType, key, field, data);
-                        }
-                    }
-                });
-            }
-        },
-    };
+    return -1;
 }
 
-var UIRenderer = new UIFormHandler(); */
+function insertAtCursor(myField, myValue) {
+    var startPos = myField.selectionStart;
+    var endPos = myField.selectionEnd;
+    if (startPos > 0)
+        myValue = '\n' + myValue;
+
+    myField.value = myField.value.substring(0, startPos) +
+        myValue +
+        myField.value.substring(endPos, myField.value.length);
+}
+
+var timeoutSearchUser = null;
+function searchJiraUser(mode, query, callback) {
+    //First try to get an issue key ... if it doesn't exist, get project
+    var selectedIssueKey = null;
+    var selectedProjectKey = null;
+
+    if (jira.getSelectedIssueOption) {
+        selectedIssueKey = jira.getSelectedIssueOption().data('key');
+    }
+
+    if (!selectedIssueKey) {
+        selectedProjectKey = $('#project').data('key') || ((jira.selectedProject) ? jira.selectedProject.key : null);
+    }
+    if (selectedIssueKey || selectedProjectKey) {
+        var queryKey = (selectedIssueKey) ? 'issueKey=' + selectedIssueKey : 'projectKey=' + selectedProjectKey;
+        /*
+        jiraGet('/rest/api/2/user/viewissue/search?' + queryKey + '&maxResults=10&username=' + query)
+            .then(function (users) {
+                var data = [];
+                users = JSON.parse(users);
+                users.forEach(function (user) {
+                    data.push({ id: user.name, name: user.displayName, type: 'user' });
+                });
+                callback(data);
+            });*/
+    } else {
+        //Show alert
+        $('.mentions-input-box + .mentions-help-text').slideDown();
+        if (timeoutSearchUser) {
+            clearTimeout(timeoutSearchUser);
+        }
+        timeoutSearchUser = setTimeout(function () { $('.mentions-input-box + .mentions-help-text').slideUp(); }, 2000);
+        callback([]);
+    }
+}
