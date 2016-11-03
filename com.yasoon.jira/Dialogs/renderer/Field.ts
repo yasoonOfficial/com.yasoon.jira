@@ -21,13 +21,16 @@ interface FieldSetter {
 abstract class Field implements FieldGet, FieldSet {
 	protected id: string;
 	protected fieldMeta: JiraMetaField;
-	protected initalValue; any;
+	protected initalValue: any;
+	protected params: any;
+
 	getter: FieldGetter;
 	setter: FieldSetter;
 
-	constructor(id: string, fieldMeta: JiraMetaField) {
+	constructor(id: string, fieldMeta: JiraMetaField, params?: any) {
 		this.id = id;
 		this.fieldMeta = fieldMeta;
+		this.params = params;
 	}
 
 	getValue(onlyChangedData: boolean = false): any {
@@ -35,31 +38,31 @@ abstract class Field implements FieldGet, FieldSet {
 			throw new Error("Please either redefine method getValue or add a @getter Annotation for " + this.id);
 
 		return this.getter.getValue(this.id, this.fieldMeta, onlyChangedData, this.getDomValue(), this.initalValue);
-	};
+	}
 
 	setInitialValue(value: any): void {
 		this.initalValue = value;
-	};
+	}
 
 	setValue(value: any): void {
 		if (!setter)
 			throw new Error("Please either redefine method setValue or add a @setter Annotation for " + this.id);
 
 		return this.setter.setValue(this.id, value);
-	};
+	}
 
 
 
 	triggerValueChange(): void {
 		console.log('Value changed: ' + this.id + ' -  New Value: ' + this.getValue(false));
 		FieldController.raiseEvent(EventType.FieldChange, this.id, this.getValue(false));
-	};
+	}
 
-	abstract getDomValue(): any;
+	abstract getDomValue(): any
 
-	abstract hookEventHandler(): void;
+	abstract hookEventHandler(): void
 
-	abstract render(container: JQuery);
+	abstract render(container: JQuery)
 
 	renderField(container: JQuery): void {
 
@@ -78,15 +81,15 @@ abstract class Field implements FieldGet, FieldSet {
 						</label>
 						<div class="field-container">
 						</div>
-						<div class="description">${this.fieldMeta.description}</div>
+						<div class="description">${(this.fieldMeta.description) ? this.fieldMeta.description : ''}</div>
 					</div>`;
 
-		newContainer = $(fieldGroup).html(html).find(`#${this.id}-field-group`).find('.field-container');
+		newContainer = $(fieldGroup).html(html).find('.field-container');
 		//Only inject inner container for easier usage
 		this.render(newContainer);
 
 		this.hookEventHandler();
-	};
+	}
 }
 
 enum GetterType {
@@ -118,7 +121,7 @@ function getter(getterType: GetterType, params?: any) {
 				proto.getter = new GetObjectArray(params);
 				break;
 
-			case GetterType.ObjectArray:
+			case GetterType.Array:
 				proto.getter = new GetArray();
 				break;
 		}

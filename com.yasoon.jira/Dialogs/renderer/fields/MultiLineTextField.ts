@@ -1,13 +1,15 @@
 /// <reference path="../Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
+/// <reference path="../getter/GetTextValue.ts" />
+/// <reference path="../setter/SetValue.ts" />
+
 declare var isEqual: any;
 declare var yasoon: any;
 declare var jira: any;
-declare function renderMailHeaderText(mail: any, useMarkup: boolean);
 
 @getter(GetterType.Text)
 @setter(SetterType.Text)
-class MultiLineTextRenderer extends Field {
+class MultiLineTextField extends Field {
     private isMainField: boolean;
     private hasMentions: boolean;
     private height: string;
@@ -15,7 +17,7 @@ class MultiLineTextRenderer extends Field {
     //So we get the value of the comment box after each change and save it here so we can get it afterwards synchroniously.
     private mentionText: string;
 
-    constructor(id: string, field: any, config: { isMainField: boolean, hasMentions: boolean }) {
+    constructor(id: string, field: any, config: { isMainField: boolean, hasMentions: boolean } = { isMainField: false, hasMentions: false }) {
         super(id, field);
         this.isMainField = config.isMainField;
         this.hasMentions = config.hasMentions;
@@ -88,7 +90,7 @@ class MultiLineTextRenderer extends Field {
 
     hookEventHandler(): void {
         //Standard Change handler
-        $('#' + this.id).change(this.triggerValueChange);
+        $('#' + this.id).change(e => this.triggerValueChange());
 
         //Private vars for event Handler
         let defaultSelectedText: string = ((jira.selectedText) ? jira.mail.getSelection(0) : '');

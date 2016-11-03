@@ -37,17 +37,19 @@ namespace FieldController {
             let type = getFieldType(field);
             if (type) {
                 let buffer = fieldTypes[type];
-                enrichFieldMeta(field);
-                let handler: Field = new buffer.field(key, field, buffer.params);
-                metaFields[key] = handler;
+                if (buffer) {
+                    enrichFieldMeta(field);
+                    let handler: Field = new buffer.field(key, field, buffer.params);
+                    metaFields[key] = handler;
+                }
             }
         }
     }
 
     export function render(id: string, container: JQuery): void {
-        let renderer = getField(id);
-        if (renderer) {
-            renderer.renderField(container);
+        let field = getField(id);
+        if (field) {
+            field.renderField(container);
         }
     }
 
@@ -104,8 +106,6 @@ namespace FieldController {
         }
     }
 }
-
-
 
 //Util Stuff --> New File
 function findWithAttr(array, attr, value) {

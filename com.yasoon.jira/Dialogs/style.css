@@ -2921,3 +2921,10 @@ button.servicedesk {
 	overflow: visible !important;
 }
 
+.icon-required {
+	display: none;
+}
+
+.required .icon-required {
+	display: inline !important;
+}

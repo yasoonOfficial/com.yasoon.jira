@@ -1,6 +1,8 @@
 /// <reference path="../Field.ts" />
+/// <reference path="Select2Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
-
+/// <reference path="../getter/GetObjectArray.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
 @getter(GetterType.ObjectArray, "id")
 @setter(SetterType.Option)
 class VersionMultiSelectField extends Select2Field {
@@ -11,19 +13,19 @@ class VersionMultiSelectField extends Select2Field {
             data: []
         };
 
-        let releasedVersions = field.allowedValues.map((option) => {
-            if (option.released && !option.archived) {
+        let releasedVersions = field.allowedValues
+            .filter(option => { return option.released && !option.archived })
+            .map(option => {
                 let text = option.name || option.value;
                 return { id: option.id, text: text };
-            }
-        });
+            });
 
-        let unreleasedVersions = field.allowedValues.map((option) => {
-            if (!option.released && !option.archived) {
+        let unreleasedVersions = field.allowedValues
+            .filter(option => { return !option.released && !option.archived })
+            .map(option => {
                 let text = option.name || option.value;
                 return { id: option.id, text: text };
-            }
-        });
+            });
 
         let releasedOptGroup = {
             text: yasoon.i18n('dialog.releasedVersions'),
@@ -32,7 +34,7 @@ class VersionMultiSelectField extends Select2Field {
 
         let unreleasedOptGroup = {
             text: yasoon.i18n('dialog.unreleasedVersions'),
-            children: releasedVersions
+            children: unreleasedVersions
         };
 
         if (releasedFirst) {

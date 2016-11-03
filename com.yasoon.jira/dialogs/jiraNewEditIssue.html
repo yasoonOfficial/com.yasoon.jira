@@ -8,13 +8,16 @@
 <script src="dialogs/select2.full.min.js"></script>
 <script src="dialogs/jquery.datetimepicker.full.min.js"></script>
 <script src="dialogs/jquery.mentionsInput.js"></script>
-<script src="common.js"></script>
+<!--script src="common.js">
+	</script>-->
+<script src="dialogs/all.js"></script>
 <script src="dialogs/jiraFieldRendererCore.js"></script>
 <script src="dialogs/jiraFieldRenderer.js"></script>
 <script src="dialogs/jiraNewEditIssue.js"></script>
 
 <div style="padding:10px; position: fixed; width: 100%">
-	<div style="display: block; width: 100%; min-width: 690px;" class="jira-dialog box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready" id="create-issue-dialog">
+	<div style="display: block; width: 100%; min-width: 690px;" class="jira-dialog box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready"
+		id="create-issue-dialog">
 		<div class="jira-dialog-heading">
 			<h2 class="jira-title" data-bind="localizedText: 'dialog.titleCreateIssue'"></h2>
 		</div>
@@ -44,9 +47,9 @@
 										<label for="issuetype"><span id="issueTypeLabel" data-bind="localizedText: 'dialog.issueType'"></span><span class="aui-icon icon-required" data-bind="localizedText: 'dialog.required'">Required</span></label>
 										<select class="select input-field" id="issuetype" name="issuetype" style="min-width: 350px; width: 80%;"></select>
 										<br />
-										<a id="switchServiceMode"  class="hidden" style="cursor:pointer;" title="">
-											<span class="showPortal"><i class="fa fa-plus"></i><span data-bind="localizedText: 'dialog.SDAssignment'">Service Desk assignment</span> </span>
-											<span class="hidePortal"><i class="fa fa-minus"></i><span data-bind="localizedText: 'dialog.SDAssignment'">Service Desk assignment</span> </span>
+										<a id="switchServiceMode" class="hidden" style="cursor:pointer;" title="">
+											<span class="showPortal"><i class="fa fa-plus"></i><span data-bind="localizedText: 'dialog.SDAssignment'">Service Desk assignment</span>											</span>
+											<span class="hidePortal"><i class="fa fa-minus"></i><span data-bind="localizedText: 'dialog.SDAssignment'">Service Desk assignment</span>											</span>
 										</a>
 									</div>
 								</div>
@@ -70,7 +73,7 @@
 								<div id="markupLoader" style="display: none; position:absolute; background: url(images/ajax-loader.gif) no-repeat center center; width: 36px; height: 36px; left: 175px; z-index: 100; margin-top: 10px"></div>
 								<ul id="tab-list" class="nav nav-tabs" role="tablist"></ul>
 								<div id="ContainerFields">
-									
+
 								</div>
 							</div>
 							<div id="LoaderArea" style="display: none; position: absolute; top: 0px; background: url(images/ajax-loader.gif) no-repeat center center; width: 600px; height: 350px;">

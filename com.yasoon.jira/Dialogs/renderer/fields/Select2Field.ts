@@ -8,7 +8,7 @@ abstract class Select2Field extends Field {
 
 	constructor(id: string, field: JiraMetaField, options: any, multiple: boolean = false, style: string = "min-width: 350px; width: 80%;") {
 		super(id, field);
-		this.options = $.extend({ minimumInputLength: 0, allowClear: true }, options);
+		this.options = $.extend({ minimumInputLength: 0, allowClear: true, placeholder: '', templateResult: Select2Field.formatIcon, templateSelection: Select2Field.formatIcon }, options);
 		this.styleCss = style;
 		this.multiple = multiple;
 	};
@@ -27,7 +27,7 @@ abstract class Select2Field extends Field {
 	};
 
 	hookEventHandler(): void {
-		$('#' + this.id).change(this.triggerValueChange);
+		$('#' + this.id).change(e => this.triggerValueChange());
 	};
 
 	render(container: JQuery) {
@@ -39,10 +39,11 @@ abstract class Select2Field extends Field {
 	static formatIcon(element): string | JQuery {
 		if (!element.id) return element.text; // optgroup
 
+		console.log(element);
 		if (element.icon)
 			return $('<span><img style="margin-right:3px; width: 16px;" src="' + element.icon + '"  onerror="jiraHandleImageFallback(this)"/>' + element.text + '</span>');
 		else if (element.iconClass) {
-			return $('<span><i style="margin-right:3px; float:left;" class="' + element.iconClass + '"></i><span>' + element.text + '</span></span>');
+			return $('<span><i style="margin-right:4px;" class="' + element.iconClass + '"></i><span>' + element.text + '</span></span>');
 		} else {
 			return element.text;
 		}

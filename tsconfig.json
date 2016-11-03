@@ -1,12 +1,13 @@
 {
     "compilerOptions": {
         "experimentalDecorators": true,
-        "outDir": "./dist/"
+        "outFile": "./com.yasoon.jira/Dialogs/all.js",
+        "allowJs": true
     },
-    "exclude": [
-        "client",
-        "node_modules",
-        "typings/browser",
-        "typings/browser.d.ts"
+    "include": [
+        "com.yasoon.jira/Dialogs/renderer/fields/*",
+        "com.yasoon.jira/Dialogs/renderer/getter/*",
+        "com.yasoon.jira/Dialogs/renderer/setter/*",
+        "com.yasoon.jira/Dialogs/renderer/*"
     ]
 }

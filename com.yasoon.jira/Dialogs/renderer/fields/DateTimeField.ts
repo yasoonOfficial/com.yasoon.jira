@@ -1,5 +1,7 @@
 /// <reference path="../Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
+/// <reference path="../getter/GetTextValue.ts" />
+/// <reference path="../setter/SetDateTimeValue.ts" />
 declare var moment;
 
 @getter(GetterType.Text)
@@ -15,7 +17,7 @@ class DateTimeField extends Field {
 	}
 
 	hookEventHandler(): void {
-		$('#' + this.id).change(this.triggerValueChange);
+		$('#' + this.id).change(e => this.triggerValueChange());
 	};
 
 	render(container: JQuery) {
