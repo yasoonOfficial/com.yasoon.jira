@@ -1,30 +1,30 @@
 function SingleTextRenderer() {
 	this.getValue = function (id) {
-		var val =  $('#' + id).val();
-		
-		if (jira.isEditMode) 
+		var val = $('#' + id).val();
+
+		if (jira.isEditMode)
 			//In edit case: Only send if changed	
 			return (isEqual(jira.currentIssue.fields[id], val)) ? undefined : val;
-		else 
+		else
 			//In creation case: Only send if not null	
-			return (val) ? val : undefined;		
+			return (val) ? val : undefined;
 	};
 
 	this.setValue = function (id, value) {
-		if(value)
+		if (value)
 			$('#' + id).val(value);
 	};
 
 	this.render = function (id, field, container) {
 		$(container).append('<div class="field-group">' +
-					'   <label for="' + id + '">' + field.name +
-					'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
-					'   </label>' +
-					'    <input class="text long-field" id="' + id + '" name="' + id + '" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:textfield">' +
-					'</div>');
+			'   <label for="' + id + '">' + field.name +
+			'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
+			'   </label>' +
+			'    <input class="text long-field" id="' + id + '" name="' + id + '" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:textfield">' +
+			'</div>');
 	};
 }
-	
+
 function MultilineTextRenderer() {
 	function isDescription(id) {
 		return (id === 'description' || id === 'comment');
@@ -43,10 +43,10 @@ function MultilineTextRenderer() {
 			val = $('#' + id).val();
 		}
 
-		if (jira.isEditMode) 
+		if (jira.isEditMode)
 			//In edit case: Only send if changed	
 			return (isEqual(jira.currentIssue.fields[id], val)) ? undefined : val;
-		else 
+		else
 			//In creation case: Only send if not null	
 			return (val) ? val : undefined;
 	};
@@ -62,25 +62,25 @@ function MultilineTextRenderer() {
 		if (isDescription(id) && jira.mail) {
 			descriptionHtml += '<div style="margin-top:5px; position:relative;">' +
 				'<span id="DescriptionOptionToolbar" class="' + ((jira.mail) ? '' : 'hidden') + '" style="padding: 3px;">' +
-				'	<span title="'+ yasoon.i18n('dialog.titleToggleJiraMarkup') +'"><input id="DescriptionUseJiraMarkup" class="toggle-checkbox" type="checkbox" checked="checked"/>' + yasoon.i18n('dialog.toggleJiraMarkup') +'</span>' +
-				'	<a style="cursor:pointer;" class="hidden" id="DescriptionUndoAction"><i class="fa fa-undo"></i> ' + yasoon.i18n('dialog.undo') +' </a>' +
+				'	<span title="' + yasoon.i18n('dialog.titleToggleJiraMarkup') + '"><input id="DescriptionUseJiraMarkup" class="toggle-checkbox" type="checkbox" checked="checked"/>' + yasoon.i18n('dialog.toggleJiraMarkup') + '</span>' +
+				'	<a style="cursor:pointer;" class="hidden" id="DescriptionUndoAction"><i class="fa fa-undo"></i> ' + yasoon.i18n('dialog.undo') + ' </a>' +
 				'</span>' +
 				'<span class="dropup pull-right">' +
-				'	<a style="cursor:pointer;" data-toggle="dropdown" class="dropdown-toggle" title="' + yasoon.i18n('dialog.titleReplaceWith') +'" >'+ yasoon.i18n('dialog.replaceWith') + '<span class="caret"></span></a>' +
+				'	<a style="cursor:pointer;" data-toggle="dropdown" class="dropdown-toggle" title="' + yasoon.i18n('dialog.titleReplaceWith') + '" >' + yasoon.i18n('dialog.replaceWith') + '<span class="caret"></span></a>' +
 				'	<ul class="dropdown-menu">' +
-				'	<li><span style="display: block;padding: 4px 10px;">'+ yasoon.i18n('dialog.toggleJiraMarkup') +'<input class="toggleJiraMarkup toggle-checkbox" type="checkbox" checked="checked" /></span></li>' +
+				'	<li><span style="display: block;padding: 4px 10px;">' + yasoon.i18n('dialog.toggleJiraMarkup') + '<input class="toggleJiraMarkup toggle-checkbox" type="checkbox" checked="checked" /></span></li>' +
 				'	<li role="separator" class="divider"></li>' +
-				((jira.selectedText) ? '<li id="DescriptionSelectedText"><a href="#">'+ yasoon.i18n('dialog.addSelectedText') +'</a></li>' : '') +
-				((jira.mail) ? '<li id="DescriptionFullMail"><a href="#">'+ yasoon.i18n('dialog.addConversation') +'</a></li>' : '') +
+				((jira.selectedText) ? '<li id="DescriptionSelectedText"><a href="#">' + yasoon.i18n('dialog.addSelectedText') + '</a></li>' : '') +
+				((jira.mail) ? '<li id="DescriptionFullMail"><a href="#">' + yasoon.i18n('dialog.addConversation') + '</a></li>' : '') +
 				'	</ul>' +
 				'</span>' +
 
 				'<span class="dropup pull-right" style="margin-right: 20px;">' +
-				'	<a style="cursor:pointer;" data-toggle="dropdown" class="dropdown-toggle" title="' + yasoon.i18n('dialog.titleReplaceWith') + '" >'+ yasoon.i18n('dialog.add') +'<span class="caret"></span></a>' +
+				'	<a style="cursor:pointer;" data-toggle="dropdown" class="dropdown-toggle" title="' + yasoon.i18n('dialog.titleReplaceWith') + '" >' + yasoon.i18n('dialog.add') + '<span class="caret"></span></a>' +
 				'	<ul class="dropdown-menu">' +
-				'	<li><span style="display: block;padding: 4px 10px;">'+yasoon.i18n('dialog.toggleJiraMarkup') +'<input class="toggleJiraMarkup toggle-checkbox" type="checkbox" checked="checked" /></span></li>' +
+				'	<li><span style="display: block;padding: 4px 10px;">' + yasoon.i18n('dialog.toggleJiraMarkup') + '<input class="toggleJiraMarkup toggle-checkbox" type="checkbox" checked="checked" /></span></li>' +
 				'	<li role="separator" class="divider"></li>' +
-				((jira.mail) ? '<li id="DescriptionMailInformation"><a href="#">' + yasoon.i18n('dialog.addMailInformation') +'</a></li>' : '') +
+				((jira.mail) ? '<li id="DescriptionMailInformation"><a href="#">' + yasoon.i18n('dialog.addMailInformation') + '</a></li>' : '') +
 
 				'	</ul>' +
 				'</span>' +
@@ -185,7 +185,7 @@ function MultilineTextRenderer() {
 				$('#' + id).mentionsInput('val', function (content) {
 					mentionTexts[id] = content;
 				});
-			}, 250));			
+			}, 250));
 		}
 	};
 }
@@ -193,12 +193,12 @@ function MultilineTextRenderer() {
 function CheckboxRenderer() {
 	this.getValue = function (id) {
 		var checkedValues = [];
-		$('#'+id).find('input').each(function () {
+		$('#' + id).find('input').each(function () {
 			if ($(this).is(':checked')) {
 				checkedValues.push({ id: $(this).val() });
 			}
 		});
-		
+
 		//In edit case: Only send changes
 		if (jira.isEditMode) {
 			//Both empty
@@ -209,7 +209,7 @@ function CheckboxRenderer() {
 			if (jira.currentIssue.fields[id] && jira.currentIssue.fields[id].length == checkedValues.length) {
 				var isSame = jira.currentIssue.fields[id].every(function (c) { return checkedValues.indexOf(c.id) > -1; });
 				if (isSame)
-					return;	
+					return;
 			}
 			return checkedValues;
 		} else {
@@ -229,12 +229,12 @@ function CheckboxRenderer() {
 
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group" id="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes">' +
-					'    <label>' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ';
+			'    <label>' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ';
 		$.each(field.allowedValues, function (i, option) {
 			html += '   <div class="checkbox awesome">' +
-					'		<input type="checkbox" id="'+id+'_'+option.id+'" value="' + option.id + '">'+
-					'       <label for="' + id + '_' + option.id + '">' + option.value + '</label>'+
-					'   </div>';
+				'		<input type="checkbox" id="' + id + '_' + option.id + '" value="' + option.id + '">' +
+				'       <label for="' + id + '_' + option.id + '">' + option.value + '</label>' +
+				'   </div>';
 		});
 
 		html += '</div>';
@@ -245,7 +245,7 @@ function CheckboxRenderer() {
 function RadioButtonRenderer() {
 	this.getValue = function (id) {
 		var checkedValue = $('#' + id).find('input:checked').first().val();
-		
+
 		if (jira.isEditMode) {
 			//In edit case: Only send if changed	
 			if (!isEqual(jira.currentIssue.fields[id], checkedValue)) {
@@ -265,19 +265,19 @@ function RadioButtonRenderer() {
 
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group" id="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:radiobuttons">' +
-					'    <label>' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ';
+			'    <label>' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ';
 		if (!field.required) {
 			// Show None option only if it's not mandatory
 			html += '   <div class="radio awesome">' +
-			'		<input id="'+ id + '_none" name="'+ id + '" type="radio" value="" checked>' +
-			'       <label for="'+ id + '_none">None</label>' +
-			'   </div>';
+				'		<input id="' + id + '_none" name="' + id + '" type="radio" value="" checked>' +
+				'       <label for="' + id + '_none">None</label>' +
+				'   </div>';
 		}
 		$.each(field.allowedValues, function (i, option) {
 			html += '   <div class="radio awesome">' +
-					'		<input id="'+ id +'_'+ option.id + '" name="'+ id + '" type="radio" value="' + option.id + '">' +
-					'       <label for="' + id + '_'+ option.id + '">' + option.value + '</label>' +
-					'   </div>';
+				'		<input id="' + id + '_' + option.id + '" name="' + id + '" type="radio" value="' + option.id + '">' +
+				'       <label for="' + id + '_' + option.id + '">' + option.value + '</label>' +
+				'   </div>';
 		});
 
 		html += '</div>';
@@ -292,10 +292,10 @@ function DateRenderer() {
 			date = moment(date).format('YYYY-MM-DD');
 		}
 
-		if (jira.isEditMode) 
+		if (jira.isEditMode)
 			//In edit case: Only send if changed	
 			return (isEqual(jira.currentIssue.fields[id], date)) ? undefined : date;
-		else 
+		else
 			//In creation case: Only send if not null	
 			return (date) ? date : undefined;
 	};
@@ -303,16 +303,16 @@ function DateRenderer() {
 	this.setValue = function (id, value) {
 		if (value) {
 			var momentDate = moment(new Date(value));
-			$('#' + id).datetimepicker('setOptions', { value: momentDate.format('L')});
+			$('#' + id).datetimepicker('setOptions', { value: momentDate.format('L') });
 		}
 	};
 
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group aui-field-datepicker"> ' +
-					'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ' +
-					'    <input style="height: 28px;" class="text long-field" id="' + id + '" name="' + id + '" placeholder="' + yasoon.i18n('dialog.datePickerFormatTitle') + '" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
-					'    <a href="#" id="' + id + '-trigger" title="' + yasoon.i18n('dialog.titleSelectDate') + '" tabindex="-1"><span class="aui-icon icon-date">' + yasoon.i18n('dialog.titleSelectDate') + '</span></a> ' +
-					'</div>';
+			'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ' +
+			'    <input style="height: 28px;" class="text long-field" id="' + id + '" name="' + id + '" placeholder="' + yasoon.i18n('dialog.datePickerFormatTitle') + '" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
+			'    <a href="#" id="' + id + '-trigger" title="' + yasoon.i18n('dialog.titleSelectDate') + '" tabindex="-1"><span class="aui-icon icon-date">' + yasoon.i18n('dialog.titleSelectDate') + '</span></a> ' +
+			'</div>';
 		$(container).append(html);
 
 		var country = yasoon.setting.getProjectSetting('locale').split('-')[0];
@@ -322,7 +322,7 @@ function DateRenderer() {
 			scrollInput: false,
 			allowBlank: true
 		});
-		
+
 		$.datetimepicker.setLocale(country);
 
 		$('#' + id + '-trigger').off().click(function (e) {
@@ -335,21 +335,21 @@ function DateTimeRenderer() {
 	this.getValue = function (id) {
 		var date = $('#' + id).datetimepicker('getValue');
 		var value = null;
-		
-		if(date) {
+
+		if (date) {
 			value = moment(date).format('YYYY-MM-DD[T]HH:mm:ss.[000]ZZ');
 		}
 
-		if (jira.isEditMode) 
+		if (jira.isEditMode)
 			//In edit case: Only send if changed	
 			return (isEqual(jira.currentIssue.fields[id], value)) ? undefined : value;
-		else 
+		else
 			//In creation case: Only send if not null	
 			return (value) ? value : undefined;
 	};
 
 	this.setValue = function (id, value) {
-		if (value) {			
+		if (value) {
 			var momentDate = moment(new Date(value));
 			$('#' + id).datetimepicker('setOptions', { value: momentDate.format('L') + ' ' + momentDate.format('LT') });
 			$('#' + id).data('oldTs', moment(new Date(value)).valueOf());
@@ -358,15 +358,15 @@ function DateTimeRenderer() {
 
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group aui-field-datepicker"> ' +
-					'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ' +
-					'    <input style="height: 28px;" class="text long-field" id="' + id + '" name="' + id + '" placeholder="' + yasoon.i18n('dialog.dateTimePickerFormatTitle') +'" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
-					'    <a href="#" id="' + id + '-trigger" "title="'+ yasoon.i18n('dialog.titleSelectDate')+'" tabindex="-1"><span class="aui-icon icon-date">'+ yasoon.i18n('dialog.titleSelectDate') + '</span></a> ' +
-					'</div>';
+			'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label> ' +
+			'    <input style="height: 28px;" class="text long-field" id="' + id + '" name="' + id + '" placeholder="' + yasoon.i18n('dialog.dateTimePickerFormatTitle') + '" value="" type="text" data-type="com.atlassian.jira.plugin.system.customfieldtypes:datepicker"> ' +
+			'    <a href="#" id="' + id + '-trigger" "title="' + yasoon.i18n('dialog.titleSelectDate') + '" tabindex="-1"><span class="aui-icon icon-date">' + yasoon.i18n('dialog.titleSelectDate') + '</span></a> ' +
+			'</div>';
 		$(container).append(html);
 
 		var country = yasoon.setting.getProjectSetting('locale').split('-')[0];
 
-		$('#'+id).datetimepicker({
+		$('#' + id).datetimepicker({
 			allowTimes: [
 				//'00:00', '00:30', '01:00', '01:30', '02:00', '02:30', '03:00', '03:30', '04:00', '04:30', '05:00', '05:30', '06:00', '06:30',
 				'07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
@@ -376,7 +376,7 @@ function DateTimeRenderer() {
 			format: yasoon.i18n('dialog.dateTimePickerFormat'),
 			allowBlank: true
 		});
-		
+
 		$.datetimepicker.setLocale(country);
 
 		$('#' + id + '-trigger').off().click(function (e) {
@@ -399,7 +399,7 @@ function LabelRenderer() {
 			if (jira.currentIssue.fields[id] && jira.currentIssue.fields[id].length == val.length) {
 				var isSame = jira.currentIssue.fields[id].every(function (c) { return val.indexOf(c) > -1; });
 				if (isSame)
-					return;	
+					return;
 			}
 			return val;
 		} else {
@@ -422,10 +422,10 @@ function LabelRenderer() {
 
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group aui-field-componentspicker frother-control-renderer">' +
-						'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-						'    <select style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" multiple="" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:labels"></select>' +
-						'	<div class="description">' + yasoon.i18n('dialog.labelDescription') + '</div>' +
-						'</div>';
+			'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+			'    <select style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" multiple="" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:labels"></select>' +
+			'	<div class="description">' + yasoon.i18n('dialog.labelDescription') + '</div>' +
+			'</div>';
 
 		$(container).append(html);
 		//DAMIT JIRA!!! 
@@ -435,7 +435,7 @@ function LabelRenderer() {
 		if (id !== 'labels') {
 			url = '/rest/api/1.0/labels/suggest?maxResults=500&customFieldId=' + field.schema.customId + '&query=';
 		}
-		
+
 		$('#' + id).select2({
 			tags: true,
 			ajax: {
@@ -447,20 +447,20 @@ function LabelRenderer() {
 					}
 
 					jiraGet(url + queryTerm)
-					.then(function (data) {
-						
-						var labels = JSON.parse(data);
-						var labelArray = [];
-						if (labels.suggestions) {
-							$.each(labels.suggestions, function (i, label) {
-								labelArray.push({ text: label.label, id: label.label });
-							});
-						}
-						success(labelArray);
-					})
-					.catch(function (e) {
-						failure();
-					});
+						.then(function (data) {
+
+							var labels = JSON.parse(data);
+							var labelArray = [];
+							if (labels.suggestions) {
+								$.each(labels.suggestions, function (i, label) {
+									labelArray.push({ text: label.label, id: label.label });
+								});
+							}
+							success(labelArray);
+						})
+						.catch(function (e) {
+							failure();
+						});
 				},
 				processResults: function (data, page) {
 					return {
@@ -476,12 +476,12 @@ function LabelRenderer() {
 function NumberRenderer() {
 	this.getValue = function (id) {
 		var float = parseFloat($('#' + id).val());
-		if (jira.isEditMode) 
+		if (jira.isEditMode)
 			//In edit case: Only send if changed	
 			return (isEqual(jira.currentIssue.fields[id], float)) ? undefined : float;
-		else 
+		else
 			//In creation case: Only send if not null	
-			return (float) ? float : undefined;	
+			return (float) ? float : undefined;
 	};
 
 	this.setValue = function (id, value) {
@@ -491,11 +491,11 @@ function NumberRenderer() {
 
 	this.render = function (id, field, container) {
 		$(container).append('<div class="field-group">' +
-					'   <label for="' + id + '">' + field.name +
-					'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
-					'   </label>' +
-					'    <input class="text long-field" id="' + id + '" name="' + id + '" value="" type="number" data-type="com.atlassian.jira.plugin.system.customfieldtypes:float">' +
-					'</div>');
+			'   <label for="' + id + '">' + field.name +
+			'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
+			'   </label>' +
+			'    <input class="text long-field" id="' + id + '" name="' + id + '" value="" type="number" data-type="com.atlassian.jira.plugin.system.customfieldtypes:float">' +
+			'</div>');
 	};
 }
 
@@ -503,7 +503,7 @@ function SelectListRenderer() {
 	this.getValue = function (id) {
 
 		var checkedValue = $('#' + id).val();
-		
+
 		if (jira.isEditMode) {
 			//In edit case: Only send if changed	
 			if (!isEqual(jira.currentIssue.fields[id], checkedValue)) {
@@ -512,7 +512,7 @@ function SelectListRenderer() {
 		} else {
 			//In creation case: Only send if not null	
 			return (checkedValue) ? { id: checkedValue } : undefined;
-		}	
+		}
 	};
 
 	this.setValue = function (id, value) {
@@ -523,9 +523,9 @@ function SelectListRenderer() {
 
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group input-field">' +
-						'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>';
+			'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>';
 		html += renderSelectField(id, field, "min-width: 350px; width: 80%;");
-		html +=    '</div>';
+		html += '</div>';
 
 		$(container).append(html);
 
@@ -542,12 +542,12 @@ function CascadedListRenderer() {
 		var parentId = $('#' + id + '_parent').find(':selected').val();
 		var childId = $('#' + id + '_child').find(':selected').val();
 		var resultObj = {};
-		
-		if (jira.isEditMode) {			
+
+		if (jira.isEditMode) {
 			//In edit case: Only send if changed	
 			var oldParentValue = (jira.currentIssue.fields[id]) ? jira.currentIssue.fields[id].id : null;
 			var oldChildValue = (jira.currentIssue.fields[id] && jira.currentIssue.fields[id].child) ? jira.currentIssue.fields[id].child.id : null;
-			
+
 			if (!isEqual(oldParentValue, parentId) ||
 				!isEqual(oldChildValue, childId)) {
 				if (parentId) {
@@ -558,7 +558,7 @@ function CascadedListRenderer() {
 					};
 				} else {
 					return null;
-				}	
+				}
 			}
 		} else {
 			//In creation case: Only send if not null
@@ -569,7 +569,7 @@ function CascadedListRenderer() {
 				}
 				return resultObj;
 			}
-		}		
+		}
 	};
 
 	this.setValue = function (id, value) {
@@ -583,8 +583,8 @@ function CascadedListRenderer() {
 
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group input-field">' +
-					'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>';
-					
+			'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>';
+
 		html += renderSelectField(id + '_parent', { hasDefaultValue: field.hasDefaultValue, allowedValues: field.allowedValues }, "min-width: 150px; width: 40%;");
 		html += renderSelectField(id + '_child', { hasDefaultValue: false, allowedValues: [] }, "min-width: 150px; width: 40%;");
 		html += '</div>';
@@ -603,7 +603,7 @@ function CascadedListRenderer() {
 			//escapeMarkup: function (m) { return m; }
 		});
 
-		$('#' + id + '_parent').on('change', function() {
+		$('#' + id + '_parent').on('change', function () {
 			var parentId = $('#' + id + '_parent').find(':selected').val();
 			var currentSelection = field.allowedValues.filter(function (v) { return v.id == parentId; })[0];
 			var allowedValues = (currentSelection) ? currentSelection.children : [];
@@ -616,11 +616,11 @@ function CascadedListRenderer() {
 function MultiSelectListRenderer() {
 	this.getValue = function (id) {
 		var values = $('#' + id).val() || [];
-		var selectedValues = [];	
+		var selectedValues = [];
 		values.forEach(function (id) {
 			selectedValues.push({ id: id });
 		});
-		
+
 		//In edit case: Only send changes
 		if (jira.isEditMode) {
 			//Both empty
@@ -631,13 +631,13 @@ function MultiSelectListRenderer() {
 			if (jira.currentIssue.fields[id] && jira.currentIssue.fields[id].length == selectedValues.length) {
 				var isSame = jira.currentIssue.fields[id].every(function (c) { return selectedValues.filter(function (e) { return e.id === c.id; }).length > 0; });
 				if (isSame)
-					return;	
+					return;
 			}
 			return selectedValues;
 		} else {
 			//In creation case: Only send if not null	
 			return (selectedValues.length > 0) ? selectedValues : undefined;
-		}		
+		}
 	};
 
 	this.setValue = function (id, value) {
@@ -652,14 +652,14 @@ function MultiSelectListRenderer() {
 
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group input-field">' +
-				'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-				'    <select data-container-class="issuetype-ss" class="select text" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">';
+			'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+			'    <select data-container-class="issuetype-ss" class="select text" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">';
 		$.each(field.allowedValues, function (i, option) {
 			var text = option.name || option.value;
 			html += '<option value="' + option.id + '">' + text + '</option>';
 		});
 		html += '      </select>' +
-				'</div>';
+			'</div>';
 
 		$(container).append(html);
 
@@ -671,11 +671,11 @@ function VersionMultiSelectListRenderer() {
 	this.getValue = function (id) {
 		//Just like MultiSelectListRenderer
 		var values = $('#' + id).val() || [];
-		var selectedValues = [];	
+		var selectedValues = [];
 		values.forEach(function (id) {
 			selectedValues.push({ id: id });
 		});
-		
+
 		//In edit case: Only send changes
 		if (jira.isEditMode) {
 			//Both empty
@@ -686,13 +686,13 @@ function VersionMultiSelectListRenderer() {
 			if (jira.currentIssue.fields[id] && jira.currentIssue.fields[id].length == selectedValues.length) {
 				var isSame = jira.currentIssue.fields[id].every(function (c) { return selectedValues.filter(function (e) { return e.id === c.id; }).length > 0; });
 				if (isSame)
-					return;	
+					return;
 			}
 			return selectedValues;
 		} else {
 			//In creation case: Only send if not null	
 			return (selectedValues.length > 0) ? selectedValues : undefined;
-		}		
+		}
 	};
 
 	this.setValue = function (id, value) {
@@ -706,45 +706,45 @@ function VersionMultiSelectListRenderer() {
 	};
 
 	function renderReleasedVersions(field) {
-	    var html = '<optgroup label="'+ yasoon.i18n('dialog.releasedVersions') +'">';
-	    $.each(field.allowedValues, function (i, option) {
-	        if (option.released && !option.archived) {
-	            var text = option.name || option.value;
-	            html += '<option value="' + option.id + '">' + text + '</option>';
-	        }
-	    });
-	    html += '</optgroup>';
+		var html = '<optgroup label="' + yasoon.i18n('dialog.releasedVersions') + '">';
+		$.each(field.allowedValues, function (i, option) {
+			if (option.released && !option.archived) {
+				var text = option.name || option.value;
+				html += '<option value="' + option.id + '">' + text + '</option>';
+			}
+		});
+		html += '</optgroup>';
 
-	    return html;
+		return html;
 	}
 
 	function renderUnreleasedVersions(field) {
-	    var html = '<optgroup label="' + yasoon.i18n('dialog.unreleasedVersions') + '">';
-	    $.each(field.allowedValues, function (i, option) {
-	        if (!option.released && !option.archived) {
-	            var text = option.name || option.value;
-	            html += '<option value="' + option.id + '">' + text + '</option>';
-	        }
-	    });
-	    html += '</optgroup>';
+		var html = '<optgroup label="' + yasoon.i18n('dialog.unreleasedVersions') + '">';
+		$.each(field.allowedValues, function (i, option) {
+			if (!option.released && !option.archived) {
+				var text = option.name || option.value;
+				html += '<option value="' + option.id + '">' + text + '</option>';
+			}
+		});
+		html += '</optgroup>';
 
-	    return html;
+		return html;
 	}
 
 	this.render = function (id, field, container) {
-	    var html = '<div class="field-group input-field">' +
-				'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-				'    <select data-container-class="issuetype-ss" class="select text" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">';
-	    if (id == 'fixVersions') {
-	        //Fix versions should show unreleased Versions first
-	        html += renderUnreleasedVersions(field);
-	        html += renderReleasedVersions(field);
-	    } else {
-	        html += renderReleasedVersions(field);
-	        html += renderUnreleasedVersions(field);
-	    }
-		html +=	'    </select>' +
-				'</div>';
+		var html = '<div class="field-group input-field">' +
+			'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+			'    <select data-container-class="issuetype-ss" class="select text" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">';
+		if (id == 'fixVersions') {
+			//Fix versions should show unreleased Versions first
+			html += renderUnreleasedVersions(field);
+			html += renderReleasedVersions(field);
+		} else {
+			html += renderReleasedVersions(field);
+			html += renderUnreleasedVersions(field);
+		}
+		html += '    </select>' +
+			'</div>';
 
 		$(container).append(html);
 
@@ -753,39 +753,39 @@ function VersionMultiSelectListRenderer() {
 }
 
 function UserPickerRenderer() {
-	
-	this.getValue = function (id) {		
-		
+
+	this.getValue = function (id) {
+
 		var name = $('#' + id).val();
 		var value = { name: name };
-		
+
 		if (jira.isEditMode) {
 			//In edit case: Only send if changed
 			if (!jira.currentIssue.fields[id] && !name)
 				return;
-			
+
 			if (jira.currentIssue.fields[id] && isEqual(jira.currentIssue.fields[id].name, name))
 				return;
-			
-			return (name) ? value: null;
-		} else 
+
+			return (name) ? value : null;
+		} else
 			//In creation case: Only send if not null	
 			return (name) ? value : undefined;
 	};
 
 	this.setValue = function (id, value) {
 		var userName = (value) ? value.name : null;
-		
+
 		if (value) {
 			//We can only select elements that have an rendered option tag.
 			if ($('#' + id).find('option[value="' + userName + '"]').length === 0) {
 				$('#' + id).append('<option value="' + userName + '"><span>' + formatUser(getSelect2User(value)).html() + '</span></option>');
 			}
 		}
-		
+
 		$('#' + id)
-		.val(userName)
-		.trigger('change');
+			.val(userName)
+			.trigger('change');
 	};
 
 	var lastQuery = '';
@@ -802,41 +802,41 @@ function UserPickerRenderer() {
 		} else {
 			return callback(jira.assigneeCommonValues);
 		}
-		
+
 		return jiraGet(url)
-		.then(function (data) {
-			var users = JSON.parse(data);
-			console.log('Call for ' + id + ', Term: ' + term, users);
-			if (term !== lastQuery) {
-				return;
-			}
-			//Transform Data
-			var result = [];
-			//Yay, change of return structure....
-			var userArray = [];
-			if (users && users.users && users.users.length > 0) {
-				userArray = users.users;
-			} else if (users && users.length > 0) {
-				userArray = users;
-			}
-			userArray.forEach(function (user) {
-				result.push(getSelect2User(user));
+			.then(function (data) {
+				var users = JSON.parse(data);
+				console.log('Call for ' + id + ', Term: ' + term, users);
+				if (term !== lastQuery) {
+					return;
+				}
+				//Transform Data
+				var result = [];
+				//Yay, change of return structure....
+				var userArray = [];
+				if (users && users.users && users.users.length > 0) {
+					userArray = users.users;
+				} else if (users && users.length > 0) {
+					userArray = users;
+				}
+				userArray.forEach(function (user) {
+					result.push(getSelect2User(user));
+				});
+
+				if (id === 'assignee') {
+					jira.assigneeCommonValues.results[1].children = result;
+					callback(jira.assigneeCommonValues);
+				} else {
+					jira.userCommonValues.results[1].children = result;
+					callback(jira.userCommonValues);
+				}
+			})
+			.catch(function (e) {
+				yasoon.util.log('Couldn\'t find users! Term: ' + term, yasoon.util.severity.warning);
+				callback([]);
 			});
-			
-			if (id === 'assignee') {
-				jira.assigneeCommonValues.results[1].children = result;
-				callback(jira.assigneeCommonValues);
-			} else {
-				jira.userCommonValues.results[1].children = result;
-				callback(jira.userCommonValues);
-			}
-		})
-		.catch(function (e) {
-			yasoon.util.log('Couldn\'t find users! Term: ' + term, yasoon.util.severity.warning);
-			callback([]);
-		});
 	}, 250);
-	
+
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group" id="' + id + '-container">' +
 			'	<label for="' + id + '"><span class="descr">' + field.name +
@@ -844,17 +844,17 @@ function UserPickerRenderer() {
 			'	</label>' +
 			'	<select id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" class="select input-field" data-type="com.atlassian.jira.plugin.system.customfieldtypes:userpicker"> ' +
 			'		<option></option>';
-		if(id === 'assignee')
-			html += '<option value="-1" data-icon="avatar" selected>'+ yasoon.i18n('dialog.automatic') + '</option>';
-		
+		if (id === 'assignee')
+			html += '<option value="-1" data-icon="avatar" selected>' + yasoon.i18n('dialog.automatic') + '</option>';
+
 		if (jira.ownUser)
 			html += '<option value="' + jira.ownUser.name + '" data-icon="ownUser"><span>' + formatUser(getSelect2User(jira.ownUser)).html() + '</span></option>';
 		if (jira.senderUser && jira.senderUser.name != -1)
 			html += '<option value="' + jira.senderUser.name + '" data-icon="emailSender"><span>' + formatUser(getSelect2User(jira.senderUser)).html() + '</span></option>';
-		
+
 		html += '	</select > ' +
-				'	<span style="display:block; padding: 5px 0px;">' +
-				'	<a href="#' + id + '" class="assign-to-me-trigger" title="'+ yasoon.i18n('dialog.assignMyselfTitle') +'">'+ yasoon.i18n('dialog.assignMyself') +'</a>';
+			'	<span style="display:block; padding: 5px 0px;">' +
+			'	<a href="#' + id + '" class="assign-to-me-trigger" title="' + yasoon.i18n('dialog.assignMyselfTitle') + '">' + yasoon.i18n('dialog.assignMyself') + '</a>';
 
 		//Create User link is a little tricky. It should only be visible if it's based on an email and senderUser does not exist in system. 
 		// But we cannot be sure when user has been loaded.
@@ -863,7 +863,7 @@ function UserPickerRenderer() {
 		if (id !== 'assignee') {
 			if (jira.mail && jira.senderUser.name === -1) {
 				//user does not exist in system
-				html += '<a style="margin-left: 50px;" href="#' + id + '" class="create-sender">'+ yasoon.i18n('dialog.createUserLink', { name: jira.mail.senderName}) + '</a>';
+				html += '<a style="margin-left: 50px;" href="#' + id + '" class="create-sender">' + yasoon.i18n('dialog.createUserLink', { name: jira.mail.senderName }) + '</a>';
 			} else if (jira.mail && !jira.senderUser) {
 				//user may not exist in system
 				html += '<a style="margin-left: 50px; display:none" href="#' + id + '" class="create-sender">' + yasoon.i18n('dialog.createUserLink', { name: jira.mail.senderName }) + '</a>';
@@ -897,44 +897,44 @@ function UserPickerRenderer() {
 			};
 
 			jiraAjax('/rest/api/2/user', yasoon.ajaxMethod.Post, JSON.stringify(newUser))
-			.then(function (user) {
-				user = JSON.parse(user);
-				return jiraAjax('/rest/api/2/group/user?groupname=jira-users&username=' + encodeURI(user.name), yasoon.ajaxMethod.Delete)
-				.catch(function() {})
-				.return(user);
-			})
-			.then(function (user) {
-				//New user successfully created
-				console.log('Successfull:', user);
-				//1. Generate option field
-				jira.senderUser = user;
-				$('#' + id).append('<option value="' + user.name + '"><span>' + formatUser(getSelect2User(user)).html() + '</span></option>');
-				
-				//2. Set it as value for current field
-				$('#' + id)
-				.val(user.name)
-				.trigger('change');
+				.then(function (user) {
+					user = JSON.parse(user);
+					return jiraAjax('/rest/api/2/group/user?groupname=jira-users&username=' + encodeURI(user.name), yasoon.ajaxMethod.Delete)
+						.catch(function () { })
+						.return(user);
+				})
+				.then(function (user) {
+					//New user successfully created
+					console.log('Successfull:', user);
+					//1. Generate option field
+					jira.senderUser = user;
+					$('#' + id).append('<option value="' + user.name + '"><span>' + formatUser(getSelect2User(user)).html() + '</span></option>');
 
-				//2. Add as emailSender for commonValues
-				jira.userCommonValues.results[0].children.push({
-					id: user.name,
-					text: user.displayName,
-					icon: 'emailSender'
+					//2. Set it as value for current field
+					$('#' + id)
+						.val(user.name)
+						.trigger('change');
+
+					//2. Add as emailSender for commonValues
+					jira.userCommonValues.results[0].children.push({
+						id: user.name,
+						text: user.displayName,
+						icon: 'emailSender'
+					});
+
+					elem.css('display', 'none');
+				})
+				.catch(function (error) {
+					elem.prop('disabled', false);
+					console.log(error);
+					if (error && error.statusCode == 403) {
+						yasoon.dialog.showMessageBox(yasoon.i18n('dialog.createUserError403'));
+					} else if (error && error.statusCode == 404) {
+						yasoon.dialog.showMessageBox(yasoon.i18n('dialog.createUserError404'));
+					} else {
+						yasoon.dialog.showMessageBox(yasoon.i18n('dialog.createUserErrorOther'));
+					}
 				});
-
-				elem.css('display', 'none');
-			})
-			.catch(function (error) {
-				elem.prop('disabled', false);
-				console.log(error);
-				if (error && error.statusCode == 403) {
-					yasoon.dialog.showMessageBox(yasoon.i18n('dialog.createUserError403'));
-				} else if (error && error.statusCode == 404) {
-					yasoon.dialog.showMessageBox(yasoon.i18n('dialog.createUserError404'));
-				} else {
-					yasoon.dialog.showMessageBox(yasoon.i18n('dialog.createUserErrorOther'));
-				}
-			});
 			e.preventDefault();
 		});
 
@@ -964,7 +964,7 @@ function UserPickerRenderer() {
 							data = jira.userCommonValues;
 							jira.userCommonValues.results[1].children = [];
 						}
-						
+
 						success(data);
 					}
 				}
@@ -988,7 +988,7 @@ function AttachmentLinkRenderer() {
 	this.setValue = function (id, value) {
 		//Attachments are handled seperately
 	};
-	
+
 	this.getCurrentAttachment = function (elem) {
 		var domAttachmentLink = $(elem).closest('.jiraAttachmentLink');
 		var handleId = domAttachmentLink.data('id');
@@ -1019,11 +1019,11 @@ function AttachmentLinkRenderer() {
 		domAttachmentLink.find('.attachmentMain').removeClass('edit');
 	};
 
-	this.hasReference = function(handle) {
+	this.hasReference = function (handle) {
 		return $(getDescriptionId()).val().indexOf(handle.fileName) >= 0;
 	}
 
-	this.removeAttachmentFromBody = function(handle) {
+	this.removeAttachmentFromBody = function (handle) {
 		var regEx = self.getDescriptionRegex(handle.fileName);
 		var description = $(getDescriptionId());
 		//Todo: Do this via renderer?
@@ -1032,8 +1032,8 @@ function AttachmentLinkRenderer() {
 		description.val(newDescr);
 	};
 
-	this.getDescriptionRegex = function(id) {
-		return new RegExp('!' + id + '!', 'g');	
+	this.getDescriptionRegex = function (id) {
+		return new RegExp('!' + id + '!', 'g');
 	};
 
 	this.fillTemplate = function (id, container) {
@@ -1053,8 +1053,8 @@ function AttachmentLinkRenderer() {
 			attachments.push(attachment);
 		});
 
-		parameters[id].attachments = attachments.filter(function(val) { return !val.blacklisted; });
-		parameters[id].blacklistedAttachments = attachments.filter(function(val) { return val.blacklisted; });
+		parameters[id].attachments = attachments.filter(function (val) { return !val.blacklisted; });
+		parameters[id].blacklistedAttachments = attachments.filter(function (val) { return val.blacklisted; });
 
 		var html = template(parameters[id]);
 		$(container).html(html);
@@ -1063,14 +1063,14 @@ function AttachmentLinkRenderer() {
 		if (blacklistedCount > 0) {
 			$('#' + id).find('#blacklistedAttachmentCount').text(blacklistedCount);
 			$('#' + id).find('.show-blacklisted-attachments').show();
-			$('#' + id).find('.show-blacklisted-attachments').off().click(function(e) {
+			$('#' + id).find('.show-blacklisted-attachments').off().click(function (e) {
 				e.preventDefault();
 				$('#' + id + '-blacklisted').show();
 				$('#' + id).find('.hide-blacklisted-attachments').show();
 				$(this).hide();
 			});
 
-			$('#' + id).find('.hide-blacklisted-attachments').off().click(function(e) {
+			$('#' + id).find('.hide-blacklisted-attachments').off().click(function (e) {
 				e.preventDefault();
 				$('#' + id + '-blacklisted').hide();
 				$('#' + id).find('.show-blacklisted-attachments').show();
@@ -1105,15 +1105,15 @@ function AttachmentLinkRenderer() {
 					primary: yasoon.i18n('dialog.yes'),
 					secondary: yasoon.i18n('dialog.no')
 				})
-				.then(function(result) {										
-					if (result.ok) {
-						self.removeAttachmentFromBody(handle);
-					}
+					.then(function (result) {
+						if (result.ok) {
+							self.removeAttachmentFromBody(handle);
+						}
 
-					if (result.checkbox) {//rememberDecision
-						yasoon.setting.setAppParameter('dialog.autoRemoveAttachmentReference', result.ok.toString());
-					}
-				});
+						if (result.checkbox) {//rememberDecision
+							yasoon.setting.setAppParameter('dialog.autoRemoveAttachmentReference', result.ok.toString());
+						}
+					});
 			}
 		});
 
@@ -1126,7 +1126,7 @@ function AttachmentLinkRenderer() {
 			$(this).closest('.jiraAttachmentLink').find('.checkbox input').prop('checked', true);
 		});
 
-		$('.attachmentAddToBlacklist').off().click(function(e) {
+		$('.attachmentAddToBlacklist').off().click(function (e) {
 			e.preventDefault();
 			var handle = self.getCurrentAttachment($(this));
 
@@ -1144,11 +1144,11 @@ function AttachmentLinkRenderer() {
 					secondary: yasoon.i18n('dialog.cancel')
 				});
 			}
-			
-			showInfoDialog.then(function(result) {
+
+			showInfoDialog.then(function (result) {
 				if (result.ok) {
 					//First, set as blacklisted
-					yasoon.io.getFileHash(handle).then(function(hash) {
+					yasoon.io.getFileHash(handle).then(function (hash) {
 						return yasoon.valueStore.putAttachmentHash(hash);
 					});
 
@@ -1162,7 +1162,7 @@ function AttachmentLinkRenderer() {
 
 					//Only accept dont ask again if was confirmed with ok					
 					if (result.checkbox) { //dont show again
-						yasoon.setting.setAppParameter('dialog.hideAttachmentBlacklistExplanation', 'true');					
+						yasoon.setting.setAppParameter('dialog.hideAttachmentBlacklistExplanation', 'true');
 					}
 				}
 			});
@@ -1193,14 +1193,14 @@ function AttachmentLinkRenderer() {
 			if (handle.hasFilePreview()) {
 				var timeoutFct = setTimeout(function () {
 					yasoon.io.getFilePreviewPath(handle)
-					.then(function (path) {
-						$('.thumbnail-preview').remove();
-						$('body').append('<img class="thumbnail-preview" src="' + path + '" style="z-index: 100000; cursor: pointer; background-color: white; position: absolute; left: ' + (e.originalEvent.x - 50) + 'px; top: ' + (e.originalEvent.y - 30) + 'px" />')
-						.find('.thumbnail-preview')
-						.on('mouseleave', function () {
-							$(this).unbind().remove();
+						.then(function (path) {
+							$('.thumbnail-preview').remove();
+							$('body').append('<img class="thumbnail-preview" src="' + path + '" style="z-index: 100000; cursor: pointer; background-color: white; position: absolute; left: ' + (e.originalEvent.x - 50) + 'px; top: ' + (e.originalEvent.y - 30) + 'px" />')
+								.find('.thumbnail-preview')
+								.on('mouseleave', function () {
+									$(this).unbind().remove();
+								});
 						});
-					});
 				}, 500);
 
 				$('.attachmentNameValue').on('mouseleave', function (e) {
@@ -1221,7 +1221,7 @@ function AttachmentLinkRenderer() {
 	};
 
 	this.refresh = function (id) {
-		if(template)
+		if (template)
 			self.fillTemplate(id, $('#' + id));
 	};
 
@@ -1239,11 +1239,11 @@ function AttachmentLinkRenderer() {
 				$.getScript(path1),
 				$.getScript(path2),
 			])
-			.spread(function () {
-				Handlebars.registerPartial("attachmentLink", jira.templates.attachmentLink);
-				template = jira.templates.attachmentFields;
-				self.fillTemplate(id, $('#'+ id));
-			});
+				.spread(function () {
+					Handlebars.registerPartial("attachmentLink", jira.templates.attachmentLink);
+					template = jira.templates.attachmentFields;
+					self.fillTemplate(id, $('#' + id));
+				});
 		} else {
 			self.fillTemplate(id, $('#' + id));
 		}
@@ -1293,26 +1293,26 @@ function TimeTrackingRenderer() {
 	this.render = function (id, field, container) {
 		$(container).append('<div id="' + id + '" data-type="timetracking"></div>');
 		$('#' + id).append('<div class="field-group">' +
-							'   <label for="' + id + '_originalestimate">' + yasoon.i18n('dialog.timetrackingOriginal') +
-							'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
-							'   </label>' +
-							'	<span style="min-width: 350px; width: 80%;">' +
-							'		<input class="text" style="min-width: 350px; width: 60%;" id="' + id + '_originalestimate" name="' + id + '_originalestimate" value="" type="text">' +
-							'		<span class="aui-form example">' + yasoon.i18n('dialog.timetrackingExample') + '</span>' +
-							'	</span>' +
-							'	<div class="description">' + yasoon.i18n('dialog.timetrackingDescrOriginal') + '</div>' +
-							'</div>');
+			'   <label for="' + id + '_originalestimate">' + yasoon.i18n('dialog.timetrackingOriginal') +
+			'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
+			'   </label>' +
+			'	<span style="min-width: 350px; width: 80%;">' +
+			'		<input class="text" style="min-width: 350px; width: 60%;" id="' + id + '_originalestimate" name="' + id + '_originalestimate" value="" type="text">' +
+			'		<span class="aui-form example">' + yasoon.i18n('dialog.timetrackingExample') + '</span>' +
+			'	</span>' +
+			'	<div class="description">' + yasoon.i18n('dialog.timetrackingDescrOriginal') + '</div>' +
+			'</div>');
 
 		$('#' + id).append('<div class="field-group">' +
-							'   <label for="' + id + '_remainingestimate">' + yasoon.i18n('dialog.timetrackingRemaining') +
-							'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
-							'   </label>' +
-							'	<span style="min-width: 350px; width: 80%;">' +
-							'		<input class="text" style="min-width: 350px; width: 60%;" id="' + id + '_remainingestimate" name="' + id + '_remainingestimate" value="" type="text">' +
-							'		<span class="aui-form example">' + yasoon.i18n('dialog.timetrackingExample') + ')</span>' +
-							'	</span>' +
-							'	<div class="description">' + yasoon.i18n('dialog.timetrackingDescrRemain') + '</div>' +
-							'</div>');
+			'   <label for="' + id + '_remainingestimate">' + yasoon.i18n('dialog.timetrackingRemaining') +
+			'       ' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') +
+			'   </label>' +
+			'	<span style="min-width: 350px; width: 80%;">' +
+			'		<input class="text" style="min-width: 350px; width: 60%;" id="' + id + '_remainingestimate" name="' + id + '_remainingestimate" value="" type="text">' +
+			'		<span class="aui-form example">' + yasoon.i18n('dialog.timetrackingExample') + ')</span>' +
+			'	</span>' +
+			'	<div class="description">' + yasoon.i18n('dialog.timetrackingDescrRemain') + '</div>' +
+			'</div>');
 	};
 }
 
@@ -1333,21 +1333,21 @@ function EpicLinkRenderer() {
 			if (!jiraIsVersionHigher(jira.systemInfo, '7')) {
 				value = value.replace('key:', '');
 			}
-			$('#' + id).append('<option value="'+ value +'"> '+ value + ' </option>').val(value).trigger('change');
+			$('#' + id).append('<option value="' + value + '"> ' + value + ' </option>').val(value).trigger('change');
 			$('#' + id).data('value', value);
 		}
 	};
 
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group input-field">' +
-				'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-				'    <select data-container-class="issuetype-ss" style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.pyxis.greenhopper.jira:gh-epic-link">' +
-				'        <option value="">' + yasoon.i18n('dialog.selectNone') +'</option>' +
-				'    </select>' +
-				'</div>';
+			'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+			'    <select data-container-class="issuetype-ss" style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.pyxis.greenhopper.jira:gh-epic-link">' +
+			'        <option value="">' + yasoon.i18n('dialog.selectNone') + '</option>' +
+			'    </select>' +
+			'</div>';
 
 		$(container).append(html);
-		
+
 		//Result of Service
 		// JIRA 6.x: {"epicNames":[{"key":"SSP-24","name":"Epic 1"},{"key":"SSP-25","name":"Epic 2"}],"total":2}
 		// JIRA 7+:  {"epicLists":[{"listDescriptor":"All epics","epicNames":[{"key":"SSP-24","name":"Epic 1","isDone":false},{"key":"SSP-25","name":"Epic 2","isDone":false},{"key":"SSP-28","name":"Epic New","isDone":false}]}],"total":3}
@@ -1363,46 +1363,46 @@ function EpicLinkRenderer() {
 						queryTerm = params.data.q;
 					}
 
-					jiraGet( url + queryTerm)
-					.then(function (data) {
-						var epics = JSON.parse(data);
-						var results = [];
+					jiraGet(url + queryTerm)
+						.then(function (data) {
+							var epics = JSON.parse(data);
+							var results = [];
 
-						if (epics && epics.total > 0) {
-							if (epics.epicLists) {
-								epics.epicLists.forEach(function (epicList) {
-									var optGroup = {
-										id: epicList.listDescriptor,
-										text: epicList.listDescriptor,
-										children: []
-									};
-									epicList.epicNames.forEach(function (epic) {
-										optGroup.children.push({
+							if (epics && epics.total > 0) {
+								if (epics.epicLists) {
+									epics.epicLists.forEach(function (epicList) {
+										var optGroup = {
+											id: epicList.listDescriptor,
+											text: epicList.listDescriptor,
+											children: []
+										};
+										epicList.epicNames.forEach(function (epic) {
+											optGroup.children.push({
+												id: epic.key,
+												text: epic.name + ' ( ' + epic.key + ' )',
+											});
+										});
+
+										results.push(optGroup);
+									});
+								}
+								else {
+									epics.epicNames.forEach(function (epic) {
+										results.push({
 											id: epic.key,
 											text: epic.name + ' ( ' + epic.key + ' )',
 										});
 									});
+								}
+							}
+							success(results);
+						})
+						.catch(function (e) {
+							console.log(e);
+							jira.handleError(e.data, e.statusCode, e.result, e.errorText);
+							success([]);
+						});
 
-									results.push(optGroup);
-								});
-							}
-							else {
-								epics.epicNames.forEach(function (epic) {
-									results.push({
-										id: epic.key,
-										text: epic.name + ' ( ' + epic.key + ' )',
-									});
-								});
-							}
-						}
-						success(results);
-					})
-					.catch(function (e) {
-						console.log(e);
-						jira.handleError(e.data, e.statusCode, e.result, e.errorText);
-						success([]);
-					});
-					
 				},
 				processResults: function (data, page) {
 					return {
@@ -1452,28 +1452,28 @@ function EpicLinkRenderer() {
 	//Update Epic JIRA 6.x and 7.0
 	this.updateEpic6 = function (newEpicLink, issueKey) {
 		jiraAjax('/rest/greenhopper/1.0/epics/' + newEpicLink + '/add', yasoon.ajaxMethod.Put, '{ "issueKeys":["' + issueKey + '"] }')
-		.then(submitSuccessHandler)
-		.catch(submitErrorHandler);
+			.then(submitSuccessHandler)
+			.catch(submitErrorHandler);
 	};
 	//Update Epic JIRA > 7.1
 	this.updateEpic7 = function (newEpicLink, issueKey) {
 		jiraAjax('/rest/agile/1.0/epic/' + newEpicLink + '/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }')
-		.then(submitSuccessHandler)
-		.catch(submitErrorHandler);
+			.then(submitSuccessHandler)
+			.catch(submitErrorHandler);
 	};
 
 	//Delete Epic JIRA 6.x and 7.0
 	this.deleteEpic6 = function (issueKey) {
 		jiraAjax('/rest/greenhopper/1.0/epics/remove', yasoon.ajaxMethod.Put, '{ "issueKeys":["' + issueKey + '"] }')
-		.then(submitSuccessHandler)
-		.catch(submitErrorHandler);
+			.then(submitSuccessHandler)
+			.catch(submitErrorHandler);
 	};
 
 	//Delete Epic JIRA > 7.1
 	this.deleteEpic7 = function (issueKey) {
 		jiraAjax('/rest/agile/1.0/epic/none/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }')
-		.then(submitSuccessHandler)
-		.catch(submitErrorHandler);
+			.then(submitSuccessHandler)
+			.catch(submitErrorHandler);
 	};
 }
 
@@ -1499,43 +1499,43 @@ function SprintLinkRenderer() {
 
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group input-field">' +
-				'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-				'    <select data-container-class="issuetype-ss" style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.pyxis.greenhopper.jira:gh-sprint">' +
-				'        <option value="">' + yasoon.i18n('dialog.selectNone') + '</option>' +
-				'    </select>' +
-				'</div>';
+			'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+			'    <select data-container-class="issuetype-ss" style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.pyxis.greenhopper.jira:gh-sprint">' +
+			'        <option value="">' + yasoon.i18n('dialog.selectNone') + '</option>' +
+			'    </select>' +
+			'</div>';
 
 		$(container).append(html);
 
 		jiraGet('/rest/greenhopper/1.0/sprint/picker')
-		.then(function (data) {
-			//{"suggestions":[{"name":"Sample Sprint 2","id":1,"stateKey":"ACTIVE"}],"allMatches":[]}
-			var sprints = JSON.parse(data);
-			var result = [];
-			var oldValue = $('#' + id).data('value');
-			
-			$(container).find('#' + id).html('<option value="">' + yasoon.i18n('dialog.selectNone') + '</option>');
-			
-			if (sprints && sprints.suggestions.length > 0) {
-				var optGroupSuggestion = $('<optgroup label="' + yasoon.i18n('dialog.sprintSuggestion') +'"></optgroup>');
-				$.each(sprints.suggestions, function (i, sprint) {
-					optGroupSuggestion.append('<option value="' + sprint.id + '"> ' + sprint.name + '</option>');
-				});
-				$(container).find('#' + id).append(optGroupSuggestion);
-			}
-			if (sprints && sprints.allMatches && sprints.allMatches.length > 0) {
-				var optGroupAll = $('<optgroup label="' + yasoon.i18n('dialog.sprintAll') +'"></optgroup>');
-				$.each(sprints.allMatches, function (i, sprint) {
-					optGroupAll.append('<option value="' + sprint.id + '"> ' + sprint.name + '</option>');
-				});
-				$(container).find('#' + id).append(optGroupAll);
-			}
-			
-			$('#' + id).select2();
-			$('#' + id).val(oldValue).trigger('change');
-		}).catch(function (e) {
-			jira.handleError(e.data, e.statusCode, e.result, e.errorText);
-		});
+			.then(function (data) {
+				//{"suggestions":[{"name":"Sample Sprint 2","id":1,"stateKey":"ACTIVE"}],"allMatches":[]}
+				var sprints = JSON.parse(data);
+				var result = [];
+				var oldValue = $('#' + id).data('value');
+
+				$(container).find('#' + id).html('<option value="">' + yasoon.i18n('dialog.selectNone') + '</option>');
+
+				if (sprints && sprints.suggestions.length > 0) {
+					var optGroupSuggestion = $('<optgroup label="' + yasoon.i18n('dialog.sprintSuggestion') + '"></optgroup>');
+					$.each(sprints.suggestions, function (i, sprint) {
+						optGroupSuggestion.append('<option value="' + sprint.id + '"> ' + sprint.name + '</option>');
+					});
+					$(container).find('#' + id).append(optGroupSuggestion);
+				}
+				if (sprints && sprints.allMatches && sprints.allMatches.length > 0) {
+					var optGroupAll = $('<optgroup label="' + yasoon.i18n('dialog.sprintAll') + '"></optgroup>');
+					$.each(sprints.allMatches, function (i, sprint) {
+						optGroupAll.append('<option value="' + sprint.id + '"> ' + sprint.name + '</option>');
+					});
+					$(container).find('#' + id).append(optGroupAll);
+				}
+
+				$('#' + id).select2();
+				$('#' + id).val(oldValue).trigger('change');
+			}).catch(function (e) {
+				jira.handleError(e.data, e.statusCode, e.result, e.errorText);
+			});
 	};
 
 	this.handleEvent = function (eventType, fieldId, field, data) {
@@ -1546,7 +1546,7 @@ function SprintLinkRenderer() {
 
 			var newSprintId = $('#' + fieldId).val();
 			if (sprintId != newSprintId) {
-				
+
 				jira.transaction.currentCallCounter++;
 				if (newSprintId) {
 					yasoon.oauth({
@@ -1577,7 +1577,7 @@ function SprintLinkRenderer() {
 function TempoAccountRenderer() {
 	this.getValue = function (id) {
 		var val = $('#' + id).val();
-				
+
 		if (jira.isEditMode) {
 			//In edit case: Only send if changed	
 			if (jira.currentIssue.fields[id] && isEqual(jira.currentIssue.fields[id].id, val))
@@ -1585,13 +1585,13 @@ function TempoAccountRenderer() {
 
 			if (!jira.currentIssue.fields[id] && !val)
 				return;
-			
+
 			return val ? parseInt(val) : -1;
 		}
-		else { 
+		else {
 			//In creation case: Only send if not null	
 			return (val) ? parseInt(val) : undefined;
-		}	
+		}
 	};
 
 	this.setValue = function (id, value) {
@@ -1603,71 +1603,71 @@ function TempoAccountRenderer() {
 
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group input-field">' +
-				'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-				'    <select class="select input-field" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
-				'      <option value="">' + yasoon.i18n('dialog.selectNone') + '</option>' +
-				'    </select>' +
-				'</div>';
+			'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+			'    <select class="select input-field" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
+			'      <option value="">' + yasoon.i18n('dialog.selectNone') + '</option>' +
+			'    </select>' +
+			'</div>';
 
 		$(container).append(html);
-		
+
 		Promise.all([
 			jiraGet('/rest/tempo-accounts/1/account'),
 			jiraGet('/rest/tempo-accounts/1/account/project/' + jira.selectedProject.id)
-		])        
-		.spread(function (accountData, projectAccounts) {
-			accountData = JSON.parse(accountData);
-			projectAccounts = JSON.parse(projectAccounts);
-						
-			var result = [];
-			
-			if (projectAccounts && projectAccounts.length > 0) {
-				var childs = [];
-				
-				projectAccounts.forEach(function(projectAcc) {
-					childs.push({
-						'id': projectAcc.id,
-						'text': projectAcc.name
-					});
-				});
-				
-				result.push({
-					id: 'projectAccounts',
-					text: yasoon.i18n('dialog.projectAccounts'),
-					children: childs
-				});
-			}
-		   
-			if (accountData && accountData.length > 0) {
-				accountData = accountData.filter(function(acc) { return acc.global; });
-								
-				if (accountData.length > 0) {
-				
-					var accChilds = [];
-					
-					accountData.forEach(function(projectAcc) {
-						accChilds.push({
+		])
+			.spread(function (accountData, projectAccounts) {
+				accountData = JSON.parse(accountData);
+				projectAccounts = JSON.parse(projectAccounts);
+
+				var result = [];
+
+				if (projectAccounts && projectAccounts.length > 0) {
+					var childs = [];
+
+					projectAccounts.forEach(function (projectAcc) {
+						childs.push({
 							'id': projectAcc.id,
 							'text': projectAcc.name
 						});
 					});
-					
+
 					result.push({
-						id: 'globalAccounts',
-						text: yasoon.i18n('dialog.globalAccounts'),
-						children: accChilds
+						id: 'projectAccounts',
+						text: yasoon.i18n('dialog.projectAccounts'),
+						children: childs
 					});
 				}
-			}
-			
-			$('#' + id).select2({
-				data: result 
+
+				if (accountData && accountData.length > 0) {
+					accountData = accountData.filter(function (acc) { return acc.global; });
+
+					if (accountData.length > 0) {
+
+						var accChilds = [];
+
+						accountData.forEach(function (projectAcc) {
+							accChilds.push({
+								'id': projectAcc.id,
+								'text': projectAcc.name
+							});
+						});
+
+						result.push({
+							id: 'globalAccounts',
+							text: yasoon.i18n('dialog.globalAccounts'),
+							children: accChilds
+						});
+					}
+				}
+
+				$('#' + id).select2({
+					data: result
+				});
+				var oldValue = $('#' + id).data('value');
+				if (oldValue) {
+					$('#' + id).val(oldValue).trigger('change');
+				}
 			});
-			var oldValue = $('#' + id).data('value');
-			if (oldValue) {
-				$('#' + id).val(oldValue).trigger('change');
-			}
-		});        
 	};
 }
 
@@ -1696,9 +1696,9 @@ function GroupSingleRenderer() {
 
 	this.render = function (id, field, container) {
 		var html = '<div class="field-group aui-field-componentspicker frother-control-renderer">' +
-						'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-						'    <select style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:grouppicker"></select>' +
-						'</div>';
+			'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+			'    <select style="min-width: 350px; width: 80%;" class="select input-field" id="' + id + '" name="' + id + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:grouppicker"></select>' +
+			'</div>';
 
 		$(container).append(html);
 
@@ -1715,22 +1715,22 @@ function GroupSingleRenderer() {
 					}
 
 					jiraGet(url + queryTerm)
-					.then(function (data) {
-						var groupsResult = JSON.parse(data);
-						console.log(groupsResult);
-						var groupsArray = [];
-						groupsResult.groups.forEach(function (group) {
-							groupsArray.push({
-								id: group.name,
-								text: group.name
+						.then(function (data) {
+							var groupsResult = JSON.parse(data);
+							console.log(groupsResult);
+							var groupsArray = [];
+							groupsResult.groups.forEach(function (group) {
+								groupsArray.push({
+									id: group.name,
+									text: group.name
+								});
 							});
-						});
 
-						success(groupsArray);
-					})
-					.catch(function (e) {
-						failure([]);
-					});
+							success(groupsArray);
+						})
+						.catch(function (e) {
+							failure([]);
+						});
 				},
 				processResults: function (data, page) {
 					return {
@@ -1762,16 +1762,16 @@ function IssuePickerRenderer() {
 			}
 
 			$('#' + id)
-			.val(value.id)
-			.trigger('change')
-			.trigger('select2:select', value);
+				.val(value.id)
+				.trigger('change')
+				.trigger('select2:select', value);
 		} else {
 			$('#' + id).removeData();
 
 			$('#' + id)
-			.val('')
-			.trigger('change')
-			.trigger('select2:select');
+				.val('')
+				.trigger('change')
+				.trigger('select2:select');
 		}
 	};
 
@@ -1793,7 +1793,7 @@ function IssuePickerRenderer() {
 		}
 
 		if (excludeSubtasks) {
-			jql +=  ((jql) ? ' AND': '') + ' type NOT IN subtaskIssueTypes()';
+			jql += ((jql) ? ' AND' : '') + ' type NOT IN subtaskIssueTypes()';
 		}
 
 		jql = '( ' + jql + ' )';
@@ -1805,26 +1805,26 @@ function IssuePickerRenderer() {
 		console.log('JQL' + jql);
 
 		return jiraGet('/rest/api/2/search?jql=' + encodeURIComponent(jql) + '&maxResults=20&fields=summary,project&validateQuery=false')
-		.then(function (data) {
-			if (term === lastQuery) {
-				var jqlResult = JSON.parse(data);
-				var result = [];
-				//Transform Data
-				jqlResult.issues.forEach(function (issue) {
-					result.push({ id: issue.id, text: issue.fields.summary + ' (' + issue.key + ')', key: issue.key, summary: issue.fields.summary, project: issue.fields.project });
-				});
+			.then(function (data) {
+				if (term === lastQuery) {
+					var jqlResult = JSON.parse(data);
+					var result = [];
+					//Transform Data
+					jqlResult.issues.forEach(function (issue) {
+						result.push({ id: issue.id, text: issue.fields.summary + ' (' + issue.key + ')', key: issue.key, summary: issue.fields.summary, project: issue.fields.project });
+					});
 
-				console.log('Result for ' + term, result);
-				callback(result);
-			}
-		})
-		.catch(function () {
-			if (term === lastQuery) {
-				$('#IssueSpinner').css('display', 'none');
-			}
-			yasoon.util.log('Couldn\'t find issues for Project' + jira.selectedProjectKey + ' || Term: ' + term, yasoon.util.severity.warning);
-			callback([]);
-		});
+					console.log('Result for ' + term, result);
+					callback(result);
+				}
+			})
+			.catch(function () {
+				if (term === lastQuery) {
+					$('#IssueSpinner').css('display', 'none');
+				}
+				yasoon.util.log('Couldn\'t find issues for Project' + jira.selectedProjectKey + ' || Term: ' + term, yasoon.util.severity.warning);
+				callback([]);
+			});
 	}, 250);
 
 	this.render = function (id, field, container) {
@@ -1832,25 +1832,25 @@ function IssuePickerRenderer() {
 			$('#' + id).select2("destroy");
 
 			$('#' + id + '-Container').remove();
-			
+
 			//Second Clear Data
 			$('#' + id).removeData();
 		}
 
 		//Render Issue Picker
 		var html = '' +
-		 '<div class="field-group input-field" id="' + id + '-Container">'+ 
-		 '	<label for="' + id + '"> ' + 
-		 '		<span> ' + yasoon.i18n('dialog.issue') +'</span>' + 
+			'<div class="field-group input-field" id="' + id + '-Container">' +
+			'	<label for="' + id + '"> ' +
+			'		<span> ' + yasoon.i18n('dialog.issue') + '</span>' +
 			((field.required) ? '<span class="aui-icon icon-required">' + yasoon.i18n('dialog.required') + '</span>' : '') +
-		 '	</label> ' +
-		 '	<select class="select input-field" id="' + id + '" name="' + id +'" style="width: 80%">' +
-		 '		<option></option>' +
-		 '	</select>' +
-		 //'  <a id="' + id + '-advancedLink">advanced</a>' +
-		 '  <img src="Dialogs/ajax-loader.gif" style="display:none;" id="' + id + '-Spinner" />' +
-		 '</div>';
-		 
+			'	</label> ' +
+			'	<select class="select input-field" id="' + id + '" name="' + id + '" style="width: 80%">' +
+			'		<option></option>' +
+			'	</select>' +
+			//'  <a id="' + id + '-advancedLink">advanced</a>' +
+			'  <img src="Dialogs/ajax-loader.gif" style="display:none;" id="' + id + '-Spinner" />' +
+			'</div>';
+
 		$(container).append(html);
 
 		//Render Issue Advanced Search Dialog
@@ -1950,7 +1950,7 @@ function IssuePickerRenderer() {
 				return;
 			}
 
-			
+
 			var currentProject = jira.projects.filter(function (p) { return p.id === issue.project.id; })[0];
 			if (!currentProject || currentProject.projectTypeKey !== 'service_desk') {
 				$('.buttons').removeClass('servicedesk');
@@ -1960,16 +1960,16 @@ function IssuePickerRenderer() {
 
 			//We have a service Project... Check if it is a service request
 			jiraGet('/rest/servicedeskapi/request/' + issue.id)
-			.then(function (data) {
-				$('.buttons').addClass('servicedesk');
-				$('.buttons').removeClass('no-requesttype');
-			})
-			.catch(function (e) {
-				$('.buttons').addClass('no-requesttype');
-				$('.buttons').removeClass('servicedesk');
-			});
+				.then(function (data) {
+					$('.buttons').addClass('servicedesk');
+					$('.buttons').removeClass('no-requesttype');
+				})
+				.catch(function (e) {
+					$('.buttons').addClass('no-requesttype');
+					$('.buttons').removeClass('servicedesk');
+				});
 		});
-
+		/*
 		var isLoaded = false;
 		$('#' + id + '-advancedLink').off().on('click', function () {
 			if (!isLoaded) {
@@ -1980,14 +1980,14 @@ function IssuePickerRenderer() {
 				});
 			}
 				
-		});
+		}); */
 	};
 }
 
 function renderSelectField(id, field, style) {
 	var cssStyle = style || "min-width: 350px; width: 80%;";
 	var html = '' +
-		'    <select class="select input-field" id="' + id + '" name="' + id + '" style="'+ cssStyle +'" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
+		'    <select class="select input-field" id="' + id + '" name="' + id + '" style="' + cssStyle + '" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
 		'		<option value="">' + ((field.hasDefaultValue) ? yasoon.i18n('dialog.selectDefault') : yasoon.i18n('dialog.selectNone')) + '</option>';
 
 	$.each(field.allowedValues, function (i, option) {
@@ -2033,17 +2033,17 @@ function TeamLeadCompaniesSingleRenderer() {
 
 	this.render = function (id, field, container) {
 		var values = field.allowedValues;
-		values.sort(function (a, b) { return (a.value.toLowerCase() > b.value.toLowerCase()) ? 1 : -1;  });
+		values.sort(function (a, b) { return (a.value.toLowerCase() > b.value.toLowerCase()) ? 1 : -1; });
 		var html = '<div class="field-group input-field">' +
-				'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-				'    <select class="select input-field" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
-				'      <option value="">' + yasoon.i18n('dialog.selectNone') + '</option>';
-			$.each(values, function (i, option) {
-				var text = option.name || option.value;
-				if (text) {
-					html += '<option value="' + option.id + '" data-name="' + text + '">' + text + '</option>';
-				}
-			});
+			'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+			'    <select class="select input-field" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
+			'      <option value="">' + yasoon.i18n('dialog.selectNone') + '</option>';
+		$.each(values, function (i, option) {
+			var text = option.name || option.value;
+			if (text) {
+				html += '<option value="' + option.id + '" data-name="' + text + '">' + text + '</option>';
+			}
+		});
 		html += '</select></div>';
 
 		$(container).append(html);
@@ -2061,30 +2061,30 @@ function TeamLeadCompaniesSingleRenderer() {
 				if (entry.length === 0) {
 					var ownUserKey = jira.ownUser.key || jira.ownUser.name; //Depending on version >.<
 					return jiraGet('/plugins/servlet/crm/api?apiKey=' + jira.settings.teamleadApiKey + '&userName=' + ownUserKey + '&command=addcompany&clients-org_name=' + encodeURI(selectedOption) + '&clients-org_type=2')
-					.then(function (data) {
-						var result = JSON.parse(data);
-						if (result.success) {
-							//Load new meta data and update select Box
-							jira.getMetaData()
-							.then(function () {
-								var newMeta = $.grep(jira.projectMeta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
-								var newOption = newMeta.fields[id].allowedValues.filter(function (v) {
-									return v.value === selectedOption;
-								})[0];
+						.then(function (data) {
+							var result = JSON.parse(data);
+							if (result.success) {
+								//Load new meta data and update select Box
+								jira.getMetaData()
+									.then(function () {
+										var newMeta = $.grep(jira.projectMeta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
+										var newOption = newMeta.fields[id].allowedValues.filter(function (v) {
+											return v.value === selectedOption;
+										})[0];
 
-								if (newOption) {
-									var text = newOption.name || newOption.value;
-									$('#' + id).append('<option value="' + newOption.id + '">' + text + '</option>');
+										if (newOption) {
+											var text = newOption.name || newOption.value;
+											$('#' + id).append('<option value="' + newOption.id + '">' + text + '</option>');
 
-									$('#' + id).select2('destroy').select2(options).val(newOption.id);
-								} else {
-									yasoon.dialog.showMessageBox('Company created but couldn\'t load new id. Please restart the dialog to use the new company');
-								}
-							});
-						} else {
-							yasoon.dialog.showMessageBox('Company creation failed: ' + result.details);
-						}
-					});
+											$('#' + id).select2('destroy').select2(options).val(newOption.id);
+										} else {
+											yasoon.dialog.showMessageBox('Company created but couldn\'t load new id. Please restart the dialog to use the new company');
+										}
+									});
+							} else {
+								yasoon.dialog.showMessageBox('Company creation failed: ' + result.details);
+							}
+						});
 				}
 			});
 		}
@@ -2123,15 +2123,15 @@ function TeamLeadContactsSingleRenderer() {
 	this.render = function (id, field, container) {
 		var values = field.allowedValues;
 		values.sort(function (a, b) { return (a.value.toLowerCase() > b.value.toLowerCase()) ? 1 : -1; });
-		
-	    //just start sync
+
+		//just start sync
 		var ownUserKey = jira.ownUser.key || jira.ownUser.name; //Depending on version >.<
 		jiraGet('/plugins/servlet/crm/api?apiKey=' + jira.settings.teamleadApiKey + '&userName=' + ownUserKey + '&command=sync');
 
 		var html = '<div class="field-group input-field">' +
-				'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-				'    <select class="select input-field" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
-				'      <option value="">' + yasoon.i18n('dialog.selectNone') + '</option>';
+			'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+			'    <select class="select input-field" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%" data-type="com.atlassian.jira.plugin.system.customfieldtypes:select">' +
+			'      <option value="">' + yasoon.i18n('dialog.selectNone') + '</option>';
 		$.each(values, function (i, option) {
 			var text = option.name || option.value;
 			if (text) {
@@ -2155,19 +2155,19 @@ function TeamLeadContactsSingleRenderer() {
 				console.log('Change triggered', newCompany);
 				var ownUserKey = jira.ownUser.key || jira.datownUser.name; //Depending on version >.<
 				return jiraGet('/plugins/servlet/crm/api?apiKey=' + jira.settings.teamleadApiKey + '&userName=' + ownUserKey + '&command=searchEntities&crm_param_1=Company&crm_param_1_value=' + newCompany + '&tableName=CONTACTS')
-				.then(function (data) {
-					var result = JSON.parse(data);
-					console.log(result);
-					if (result.success) {
-						$('#' + id).html('<option value="">' + yasoon.i18n('dialog.selectNone') + '</option>');
-						result.records.forEach(function (c) {
-							var text = c.name;
-							$('#' + id).append('<option value="' + c.id + '">' + text + '</option>')
-						});
+					.then(function (data) {
+						var result = JSON.parse(data);
+						console.log(result);
+						if (result.success) {
+							$('#' + id).html('<option value="">' + yasoon.i18n('dialog.selectNone') + '</option>');
+							result.records.forEach(function (c) {
+								var text = c.name;
+								$('#' + id).append('<option value="' + c.id + '">' + text + '</option>')
+							});
 
-						$('#' + id).select2('destroy').select2(options);
-					}
-				});
+							$('#' + id).select2('destroy').select2(options);
+						}
+					});
 
 			});
 		}
@@ -2179,42 +2179,42 @@ function TeamLeadContactsSingleRenderer() {
 				if (entry.length === 0) {
 					//First Get company Id
 					return Promise.resolve()
-					.then(function () {
-						if (jira.settings.teamleadMapping && jira.settings.teamleadMapping[id]) {
-							var companyName = $('#' + jira.settings.teamleadMapping[id]).find(':selected').data('name');
-							return jiraGet('/plugins/servlet/crm/api?apiKey=' + jira.settings.teamleadApiKey + '&userName=' + ownUserKey + '&command=getcompanybyname&companyName=' + companyName);
-						}
-					})
-					.then(function (companyData) {
-						var company = { id: jira.settings.teamleadFallbackId || 1 };
-						if (companyData) {
-							var company = JSON.parse(companyData);
-							if (!company.success) {
-								return;
-							}
-						}
-					   
-						return jiraGet('/rest/catalog-rest/1.0/catalog/updateNom?nomId=&tableName=CONTACTS&clients-contact_name=' + encodeURI(selectedOption) + '&view-clients-contact_company=Any&clients-contact_company=(' + company.id + ')')
 						.then(function () {
-							//Load new meta data and update select Box
-							return jira.getMetaData()
-							.then(function () {
-								var newMeta = $.grep(jira.projectMeta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
-								var newOption = newMeta.fields[id].allowedValues.filter(function (v) {
-									return v.value === selectedOption;
-								})[0];
-
-								if (newOption) {
-									var text = newOption.name || newOption.value;
-									$('#' + id).append('<option value="' + newOption.id + '">' + text + '</option>');
-
-									$('#' + id).select2('destroy').select2(options).val(newOption.id);
-								} else {
-									yasoon.dialog.showMessageBox('Contact created but couldn\'t load new id. Please restart the dialog to use the new contact');
+							if (jira.settings.teamleadMapping && jira.settings.teamleadMapping[id]) {
+								var companyName = $('#' + jira.settings.teamleadMapping[id]).find(':selected').data('name');
+								return jiraGet('/plugins/servlet/crm/api?apiKey=' + jira.settings.teamleadApiKey + '&userName=' + ownUserKey + '&command=getcompanybyname&companyName=' + companyName);
+							}
+						})
+						.then(function (companyData) {
+							var company = { id: jira.settings.teamleadFallbackId || 1 };
+							if (companyData) {
+								var company = JSON.parse(companyData);
+								if (!company.success) {
+									return;
 								}
-							});
+							}
+
+							return jiraGet('/rest/catalog-rest/1.0/catalog/updateNom?nomId=&tableName=CONTACTS&clients-contact_name=' + encodeURI(selectedOption) + '&view-clients-contact_company=Any&clients-contact_company=(' + company.id + ')')
+								.then(function () {
+									//Load new meta data and update select Box
+									return jira.getMetaData()
+										.then(function () {
+											var newMeta = $.grep(jira.projectMeta.issuetypes, function (i) { return i.id == $('#issuetype').val(); })[0];
+											var newOption = newMeta.fields[id].allowedValues.filter(function (v) {
+												return v.value === selectedOption;
+											})[0];
+
+											if (newOption) {
+												var text = newOption.name || newOption.value;
+												$('#' + id).append('<option value="' + newOption.id + '">' + text + '</option>');
+
+												$('#' + id).select2('destroy').select2(options).val(newOption.id);
+											} else {
+												yasoon.dialog.showMessageBox('Contact created but couldn\'t load new id. Please restart the dialog to use the new contact');
+											}
+										});
+								});
 						});
-					});
 				}
 			});
 		}
@@ -2260,16 +2260,16 @@ function TeamLeadContactsMultiRenderer() {
 	};
 
 	this.render = function (id, field, container) {
-	    //just start sync
-	    var ownUserKey = jira.ownUser.key || jira.ownUser.name; //Depending on version >.<
-	    jiraGet('/plugins/servlet/crm/api?apiKey=' + jira.settings.teamleadApiKey + '&userName=' + ownUserKey + '&command=sync');
+		//just start sync
+		var ownUserKey = jira.ownUser.key || jira.ownUser.name; //Depending on version >.<
+		jiraGet('/plugins/servlet/crm/api?apiKey=' + jira.settings.teamleadApiKey + '&userName=' + ownUserKey + '&command=sync');
 
 
 		var html = '<div class="field-group input-field">' +
-				'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-				'    <select data-container-class="issuetype-ss" class="select text" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">';
+			'    <label for="issuetype">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+			'    <select data-container-class="issuetype-ss" class="select text" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">';
 		html += '      </select>' +
-				'</div>';
+			'</div>';
 
 		$(container).append(html);
 
@@ -2277,16 +2277,16 @@ function TeamLeadContactsMultiRenderer() {
 
 		var ownUserKey = jira.ownUser.key || jira.ownUser.name; //Depending on version >.<
 		jiraGet('/plugins/servlet/crm/api?apiKey=' + jira.settings.teamleadApiKey + '&userName=' + ownUserKey + '&command=getcontacts')
-		.then(function (contactsData) {
-			var result = JSON.parse(contactsData);
-			if (result.success) {
-				var selectElem = $('#' + id);
-				result.contacts.forEach(function (c) {
-					selectElem.append('<option value="' + c.id + '">' + c.name + ' </option>');
-				});
-				$('#' + id).select2('destroy').select2();
-			}
-		});
+			.then(function (contactsData) {
+				var result = JSON.parse(contactsData);
+				if (result.success) {
+					var selectElem = $('#' + id);
+					result.contacts.forEach(function (c) {
+						selectElem.append('<option value="' + c.id + '">' + c.name + ' </option>');
+					});
+					$('#' + id).select2('destroy').select2();
+				}
+			});
 	};
 }
 
@@ -2320,46 +2320,46 @@ function DynamicMultiSelect(selector) {
 	};
 
 	this.setValue = function (id, value) {
-		console.log('Set Multi Value:',value);
+		console.log('Set Multi Value:', value);
 		if (value) {
 			var selectedValues = [];
 			$.each(value, function (i, item) {
 				selectedValues.push(item.id);
 			});
 			$('#' + id).val(selectedValues).trigger('change');
-		} 
+		}
 	};
 
 	this.render = function (id, field, container) {
 
 		$('#' + id).select2();
 		var html = '<div class="field-group input-field">' +
-				'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
-				'    <select class="select input-field" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">' +
-				'      <option value="">' + yasoon.i18n('dialog.selectNone') + '</option>' +
-				'    </select>' +
-				'</div>';
+			'    <label for="' + id + '">' + field.name + '' + ((field.required) ? '<span class="aui-icon icon-required">Required</span>' : '') + '</label>' +
+			'    <select class="select input-field" id="' + id + '" name="' + id + '" style="min-width: 350px; width: 80%;" multiple="multiple" data-type="com.atlassian.jira.plugin.system.customfieldtypes:multiselect">' +
+			'      <option value="">' + yasoon.i18n('dialog.selectNone') + '</option>' +
+			'    </select>' +
+			'</div>';
 
 		$(container).append(html);
 
 		$('#' + id).select2();
 
 		customSelector()
-		.then(function (resultData) {
-			var oldValue = $('#' + id).data('value');
+			.then(function (resultData) {
+				var oldValue = $('#' + id).data('value');
 
-			if ($('#' + id).data('select2')) {
-				//Refresh
-				$('#' + id).select2("destroy").removeData();
-			}
-			$('#' + id).select2({
-				data: resultData
+				if ($('#' + id).data('select2')) {
+					//Refresh
+					$('#' + id).select2("destroy").removeData();
+				}
+				$('#' + id).select2({
+					data: resultData
+				});
+
+				if (oldValue) {
+					$('#' + id).val(oldValue).trigger('change');
+				}
 			});
-
-			if (oldValue) {
-				$('#' + id).val(oldValue).trigger('change');
-			}
-		});
 	};
 
 }
@@ -2445,7 +2445,7 @@ function formatUser(user) {
 	}
 
 	if (icon === 'ownUser') {
-		return $('<span><i style="margin-right:3px; width: 16px;" class="fa fa-user" />' + user.text +'</span>');
+		return $('<span><i style="margin-right:3px; width: 16px;" class="fa fa-user" />' + user.text + '</span>');
 	} else if (icon === 'emailSender') {
 		return $('<span><i style="margin-right:3px; width: 16px;" class="fa fa-envelope" />' + user.text + '</span>');
 	} else if (icon === 'avatar') {
@@ -2463,11 +2463,11 @@ function formatIssue(issue) {
 	if (issue.element && issue.id && issue.project) {
 		$(issue.element).removeData();
 		$(issue.element).data('id', issue.id)
-				.data('text', issue.text)
-				.data('key', issue.key)
-				.data('summary', issue.summary)
-				.data('projectId', issue.project.id)
-				.data('projectKey', issue.project.key);
+			.data('text', issue.text)
+			.data('key', issue.key)
+			.data('summary', issue.summary)
+			.data('projectId', issue.project.id)
+			.data('projectKey', issue.project.key);
 	}
 	return issue.text;
 
@@ -2497,13 +2497,13 @@ function insertAtCursor(myField, myValue) {
 }
 
 function showConfirmation(options) {
-	return new Promise(function(resolve, reject) {
+	return new Promise(function (resolve, reject) {
 		var optionsInt = {
 			size: 'large',
 			backdrop: false,
 			message: options.message,
-			callback: function(ok) { 
-				var checkState = $('#checkboxConfirm').prop( "checked" );
+			callback: function (ok) {
+				var checkState = $('#checkboxConfirm').prop("checked");
 				resolve({
 					checkbox: checkState,
 					ok: ok
@@ -2527,7 +2527,7 @@ function showConfirmation(options) {
 				label: options.checkbox
 			};
 		}
-		
+
 		bootbox.confirm(optionsInt);
 	})
 }
@@ -2556,14 +2556,14 @@ function searchUser(mode, query, callback) {
 	if (selectedIssueKey || selectedProjectKey) {
 		var queryKey = (selectedIssueKey) ? 'issueKey=' + selectedIssueKey : 'projectKey=' + selectedProjectKey;
 		jiraGet('/rest/api/2/user/viewissue/search?' + queryKey + '&maxResults=10&username=' + query)
-		.then(function (users) {
-			var data = [];
-			users = JSON.parse(users);
-			users.forEach(function (user) {
-				data.push({ id: user.name, name: user.displayName, type: 'user' });
+			.then(function (users) {
+				var data = [];
+				users = JSON.parse(users);
+				users.forEach(function (user) {
+					data.push({ id: user.name, name: user.displayName, type: 'user' });
+				});
+				callback(data);
 			});
-			callback(data);
-		});
 	} else {
 		//Show alert
 		$('.mentions-input-box + .mentions-help-text').slideDown();

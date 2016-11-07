@@ -10,7 +10,6 @@
 @setter(SetterType.Option)
 class UserSelectField extends Select2AjaxField {
 
-    private lastSearchTerm: string;
     private avatarPath: string;
     constructor(id: string, field: JiraMetaField, options: any = {}) {
         super(id, field, options);

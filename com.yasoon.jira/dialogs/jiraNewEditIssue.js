@@ -29,8 +29,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	FieldController.register('labels', LabelSelectField);
 	FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:labels', LabelSelectField);
 	FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:float', NumberField);
-	FieldController.register('priority', Select2Field);
-	FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:select', Select2Field);
+	FieldController.register('priority', SingleSelectField);
+	FieldController.register('security', SingleSelectField);
+	FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:select', SingleSelectField);
 	FieldController.register('components', MultiSelectField);
 	FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:multiselect', MultiSelectField);
 	FieldController.register('fixVersions', VersionMultiSelectField);
@@ -39,6 +40,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	FieldController.register('reporter', UserSelectField);
 	FieldController.register('assignee', UserSelectField);
 	FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:userpicker', UserSelectField);
+	FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:cascadingselect', CascadedSelectField);
+	FieldController.register('timetracking', TimeTrackingField);
+	FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:grouppicker', GroupSelectField);
+
+	//Tempo
+	FieldController.register('com.tempoplugin.tempo-accounts:accounts.customfield', TempoAccountField);
+
+
 	jira = this;
 
 	this.UIFormHandler = UIRenderer;
@@ -115,32 +124,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		self.cacheProjects = initParams.projects;
 		self.systemInfo = initParams.systemInfo || { versionNumbers: [6, 4, 0] };
 
-		self.userCommonValues = {
-			results: [{
-				id: 'Suggested',
-				text: yasoon.i18n('dialog.suggested'),
-				children: [{
-					'id': jira.ownUser.name,
-					'iconClass': 'ownUser',
-					'text': jira.ownUser.displayName
-				}]
-			},
-			{
-				id: 'Search',
-				text: yasoon.i18n('dialog.userSearchResult'),
-				children: []
-			}]
-		};
-
-		self.assigneeCommonValues = JSON.parse(JSON.stringify(self.userCommonValues));
-
-		self.assigneeCommonValues.results[0].children.push({
-			'id': '-1',
-			'selected': true,
-			'icon': 'avatar',
-			'text': 'Automatic'
-		});
-
 		//Register Close Handler
 		yasoon.dialog.onClose(self.cleanup);
 
@@ -151,12 +134,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		var projectsString = yasoon.setting.getAppParameter('recentProjects');
 		if (projectsString) {
 			self.recentProjects = JSON.parse(projectsString);
-		}
-
-		//Load Recent Issues from DB
-		var issuesString = yasoon.setting.getAppParameter('recentIssues');
-		if (issuesString) {
-			self.recentIssues = JSON.parse(issuesString);
 		}
 
 		//Load DB settings
@@ -800,6 +777,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				return self.renderIssueUser();
 			})
 			.catch(function (e) {
+				window.lastError = e;
 				console.log('Error in new renderLogic - switch to old one', e);
 				return self.renderIssueFixed(meta);
 			})

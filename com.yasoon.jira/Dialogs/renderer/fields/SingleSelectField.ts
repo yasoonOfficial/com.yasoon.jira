@@ -7,14 +7,13 @@
 @setter(SetterType.Option)
 class SingleSelectField extends Select2Field {
 
-    constructor(id: string, field: JiraMetaField, options: any = {}) {
-        let data = [];
-        field.allowedValues.forEach(function (value) {
-            data.push({ id: value.id, text: value.name });
-        });
-        options.data = data;
-        options.templateResult = Select2Field.formatIcon;
-        options.templateSelection = Select2Field.formatIcon;
-        super(id, field, options);
-    };
+    constructor(id: string, field: JiraMetaField, options: any = {}, style: string = "min-width: 350px; width: 80%;") {
+        //Default value or None?
+        let placeholder = (field.hasDefaultValue) ? yasoon.i18n('dialog.selectDefault') : yasoon.i18n('dialog.selectNone');
+
+        options.data = Select2Field.convertToSelect2Array(field.allowedValues);
+        options.placeholder = placeholder;
+
+        super(id, field, options, false, style);
+    }
 }

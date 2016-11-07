@@ -11,8 +11,9 @@ abstract class Select2AjaxField extends Select2Field {
 	private currentPromise: Promise<any>;
 	private currentResolve;
 	private currentReject;
+	protected emptySearchResult: Select2Element[];
 
-	constructor(id: string, field: JiraMetaField, options: any = {}, multiple: boolean = false, style: string = "min-width: 350px; width: 80%;") {
+	constructor(id: string, field: JiraMetaField, options: Select2Options = {}, multiple: boolean = false, style: string = "min-width: 350px; width: 80%;") {
 		if (!options.ajax) {
 			options.ajax = {
 				url: '',
@@ -27,22 +28,31 @@ abstract class Select2AjaxField extends Select2Field {
 					} else {
 						promise = this.getEmptyDataInternal();
 					}
+
+					this.showSpinner();
+
 					promise
 						.spread((result, searchTerm) => {
 							//This handler is registered multiple times on the same promise.
 							//Check if we are responsible to make sure we call the correct success function
 							if (searchTerm == queryTerm) {
 								console.log('Result for  ' + searchTerm, result);
+								this.hideSpinner();
 								success(result);
 							}
 						})
 						.catch(error => {
 							console.log(error);
+							window["lastError"] = error;
+							this.hideSpinner();
 							//yasoon.util.log();
-							success([]);
+							success();
 						});
 				},
 				processResults: (data, page) => {
+					if (!data)
+						data = [];
+
 					return {
 						results: data
 					};
@@ -63,9 +73,15 @@ abstract class Select2AjaxField extends Select2Field {
 		}, 500, false);
 	}
 
+	showSpinner() {
+		$('#' + this.id + '-spinner').removeClass('hidden');
+	}
 
+	hideSpinner() {
+		$('#' + this.id + '-spinner').addClass('hidden');
+	}
 
-	private getDataDebounced(searchTerm: string): Promise<any> {
+	private getDataDebounced(searchTerm: string): Promise<Select2Element[]> {
 		//Complicated...
 		//We don'T want to spam Promises that never fullfill...
 		//So we only create Promises if the previous one is already fullfilled.
@@ -92,7 +108,17 @@ abstract class Select2AjaxField extends Select2Field {
 			});
 	}
 
-	abstract getData(searchTerm: string): Promise<any>;
-	abstract getEmptyData(): Promise<any>;
+	abstract getData(searchTerm: string): Promise<Select2Element[]>;
+
+	getEmptyData(): Promise<Select2Element[]> {
+		if (this.emptySearchResult)
+			return Promise.resolve(this.emptySearchResult);
+
+		return this.getData("")
+			.then((result) => {
+				this.emptySearchResult = result;
+				return result;
+			});
+	}
 }
 

@@ -19,10 +19,11 @@ interface FieldSetter {
 }
 
 abstract class Field implements FieldGet, FieldSet {
-	protected id: string;
+	public id: string;
 	protected fieldMeta: JiraMetaField;
-	protected initalValue: any;
+	protected initialValue: any;
 	protected params: any;
+	protected ownContainer: JQuery;
 
 	getter: FieldGetter;
 	setter: FieldSetter;
@@ -37,11 +38,11 @@ abstract class Field implements FieldGet, FieldSet {
 		if (!getter)
 			throw new Error("Please either redefine method getValue or add a @getter Annotation for " + this.id);
 
-		return this.getter.getValue(this.id, this.fieldMeta, onlyChangedData, this.getDomValue(), this.initalValue);
+		return this.getter.getValue(this.id, this.fieldMeta, onlyChangedData, this.getDomValue(), this.initialValue);
 	}
 
 	setInitialValue(value: any): void {
-		this.initalValue = value;
+		this.initialValue = value;
 	}
 
 	setValue(value: any): void {
@@ -50,8 +51,6 @@ abstract class Field implements FieldGet, FieldSet {
 
 		return this.setter.setValue(this.id, value);
 	}
-
-
 
 	triggerValueChange(): void {
 		console.log('Value changed: ' + this.id + ' -  New Value: ' + this.getValue(false));
@@ -65,8 +64,6 @@ abstract class Field implements FieldGet, FieldSet {
 	abstract render(container: JQuery)
 
 	renderField(container: JQuery): void {
-
-		let newContainer: JQuery;
 		let fieldGroup: JQuery = container.find('#' + this.id + '-field-group');
 
 		//First render the field-group container for this field if it does not exist yet
@@ -84,9 +81,9 @@ abstract class Field implements FieldGet, FieldSet {
 						<div class="description">${(this.fieldMeta.description) ? this.fieldMeta.description : ''}</div>
 					</div>`;
 
-		newContainer = $(fieldGroup).html(html).find('.field-container');
+		this.ownContainer = $(fieldGroup).html(html).find('.field-container');
 		//Only inject inner container for easier usage
-		this.render(newContainer);
+		this.render(this.ownContainer);
 
 		this.hookEventHandler();
 	}
@@ -159,14 +156,14 @@ function setter(setterType: SetterType) {
 	}
 }
 
-type JiraSchema = {
+interface JiraSchema {
 	type: string,
 	custom?: string,
 	customId?: string,
 	system?: string
 }
 
-type JiraValue = {
+interface JiraValue {
 	id: string,
 	name?: string,
 	key?: string,
@@ -174,17 +171,131 @@ type JiraValue = {
 	iconUrl?: string,
 	released?: boolean,
 	archived?: boolean,
+	children?: Array<JiraValue>
 }
 
-type JiraMetaField = {
+interface JiraSentObj {
+	id?: string,
+	name?: string,
+	child?: JiraSentObj
+}
+
+interface JiraTimetrackingValue {
+	originalEstimate?: string,
+	remainingEstimate?: string
+}
+
+interface JiraGroups {
+	total: number,
+	header: string,
+	groups: JiraGroup[]
+}
+
+interface JiraGroup {
+	html: string,
+	labels: JiraGroupLabel[],
+	name: string
+}
+
+interface JiraGroupLabel {
+	text: string,
+	title: string,
+	type: string
+}
+
+interface Jira6Epics {
+	epicNames: JiraEpic[],
+	total: number
+}
+
+interface Jira7Epics {
+	epicLists: JiraEpicList[],
+	total: number
+}
+
+interface JiraEpicList {
+	listDescriptor: string,
+	epicNames: JiraEpic[],
+}
+
+
+interface JiraEpic {
+	key: string,
+	name: string,
+	isDone?: boolean
+}
+
+interface JiraSprints {
+	suggestions: JiraSprint[],
+	allMatches: JiraSprint[]
+}
+
+interface JiraSprint {
+	name: string,
+	id: number,
+	statusKey: string
+}
+
+interface JiraJqlResult {
+	issues: JiraIssue[]
+}
+
+interface JiraIssue {
+	id: string,
+	key: string,
+	fields: any
+}
+
+interface JiraMetaField {
 	required: boolean,
 	schema: JiraSchema,
 	name: string,
 	key: string,
 	description?: string,
-	hasDefaultValues: boolean,
-	operators: Array<string>,
+	hasDefaultValue?: boolean,
+	operators?: Array<string>,
 	autoCompleteUrl?: string,
 	allowedValues?: Array<JiraValue>,
-	isHidden: boolean
+	isHidden?: boolean
+}
+
+interface Select2Options {
+	allowClear?: boolean,
+	placeholder?: string,
+	templateResult?: Select2FormatMethod,
+	templateSelection?: Select2FormatMethod,
+	minimumInputLength?: number,
+	ajax?: Select2Ajax,
+	data?: Select2Element[]
+
+}
+
+interface Select2Element {
+	id: string,
+	text: string,
+	icon?: string,
+	iconClass?: string,
+	children?: Select2Element[]
+}
+
+interface Select2Ajax {
+	url?: string,
+	transport?: Select2AjaxMethod,
+	processResults?: any
+}
+
+interface Select2AjaxMethod {
+	(params: Select2CallbackParams, success: Select2Callback, failure: Select2Callback): void
+}
+
+interface Select2FormatMethod {
+	(element: Select2Element): string | JQuery
+}
+
+interface Select2CallbackParams {
+	data: { q: string }
+}
+
+interface Select2Callback {
+	(result?: { results: any[] }): void
 }
