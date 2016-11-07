@@ -166,9 +166,7 @@ function JiraSettingController() {
 
 			$('#jiraLogout').off().click(function () {
 				yasoon.app.invalidateOAuthToken(self.currentService);
-				self.baseUrl = '';
 				self.currentService = '';
-				yasoon.setting.setAppParameter('baseUrl', '');
 				yasoon.setting.setAppParameter('settings', JSON.stringify(self));
 				yasoon.view.header.triggerOAuthStatus.valueHasMutated();
 
