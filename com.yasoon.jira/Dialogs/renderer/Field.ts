@@ -53,8 +53,11 @@ abstract class Field implements FieldGet, FieldSet {
 	}
 
 	triggerValueChange(): void {
-		console.log('Value changed: ' + this.id + ' -  New Value: ' + this.getValue(false));
-		FieldController.raiseEvent(EventType.FieldChange, this.id, this.getValue(false));
+		FieldController.raiseEvent(EventType.FieldChange, this.getValue(false), this.id);
+	}
+
+	updateFieldMeta(newMeta: JiraMetaField) {
+		this.fieldMeta = newMeta;
 	}
 
 	abstract getDomValue(): any
@@ -98,7 +101,11 @@ enum SetterType {
 }
 
 enum EventType {
-	FieldChange
+	FieldChange, AfterRender, AfterSave, BeforeSave
+}
+
+interface IFieldEventHandler {
+	handleEvent(type: EventType, newValue: any, source?: string): void;
 }
 
 //@getter Annotation
@@ -155,6 +162,7 @@ function setter(setterType: SetterType) {
 		}
 	}
 }
+
 
 interface JiraSchema {
 	type: string,
@@ -243,7 +251,30 @@ interface JiraJqlResult {
 interface JiraIssue {
 	id: string,
 	key: string,
-	fields: any
+	fields: { [id: string]: any }
+}
+
+type JiraProjectType = 'business' | 'service_desk' | 'software';
+
+interface JiraProject {
+	id: string,
+	name: string,
+	key: string,
+	projectTypeKey?: JiraProjectType,
+	issueTypes?: JiraIssueType[],
+}
+
+interface JiraIssueType {
+	avatarId: number,
+	description: string,
+	iconUrl: string,
+	id: string,
+	name: string,
+	subtask: boolean
+}
+
+interface JiraProjectTemplate extends JiraProject {
+	senderEmail: string
 }
 
 interface JiraMetaField {
@@ -275,7 +306,8 @@ interface Select2Element {
 	text: string,
 	icon?: string,
 	iconClass?: string,
-	children?: Select2Element[]
+	children?: Select2Element[],
+	data?: any
 }
 
 interface Select2Ajax {

@@ -69,7 +69,7 @@ class UserSelectField extends Select2AjaxField {
         return result;
     }
 
-    getData(searchTerm: string): Promise<any> {
+    getData(searchTerm: string): Promise<Select2Element[]> {
         let url = '/rest/api/2/user/picker?query=' + searchTerm + '&maxResults=50';
         if (this.id === 'assignee') {
             //Only get assignable users
@@ -103,7 +103,7 @@ class UserSelectField extends Select2AjaxField {
             });
     }
 
-    getEmptyData(): Promise<any> {
+    getEmptyData(): Promise<Select2Element[]> {
         return Promise.resolve(this.getReturnStructure());
     }
 }

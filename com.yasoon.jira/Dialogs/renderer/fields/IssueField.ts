@@ -3,14 +3,13 @@
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
 /// <reference path="../../../common.js" />
-/// <reference path="../getter/GetArray.ts" />
-/// <reference path="../setter/SetTagValue.ts" />
 
 @getter(GetterType.Object, "name")
 @setter(SetterType.Option)
 class IssueField extends Select2AjaxField {
     private recentIssues: Select2Element[];
     private excludeSubtasks: boolean;
+    private projectIssues: { [id: string]: Select2Element[] };
 
     constructor(id: string, field: JiraMetaField, excludeSubtasks: boolean) {
         let options: Select2Options = {};
@@ -19,7 +18,7 @@ class IssueField extends Select2AjaxField {
         super(id, field, options);
 
         this.excludeSubtasks = excludeSubtasks;
-
+        this.projectIssues = {}
         //Load Recent Issues from DB
         let issuesString = yasoon.setting.getAppParameter('recentIssues');
         if (issuesString) {
@@ -70,13 +69,15 @@ class IssueField extends Select2AjaxField {
 
     private getReturnStructure(issues?: Select2Element[], queryTerm?: string) {
         let result: Select2Element[] = [];
-        // 1. Build common suggestion
-        result.push({
-            id: 'Suggested',
-            text: yasoon.i18n('dialog.recentIssues'),
-            children: this.recentIssues,
-        });
-
+        // 1. Build recent suggestion
+        if (this.recentIssues) {
+            result.push({
+                id: 'Suggested',
+                text: yasoon.i18n('dialog.recentIssues'),
+                children: this.recentIssues,
+            });
+        }
+        //2. Search Results
         if (issues) {
             if (queryTerm) {
                 result.push({
@@ -96,9 +97,9 @@ class IssueField extends Select2AjaxField {
         return result;
     }
 
-    getData(searchTerm: string): Promise<any> {
+    queryData(searchTerm: string): Promise<Select2Element[]> {
         //Concat JQL
-        var jql = '';
+        let jql = '';
 
         if (searchTerm) {
             jql += 'Summary ~ "' + searchTerm + '"';
@@ -125,29 +126,42 @@ class IssueField extends Select2AjaxField {
         console.log('JQL' + jql);
 
         return jiraGet('/rest/api/2/search?jql=' + encodeURIComponent(jql) + '&maxResults=20&fields=summary,project&validateQuery=false')
-            .then(function (data) {
-                if (term === lastQuery) {
-                    var jqlResult = JSON.parse(data);
-                    var result = [];
-                    //Transform Data
-                    jqlResult.issues.forEach(function (issue) {
-                        result.push({ id: issue.id, text: issue.fields.summary + ' (' + issue.key + ')', key: issue.key, summary: issue.fields.summary, project: issue.fields.project });
+            .then((data: string) => {
+                let jqlResult: JiraJqlResult = JSON.parse(data);
+                let result: Select2Element[] = [];
+                //Transform Data
+                jqlResult.issues.forEach(function (issue) {
+                    result.push({
+                        id: issue.id,
+                        text: issue.fields['summary'] + ' (' + issue.key + ')',
+                        data: issue
                     });
+                });
 
-                    console.log('Result for ' + term, result);
-                    callback(result);
-                }
-            })
-            .catch(function () {
-                if (term === lastQuery) {
-                    $('#IssueSpinner').css('display', 'none');
-                }
-                yasoon.util.log('Couldn\'t find issues for Project' + jira.selectedProjectKey + ' || Term: ' + term, yasoon.util.severity.warning);
-                callback([]);
+                return result;
+            });
+    }
+
+    getData(searchTerm: string): Promise<Select2Element[]> {
+        return this.queryData(searchTerm)
+            .then((result: Select2Element[]) => {
+                return this.getReturnStructure(result);
             });
     }
 
     getEmptyData(): Promise<any> {
-        return Promise.resolve(this.getReturnStructure());
+        if (jira.selectedProjectKey) {
+            if (this.projectIssues[jira.selectedProjectKey]) {
+                return Promise.resolve(this.getReturnStructure(this.projectIssues[jira.selectedProjectKey]));
+            } else {
+                return this.queryData('')
+                    .then((data) => {
+                        this.projectIssues[jira.selectedProjectKey] = this.getReturnStructure(data);
+                        return this.projectIssues[jira.selectedProjectKey];
+                    });
+            }
+        } else {
+            return Promise.resolve(this.getReturnStructure());
+        }
     }
 }

@@ -47,6 +47,14 @@ abstract class Select2Field extends Field {
 		$('#' + this.id)["select2"](this.options);
 	}
 
+	showSpinner() {
+		$('#' + this.id + '-spinner').removeClass('hidden');
+	}
+
+	hideSpinner() {
+		$('#' + this.id + '-spinner').addClass('hidden');
+	}
+
 	static formatIcon(element: Select2Element): string | JQuery {
 		if (!element.id) return element.text; // optgroup
 

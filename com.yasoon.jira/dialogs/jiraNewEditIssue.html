@@ -29,45 +29,14 @@
 							<div id="MainAlert" class="alert alert-danger" style="display:none; margin: -20px -20px 0px -20px; border-radius: 0px;">
 								<span data-bind="localizedText: 'dialog.connectionError'">Connection Error. Loading Values from Jira not possible.</span>
 							</div>
-							<div class="">
-								<div class="qf-field qf-field-project qf-required">
-									<div class="field-group ">
-										<label for="project" data-bind="localizedText: 'dialog.project'"></label>
-										<select class="select input-field" id="project" name="pid" style="min-width: 350px; width: 80%;">
-											<option></option>
-											<optgroup class="templates" label="" style="display:none;"></optgroup>
-											<optgroup class="recent" label="Recent Projects" data-bind="localizedText: {'label' : 'dialog.recentProjects' }"></optgroup>
-											<optgroup class="all" label="All Projects" data-bind="localizedText: {'label' : 'dialog.allProjects' }"></optgroup>
-										</select>
-										<img src="images/ajax-loader.gif" style="display:none;" id="ProjectSpinner" />
-									</div>
-								</div>
-								<div id="IssueArea" class="qf-field qf-field-issuetype issue-setup-fields qf-required" style="display:none;">
-									<div class="field-group input-field">
-										<label for="issuetype"><span id="issueTypeLabel" data-bind="localizedText: 'dialog.issueType'"></span><span class="aui-icon icon-required" data-bind="localizedText: 'dialog.required'">Required</span></label>
-										<select class="select input-field" id="issuetype" name="issuetype" style="min-width: 350px; width: 80%;"></select>
-										<br />
-										<a id="switchServiceMode" class="hidden" style="cursor:pointer;" title="">
-											<span class="showPortal"><i class="fa fa-plus"></i><span data-bind="localizedText: 'dialog.SDAssignment'">Service Desk assignment</span>											</span>
-											<span class="hidePortal"><i class="fa fa-minus"></i><span data-bind="localizedText: 'dialog.SDAssignment'">Service Desk assignment</span>											</span>
-										</a>
-									</div>
-								</div>
-								<div id="SubtaskArea" class="qf-field qf-field-issuetype issue-setup-fields qf-required hidden">
-								</div>
-								<div id="ServiceArea" class="qf-field qf-field-issuetype issue-setup-fields qf-required hidden">
-									<div style="color: darkgray; font-size: 12px;" data-bind="localizedText: 'dialog.SDExplanation'">Service Desk assignments make the issue visible for the reporter in the Service Desk as "Own Request""</div>
-									<div class="field-group input-field">
-										<label for="requestType"><span id="requestTypeLabel" data-bind="localizedText: 'dialog.requestType'">Request Type</span><span class="aui-icon icon-required" data-bind="localizedText: 'dialog.required'">Required</span></label>
-										<select class="select input-field" id="requestType" name="requestType" style="min-width: 350px; width: 80%;"></select>
-									</div>
-									<div class="field-group input-field" id="behalfOfUserDiv">
-										<label for="behalfReporter" data-bind="localizedText: 'dialog.behalfOf'">On behalf of</label>
-										<div id="behalfOfUserReporter" style="min-width: 350px; width: 100%; overflow: hidden;">
-
-										</div>
-									</div>
-								</div>
+							<div id="HeaderArea">
+							</div>
+							<div id="IssueArea" class="hidden">
+							</div>
+							<div id="SubtaskArea" class="hidden">
+							</div>
+							<div id="ServiceArea" class="hidden">
+								<div style="color: darkgray; font-size: 12px;" data-bind="localizedText: 'dialog.SDExplanation'">Service Desk assignments make the issue visible for the reporter in the Service Desk as "Own Request""</div>
 							</div>
 							<div id="ContentArea" class="content" style="visibility:hidden;">
 								<div id="markupLoader" style="display: none; position:absolute; background: url(images/ajax-loader.gif) no-repeat center center; width: 36px; height: 36px; left: 175px; z-index: 100; margin-top: 10px"></div>

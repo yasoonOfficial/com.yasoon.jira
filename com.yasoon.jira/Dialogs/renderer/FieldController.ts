@@ -3,8 +3,13 @@ declare var jira;
 declare var yasoon;
 
 namespace FieldController {
+    export const projectFieldId = 'project';
     let fieldTypes: any = {};
     let metaFields: { [id: string]: Field } = {};
+    //Event --> Fields[]
+    let lifecycleHandler: { [id: number]: IFieldEventHandler[] } = {};
+    // Event --> FieldId --> Fields[]
+    let fieldEventHandler: { [id: number]: { [id: string]: IFieldEventHandler[] } } = {};
 
     export function register(key: string, newField: typeof Field, params?: any): void {
         fieldTypes[key] = { field: newField, params: params };
@@ -31,18 +36,28 @@ namespace FieldController {
         return hasChanged;
     }
 
-    export function loadMeta(fields: any): void {
+    export function loadMeta(fields: { [id: string]: JiraMetaField }): void {
         for (let key in fields) {
             let field: JiraMetaField = fields[key];
             let type = getFieldType(field);
             if (type) {
                 let buffer = fieldTypes[type];
                 if (buffer) {
-                    enrichFieldMeta(field);
-                    let handler: Field = new buffer.field(key, field, buffer.params);
-                    metaFields[key] = handler;
+                    loadField(field, buffer.field, buffer.params);
                 }
             }
+        }
+    }
+
+    export function loadField(fieldMeta: JiraMetaField, type: any, params?: any): void {
+        enrichFieldMeta(fieldMeta);
+        let field = getField(fieldMeta.key);
+
+        if (field) {
+            field.updateFieldMeta(fieldMeta);
+        } else {
+            let handler: Field = new type(fieldMeta.key, fieldMeta, params);
+            metaFields[fieldMeta.key] = handler;
         }
     }
 
@@ -94,14 +109,55 @@ namespace FieldController {
         }
     }
 
-    export function raiseEvent(eventType: EventType, id: string, newValue: any) {
+    export function raiseEvent(eventType: EventType, newValue: any, id?: string): void {
         //Check for Event Type
+        console.log('Event raised', eventType, id, newValue);
+
         switch (eventType) {
             case EventType.FieldChange:
-                //Check if we have a dynamic config for this field.
-                if (id === "1") {
+                //get Field handler
+                if (fieldEventHandler[eventType] && fieldEventHandler[eventType][id]) {
+                    fieldEventHandler[eventType][id].forEach(field => {
+                        try {
+                            field.handleEvent(eventType, newValue, id);
+                        } catch (e) {
 
+                        }
+                    });
                 }
+                break;
+            default:
+                if (lifecycleHandler[eventType]) {
+                    lifecycleHandler[eventType].forEach(field => {
+                        try {
+                            field.handleEvent(eventType, newValue);
+                        } catch (e) {
+
+                        }
+                    });
+                }
+                break;
+        }
+    }
+
+    export function registerEvent(eventType: EventType, handler: IFieldEventHandler, id?: string): void {
+        switch (eventType) {
+            case EventType.FieldChange:
+                if (!fieldEventHandler[eventType]) {
+                    fieldEventHandler[eventType] = {};
+                }
+
+                if (!fieldEventHandler[eventType][id]) {
+                    fieldEventHandler[eventType][id] = [];
+                }
+                fieldEventHandler[eventType][id].push(handler);
+                break;
+
+            default:
+                if (!lifecycleHandler[eventType]) {
+                    lifecycleHandler[eventType] = [];
+                }
+                lifecycleHandler[eventType].push(handler);
                 break;
         }
     }

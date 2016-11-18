@@ -73,14 +73,6 @@ abstract class Select2AjaxField extends Select2Field {
 		}, 500, false);
 	}
 
-	showSpinner() {
-		$('#' + this.id + '-spinner').removeClass('hidden');
-	}
-
-	hideSpinner() {
-		$('#' + this.id + '-spinner').addClass('hidden');
-	}
-
 	private getDataDebounced(searchTerm: string): Promise<Select2Element[]> {
 		//Complicated...
 		//We don'T want to spam Promises that never fullfill...
