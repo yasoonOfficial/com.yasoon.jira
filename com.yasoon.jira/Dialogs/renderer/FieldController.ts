@@ -4,6 +4,9 @@ declare var yasoon;
 
 namespace FieldController {
     export const projectFieldId = 'project';
+    export const issueTypeFieldId = 'issueType';
+    export const issueFieldId = 'issue';
+
     let fieldTypes: any = {};
     let metaFields: { [id: string]: Field } = {};
     //Event --> Fields[]
@@ -119,7 +122,9 @@ namespace FieldController {
                 if (fieldEventHandler[eventType] && fieldEventHandler[eventType][id]) {
                     fieldEventHandler[eventType][id].forEach(field => {
                         try {
-                            field.handleEvent(eventType, newValue, id);
+                            setTimeout(function (eventType, newValue, id) {
+                                field.handleEvent(eventType, newValue, id);
+                            }, 1, eventType, newValue, id);
                         } catch (e) {
 
                         }

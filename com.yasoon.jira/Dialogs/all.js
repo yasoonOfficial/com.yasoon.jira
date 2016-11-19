@@ -9,6 +9,46 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var EmailController = (function () {
+    function EmailController(mail, settings) {
+        this.fieldMapping = {
+            subject: 'summary',
+            body: 'description',
+            sender: 'reporter',
+            sentAt: ''
+        };
+        this.mail = mail;
+        this.settings = settings;
+        var fieldMappingString = yasoon.setting.getAppParameter('fieldMapping');
+        if (fieldMappingString) {
+            this.fieldMapping = JSON.parse(fieldMappingString);
+        }
+    }
+    EmailController.prototype.getAttachmentFileHandles = function () {
+        //If created by email, check for templates and attachments
+        if (this.mail && !this.attachmentHandles) {
+            this.attachmentHandles = [];
+            //Add current mail to clipboard
+            var handle = this.mail.getFileHandle();
+            if (this.settings.addEmailOnNewAddIssue) {
+                handle.selected = true;
+            }
+            this.attachmentHandles.push(handle);
+            if (this.mail.attachments && this.mail.attachments.length > 0) {
+                this.mail.attachments.forEach(function (attachment) {
+                    var handle = attachment.getFileHandle();
+                    //Skip too small images	
+                    if (this.settings.addAttachmentsOnNewAddIssue) {
+                        handle.selected = true;
+                    }
+                    this.attachmentHandles.push(handle);
+                });
+            }
+        }
+        return this.attachmentHandles || [];
+    };
+    return EmailController;
+}());
 /// <reference path="../Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 var SetValue = (function () {
@@ -48,10 +88,10 @@ var Field = (function () {
         if (onlyChangedData === void 0) { onlyChangedData = false; }
         if (!getter)
             throw new Error("Please either redefine method getValue or add a @getter Annotation for " + this.id);
-        return this.getter.getValue(this.id, this.fieldMeta, onlyChangedData, this.getDomValue(), this.initalValue);
+        return this.getter.getValue(this.id, this.fieldMeta, onlyChangedData, this.getDomValue(), this.initialValue);
     };
     Field.prototype.setInitialValue = function (value) {
-        this.initalValue = value;
+        this.initialValue = value;
     };
     Field.prototype.setValue = function (value) {
         if (!setter)
@@ -59,11 +99,12 @@ var Field = (function () {
         return this.setter.setValue(this.id, value);
     };
     Field.prototype.triggerValueChange = function () {
-        console.log('Value changed: ' + this.id + ' -  New Value: ' + this.getValue(false));
-        FieldController.raiseEvent(EventType.FieldChange, this.id, this.getValue(false));
+        FieldController.raiseEvent(EventType.FieldChange, this.getValue(false), this.id);
+    };
+    Field.prototype.updateFieldMeta = function (newMeta) {
+        this.fieldMeta = newMeta;
     };
     Field.prototype.renderField = function (container) {
-        var newContainer;
         var fieldGroup = container.find('#' + this.id + '-field-group');
         //First render the field-group container for this field if it does not exist yet
         if (fieldGroup.length === 0) {
@@ -71,9 +112,9 @@ var Field = (function () {
         }
         //Render label, mandatory and hidden logic
         var html = "<div class=\"field-group " + ((this.fieldMeta.required) ? 'required' : '') + " " + ((this.fieldMeta.isHidden) ? 'hidden' : '') + "\" >\n\t\t\t\t\t\t<label for=\"" + this.id + "\">" + this.fieldMeta.name + " \n\t\t\t\t\t\t\t<span class=\"aui-icon icon-required\">Required</span>\n\t\t\t\t\t\t</label>\n\t\t\t\t\t\t<div class=\"field-container\">\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class=\"description\">" + ((this.fieldMeta.description) ? this.fieldMeta.description : '') + "</div>\n\t\t\t\t\t</div>";
-        newContainer = $(fieldGroup).html(html).find('.field-container');
+        this.ownContainer = $(fieldGroup).html(html).find('.field-container');
         //Only inject inner container for easier usage
-        this.render(newContainer);
+        this.render(this.ownContainer);
         this.hookEventHandler();
     };
     return Field;
@@ -97,6 +138,9 @@ var SetterType;
 var EventType;
 (function (EventType) {
     EventType[EventType["FieldChange"] = 0] = "FieldChange";
+    EventType[EventType["AfterRender"] = 1] = "AfterRender";
+    EventType[EventType["AfterSave"] = 2] = "AfterSave";
+    EventType[EventType["BeforeSave"] = 3] = "BeforeSave";
 })(EventType || (EventType = {}));
 //@getter Annotation
 function getter(getterType, params) {
@@ -147,8 +191,15 @@ function setter(setterType) {
 /// <reference path="../../definitions/jquery.d.ts" />
 var FieldController;
 (function (FieldController) {
+    FieldController.projectFieldId = 'project';
+    FieldController.issueTypeFieldId = 'issueType';
+    FieldController.issueFieldId = 'issue';
     var fieldTypes = {};
     var metaFields = {};
+    //Event --> Fields[]
+    var lifecycleHandler = {};
+    // Event --> FieldId --> Fields[]
+    var fieldEventHandler = {};
     function register(key, newField, params) {
         fieldTypes[key] = { field: newField, params: params };
     }
@@ -179,14 +230,24 @@ var FieldController;
             if (type) {
                 var buffer = fieldTypes[type];
                 if (buffer) {
-                    enrichFieldMeta(field);
-                    var handler = new buffer.field(key, field, buffer.params);
-                    metaFields[key] = handler;
+                    loadField(field, buffer.field, buffer.params);
                 }
             }
         }
     }
     FieldController.loadMeta = loadMeta;
+    function loadField(fieldMeta, type, params) {
+        enrichFieldMeta(fieldMeta);
+        var field = getField(fieldMeta.key);
+        if (field) {
+            field.updateFieldMeta(fieldMeta);
+        }
+        else {
+            var handler = new type(fieldMeta.key, fieldMeta, params);
+            metaFields[fieldMeta.key] = handler;
+        }
+    }
+    FieldController.loadField = loadField;
     function render(id, container) {
         var field = getField(id);
         if (field) {
@@ -237,17 +298,58 @@ var FieldController;
         }
     }
     FieldController.setFormData = setFormData;
-    function raiseEvent(eventType, id, newValue) {
+    function raiseEvent(eventType, newValue, id) {
         //Check for Event Type
+        console.log('Event raised', eventType, id, newValue);
         switch (eventType) {
             case EventType.FieldChange:
-                //Check if we have a dynamic config for this field.
-                if (id === "1") {
+                //get Field handler
+                if (fieldEventHandler[eventType] && fieldEventHandler[eventType][id]) {
+                    fieldEventHandler[eventType][id].forEach(function (field) {
+                        try {
+                            setTimeout(function (eventType, newValue, id) {
+                                field.handleEvent(eventType, newValue, id);
+                            }, 1, eventType, newValue, id);
+                        }
+                        catch (e) {
+                        }
+                    });
+                }
+                break;
+            default:
+                if (lifecycleHandler[eventType]) {
+                    lifecycleHandler[eventType].forEach(function (field) {
+                        try {
+                            field.handleEvent(eventType, newValue);
+                        }
+                        catch (e) {
+                        }
+                    });
                 }
                 break;
         }
     }
     FieldController.raiseEvent = raiseEvent;
+    function registerEvent(eventType, handler, id) {
+        switch (eventType) {
+            case EventType.FieldChange:
+                if (!fieldEventHandler[eventType]) {
+                    fieldEventHandler[eventType] = {};
+                }
+                if (!fieldEventHandler[eventType][id]) {
+                    fieldEventHandler[eventType][id] = [];
+                }
+                fieldEventHandler[eventType][id].push(handler);
+                break;
+            default:
+                if (!lifecycleHandler[eventType]) {
+                    lifecycleHandler[eventType] = [];
+                }
+                lifecycleHandler[eventType].push(handler);
+                break;
+        }
+    }
+    FieldController.registerEvent = registerEvent;
 })(FieldController || (FieldController = {}));
 //Util Stuff --> New File
 function findWithAttr(array, attr, value) {
@@ -291,6 +393,238 @@ function searchJiraUser(mode, query, callback) {
         callback([]);
     }
 }
+/// <reference path="../Field.ts" />
+/// <reference path="../../../definitions/jquery.d.ts" />
+/// <reference path="../getter/GetTextValue.ts" />
+/// <reference path="../setter/SetValue.ts" />
+var AttachmentField = (function (_super) {
+    __extends(AttachmentField, _super);
+    function AttachmentField() {
+        _super.apply(this, arguments);
+    }
+    AttachmentField.prototype.getDomValue = function () {
+        return '';
+    };
+    AttachmentField.prototype.getValue = function () {
+        //Nessecary as attachments will upload differently
+        return undefined;
+    };
+    AttachmentField.prototype.setValue = function () {
+        //Attachments work differently
+    };
+    AttachmentField.prototype.hookEventHandler = function () {
+        var _this = this;
+        $('#' + this.id).change(function (e) { return _this.triggerValueChange(); });
+    };
+    ;
+    AttachmentField.prototype.render = function (container) {
+        container.append($("<input class=\"text long-field\" id=\"" + this.id + "\" name=\"" + this.id + "\" type=\"text\" />"));
+    };
+    ;
+    return AttachmentField;
+}(Field));
+/// <reference path="../Field.ts" />
+/// <reference path="../../../definitions/jquery.d.ts" />
+var Select2Field = (function (_super) {
+    __extends(Select2Field, _super);
+    function Select2Field(id, field, options, multiple, style) {
+        if (multiple === void 0) { multiple = false; }
+        if (style === void 0) { style = "min-width: 350px; width: 80%;"; }
+        _super.call(this, id, field);
+        this.options = $.extend({ minimumInputLength: 0, allowClear: true, placeholder: '', templateResult: Select2Field.formatIcon, templateSelection: Select2Field.formatIcon }, options);
+        this.styleCss = style;
+        this.multiple = multiple;
+    }
+    Select2Field.prototype.getDomValue = function () {
+        if (this.multiple) {
+            var values = $('#' + this.id).val() || [];
+            var selectedValues_1 = [];
+            values.forEach(function (id) {
+                selectedValues_1.push({ id: id });
+            });
+            return selectedValues_1;
+        }
+        else {
+            return $('#' + this.id).val();
+        }
+    };
+    Select2Field.prototype.getObjectValue = function () {
+        var elements = $('#' + this.id)['select2']('data');
+        if (this.multiple) {
+            return elements.map(function (p) { return p.data; });
+        }
+        else {
+            return elements[0].data;
+        }
+    };
+    Select2Field.prototype.setData = function (newValues) {
+        this.options.data = newValues;
+        $('#' + this.id)["select2"]("destroy");
+        $('#' + this.id).remove();
+        this.render(this.ownContainer);
+        this.hookEventHandler();
+    };
+    Select2Field.prototype.hookEventHandler = function () {
+        var _this = this;
+        $('#' + this.id).on('change', function (e) { return _this.triggerValueChange(); });
+    };
+    Select2Field.prototype.render = function (container) {
+        container.append($("<select class=\"select input-field\" id=\"" + this.id + "\" name=\"" + this.id + "\" style=\"" + this.styleCss + "\" " + ((this.multiple) ? 'multiple' : '') + ">\n\t\t\t\t\t\t\t\t<option></option>\n\t\t\t\t\t\t\t</select>\n\t\t\t\t\t\t\t<img src=\"Dialogs/ajax-loader.gif\" class=\"hidden\" id=\"" + this.id + "-spinner\" />"));
+        $('#' + this.id)["select2"](this.options);
+    };
+    Select2Field.prototype.showSpinner = function () {
+        $('#' + this.id + '-spinner').removeClass('hidden');
+    };
+    Select2Field.prototype.hideSpinner = function () {
+        $('#' + this.id + '-spinner').addClass('hidden');
+    };
+    Select2Field.formatIcon = function (element) {
+        if (!element.id)
+            return element.text; // optgroup
+        if (element.icon)
+            return $('<span><img style="margin-right:3px; width: 16px;" src="' + element.icon + '"  onerror="jiraHandleImageFallback(this)"/>' + element.text + '</span>');
+        else if (element.iconClass) {
+            return $('<span><i style="margin-right:4px;" class="' + element.iconClass + '"></i><span>' + element.text + '</span></span>');
+        }
+        else {
+            return element.text;
+        }
+    };
+    Select2Field.convertToSelect2Array = function (jiraValues) {
+        var data = [];
+        jiraValues.forEach(function (value) {
+            var text = value.name || value.value;
+            var newObj = { id: value.id, text: text };
+            if (value.iconUrl) {
+                newObj.icon = jira.icons.mapIconUrl(value.iconUrl);
+            }
+            data.push(newObj);
+        });
+        return data;
+    };
+    return Select2Field;
+}(Field));
+/// <reference path="../Field.ts" />
+/// <reference path="../../../definitions/jquery.d.ts" />
+var GetObject = (function () {
+    function GetObject(keyName) {
+        this.keyName = keyName;
+    }
+    GetObject.prototype.getValue = function (id, field, onlyChangedData, newValue, initialValue) {
+        var result = {};
+        if (onlyChangedData) {
+            //In edit case: Only send if changed	
+            if (!isEqual(initialValue, newValue)) {
+                result[this.keyName] = newValue || "-1";
+                return result;
+            }
+        }
+        else {
+            //In creation case: Only send if not null	
+            if (newValue) {
+                result[this.keyName] = newValue;
+                return result;
+            }
+        }
+    };
+    return GetObject;
+}());
+/// <reference path="../Field.ts" />
+/// <reference path="../../../definitions/jquery.d.ts" />
+var SetOptionValue = (function () {
+    function SetOptionValue() {
+    }
+    SetOptionValue.prototype.setValue = function (id, value) {
+        if (value && Array.isArray(value)) {
+            //Multiselect            
+            var selectedValues_2 = [];
+            value.forEach(function (v) {
+                var text = v.name || v.value;
+                $('#' + id).append("<option value=\"" + v.id + ">" + text + "</option>");
+                selectedValues_2.push(v.id);
+            });
+            $('#' + id).val(selectedValues_2).trigger('change');
+        }
+        else if (value) {
+            //Single Select
+            var text = value.name || value.value;
+            $('#' + id).append("<option value=\"" + value.id + ">" + text + "</option>");
+            $('#' + id).val(value.id).trigger('change');
+        }
+    };
+    return SetOptionValue;
+}());
+/// <reference path="../Field.ts" />
+/// <reference path="Select2Field.ts" />
+/// <reference path="../../../definitions/jquery.d.ts" />
+/// <reference path="../getter/GetObject.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
+var CascadedSelectField = (function (_super) {
+    __extends(CascadedSelectField, _super);
+    function CascadedSelectField(id, field) {
+        _super.call(this, id, field, {});
+        this.parentField = new SingleSelectField(id + '_parent', field, {}, "min-width: 150px; width: 45%;");
+        var childFieldMeta = JSON.parse(JSON.stringify(field));
+        childFieldMeta.allowedValues = [];
+        this.childField = new SingleSelectField(id + '_child', childFieldMeta, {}, "min-width: 150px; width: 45%; ");
+    }
+    CascadedSelectField.prototype.getValue = function (onlyChangedData) {
+        if (onlyChangedData === void 0) { onlyChangedData = false; }
+        var selectedParentId = this.parentField.getDomValue() || null;
+        var selectedChildId = this.childField.getDomValue() || null;
+        var resultObj = null;
+        if (onlyChangedData) {
+            //In edit case: Only send if changed	
+            var oldParentValue = (this.initialValue) ? this.initialValue.id : null;
+            var oldChildValue = (this.initialValue && this.initialValue.child) ? this.initialValue.child.id : null;
+            if (!isEqual(oldParentValue, selectedParentId) ||
+                !isEqual(oldChildValue, selectedChildId)) {
+                if (selectedParentId) {
+                    var childObj = (selectedChildId) ? { id: selectedChildId } : null;
+                    return {
+                        id: selectedParentId,
+                        child: childObj
+                    };
+                }
+                else {
+                    return null;
+                }
+            }
+        }
+        else {
+            //In creation case: Only send if not null
+            if (selectedParentId) {
+                resultObj = { id: selectedParentId };
+                if (selectedChildId) {
+                    resultObj.child = { id: selectedChildId };
+                }
+                return resultObj;
+            }
+        }
+    };
+    CascadedSelectField.prototype.setValue = function (value) {
+        this.parentField.setValue(value.id);
+        if (value.child) {
+            this.childField.setValue(value.child.id);
+        }
+    };
+    CascadedSelectField.prototype.hookEventHandler = function () {
+        var _this = this;
+        _super.prototype.hookEventHandler.call(this);
+        $('#' + this.parentField.id).change(function (e) {
+            var parentValue = _this.parentField.getDomValue();
+            var currentSelection = _this.fieldMeta.allowedValues.filter(function (v) { return v.id == parentValue; })[0];
+            var allowedValues = (currentSelection) ? currentSelection.children : [];
+            _this.childField.setData(Select2Field.convertToSelect2Array(allowedValues));
+        });
+    };
+    CascadedSelectField.prototype.render = function (container) {
+        this.parentField.render(container);
+        container.append('<span style="margin-left: 10px;">&nbsp</span>');
+        this.childField.render(container);
+    };
+    return CascadedSelectField;
+}(Select2Field));
 /// <reference path="../Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 var GetObjectArray = (function () {
@@ -494,58 +828,6 @@ var DateTimeField = (function (_super) {
     return DateTimeField;
 }(Field));
 /// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
-var Select2Field = (function (_super) {
-    __extends(Select2Field, _super);
-    function Select2Field(id, field, options, multiple, style) {
-        if (multiple === void 0) { multiple = false; }
-        if (style === void 0) { style = "min-width: 350px; width: 80%;"; }
-        _super.call(this, id, field);
-        this.options = $.extend({ minimumInputLength: 0, allowClear: true, placeholder: '', templateResult: Select2Field.formatIcon, templateSelection: Select2Field.formatIcon }, options);
-        this.styleCss = style;
-        this.multiple = multiple;
-    }
-    ;
-    Select2Field.prototype.getDomValue = function () {
-        if (this.multiple) {
-            var values = $('#' + this.id).val() || [];
-            var selectedValues_1 = [];
-            values.forEach(function (id) {
-                selectedValues_1.push({ id: id });
-            });
-            return selectedValues_1;
-        }
-        else {
-            return $('#' + this.id).val();
-        }
-    };
-    ;
-    Select2Field.prototype.hookEventHandler = function () {
-        var _this = this;
-        $('#' + this.id).change(function (e) { return _this.triggerValueChange(); });
-    };
-    ;
-    Select2Field.prototype.render = function (container) {
-        container.append($("<select class=\"select input-field\" id=\"" + this.id + "\" name=\"" + this.id + "\" style=\"" + this.styleCss + "\" " + ((this.multiple) ? 'multiple' : '') + "></select>"));
-        $('#' + this.id)["select2"](this.options);
-    };
-    ;
-    Select2Field.formatIcon = function (element) {
-        if (!element.id)
-            return element.text; // optgroup
-        console.log(element);
-        if (element.icon)
-            return $('<span><img style="margin-right:3px; width: 16px;" src="' + element.icon + '"  onerror="jiraHandleImageFallback(this)"/>' + element.text + '</span>');
-        else if (element.iconClass) {
-            return $('<span><i style="margin-right:4px;" class="' + element.iconClass + '"></i><span>' + element.text + '</span></span>');
-        }
-        else {
-            return element.text;
-        }
-    };
-    return Select2Field;
-}(Field));
-/// <reference path="../Field.ts" />
 /// <reference path="Select2Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
@@ -571,22 +853,28 @@ var Select2AjaxField = (function (_super) {
                     else {
                         promise = _this.getEmptyDataInternal();
                     }
+                    _this.showSpinner();
                     promise
                         .spread(function (result, searchTerm) {
                         //This handler is registered multiple times on the same promise.
                         //Check if we are responsible to make sure we call the correct success function
                         if (searchTerm == queryTerm) {
                             console.log('Result for  ' + searchTerm, result);
+                            _this.hideSpinner();
                             success(result);
                         }
                     })
                         .catch(function (error) {
                         console.log(error);
+                        window["lastError"] = error;
+                        _this.hideSpinner();
                         //yasoon.util.log();
-                        success([]);
+                        success();
                     });
                 },
                 processResults: function (data, page) {
+                    if (!data)
+                        data = [];
                     return {
                         results: data
                     };
@@ -627,6 +915,16 @@ var Select2AjaxField = (function (_super) {
         return this.getEmptyData()
             .then(function (result) {
             return [result, '']; //Keep signature for spread
+        });
+    };
+    Select2AjaxField.prototype.getEmptyData = function () {
+        var _this = this;
+        if (this.emptySearchResult)
+            return Promise.resolve(this.emptySearchResult);
+        return this.getData("")
+            .then(function (result) {
+            _this.emptySearchResult = result;
+            return result;
         });
     };
     return Select2AjaxField;
@@ -1050,6 +1348,74 @@ function jiraIsTask(item) {
 }
 //@ sourceURL=http://Jira/common.js 
 /// <reference path="../Field.ts" />
+/// <reference path="Select2AjaxField.ts" />
+/// <reference path="../../../definitions/jquery.d.ts" />
+/// <reference path="../../../definitions/bluebird.d.ts" />
+/// <reference path="../../../common.js" />
+var EpicLinkSelectField = (function (_super) {
+    __extends(EpicLinkSelectField, _super);
+    function EpicLinkSelectField(id, field) {
+        _super.call(this, id, field);
+        this.setter = new SetOptionValue();
+    }
+    EpicLinkSelectField.prototype.getValue = function (changedDataOnly) {
+        //Only for creation as Epic links cannot be changed via REST APi --> Status code 500
+        //Ticket: https://jira.atlassian.com/browse/GHS-10333
+        //There is a workaround --> update it via unofficial greenhopper API --> For update see handleEvent
+        if (!jiraIsVersionHigher(jira.systemInfo, '7') && !changedDataOnly && $('#' + this.id).val()) {
+            return 'key:' + $('#' + this.id).val();
+        }
+    };
+    EpicLinkSelectField.prototype.setValue = function (value) {
+        //Format in JIRA < 7.0 "key: epicId" , JIRA 7+: just epic Id
+        if (!jiraIsVersionHigher(jira.systemInfo, '7')) {
+            value = value.replace('key:', '');
+        }
+        this.setter.setValue(this.id, value);
+    };
+    EpicLinkSelectField.prototype.getData = function (searchTerm) {
+        //Result of Service
+        // JIRA 6.x: {"epicNames":[{"key":"SSP-24","name":"Epic 1"},{"key":"SSP-25","name":"Epic 2"}],"total":2}
+        // JIRA 7+:  {"epicLists":[{"listDescriptor":"All epics","epicNames":[{"key":"SSP-24","name":"Epic 1","isDone":false},{"key":"SSP-25","name":"Epic 2","isDone":false},{"key":"SSP-28","name":"Epic New","isDone":false}]}],"total":3}
+        var url = '/rest/greenhopper/1.0/epics?maxResults=10&projectKey=' + jira.selectedProject.key + '&searchQuery=' + searchTerm;
+        return jiraGet(url)
+            .then(function (data) {
+            var epics = JSON.parse(data);
+            var results = [];
+            if (epics && epics.total > 0) {
+                if (epics.epicLists) {
+                    var epic7 = epics;
+                    epic7.epicLists.forEach(function (epicList) {
+                        var optGroup = {
+                            id: epicList.listDescriptor,
+                            text: epicList.listDescriptor,
+                            children: []
+                        };
+                        epicList.epicNames.forEach(function (epic) {
+                            optGroup.children.push({
+                                id: epic.key,
+                                text: epic.name + ' ( ' + epic.key + ' )'
+                            });
+                        });
+                        results.push(optGroup);
+                    });
+                }
+                else {
+                    var epic6 = epics;
+                    epic6.epicNames.forEach(function (epic) {
+                        results.push({
+                            id: epic.key,
+                            text: epic.name + ' ( ' + epic.key + ' )'
+                        });
+                    });
+                }
+            }
+            return results;
+        });
+    };
+    return EpicLinkSelectField;
+}(Select2AjaxField));
+/// <reference path="../Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 var GetArray = (function () {
     function GetArray() {
@@ -1094,6 +1460,238 @@ var SetTagValue = (function () {
     };
     return SetTagValue;
 }());
+/// <reference path="../Field.ts" />
+/// <reference path="Select2AjaxField.ts" />
+/// <reference path="../../../definitions/jquery.d.ts" />
+/// <reference path="../../../definitions/bluebird.d.ts" />
+/// <reference path="../../../common.js" />
+/// <reference path="../getter/GetArray.ts" />
+/// <reference path="../setter/SetTagValue.ts" />
+var GroupSelectField = (function (_super) {
+    __extends(GroupSelectField, _super);
+    function GroupSelectField() {
+        _super.apply(this, arguments);
+    }
+    GroupSelectField.prototype.getData = function (searchTerm) {
+        var url = '/rest/api/2/groups/picker?maxResults=50&query=' + searchTerm;
+        return jiraGet(url)
+            .then(function (data) {
+            var groupsResult = JSON.parse(data);
+            console.log(groupsResult);
+            var groupsArray = [];
+            groupsResult.groups.forEach(function (group) {
+                groupsArray.push({
+                    id: group.name,
+                    text: group.name
+                });
+            });
+            return groupsArray;
+        });
+    };
+    GroupSelectField = __decorate([
+        /// <reference path="../Field.ts" />
+        getter(GetterType.Object, "name"),
+        setter(SetterType.Option)
+    ], GroupSelectField);
+    return GroupSelectField;
+}(Select2AjaxField));
+/// <reference path="../Field.ts" />
+/// <reference path="Select2AjaxField.ts" />
+/// <reference path="../../../definitions/jquery.d.ts" />
+/// <reference path="../../../definitions/bluebird.d.ts" />
+/// <reference path="../../../common.js" />
+var IssueField = (function (_super) {
+    __extends(IssueField, _super);
+    function IssueField(id, field, excludeSubtasks) {
+        var options = {};
+        options.placeholder = yasoon.i18n('dialog.placeholderSelectIssue');
+        _super.call(this, id, field, options);
+        this.excludeSubtasks = excludeSubtasks;
+        this.projectIssues = {};
+        //Load Recent Issues from DB
+        var issuesString = yasoon.setting.getAppParameter('recentIssues');
+        if (issuesString) {
+            this.recentIssues = JSON.parse(issuesString);
+        }
+    }
+    IssueField.prototype.hookEventHandler = function () {
+        _super.prototype.hookEventHandler.call(this);
+        $('#' + this.id).on('select2:select', function (evt, data) {
+            //We trigger this event manually in setValue.
+            //This leads to different eventData :/
+            /*var issue = null;
+            if (data) {
+                issue = {
+                    project: data.fields.project,
+                    id: data.id
+                };
+            } else if (jira.mode === 'jiraAddCommentDialog' && evt.params && evt.params.data) {
+                issue = evt.params.data;
+            } else {
+                $('.buttons').removeClass('servicedesk');
+                $('.buttons').removeClass('no-requesttype');
+                return;
+            }
+
+
+            var currentProject = jira.projects.filter(function (p) { return p.id === issue.project.id; })[0];
+            if (!currentProject || currentProject.projectTypeKey !== 'service_desk') {
+                $('.buttons').removeClass('servicedesk');
+                $('.buttons').removeClass('no-requesttype');
+                return;
+            }
+
+            //We have a service Project... Check if it is a service request
+            jiraGet('/rest/servicedeskapi/request/' + issue.id)
+                .then(function (data) {
+                    $('.buttons').addClass('servicedesk');
+                    $('.buttons').removeClass('no-requesttype');
+                })
+                .catch(function (e) {
+                    $('.buttons').addClass('no-requesttype');
+                    $('.buttons').removeClass('servicedesk');
+                });*/
+        });
+    };
+    IssueField.prototype.getReturnStructure = function (issues, queryTerm) {
+        var result = [];
+        // 1. Build recent suggestion
+        if (this.recentIssues) {
+            result.push({
+                id: 'Suggested',
+                text: yasoon.i18n('dialog.recentIssues'),
+                children: this.recentIssues
+            });
+        }
+        //2. Search Results
+        if (issues) {
+            if (queryTerm) {
+                result.push({
+                    id: 'Search',
+                    text: yasoon.i18n('dialog.titleSearchResults', { term: queryTerm }),
+                    children: issues
+                });
+            }
+            else {
+                result.push({
+                    id: 'Search',
+                    text: yasoon.i18n('dialog.projectIssues'),
+                    children: issues
+                });
+            }
+        }
+        return result;
+    };
+    IssueField.prototype.queryData = function (searchTerm) {
+        //Concat JQL
+        var jql = '';
+        if (searchTerm) {
+            jql += 'Summary ~ "' + searchTerm + '"';
+        }
+        if (jira.selectedProjectKey) {
+            jql += ((jql) ? ' AND' : '') + ' project = "' + jira.selectedProjectKey + '"';
+        }
+        if (jira.settings.hideResolvedIssues) {
+            jql += ((jql) ? ' AND' : '') + ' status != "resolved" AND status != "closed" AND status != "done"';
+        }
+        if (this.excludeSubtasks) {
+            jql += ((jql) ? ' AND' : '') + ' type NOT IN subtaskIssueTypes()';
+        }
+        jql = '( ' + jql + ' )';
+        if (searchTerm) {
+            jql += 'OR key = "' + searchTerm + '"';
+        }
+        console.log('JQL' + jql);
+        return jiraGet('/rest/api/2/search?jql=' + encodeURIComponent(jql) + '&maxResults=20&fields=summary,project&validateQuery=false')
+            .then(function (data) {
+            var jqlResult = JSON.parse(data);
+            var result = [];
+            console.log(jqlResult);
+            //Transform Data
+            jqlResult.issues.forEach(function (issue) {
+                result.push({
+                    id: issue.id,
+                    text: issue.fields['summary'] + ' (' + issue.key + ')',
+                    data: issue
+                });
+            });
+            return result;
+        });
+    };
+    IssueField.prototype.getData = function (searchTerm) {
+        var _this = this;
+        return this.queryData(searchTerm)
+            .then(function (result) {
+            return _this.getReturnStructure(result);
+        });
+    };
+    IssueField.prototype.getEmptyData = function () {
+        var _this = this;
+        if (jira.selectedProjectKey) {
+            if (this.projectIssues[jira.selectedProjectKey]) {
+                return Promise.resolve(this.getReturnStructure(this.projectIssues[jira.selectedProjectKey]));
+            }
+            else {
+                return this.queryData('')
+                    .then(function (data) {
+                    _this.projectIssues[jira.selectedProjectKey] = _this.getReturnStructure(data);
+                    return _this.projectIssues[jira.selectedProjectKey];
+                });
+            }
+        }
+        else {
+            return Promise.resolve(this.getReturnStructure());
+        }
+    };
+    IssueField.defaultMeta = { key: FieldController.issueFieldId, name: 'Issue', required: true, schema: { system: 'issue', type: '' } };
+    IssueField = __decorate([
+        /// <reference path="../Field.ts" />
+        getter(GetterType.Object, "name"),
+        setter(SetterType.Option)
+    ], IssueField);
+    return IssueField;
+}(Select2AjaxField));
+/// <reference path="../Field.ts" />
+/// <reference path="Select2AjaxField.ts" />
+/// <reference path="../../../definitions/jquery.d.ts" />
+/// <reference path="../../../definitions/bluebird.d.ts" />
+/// <reference path="../../../common.js" />
+var IssueTypeField = (function (_super) {
+    __extends(IssueTypeField, _super);
+    function IssueTypeField(id, field) {
+        var options = {};
+        options.placeholder = yasoon.i18n('dialog.placeholderIssueType');
+        options.allowClear = false;
+        _super.call(this, id, field, options);
+        FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
+    }
+    IssueTypeField.prototype.triggerValueChange = function () {
+        var issueType = this.getObjectValue();
+        FieldController.raiseEvent(EventType.FieldChange, issueType, this.id);
+    };
+    IssueTypeField.prototype.handleEvent = function (type, newValue, source) {
+        if (source === FieldController.projectFieldId) {
+            var project = newValue;
+            var result = project.issueTypes.map(function (it) {
+                return {
+                    id: it.id,
+                    text: it.name,
+                    icon: jira.icons.mapIconUrl(it.iconUrl),
+                    data: it
+                };
+            });
+            this.setData(result);
+            this.setValue(result[0].data);
+        }
+    };
+    IssueTypeField.defaultMeta = { key: FieldController.issueTypeFieldId, name: 'Issue Type', required: true, schema: { system: 'issue', type: '' } };
+    IssueTypeField = __decorate([
+        /// <reference path="../Field.ts" />
+        getter(GetterType.Object, "id"),
+        setter(SetterType.Option)
+    ], IssueTypeField);
+    return IssueTypeField;
+}(Select2Field));
 /// <reference path="../Field.ts" />
 /// <reference path="Select2AjaxField.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
@@ -1265,31 +1863,6 @@ var MultiLineTextField = (function (_super) {
     return MultiLineTextField;
 }(Field));
 /// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
-var SetOptionValue = (function () {
-    function SetOptionValue() {
-    }
-    SetOptionValue.prototype.setValue = function (id, value) {
-        if (value && Array.isArray(value)) {
-            //Multiselect            
-            var selectedValues_2 = [];
-            value.forEach(function (v) {
-                var text = v.name || v.value;
-                $('#' + id).append("<option value=\"" + v.id + ">" + text + "</option>");
-                selectedValues_2.push(v.id);
-            });
-            $('#' + id).val(selectedValues_2).trigger('change');
-        }
-        else if (value) {
-            //Single Select
-            var text = value.name || value.value;
-            $('#' + id).append("<option value=\"" + value.id + ">" + text + "</option>");
-            $('#' + id).val(value.id).trigger('change');
-        }
-    };
-    return SetOptionValue;
-}());
-/// <reference path="../Field.ts" />
 /// <reference path="Select2Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../getter/GetObjectArray.ts" />
@@ -1298,11 +1871,7 @@ var MultiSelectField = (function (_super) {
     __extends(MultiSelectField, _super);
     function MultiSelectField(id, field, options) {
         if (options === void 0) { options = {}; }
-        var data = [];
-        field.allowedValues.forEach(function (value) {
-            data.push({ id: value.id, text: value.name });
-        });
-        options.data = data;
+        options.data = Select2Field.convertToSelect2Array(field.allowedValues);
         _super.call(this, id, field, options, true);
     }
     ;
@@ -1342,30 +1911,141 @@ var NumberField = (function (_super) {
     return NumberField;
 }(Field));
 /// <reference path="../Field.ts" />
+/// <reference path="Select2AjaxField.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
-var GetObject = (function () {
-    function GetObject(keyName) {
-        this.keyName = keyName;
+/// <reference path="../../../definitions/bluebird.d.ts" />
+/// <reference path="../../../common.js" />
+var ProjectField = (function (_super) {
+    __extends(ProjectField, _super);
+    function ProjectField(id, field, cache) {
+        var _this = this;
+        var options = {};
+        options.placeholder = yasoon.i18n('dialog.placeholderSelectProject');
+        options.allowClear = false;
+        _super.call(this, id, field, options);
+        //Load Recent Projects from DB
+        var projectsString = yasoon.setting.getAppParameter('recentProjects');
+        if (projectsString) {
+            this.recentProjects = JSON.parse(projectsString);
+        }
+        //Load Sender Email Templates if nessecary
+        if (jira.mail) {
+            var templateString = yasoon.setting.getAppParameter('createTemplates');
+            if (templateString) {
+                this.senderTemplates = JSON.parse(templateString);
+            }
+        }
+        if (cache) {
+            this.projectCache = cache;
+        }
+        //Start Getting Data
+        this.showSpinner();
+        this.getData()
+            .then(function (data) {
+            _this.setData(data);
+            $('#' + _this.id).next().find('.select2-selection').first().focus();
+            _this.hideSpinner();
+        });
     }
-    GetObject.prototype.getValue = function (id, field, onlyChangedData, newValue, initialValue) {
-        var result = {};
-        if (onlyChangedData) {
-            //In edit case: Only send if changed	
-            if (!isEqual(initialValue, newValue)) {
-                result[this.keyName] = newValue || "-1";
-                return result;
-            }
-        }
-        else {
-            //In creation case: Only send if not null	
-            if (newValue) {
-                result[this.keyName] = newValue;
-                return result;
-            }
-        }
+    ProjectField.prototype.triggerValueChange = function () {
+        var project = this.getObjectValue();
+        FieldController.raiseEvent(EventType.FieldChange, project, this.id);
     };
-    return GetObject;
-}());
+    //Convert project data into displayable data
+    ProjectField.prototype.mapProjectValues = function (projects) {
+        var result = projects.map(function (p) {
+            var element = {
+                id: p.id,
+                text: p.name,
+                icon: getProjectIcon(p),
+                data: p
+            };
+            return element;
+        });
+        return result;
+    };
+    ProjectField.prototype.getReturnStructure = function (projects, queryTerm) {
+        var result = [];
+        //1. User Templates
+        if (this.senderTemplates) {
+            //1.1 Filter
+            var currentTemplates = this.senderTemplates.filter(function (templ) {
+                if (templ.senderEmail === jira.mail.senderEmail) {
+                    //Double Check if Project still exists
+                    var templProj = projects.filter(function (p) { return p.id === templ.id; })[0];
+                    if (templProj) {
+                        templ.name = templProj.data.name;
+                        templ.projectTypeKey = templProj.data.projectTypeKey;
+                        return true;
+                    }
+                }
+                return false;
+            });
+            //1.2 Map and Add
+            if (currentTemplates && currentTemplates.length > 0) {
+                var children = this.mapProjectValues(currentTemplates);
+                result.push({
+                    id: 'templates',
+                    text: yasoon.i18n('dialog.templateFor', { name: jira.mail.senderName }),
+                    children: children
+                });
+            }
+        }
+        //2. Recent Projects
+        if (this.recentProjects) {
+            //2.1 Filter
+            var currentRecent = this.recentProjects.filter(function (recent) {
+                return projects.filter(function (p) { return p.id === recent.id; }).length > 0;
+            });
+            //2.2 Map and Add
+            var children = this.mapProjectValues(currentRecent);
+            result.push({
+                id: 'recent',
+                text: yasoon.i18n('dialog.recentProjects'),
+                children: children
+            });
+        }
+        //3. All Projects
+        var sortedProjects = projects.sort(function (a, b) { return ((a.text.toLowerCase() > b.text.toLowerCase()) ? 1 : -1); });
+        result.push({
+            id: 'all',
+            text: yasoon.i18n('dialog.allProjects'),
+            children: sortedProjects
+        });
+        return result;
+    };
+    ProjectField.prototype.queryData = function () {
+        var _this = this;
+        if (this.projectCache && this.projectCache.length > 0) {
+            console.log('Return project cache', this.projectCache);
+            return Promise.resolve(this.mapProjectValues(this.projectCache));
+        }
+        return jiraGet('/rest/api/2/project')
+            .then(function (data) {
+            var projects = JSON.parse(data);
+            console.log('Return API projects', projects);
+            return _this.mapProjectValues(projects);
+        });
+    };
+    ProjectField.prototype.getData = function () {
+        var _this = this;
+        if (this.returnStructure) {
+            return Promise.resolve(this.returnStructure);
+        }
+        return this.queryData()
+            .then(function (projects) {
+            _this.returnStructure = _this.getReturnStructure(projects);
+            return _this.returnStructure;
+        });
+    };
+    ProjectField.defaultMeta = { key: FieldController.projectFieldId, name: 'Project', required: true, schema: { system: 'project', type: '' } };
+    ProjectField = __decorate([
+        /// <reference path="../Field.ts" />
+        getter(GetterType.Object, "id"),
+        setter(SetterType.Option)
+    ], ProjectField);
+    return ProjectField;
+}(Select2Field));
 /// <reference path="../Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../getter/GetObject.ts" />
@@ -1385,12 +2065,13 @@ var RadioField = (function (_super) {
     };
     ;
     RadioField.prototype.render = function (container) {
+        var _this = this;
         if (!this.fieldMeta.required) {
             //If it isn't required we should allow a None option
-            container.append($("<div class=\"radio awesome\">\n                                    <input type=\"radio\" id=\"" + this.id + "_none\" value=\"\">\n                                    <label for=\"" + this.id + "_none\">" + yasoon.i18n('dialog.selectNone') + "</label>\n                                </div>"));
+            container.append($("<div class=\"radio awesome\">\n                                    <input type=\"radio\" id=\"" + this.id + "_none\" name=\"" + this.id + "\" value=\"\" checked>\n                                    <label for=\"" + this.id + "_none\">" + yasoon.i18n('dialog.selectNone') + "</label>\n                                </div>"));
         }
         this.fieldMeta.allowedValues.forEach(function (option) {
-            container.append($("<div class=\"radio awesome\">\n                                    <input type=\"radio\" id=\"" + this.id + "_" + option.id + " value=\"" + option.id + "\">\n                                    <label for=\"" + this.id + "_" + option.id + "\">" + option.value + "</label>\n                                </div>"));
+            container.append($("<div class=\"radio awesome\">\n                                    <input type=\"radio\" id=\"" + _this.id + "_" + option.id + "\" name=\"" + _this.id + "\" value=\"" + option.id + "\">\n                                    <label for=\"" + _this.id + "_" + option.id + "\">" + option.value + "</label>\n                                </div>"));
         });
     };
     ;
@@ -1408,18 +2089,15 @@ var RadioField = (function (_super) {
 /// <reference path="../setter/SetOptionValue.ts" />
 var SingleSelectField = (function (_super) {
     __extends(SingleSelectField, _super);
-    function SingleSelectField(id, field, options) {
+    function SingleSelectField(id, field, options, style) {
         if (options === void 0) { options = {}; }
-        var data = [];
-        field.allowedValues.forEach(function (value) {
-            data.push({ id: value.id, text: value.name });
-        });
-        options.data = data;
-        options.templateResult = Select2Field.formatIcon;
-        options.templateSelection = Select2Field.formatIcon;
-        _super.call(this, id, field, options);
+        if (style === void 0) { style = "min-width: 350px; width: 80%;"; }
+        //Default value or None?
+        var placeholder = (field.hasDefaultValue) ? yasoon.i18n('dialog.selectDefault') : yasoon.i18n('dialog.selectNone');
+        options.data = Select2Field.convertToSelect2Array(field.allowedValues);
+        options.placeholder = placeholder;
+        _super.call(this, id, field, options, false, style);
     }
-    ;
     SingleSelectField = __decorate([
         /// <reference path="../Field.ts" />
         getter(GetterType.Object, "id"),
@@ -1454,6 +2132,232 @@ var SingleTextField = (function (_super) {
         setter(SetterType.Text)
     ], SingleTextField);
     return SingleTextField;
+}(Field));
+/// <reference path="../Field.ts" />
+/// <reference path="Select2AjaxField.ts" />
+/// <reference path="../../../definitions/jquery.d.ts" />
+/// <reference path="../../../definitions/bluebird.d.ts" />
+/// <reference path="../../../common.js" />
+var SprintSelectField = (function (_super) {
+    __extends(SprintSelectField, _super);
+    function SprintSelectField(id, field) {
+        _super.call(this, id, field);
+        this.setter = new SetOptionValue();
+    }
+    SprintSelectField.prototype.getValue = function (changedDataOnly) {
+        //Only for creation as Epic links cannot be changed via REST APi --> Status code 500
+        //Ticket: https://jira.atlassian.com/browse/GHS-10333
+        //There is a workaround --> update it via unofficial greenhopper API --> For update see handleEvent
+        //We aren't sure with which version this change happened. 7.0.0 definitely requires a string, 7.1.6. requires an int :)
+        if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
+            return parseInt($('#' + this.id).val());
+        }
+        else {
+            return $('#' + this.id).val();
+        }
+    };
+    SprintSelectField.prototype.setValue = function (value) {
+        if (value && value.length > 0) {
+            $('#' + this.id).val(SprintSelectField.parseSprintId(value[0])).trigger('change');
+        }
+    };
+    SprintSelectField.prototype.getData = function (searchTerm) {
+        return jiraGet('/rest/greenhopper/1.0/sprint/picker')
+            .then(function (data) {
+            //{"suggestions":[{"name":"Sample Sprint 2","id":1,"stateKey":"ACTIVE"}],"allMatches":[]}
+            var sprints = JSON.parse(data);
+            var result = [];
+            if (sprints && sprints.suggestions.length > 0) {
+                var suggestions_1 = [];
+                sprints.suggestions.forEach(function (sprint) {
+                    suggestions_1.push({
+                        id: sprint.id.toString(),
+                        text: sprint.name
+                    });
+                });
+                result.push({
+                    id: 'suggestions',
+                    text: yasoon.i18n('dialog.sprintSuggestion'),
+                    children: suggestions_1
+                });
+            }
+            if (sprints && sprints.allMatches && sprints.allMatches.length > 0) {
+                var matches_1 = [];
+                sprints.allMatches.forEach(function (sprint) {
+                    matches_1.push({
+                        id: sprint.id.toString(),
+                        text: sprint.name
+                    });
+                });
+                result.push({
+                    id: 'allMatches',
+                    text: yasoon.i18n('dialog.sprintAll'),
+                    children: matches_1
+                });
+            }
+            return result;
+        });
+    };
+    SprintSelectField.parseSprintId = function (input) {
+        //Wierd --> it's an array of strings with following structure:  "com.atlassian.greenhopper.service.sprint.Sprint@7292f4[rapidViewId=<null>,state=ACTIVE,name=Sample Sprint 2,startDate=2015-04-09T01:54:26.773+02:00,endDate=2015-04-23T02:14:26.773+02:00,completeDate=<null>,sequence=1,id=1]"
+        //First get content of array (everything between [])
+        //Then split at ,
+        //Then find id
+        var result = '';
+        var matches = /\[(.+)\]/g.exec(input);
+        if (matches.length > 0) {
+            var splitResult = matches[1].split(',');
+            var idObj = splitResult.filter(function (elem) { return elem.indexOf('id') === 0; });
+            if (idObj.length > 0) {
+                result = idObj[0].split('=')[1];
+            }
+        }
+        return result;
+    };
+    return SprintSelectField;
+}(Select2AjaxField));
+/// <reference path="../Field.ts" />
+/// <reference path="Select2AjaxField.ts" />
+/// <reference path="../../../definitions/jquery.d.ts" />
+/// <reference path="../../../definitions/bluebird.d.ts" />
+/// <reference path="../../../common.js" />
+/// <reference path="../getter/GetArray.ts" />
+/// <reference path="../setter/SetTagValue.ts" />
+var TempoAccountField = (function (_super) {
+    __extends(TempoAccountField, _super);
+    function TempoAccountField(id, field, options) {
+        if (options === void 0) { options = {}; }
+        _super.call(this, id, field, options);
+        this.getData();
+    }
+    TempoAccountField.prototype.getDomValue = function () {
+        var result = $('#' + this.id).val();
+        if (result)
+            return parseInt(result);
+        return null;
+    };
+    TempoAccountField.prototype.getData = function () {
+        var _this = this;
+        Promise.all([
+            jiraGet('/rest/tempo-accounts/1/account'),
+            jiraGet('/rest/tempo-accounts/1/account/project/' + jira.selectedProject.id)
+        ])
+            .spread(function (accountDataString, projectAccountsString) {
+            var accountData = JSON.parse(accountDataString);
+            var projectAccounts = JSON.parse(projectAccountsString);
+            var result = [];
+            if (projectAccounts && projectAccounts.length > 0) {
+                var childs_1 = [];
+                projectAccounts.forEach(function (projectAcc) {
+                    childs_1.push({
+                        'id': projectAcc.id,
+                        'text': projectAcc.name
+                    });
+                });
+                result.push({
+                    id: 'projectAccounts',
+                    text: yasoon.i18n('dialog.projectAccounts'),
+                    children: childs_1
+                });
+            }
+            if (accountData && accountData.length > 0) {
+                accountData = accountData.filter(function (acc) { return acc.global; });
+                if (accountData.length > 0) {
+                    var accChilds_1 = [];
+                    accountData.forEach(function (projectAcc) {
+                        accChilds_1.push({
+                            'id': projectAcc.id,
+                            'text': projectAcc.name
+                        });
+                    });
+                    result.push({
+                        id: 'globalAccounts',
+                        text: yasoon.i18n('dialog.globalAccounts'),
+                        children: accChilds_1
+                    });
+                }
+            }
+            _this.setData(result);
+            if (_this.initialValue) {
+                _this.setValue(_this.initialValue);
+            }
+        });
+    };
+    TempoAccountField = __decorate([
+        /// <reference path="../Field.ts" />
+        getter(GetterType.Text),
+        setter(SetterType.Option)
+    ], TempoAccountField);
+    return TempoAccountField;
+}(Select2Field));
+/// <reference path="../Field.ts" />
+/// <reference path="../../../definitions/jquery.d.ts" />
+/// <reference path="../getter/GetTextValue.ts" />
+/// <reference path="../setter/SetValue.ts" />
+var TimeTrackingField = (function (_super) {
+    __extends(TimeTrackingField, _super);
+    function TimeTrackingField(id, field) {
+        _super.call(this, id, field);
+        var origFieldMeta = JSON.parse(JSON.stringify(field));
+        var remainingFieldMeta = JSON.parse(JSON.stringify(field));
+        origFieldMeta.name = yasoon.i18n('dialog.timetrackingOriginal');
+        origFieldMeta.description = yasoon.i18n('dialog.timetrackingDescrOriginal');
+        remainingFieldMeta.name = yasoon.i18n('dialog.timetrackingRemaining');
+        remainingFieldMeta.description = yasoon.i18n('dialog.timetrackingDescrRemain');
+        this.origField = new SingleTextField(id + '_originalestimate', origFieldMeta);
+        this.remainingField = new SingleTextField(id + '_remainingestimate', remainingFieldMeta);
+    }
+    TimeTrackingField.prototype.getValue = function (onlyChangedData) {
+        if (onlyChangedData === void 0) { onlyChangedData = false; }
+        var origVal = this.origField.getDomValue();
+        var remainVal = this.remainingField.getDomValue();
+        //JIRA timetracking legacy mode
+        // --> it's not allowed to set orig and remainaing Estimate during creation
+        // --> it's not allowed to change original estimate.
+        var result = {};
+        //Edit Case
+        if (onlyChangedData) {
+            if (origVal && this.initialValue.originalEstimate != origVal) {
+                result.originalEstimate = origVal;
+            }
+            if (remainVal && this.initialValue.remainingEstimate != remainVal) {
+                result.remainingEstimate = remainVal;
+            }
+        }
+        else {
+            if (origVal) {
+                result.originalEstimate = origVal;
+            }
+            if (remainVal) {
+                result.remainingEstimate = remainVal;
+            }
+        }
+        //Only return an object if it's not empty;
+        return (Object.keys(result).length > 0) ? result : undefined;
+    };
+    TimeTrackingField.prototype.setValue = function (value) {
+        if (value) {
+            this.origField.setValue(value.originalEstimate);
+            this.remainingField.setValue(value.remainingEstimate);
+        }
+    };
+    TimeTrackingField.prototype.getDomValue = function () {
+        return "";
+    };
+    TimeTrackingField.prototype.hookEventHandler = function () {
+        var _this = this;
+        $('#' + this.id).change(function (e) { return _this.triggerValueChange(); });
+    };
+    ;
+    TimeTrackingField.prototype.renderField = function (container) {
+        this.origField.renderField(container);
+        this.remainingField.renderField(container);
+    };
+    TimeTrackingField.prototype.render = function (container) {
+        //Not nessecary as we redefine renderField
+    };
+    ;
+    return TimeTrackingField;
 }(Field));
 /// <reference path="../Field.ts" />
 /// <reference path="Select2AjaxField.ts" />

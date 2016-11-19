@@ -26,16 +26,26 @@ abstract class Select2Field extends Field {
 		}
 	}
 
+	getObjectValue(): any {
+		let elements: Select2Element[] = $('#' + this.id)['select2']('data');
+		if (this.multiple) {
+			return elements.map(p => { return p.data; });
+		} else {
+			return elements[0].data;
+		}
+	}
+
 	setData(newValues: Select2Element[]): void {
 		this.options.data = newValues;
 
 		$('#' + this.id)["select2"]("destroy");
 		$('#' + this.id).remove();
 		this.render(this.ownContainer);
+		this.hookEventHandler();
 	}
 
 	hookEventHandler(): void {
-		$('#' + this.id).change(e => this.triggerValueChange());
+		$('#' + this.id).on('change', e => this.triggerValueChange());
 	}
 
 	render(container: JQuery) {

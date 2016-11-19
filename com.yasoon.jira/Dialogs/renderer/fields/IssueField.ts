@@ -7,6 +7,8 @@
 @getter(GetterType.Object, "name")
 @setter(SetterType.Option)
 class IssueField extends Select2AjaxField {
+    static defaultMeta: JiraMetaField = { key: FieldController.issueFieldId, name: 'Issue', required: true, schema: { system: 'issue', type: '' } };
+
     private recentIssues: Select2Element[];
     private excludeSubtasks: boolean;
     private projectIssues: { [id: string]: Select2Element[] };
@@ -129,6 +131,7 @@ class IssueField extends Select2AjaxField {
             .then((data: string) => {
                 let jqlResult: JiraJqlResult = JSON.parse(data);
                 let result: Select2Element[] = [];
+                console.log(jqlResult);
                 //Transform Data
                 jqlResult.issues.forEach(function (issue) {
                     result.push({

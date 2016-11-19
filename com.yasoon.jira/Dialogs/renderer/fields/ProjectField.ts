@@ -18,6 +18,7 @@ class ProjectField extends Select2Field {
     constructor(id: string, field: JiraMetaField, cache: JiraProject[]) {
         let options: Select2Options = {};
         options.placeholder = yasoon.i18n('dialog.placeholderSelectProject');
+        options.allowClear = false;
         super(id, field, options);
 
         //Load Recent Projects from DB
@@ -41,25 +42,17 @@ class ProjectField extends Select2Field {
         //Start Getting Data
         this.showSpinner();
         this.getData()
-            .then(() => {
+            .then((data) => {
+                this.setData(data);
+
+                $('#' + this.id).next().find('.select2-selection').first().focus();
                 this.hideSpinner();
             });
     }
 
-    hookEventHandler() {
-        super.hookEventHandler();
-        $('#' + this.id).on('change', () => {
-            let projectId = this.getDomValue();
-
-            if (projectId) {
-                $('#issueArea').removeClass('hidden');
-                let project = this.projectCache.filter(proj => { return proj.id == projectId; })[0];
-                FieldController.raiseEvent(EventType.FieldChange, project, this.id);
-            } else {
-                $('#issueArea').addClass('hidden');
-            }
-        });
-        $('#' + this.id).next().find('.select2-selection').first().focus();
+    triggerValueChange() {
+        let project: JiraProject = this.getObjectValue();
+        FieldController.raiseEvent(EventType.FieldChange, project, this.id);
     }
 
     //Convert project data into displayable data
@@ -133,12 +126,15 @@ class ProjectField extends Select2Field {
     }
 
     queryData(): Promise<Select2Element[]> {
-        if (this.projectCache && this.projectCache.length > 0)
+        if (this.projectCache && this.projectCache.length > 0) {
+            console.log('Return project cache', this.projectCache);
             return Promise.resolve(this.mapProjectValues(this.projectCache));
+        }
 
         return jiraGet('/rest/api/2/project')
             .then((data: string) => {
                 let projects: JiraProject[] = JSON.parse(data);
+                console.log('Return API projects', projects);
                 return this.mapProjectValues(projects);
             });
     }
