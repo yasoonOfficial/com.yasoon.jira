@@ -9,8 +9,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+/// <reference path="../../definitions/bluebird.d.ts" />
 var EmailController = (function () {
-    function EmailController(mail, settings) {
+    function EmailController(mail, selectedText, settings, ownUser) {
+        var _this = this;
         this.fieldMapping = {
             subject: 'summary',
             body: 'description',
@@ -19,10 +21,32 @@ var EmailController = (function () {
         };
         this.mail = mail;
         this.settings = settings;
+        this.selectedTextAsMarkup = selectedText;
+        this.ownUser = ownUser;
         var fieldMappingString = yasoon.setting.getAppParameter('fieldMapping');
         if (fieldMappingString) {
             this.fieldMapping = JSON.parse(fieldMappingString);
         }
+        //Start Render Markup
+        this.renderMarkupPromise = yasoon.outlook.mail.renderBody(mail, 'jiraMarkup')
+            .then(function (markup) {
+            _this.mailAsMarkup = markup;
+            return markup;
+        })
+            .catch(function () {
+            _this.mailAsMarkup = yasoon.i18n('general.couldNotRenderMarkup');
+        });
+        //Get Reporter User
+        this.loadSenderPromise = jiraGet('/rest/api/2/user/search?username=' + mail.senderEmail)
+            .then(function (data) {
+            var users = JSON.parse(data);
+            if (users.length > 0) {
+                _this.senderUser = users[0];
+                return _this.senderUser;
+            }
+        });
+        //Load Attachment Handles
+        //this.getAttachmentFileHandles();
     }
     EmailController.prototype.getAttachmentFileHandles = function () {
         //If created by email, check for templates and attachments
@@ -46,6 +70,52 @@ var EmailController = (function () {
             }
         }
         return this.attachmentHandles || [];
+    };
+    EmailController.prototype.insertEmailValues = function () {
+        this.setSubject();
+        this.setBody();
+        this.setSender();
+    };
+    EmailController.prototype.setSubject = function () {
+        if (this.fieldMapping.subject) {
+            FieldController.getField(this.fieldMapping.subject).setValue(this.mail.subject);
+        }
+    };
+    EmailController.prototype.setBody = function () {
+        if (this.fieldMapping.body) {
+            var field_1 = FieldController.getField(this.fieldMapping.body);
+            if (field_1) {
+                this.renderMarkupPromise.then(function (markup) {
+                    field_1.setValue(markup);
+                });
+            }
+        }
+    };
+    EmailController.prototype.setSender = function () {
+        var _this = this;
+        if (this.fieldMapping.sender) {
+            var field_2 = FieldController.getField(this.fieldMapping.sender);
+            if (field_2) {
+                this.loadSenderPromise.then(function (senderUser) {
+                    if (senderUser) {
+                        if (field_2.getType() == 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker' || 'reporter') {
+                            field_2.setValue(senderUser);
+                        }
+                        else {
+                            field_2.setValue(senderUser.emailAddress);
+                        }
+                    }
+                    else {
+                        if (field_2.getType() == 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker' || 'reporter') {
+                            field_2.setValue(_this.ownUser);
+                        }
+                        else {
+                            field_2.setValue(_this.mail.senderEmail);
+                        }
+                    }
+                });
+            }
+        }
     };
     return EmailController;
 }());
@@ -97,6 +167,9 @@ var Field = (function () {
         if (!setter)
             throw new Error("Please either redefine method setValue or add a @setter Annotation for " + this.id);
         return this.setter.setValue(this.id, value);
+    };
+    Field.prototype.getType = function () {
+        return this.fieldMeta.schema.system || this.fieldMeta.schema.custom;
     };
     Field.prototype.triggerValueChange = function () {
         FieldController.raiseEvent(EventType.FieldChange, this.getValue(false), this.id);
@@ -1943,6 +2016,7 @@ var ProjectField = (function (_super) {
         this.getData()
             .then(function (data) {
             _this.setData(data);
+            _this.setDefaultProject();
             $('#' + _this.id).next().find('.select2-selection').first().focus();
             _this.hideSpinner();
         });
@@ -1950,6 +2024,24 @@ var ProjectField = (function (_super) {
     ProjectField.prototype.triggerValueChange = function () {
         var project = this.getObjectValue();
         FieldController.raiseEvent(EventType.FieldChange, project, this.id);
+    };
+    ProjectField.prototype.setDefaultProject = function () {
+        //If mail is provided && subject contains reference to project, pre-select that
+        if (jira.emailController.mail && jira.emailController.mail.subject) {
+            //Sort projects by key length descending, so we will match the following correctly:
+            // Subject: This is for DEMODD project
+            // Keys: DEMO, DEMOD, DEMODD
+            var projectsByKeyLength = this.projectCache.sort(function (a, b) {
+                return b.key.length - a.key.length; // ASC -> a - b; DESC -> b - a
+            });
+            for (var i = 0; i < projectsByKeyLength.length; i++) {
+                var curProj = projectsByKeyLength[i];
+                if (jira.emailController.mail.subject.indexOf(curProj.key) >= 0) {
+                    this.setValue(curProj);
+                    break;
+                }
+            }
+        }
     };
     //Convert project data into displayable data
     ProjectField.prototype.mapProjectValues = function (projects) {
@@ -2373,6 +2465,25 @@ var UserSelectField = (function (_super) {
         _super.call(this, id, field, options);
         this.avatarPath = yasoon.io.getLinkPath('Images/useravatar.png');
     }
+    UserSelectField.prototype.setValue = function (value) {
+        var _this = this;
+        if (value && Array.isArray(value)) {
+            //Multiselect     
+            var users = value;
+            var selectedValues_3 = [];
+            users.forEach(function (u) {
+                $('#' + _this.id).append("<option value=\"" + u.name + ">" + u.displayName + "</option>");
+                selectedValues_3.push(u.name);
+            });
+            $('#' + this.id).val(selectedValues_3).trigger('change');
+        }
+        else if (value) {
+            var user = value;
+            //Single Select
+            $('#' + this.id).append("<option value=\"" + user.name + ">" + user.displayName + "</option>");
+            $('#' + this.id).val(user.name).trigger('change');
+        }
+    };
     UserSelectField.prototype.hookEventHandler = function () {
         var _this = this;
         _super.prototype.hookEventHandler.call(this);
@@ -2454,8 +2565,7 @@ var UserSelectField = (function (_super) {
     };
     UserSelectField = __decorate([
         /// <reference path="../Field.ts" />
-        getter(GetterType.Object, "name"),
-        setter(SetterType.Option)
+        getter(GetterType.Object, "name")
     ], UserSelectField);
     return UserSelectField;
 }(Select2AjaxField));

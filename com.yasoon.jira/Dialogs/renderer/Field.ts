@@ -52,6 +52,10 @@ abstract class Field implements FieldGet, FieldSet {
 		return this.setter.setValue(this.id, value);
 	}
 
+	getType(): string {
+		return this.fieldMeta.schema.system || this.fieldMeta.schema.custom;
+	}
+
 	triggerValueChange(): void {
 		FieldController.raiseEvent(EventType.FieldChange, this.getValue(false), this.id);
 	}
@@ -106,6 +110,11 @@ enum EventType {
 
 interface IFieldEventHandler {
 	handleEvent(type: EventType, newValue: any, source?: string): void;
+}
+
+interface IEmailController {
+	getAttachmentFileHandles(): any[];
+	insertEmailValues(): void;
 }
 
 //@getter Annotation
@@ -252,6 +261,17 @@ interface JiraIssue {
 	id: string,
 	key: string,
 	fields: { [id: string]: any }
+}
+
+interface JiraUser {
+	key: string,
+	displayName: string,
+	emailAddress: string,
+	name: string,
+	locale: string,
+	timezone: string,
+	active: boolean,
+	avatarUrls: any
 }
 
 type JiraProjectType = 'business' | 'service_desk' | 'software';

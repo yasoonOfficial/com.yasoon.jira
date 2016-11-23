@@ -7,13 +7,30 @@
 /// <reference path="../setter/SetTagValue.ts" />
 
 @getter(GetterType.Object, "name")
-@setter(SetterType.Option)
 class UserSelectField extends Select2AjaxField {
 
     private avatarPath: string;
     constructor(id: string, field: JiraMetaField, options: any = {}) {
         super(id, field, options);
         this.avatarPath = yasoon.io.getLinkPath('Images/useravatar.png');
+    }
+
+    setValue(value: any): void {
+        if (value && Array.isArray(value)) {
+            //Multiselect     
+            let users: JiraUser[] = value;
+            let selectedValues = [];
+            users.forEach(u => {
+                $('#' + this.id).append(`<option value="${u.name}>${u.displayName}</option>`);
+                selectedValues.push(u.name);
+            });
+            $('#' + this.id).val(selectedValues).trigger('change');
+        } else if (value) {
+            let user: JiraUser = value;
+            //Single Select
+            $('#' + this.id).append(`<option value="${user.name}>${user.displayName}</option>`);
+            $('#' + this.id).val(user.name).trigger('change');
+        }
     }
 
     hookEventHandler(): void {

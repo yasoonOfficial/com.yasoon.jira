@@ -52,15 +52,17 @@ namespace FieldController {
         }
     }
 
-    export function loadField(fieldMeta: JiraMetaField, type: any, params?: any): void {
+    export function loadField(fieldMeta: JiraMetaField, type: any, params?: any): Field {
         enrichFieldMeta(fieldMeta);
         let field = getField(fieldMeta.key);
 
         if (field) {
             field.updateFieldMeta(fieldMeta);
+            return field;
         } else {
             let handler: Field = new type(fieldMeta.key, fieldMeta, params);
             metaFields[fieldMeta.key] = handler;
+            return handler;
         }
     }
 

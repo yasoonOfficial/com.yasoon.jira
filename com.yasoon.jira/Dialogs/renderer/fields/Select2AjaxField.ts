@@ -18,7 +18,7 @@ abstract class Select2AjaxField extends Select2Field {
 			options.ajax = {
 				url: '',
 				transport: (params, success, failure) => {
-					var queryTerm = '';
+					let queryTerm = '';
 					if (params && params.data && params.data.q) {
 						queryTerm = params.data.q;
 					}

@@ -179,8 +179,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				placeholder: yasoon.i18n('dialog.placeholderRequestType')
 			});
 
+			jira.emailController = new EmailController(jira.mail, jira.selectedText, jira.settings, jira.ownUser);
+
 			//Render Header fields
-			FieldController.loadField(ProjectField.defaultMeta, ProjectField, jira.cacheProjects);
+			var projectField = FieldController.loadField(ProjectField.defaultMeta, ProjectField, jira.cacheProjects);
 			FieldController.render(FieldController.projectFieldId, $('#HeaderArea'));
 
 			FieldController.loadField(IssueTypeField.defaultMeta, IssueTypeField);
@@ -193,6 +195,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			FieldController.registerEvent(EventType.FieldChange, self, FieldController.projectFieldId);
 			FieldController.registerEvent(EventType.FieldChange, self, FieldController.issueTypeFieldId);
 
+			//Check Default Project
+			ProjectField.setDefaultProject();
+
 			/*
 			//Please don't change, weird resize bug whatever
 			// => We need the thenable to be executed async
@@ -201,64 +206,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			if (!jira.cacheProjects || jira.cacheProjects.length === 0)
 				projectGet = jiraGet('/rest/api/2/project');
 
-			Promise.all([
-				projectGet,
-				jiraGet('/rest/servicedeskapi/servicedesk').catch(function (e) { return null; })
-			])
-				.spread(function (data, serviceDesks) {
-					//Populate Project Dropdown
-					if (typeof (data) === 'string')
-						self.projects = JSON.parse(data);
-					else
-						self.projects = data;
-
-					if (serviceDesks)
-						self.serviceDesks = JSON.parse(serviceDesks);
-
-					var group = $('#project').find('.all');
-					self.projects.sort(function (a, b) { return a.name.toLowerCase() > b.name.toLowerCase(); });
-					$.each(self.projects, function (i, project) {
-						group.append('<option value="' + project.id + '" data-icon="' + getProjectIcon(project) + '" data-key="' + project.key + '">' + project.name + '</option>');
-					});
-
-					group = $('#project').find('.recent');
-					$.each(self.recentProjects, function (i, proj) {
-						var project = self.projects.filter(function (p) { return p.key === proj.key; })[0];
-						if (project) {
-							group.append('<option value="' + project.id + '" data-icon="' + getProjectIcon(project) + '" data-key="' + project.key + '">' + project.name + '</option>');
-						}
-					});
-
-					$('#project').select2("destroy");
-					$('#project').select2({
-						placeholder: yasoon.i18n('dialog.placeholderSelectProject'),
-						templateResult: formatIcon,
-						templateSelection: formatIcon,
-					});
-
-					$('#ProjectSpinner').css('display', 'none');
-					$('#project').on('change', self.selectProject);
-					$('#project').next().find('.select2-selection').first().focus();
-
-					//If mail is provided && subject contains reference to project, pre-select that
-					if (self.mail && self.mail.subject) {
-						//Sort projects by key length descending, so we will match the following correctly:
-						// Subject: This is for DEMODD project
-						// Keys: DEMO, DEMOD, DEMODD
-						var projectsByKeyLength = self.projects.sort(function (a, b) {
-							return b.key.length - a.key.length; // ASC -> a - b; DESC -> b - a
-						});
-
-						for (var i = 0; i < projectsByKeyLength.length; i++) {
-							var curProj = projectsByKeyLength[i];
-							if (self.mail.subject.indexOf(curProj.key) >= 0) {
-								$('#project').val(curProj.id).trigger('change');
-								break;
-							}
-						}
-					}
-				})
-				.catch(jira.handleError);
 				*/
 		}
 
@@ -273,7 +220,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	this.handleEvent = function (type, newValue, source) {
 		if (source === FieldController.projectFieldId) {
 			var project = newValue;
-			//Toggle Fields here instead of Project Field
 			jira.selectedProject = project;
 
 			if (project) {
@@ -289,12 +235,15 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				$('#SubtaskArea').addClass('hidden');
 			}
 
-			//STart Rendering
+			//Get latest meta and start new Rendering
 			$('#LoaderArea').removeClass('hidden');
 			$('#ContentArea').css('visibility', 'hidden');
 			self.getMetaData(jira.selectedProject.id, issueType.id)
 				.then(function (meta) {
 					return self.renderIssue(meta);
+				})
+				.then(function () {
+					return self.insertValues();
 				})
 				.then(function () {
 					$('#LoaderArea').addClass('hidden');
@@ -587,7 +536,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				self.getRequestTypes(jira.selectedProject),
 				self.getProjectValues(),
 				self.getMetaData(),
-				self.loadSenderUser()
+				//self.loadSenderUser()
 			])
 				.spread(function (requestTypes) {
 					//New with JIRA 7: Depending on the project type, we render a little bit differently.
@@ -654,7 +603,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
 						//Set Reporter Data
 						self.UIFormHandler.render('behalfReporter', { name: 'Reporter', required: false, schema: { system: 'reporter' } }, '#behalfOfUserReporter');
-						self.setDefaultReporter('behalfReporter');
+						//self.setDefaultReporter('behalfReporter');
 
 						//Hide Label of newly generated Reporter Field
 						$('#behalfReporter-container label').addClass('hidden');
@@ -705,34 +654,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		}
 	};
 
-	this.loadingSenderUser = null;
-	this.loadSenderUser = function () {
-		if (self.loadingSenderUser)
-			return self.loadingSenderUser;
-
-		if (!jira.mail)
-			return Promise.resolve();
-
-		self.loadingSenderUser = jiraGet('/rest/api/2/user/search?username=' + self.mail.senderEmail)
-			.then(function (data) {
-				var users = JSON.parse(data);
-				if (users.length > 0) {
-					jira.senderUser = users[0];
-					jira.userCommonValues.results[0].children.push({
-						id: jira.senderUser.name,
-						text: jira.senderUser.displayName,
-						icon: 'emailSender'
-					});
-				}
-				else {
-					$('.create-sender').css('display', 'inline');
-				}
-
-				self.setDefaultReporter(fieldMapping.sender);
-			});
-		return self.loadingSenderUser;
-	};
-
 	this.renderIssue = function (meta) {
 		//Set this as current meta
 		jira.currentMeta = meta;
@@ -743,15 +664,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				window.lastError = e;
 				console.log('Error in new renderLogic - switch to old one', e);
 				return self.renderIssueFixed(meta);
-			})
-			.delay(1)
-			.then(function () {
-				//self.UIFormHandler.triggerEvent('afterRender'); //Not needed yet!
-
-				//Fill with intial Values
-				//self.insertValues();
-
-
 			});
 	};
 
@@ -829,81 +741,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 
 	this.insertValues = function () {
-		//Always default Reporter
-		self.setDefaultReporter(fieldMapping.sender);
-
-		//Values if created by mail
-		if (self.mail) {
-			//Subject
-			var hasSubjectField = !!jira.currentMeta.fields[fieldMapping.subject];
-			var hasBodyField = !!jira.currentMeta.fields[fieldMapping.body];
-
-			if (self.mail.subject && hasSubjectField) {
-				var subjectType = $('#' + fieldMapping.subject).data('type');
-				jira.UIFormHandler.setValue(fieldMapping.subject, { schema: { custom: subjectType } }, self.mail.subject);
-			}
-
-			if (hasBodyField) {
-				//Rendering may take some time, so we add a loader -- 66 px = height of header
-				var descriptionPos = $('#' + fieldMapping.body).offset().top + $('.form-body').scrollTop();
-				$('#markupLoader').css('top', (descriptionPos - 66) + 'px').show();
-
-				Promise.resolve().then(function () {
-					var tasks = [];
-					if (self.selectedText) {
-						tasks.push(self.setBodyMarkup(self.selectedText).then(function () { $('#markupLoader').hide(); }));
-					}
-					else if (jira.mailAsMarkup) {
-						tasks.push(self.setBodyMarkup(jira.mailAsMarkup, true));
-					}
-
-					if (!jira.mailAsMarkup) {
-						tasks.push(self.renderMailMarkup());
-					}
-
-					return tasks;
-				})
-					.catch(function (e) {
-						yasoon.util.log('Error in insertValues', yasoon.util.severity.warning, getStackTrace(e));
-					})
-					.finally(function () {
-						$('#markupLoader').hide();
-					});
-			}
-		}
+		//Set Email Values
+		jira.emailController.insertEmailValues();
 
 		//Set all Values in edit case
 		if (self.currentIssue) {
-			self.UIFormHandler.setFormData(self.currentIssue);
+			FieldController.setFormData(self.currentIssue);
 		}
 	};
-
-	this.markupRenderProcess = null;
-	this.renderMailMarkup = function () {
-		if (!self.markupRenderProcess) {
-			self.markupRenderProcess = yasoon.outlook.mail.renderBody(self.mail, 'jiraMarkup')
-				.then(function (markup) {
-					//If there was selected text provided, only store this
-					// => Otherwise, set this as new body					
-					if (self.selectedText) {
-						jira.mailAsMarkup = markup;
-					}
-					else {
-						return self.setBodyMarkup(markup);
-					}
-				})
-				.catch(function () {
-					if (self.selectedText) {
-						jira.mailAsMarkup = yasoon.i18n('general.couldNotRenderMarkup');
-					}
-					else {
-						self.setBodyMarkup(yasoon.i18n('general.couldNotRenderMarkup'), true);
-					}
-				});
-
-			return self.markupRenderProcess;
-		}
-	}
 
 	this.setBodyMarkup = function (baseMarkup, noProcessing) {
 		var markup = baseMarkup;
@@ -929,6 +774,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 	};
 
 	this.getProjectValues = function () {
+		//Obsolete
 		//Check in Cache
 		if (jira.cacheProjects && jira.cacheProjects.length > 0) {
 			var project = jira.cacheProjects.filter(function (p) { return p.key === jira.selectedProject.key; })[0];
@@ -1083,52 +929,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			return jiraGet('/secure/QuickEditIssue!default.jspa?issueId=' + jira.editIssueId + '&decorator=none').then(function (data) { return JSON.parse(data); }).catch(function () { });
 		} else {
 			return jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + jira.selectedProject.id + '&issuetype=' + jira.currentMeta.id).then(function (data) { return JSON.parse(data); }).catch(function () { });
-		}
-	};
-
-	this.getDefaultReporter = function (fieldId) {
-		//Only if there is a fieldMaping for sender and it's an creation case.
-		var senderValue = '';
-		var senderIcon = '';
-		var senderType = '';
-		if (fieldId && !jira.editIssue) {
-			senderType = $('#' + fieldId).data('type');
-			if (jira.mail) {
-				//If senderField Mapping is set to an UserField and sender is an known user 
-				if (senderType === 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker') {
-					if (jira.senderUser && jira.senderUser.name !== -1) {
-						senderValue = jira.senderUser;
-						senderIcon = 'emailSender';
-					}
-					else {
-						senderIcon = 'ownUser';
-						senderValue = jira.ownUser;
-					}
-
-				} else {
-					senderValue = jira.mail.senderEmail;
-				}
-			} else {
-				//Default to own user
-				if (senderType === 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker') {
-					senderIcon = 'ownUser';
-					senderValue = jira.ownUser;
-				} else {
-					senderValue = jira.ownUser.emailAddress;
-				}
-			}
-		}
-		return {
-			sender: senderValue,
-			icon: senderIcon,
-			type: senderType
-		};
-	};
-
-	this.setDefaultReporter = function (fieldId) {
-		var reporterData = self.getDefaultReporter(fieldId);
-		if (reporterData.sender) {
-			jira.UIFormHandler.setValue(fieldId, { schema: { custom: reporterData.type } }, reporterData.sender);
 		}
 	};
 

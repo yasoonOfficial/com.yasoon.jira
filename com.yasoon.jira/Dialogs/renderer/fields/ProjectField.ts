@@ -45,6 +45,7 @@ class ProjectField extends Select2Field {
             .then((data) => {
                 this.setData(data);
 
+                this.setDefaultProject();
                 $('#' + this.id).next().find('.select2-selection').first().focus();
                 this.hideSpinner();
             });
@@ -55,6 +56,25 @@ class ProjectField extends Select2Field {
         FieldController.raiseEvent(EventType.FieldChange, project, this.id);
     }
 
+    setDefaultProject() {
+        //If mail is provided && subject contains reference to project, pre-select that
+        if (jira.emailController.mail && jira.emailController.mail.subject) {
+            //Sort projects by key length descending, so we will match the following correctly:
+            // Subject: This is for DEMODD project
+            // Keys: DEMO, DEMOD, DEMODD
+            let projectsByKeyLength = this.projectCache.sort((a, b) => {
+                return b.key.length - a.key.length; // ASC -> a - b; DESC -> b - a
+            });
+
+            for (let i = 0; i < projectsByKeyLength.length; i++) {
+                let curProj = projectsByKeyLength[i];
+                if (jira.emailController.mail.subject.indexOf(curProj.key) >= 0) {
+                    this.setValue(curProj);
+                    break;
+                }
+            }
+        }
+    }
     //Convert project data into displayable data
     private mapProjectValues(projects: JiraProject[]) {
         let result = projects.map(p => {
