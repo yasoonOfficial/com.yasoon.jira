@@ -7,7 +7,7 @@ function JiraSettingController() {
 
 	var defaults = {
 		currentService: '',
-		lastSync: new Date( new Date().getTime() - (1000 * 60* 60* 24 * 14) ),// If nothing in db, set it to 14 days ago
+		lastSync: new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 14)),// If nothing in db, set it to 14 days ago
 		showDesktopNotif: true,
 		addAttachmentsOnNewAddIssue: false,
 		addMailHeaderAutomatically: 'off',
@@ -44,7 +44,7 @@ function JiraSettingController() {
 		//We need all oAuth Services + determine the description
 		var oAuthServices = yasoon.app.getOAuthServices();
 		oAuthServices.forEach(function (service) {
-			service.description = (service.appParams) ? service.appParams.description: service.serviceName;
+			service.description = (service.appParams) ? service.appParams.description : service.serviceName;
 		});
 
 		//Check selected filters
@@ -90,9 +90,9 @@ function JiraSettingController() {
 
 	};
 
-	self.fillSettingsContainer= function fillSettingsContainer(container, template, parameter) {
+	self.fillSettingsContainer = function fillSettingsContainer(container, template, parameter) {
 		//Add Values
-		var elem = $('<div>' + template(parameter)+ '</div>');
+		var elem = $('<div>' + template(parameter) + '</div>');
 		$.each(jira.settings, function (i, val) {
 			if (elem.find('#' + i).attr('type') == "checkbox") {
 				if (val) {
@@ -135,7 +135,7 @@ function JiraSettingController() {
 					throw new Error('Selected service ' + selectedServiceName + ' does not exist.');
 				}
 
-				if(!newService.appParams || !newService.appParams.url){
+				if (!newService.appParams || !newService.appParams.url) {
 					yasoon.alert.add({ type: yasoon.alert.alertType.error, message: yasoon.i18n('settings.loginNotPossible') });
 					return false;
 				}
@@ -147,13 +147,13 @@ function JiraSettingController() {
 				yasoon.app.getOAuthUrlAsync('com.yasoon.jira', selectedServiceName, function (url) {
 					window.open(url);
 				},
-				function () {
-					//Setting new currentService also set in jira.handleOauthSuccess() because of automated oAuth popups
-					jira.settings.currentService = selectedServiceName;
+					function () {
+						//Setting new currentService also set in jira.handleOauthSuccess() because of automated oAuth popups
+						jira.settings.currentService = selectedServiceName;
 
-					//Refresh UI --> standard yasoon Function
-					oAuthSuccess();
-				});
+						//Refresh UI --> standard yasoon Function
+						oAuthSuccess();
+					});
 
 				return false;
 			});
@@ -178,7 +178,7 @@ function JiraSettingController() {
 
 			function reloadOAuthHandler(e) {
 				e.preventDefault();
-				
+
 				//We have a few checks to do.
 				//This button shouldn't be used if
 				// - it has already been clicked and processing is not finished yet
@@ -203,7 +203,7 @@ function JiraSettingController() {
 							jira.downloadScript = true;
 							yasoon.app.update(null, null, function () {
 								yasoon.view.settings.renderOptionPane(yasoon.view.settings.currentApp());
-								yasoon.alert.add({ message: yasoon.i18n('settings.reloadSuccess'), type: 3});
+								yasoon.alert.add({ message: yasoon.i18n('settings.reloadSuccess'), type: 3 });
 							});
 						}
 					});
@@ -211,26 +211,26 @@ function JiraSettingController() {
 
 				return false;
 			}
-			
+
 			$('#jiraReloadOAuth').off().click(reloadOAuthHandler);
 		};
 		container.setContent(elem.html());
 	};
 
-	self.saveSettings = function saveSettings (form) {
+	self.saveSettings = function saveSettings(form) {
 		//Create deep copy
 		$.each(form, function (i, param) {
 			//Special Case for activeFilters
 			if (param.key === 'activeFilters' && self[param.key] != param.value) {
 				yasoon.dialog.showMessageBox(yasoon.i18n('settings.filterChange'));
 				if (param.value === null) //Null filter is not good :D
-				    param.value = '';
+					param.value = '';
 			}
 			if (param.key === 'tasksActiveProjects' && self[param.key] != param.value ||
-				param.key === 'taskSyncEnabled' && self[param.key] != param.value || 
+				param.key === 'taskSyncEnabled' && self[param.key] != param.value ||
 				param.key === 'tasksSyncAllProjects' && self[param.key] != param.value) {
-			    jira.tasks.requireFullSync = true;
-			    jira.sync();
+				jira.tasks.requireFullSync = true;
+				jira.sync();
 			}
 			if (param.value == "true") {
 				self[param.key] = true;
@@ -244,10 +244,10 @@ function JiraSettingController() {
 	};
 
 	self.save = function () {
-	    var result = {};
-	    Object.keys(defaults).forEach(function (key) {
-	        result[key] = self[key] || defaults[key];
-	    });
+		var result = {};
+		Object.keys(defaults).forEach(function (key) {
+			result[key] = self[key] || defaults[key];
+		});
 		yasoon.setting.setAppParameter('settings', JSON.stringify(self));
 	};
 
@@ -291,24 +291,19 @@ function JiraSettingController() {
 		jira.sysInfo = JSON.parse(sysInfoString);
 	}
 
-	//Server Default Settings
-	var defSettingsString = yasoon.setting.getAppParameter('defaultSettings');
-	if (defSettingsString) {
-		jira.defaultSettings = JSON.parse(defSettingsString);
-	}
-
 	//Determine settings to load:
 	var settingsString = yasoon.setting.getAppParameter('settings');
 	var settings = null;
 	if (!settingsString) {
 		//Initial Settings
-		settings = $.extend(defaults, jira.defaultSettings);
+		settings = defaults;
 		yasoon.setting.setAppParameter('settings', JSON.stringify(settings));
 	} else {
 		//Load Settings
 		settings = JSON.parse(settingsString);
-		settings = $.extend(defaults, jira.defaultSettings, settings);
+		settings = $.extend(defaults, settings);
 	}
+
 	$.each(settings, function (key, value) {
 		self[key] = value;
 	});

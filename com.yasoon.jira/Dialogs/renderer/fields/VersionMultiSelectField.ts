@@ -3,48 +3,58 @@
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../getter/GetObjectArray.ts" />
 /// <reference path="../setter/SetOptionValue.ts" />
+
 @getter(GetterType.ObjectArray, "id")
 @setter(SetterType.Option)
 class VersionMultiSelectField extends Select2Field {
 
-    constructor(id: string, field: JiraMetaField, releasedFirst: boolean) {
-        let data = [];
+    constructor(id: string, field: JiraMetaField, config: { releasedFirst: boolean, multiSelect: boolean }) {
         let options = {
             data: []
         };
 
+        super(id, field, options, config.multiSelect);
+
         let releasedVersions = field.allowedValues
             .filter(option => { return option.released && !option.archived })
-            .map(option => {
-                let text = option.name || option.value;
-                return { id: option.id, text: text };
-            });
+            .map(this.convertToSelect2);
 
         let unreleasedVersions = field.allowedValues
             .filter(option => { return !option.released && !option.archived })
-            .map(option => {
-                let text = option.name || option.value;
-                return { id: option.id, text: text };
-            });
+            .map(this.convertToSelect2);
 
-        let releasedOptGroup = {
+        let releasedOptGroup: Select2Element = {
+            id: 'releasedVersions',
             text: yasoon.i18n('dialog.releasedVersions'),
             children: releasedVersions
         };
 
-        let unreleasedOptGroup = {
+        let unreleasedOptGroup: Select2Element = {
+            id: 'unreleasedVersions',
             text: yasoon.i18n('dialog.unreleasedVersions'),
             children: unreleasedVersions
         };
 
-        if (releasedFirst) {
-            options.data.push(releasedOptGroup);
-            options.data.push(unreleasedOptGroup);
+        if (config.releasedFirst) {
+            this.options.data.push(releasedOptGroup);
+            this.options.data.push(unreleasedOptGroup);
         } else {
-            options.data.push(unreleasedOptGroup);
-            options.data.push(releasedOptGroup);
+            this.options.data.push(unreleasedOptGroup);
+            this.options.data.push(releasedOptGroup);
+        }
+    }
+
+    convertToSelect2(version: JiraValue): Select2Element {
+        let result: Select2Element = {
+            id: version.id,
+            text: version.name || version.value,
+            data: version
+        };
+
+        if (version.iconUrl) {
+            result.icon = jira.icons.mapIconUrl(version.iconUrl);
         }
 
-        super(id, field, options, true);
-    };
+        return result;
+    }
 }

@@ -2,7 +2,6 @@
 /// <reference path="Select2AjaxField.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../../../common.js" />
 
 class SprintSelectField extends Select2AjaxField {
     private emptySearch;
@@ -30,21 +29,23 @@ class SprintSelectField extends Select2AjaxField {
         }
     }
 
+    convertToSelect2(sprint: JiraSprint): Select2Element {
+        return {
+            id: sprint.id.toString(),
+            text: sprint.name,
+            data: sprint
+        };
+    }
+
     getData(searchTerm: string): Promise<Select2Element[]> {
         return jiraGet('/rest/greenhopper/1.0/sprint/picker')
-            .then(function (data: string) {
+            .then((data: string) => {
                 //{"suggestions":[{"name":"Sample Sprint 2","id":1,"stateKey":"ACTIVE"}],"allMatches":[]}
                 let sprints: JiraSprints = JSON.parse(data);
                 let result: Select2Element[] = [];
 
                 if (sprints && sprints.suggestions.length > 0) {
-                    let suggestions: Select2Element[] = [];
-                    sprints.suggestions.forEach((sprint) => {
-                        suggestions.push({
-                            id: sprint.id.toString(),
-                            text: sprint.name
-                        });
-                    });
+                    let suggestions = sprints.suggestions.map(this.convertToSelect2);
                     result.push({
                         id: 'suggestions',
                         text: yasoon.i18n('dialog.sprintSuggestion'),
@@ -52,13 +53,7 @@ class SprintSelectField extends Select2AjaxField {
                     });
                 }
                 if (sprints && sprints.allMatches && sprints.allMatches.length > 0) {
-                    let matches: Select2Element[] = [];
-                    sprints.allMatches.forEach((sprint) => {
-                        matches.push({
-                            id: sprint.id.toString(),
-                            text: sprint.name
-                        });
-                    });
+                    let matches = sprints.allMatches.map(this.convertToSelect2);
                     result.push({
                         id: 'allMatches',
                         text: yasoon.i18n('dialog.sprintAll'),

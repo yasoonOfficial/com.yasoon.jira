@@ -1,8 +1,8 @@
 /// <reference path="../Field.ts" />
 /// <reference path="Select2AjaxField.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
+/// <reference path="../../../definitions/common.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../../../common.js" />
 /// <reference path="../getter/GetArray.ts" />
 /// <reference path="../setter/SetTagValue.ts" />
 
@@ -23,9 +23,16 @@ class TempoAccountField extends Select2Field {
         return null;
     }
 
+    convertToSelect2(obj: any): Select2Element {
+        return {
+            id: obj.id,
+            text: obj.name,
+            data: obj
+        };
+    }
 
     getData() {
-        Promise.all([
+        return Promise.all([
             jiraGet('/rest/tempo-accounts/1/account'),
             jiraGet('/rest/tempo-accounts/1/account/project/' + jira.selectedProject.id)
         ])
@@ -36,15 +43,7 @@ class TempoAccountField extends Select2Field {
                 let result: Select2Element[] = [];
 
                 if (projectAccounts && projectAccounts.length > 0) {
-                    let childs: Select2Element[] = [];
-
-                    projectAccounts.forEach(function (projectAcc) {
-                        childs.push({
-                            'id': projectAcc.id,
-                            'text': projectAcc.name
-                        });
-                    });
-
+                    let childs: Select2Element[] = projectAccounts.map(this.convertToSelect2);
                     result.push({
                         id: 'projectAccounts',
                         text: yasoon.i18n('dialog.projectAccounts'),
@@ -57,15 +56,7 @@ class TempoAccountField extends Select2Field {
 
                     if (accountData.length > 0) {
 
-                        let accChilds: Select2Element[] = [];
-
-                        accountData.forEach((projectAcc) => {
-                            accChilds.push({
-                                'id': projectAcc.id,
-                                'text': projectAcc.name
-                            });
-                        });
-
+                        let accChilds: Select2Element[] = accountData.map(this.convertToSelect2);
                         result.push({
                             id: 'globalAccounts',
                             text: yasoon.i18n('dialog.globalAccounts'),
@@ -74,9 +65,13 @@ class TempoAccountField extends Select2Field {
                     }
                 }
 
-                this.setData(result);
-                if (this.initialValue) {
-                    this.setValue(this.initialValue);
+                if (this.isRendered()) {
+                    this.setData(result);
+                    if (this.initialValue) {
+                        this.setValue(this.initialValue);
+                    }
+                } else {
+                    this.options.data = result;
                 }
             });
     }

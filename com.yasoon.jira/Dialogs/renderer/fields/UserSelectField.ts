@@ -2,86 +2,116 @@
 /// <reference path="Select2AjaxField.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../../../common.js" />
+/// <reference path="../../../definitions/common.d.ts" />
 /// <reference path="../getter/GetArray.ts" />
 /// <reference path="../setter/SetTagValue.ts" />
 
 @getter(GetterType.Object, "name")
-class UserSelectField extends Select2AjaxField {
+@setter(SetterType.Option)
+class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
+    static reporterDefaultMeta: JiraMetaField = { key: FieldController.onBehalfOfFieldId, get name() { return yasoon.i18n('dialog.behalfOf'); }, required: true, schema: { system: 'user', type: '' } };
+    senderUser: JiraUser;
+    ownUser: JiraUser;
 
     private avatarPath: string;
+
     constructor(id: string, field: JiraMetaField, options: any = {}) {
-        super(id, field, options);
+        super(id, field, options, options.multiple);
+        this.ownUser = jira.ownUser;
         this.avatarPath = yasoon.io.getLinkPath('Images/useravatar.png');
+
+        FieldController.registerEvent(EventType.SenderLoaded, this);
     }
 
-    setValue(value: any): void {
-        if (value && Array.isArray(value)) {
-            //Multiselect     
-            let users: JiraUser[] = value;
-            let selectedValues = [];
-            users.forEach(u => {
-                $('#' + this.id).append(`<option value="${u.name}>${u.displayName}</option>`);
-                selectedValues.push(u.name);
-            });
-            $('#' + this.id).val(selectedValues).trigger('change');
-        } else if (value) {
-            let user: JiraUser = value;
-            //Single Select
-            $('#' + this.id).append(`<option value="${user.name}>${user.displayName}</option>`);
-            $('#' + this.id).val(user.name).trigger('change');
+    handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
+        if (type == EventType.SenderLoaded) {
+            if (newValue) {
+                this.senderUser = newValue;
+            }
         }
+
+        return null;
     }
 
     hookEventHandler(): void {
         super.hookEventHandler();
-        $('#' + this.id + 'field-group').find('.assign-to-me-trigger').click((e) => {
-            if (jira.ownUser) {
-                this.setValue(jira.ownUser.name);
+        $('#' + this.id + '-field-group').find('.assign-to-me-trigger').click((e) => {
+            if (this.ownUser) {
+                this.setValue(this.ownUser);
             }
             e.preventDefault();
         });
     }
 
     render(container: JQuery): void {
+        //If assignee, preselect 
+        if (this.id === "assignee" && !this.options.data) {
+            this.options.data = [{
+                id: -1,
+                'icon': this.avatarPath,
+                'text': 'Automatic'
+            }];
+        }
         super.render(container);
 
         container.append(`<span style="display:block; padding: 5px 0px;">
 				        <a href="#${this.id}" class="assign-to-me-trigger" title="${yasoon.i18n('dialog.assignMyselfTitle')}">${yasoon.i18n('dialog.assignMyself')}</a>`);
+
+        if (this.id === "assignee") {
+            $('#' + this.id).val('-1').trigger('change');
+        }
+    }
+
+    convertToSelect2(user: JiraUser) {
+        let result: Select2Element = {
+            'id': user.name,
+            'text': user.displayName
+        };
+
+        if (this.senderUser && user.name == this.senderUser.name) {
+            result.iconClass = 'fa fa-envelope';
+        }
+
+        if (user.name == this.ownUser.name) {
+            result.iconClass = 'fa fa-user';
+        }
+
+        return result;
     }
 
     private getReturnStructure(users?: any[]) {
         let result = [];
-        // 1. Build common suggestion
-        let suggestions = [];
-        if (this.id === 'assignee') {
-            suggestions.push({
-                'id': '-1',
-                'selected': true,
-                'icon': this.avatarPath,
-                'text': 'Automatic'
-            });
-        }
-
-        suggestions.push({
-            'id': jira.ownUser.name,
-            'iconClass': 'fa fa-user',
-            'text': jira.ownUser.displayName
-        });
-
-        result.push({
-            id: 'Suggested',
-            text: yasoon.i18n('dialog.suggested'),
-            children: suggestions
-        });
-
         if (users) {
             result.push({
                 id: 'Search',
                 text: yasoon.i18n('dialog.userSearchResult'),
                 children: users
             });
+        } else {
+            //Build common suggestion
+            let suggestions = [];
+            if (this.id === 'assignee') {
+                suggestions.push({
+                    'id': '-1',
+                    'icon': this.avatarPath,
+                    'text': 'Automatic'
+                });
+            }
+
+            suggestions.push(this.convertToSelect2(this.ownUser));
+
+            if (this.senderUser) {
+                suggestions.push(this.convertToSelect2(this.senderUser));
+            }
+
+            result.push({
+                id: 'Suggested',
+                text: yasoon.i18n('dialog.suggested'),
+                children: suggestions
+            });
         }
+
+
 
         return result;
     }
@@ -97,7 +127,7 @@ class UserSelectField extends Select2AjaxField {
             .then((data: string) => {
                 let users = JSON.parse(data);
                 //1. Build User Result Array
-                let result = [];
+                let result: Select2Element[] = [];
                 //Yay, change of return structure....
                 let userArray = [];
                 if (users && users.users && users.users.length > 0) {
@@ -106,14 +136,8 @@ class UserSelectField extends Select2AjaxField {
                     userArray = users;
                 }
 
-                userArray.forEach(function (user) {
-                    let u: any = { id: user.name, text: user.displayName };
-                    if (user.name === jira.ownUser.name)
-                        u.iconClass = 'fa fa-user';
-                    if (user.name === jira.senderUser.name)
-                        u.iconClass = 'fa fa-envelope';
-
-                    result.push(u);
+                userArray.forEach((user) => {
+                    result.push(this.convertToSelect2(user));
                 });
 
                 return this.getReturnStructure(result);

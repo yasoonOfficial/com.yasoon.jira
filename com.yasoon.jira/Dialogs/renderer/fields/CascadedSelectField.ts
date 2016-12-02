@@ -4,19 +4,23 @@
 /// <reference path="../getter/GetObject.ts" />
 /// <reference path="../setter/SetOptionValue.ts" />
 
-class CascadedSelectField extends Select2Field {
+class CascadedSelectField extends Field implements IFieldEventHandler {
     private parentField: SingleSelectField;
     private childField: SingleSelectField;
 
     constructor(id: string, field: JiraMetaField) {
-        super(id, field, {});
+        super(id, field);
 
         this.parentField = new SingleSelectField(id + '_parent', field, {}, "min-width: 150px; width: 45%;");
-
+        FieldController.registerEvent(EventType.FieldChange, this, id + '_parent');
         let childFieldMeta: JiraMetaField = JSON.parse(JSON.stringify(field));
         childFieldMeta.allowedValues = [];
 
         this.childField = new SingleSelectField(id + '_child', childFieldMeta, {}, "min-width: 150px; width: 45%; ");
+        FieldController.registerEvent(EventType.FieldChange, this, id + '_child');
+    }
+
+    getDomValue() {
 
     }
 
@@ -61,20 +65,32 @@ class CascadedSelectField extends Select2Field {
         }
     }
 
-    hookEventHandler(): void {
-        super.hookEventHandler();
-        $('#' + this.parentField.id).change((e) => {
-            let parentValue = this.parentField.getDomValue();
-            let currentSelection = this.fieldMeta.allowedValues.filter(function (v) { return v.id == parentValue; })[0];
+    handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
+        if (source === this.id + '_parent') {
+            //Adjust Child Collection
+            let currentSelection = this.fieldMeta.allowedValues.filter(function (v) { return v.id == newValue.id; })[0];
             let allowedValues = (currentSelection) ? currentSelection.children : [];
 
-            this.childField.setData(Select2Field.convertToSelect2Array(allowedValues));
-        });
+            this.childField.setData(allowedValues.map(this.childField.convertToSelect2));
+        }
+
+        FieldController.raiseEvent(EventType.FieldChange, this.getValue(false), this.id);
+
+        return null;
     }
 
+    hookEventHandler(): void { }
+
     render(container: JQuery): void {
-        this.parentField.render(container);
+        let parentContainer = $(`<div id="{this.id}_parent-container" style="display:inline;"></div>`).appendTo(container);
+        this.parentField.render(parentContainer);
+        this.parentField.hookEventHandler();
+        this.parentField.ownContainer = parentContainer;
         container.append('<span style="margin-left: 10px;">&nbsp</span>');
-        this.childField.render(container);
+
+        let childContainer = $(`<div id="{this.id}_child-container" style="display:inline;"></div>`).appendTo(container);
+        this.childField.render(childContainer);
+        this.childField.hookEventHandler();
+        this.childField.ownContainer = childContainer;
     }
 }

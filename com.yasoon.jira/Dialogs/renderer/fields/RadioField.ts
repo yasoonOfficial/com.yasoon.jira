@@ -8,7 +8,7 @@
 class RadioField extends Field {
 
     getDomValue(): any {
-        return $('#' + this.id).find('input:checked').first().val();
+        return $(this.ownContainer).find('input:checked').first().val();
     };
 
     hookEventHandler(): void {

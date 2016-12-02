@@ -4,11 +4,15 @@ declare var yasoon;
 
 namespace FieldController {
     export const projectFieldId = 'project';
-    export const issueTypeFieldId = 'issueType';
-    export const issueFieldId = 'issue';
+    export const issueTypeFieldId = 'issuetype';
+    export const issueFieldId = 'parent';
+    export const requestTypeFieldId = 'requesttype';
+    export const reporterFieldId = 'reporter';
+    export const onBehalfOfFieldId = 'onBehalfOf';
 
     let fieldTypes: any = {};
     let metaFields: { [id: string]: Field } = {};
+    let currentMeta: { [id: string]: JiraMetaField } = {};
     //Event --> Fields[]
     let lifecycleHandler: { [id: number]: IFieldEventHandler[] } = {};
     // Event --> FieldId --> Fields[]
@@ -38,8 +42,12 @@ namespace FieldController {
 
         return hasChanged;
     }
+    export function getMeta(): { [id: string]: JiraMetaField } {
+        return currentMeta;
+    }
 
     export function loadMeta(fields: { [id: string]: JiraMetaField }): void {
+        currentMeta = fields;
         for (let key in fields) {
             let field: JiraMetaField = fields[key];
             let type = getFieldType(field);
@@ -110,14 +118,17 @@ namespace FieldController {
 
     export function setFormData(issue: any): void {
         for (let key in metaFields) {
+            if (key == FieldController.projectFieldId || key == FieldController.issueTypeFieldId)
+                continue;
+
             setValue(key, issue.fields[key], true);
         }
     }
 
-    export function raiseEvent(eventType: EventType, newValue: any, id?: string): void {
+    export function raiseEvent(eventType: EventType, newValue: any, id?: string): Promise<any> {
         //Check for Event Type
         console.log('Event raised', eventType, id, newValue);
-
+        let returnPromises: Promise<any>[] = [];
         switch (eventType) {
             case EventType.FieldChange:
                 //get Field handler
@@ -128,7 +139,7 @@ namespace FieldController {
                                 field.handleEvent(eventType, newValue, id);
                             }, 1, eventType, newValue, id);
                         } catch (e) {
-
+                            console.log('Error occured', e, e.stack);
                         }
                     });
                 }
@@ -137,13 +148,20 @@ namespace FieldController {
                 if (lifecycleHandler[eventType]) {
                     lifecycleHandler[eventType].forEach(field => {
                         try {
-                            field.handleEvent(eventType, newValue);
+                            let result: Promise<any> = field.handleEvent(eventType, newValue);
+                            if (result) {
+                                returnPromises.push(result);
+                            }
                         } catch (e) {
-
+                            console.log('Error occured', e, e.stack);
                         }
                     });
                 }
                 break;
+        }
+
+        if (returnPromises.length > 0) {
+            return Promise.all(returnPromises);
         }
     }
 
@@ -191,38 +209,6 @@ function insertAtCursor(myField, myValue) {
         myField.value.substring(endPos, myField.value.length);
 }
 
-var timeoutSearchUser = null;
-function searchJiraUser(mode, query, callback) {
-    //First try to get an issue key ... if it doesn't exist, get project
-    var selectedIssueKey = null;
-    var selectedProjectKey = null;
-
-    if (jira.getSelectedIssueOption) {
-        selectedIssueKey = jira.getSelectedIssueOption().data('key');
-    }
-
-    if (!selectedIssueKey) {
-        selectedProjectKey = $('#project').data('key') || ((jira.selectedProject) ? jira.selectedProject.key : null);
-    }
-    if (selectedIssueKey || selectedProjectKey) {
-        var queryKey = (selectedIssueKey) ? 'issueKey=' + selectedIssueKey : 'projectKey=' + selectedProjectKey;
-        /*
-        jiraGet('/rest/api/2/user/viewissue/search?' + queryKey + '&maxResults=10&username=' + query)
-            .then(function (users) {
-                var data = [];
-                users = JSON.parse(users);
-                users.forEach(function (user) {
-                    data.push({ id: user.name, name: user.displayName, type: 'user' });
-                });
-                callback(data);
-            });*/
-    } else {
-        //Show alert
-        $('.mentions-input-box + .mentions-help-text').slideDown();
-        if (timeoutSearchUser) {
-            clearTimeout(timeoutSearchUser);
-        }
-        timeoutSearchUser = setTimeout(function () { $('.mentions-input-box + .mentions-help-text').slideUp(); }, 2000);
-        callback([]);
-    }
+function sortByText(a, b) {
+    return ((a.text.toLowerCase() > b.text.toLowerCase()) ? 1 : -1);
 }

@@ -1,29 +1,16 @@
 /// <reference path="../../definitions/jquery.d.ts" />
+/// <reference path="../../definitions/jira.d.ts" />
+/// <reference path="../../definitions/customSelect2.d.ts" />
 /// <reference path="setter/SetValue.ts" />
 /// <reference path="getter/GetTextValue.ts" />
-
-interface FieldGet {
-	getValue(onlyChangedData: boolean): any;
-}
-
-interface FieldGetter {
-	getValue(id: string, field: JiraMetaField, onlyChangedData: boolean, newValue?: any, initialValue?: any): any;
-}
-
-interface FieldSet {
-	setValue(value: any): void;
-}
-
-interface FieldSetter {
-	setValue(id: string, value: any): void;
-}
 
 abstract class Field implements FieldGet, FieldSet {
 	public id: string;
 	protected fieldMeta: JiraMetaField;
 	protected initialValue: any;
 	protected params: any;
-	protected ownContainer: JQuery;
+	protected lastValue: any;
+	ownContainer: JQuery;
 
 	getter: FieldGetter;
 	setter: FieldSetter;
@@ -49,7 +36,7 @@ abstract class Field implements FieldGet, FieldSet {
 		if (!setter)
 			throw new Error("Please either redefine method setValue or add a @setter Annotation for " + this.id);
 
-		return this.setter.setValue(this.id, value);
+		return this.setter.setValue(this, value);
 	}
 
 	getType(): string {
@@ -57,7 +44,11 @@ abstract class Field implements FieldGet, FieldSet {
 	}
 
 	triggerValueChange(): void {
-		FieldController.raiseEvent(EventType.FieldChange, this.getValue(false), this.id);
+		let currentValue = this.getValue(false);
+		if (this.lastValue != currentValue) {
+			FieldController.raiseEvent(EventType.FieldChange, currentValue, this.id);
+			this.lastValue = currentValue;
+		}
 	}
 
 	updateFieldMeta(newMeta: JiraMetaField) {
@@ -75,7 +66,7 @@ abstract class Field implements FieldGet, FieldSet {
 
 		//First render the field-group container for this field if it does not exist yet
 		if (fieldGroup.length === 0) {
-			fieldGroup = $(`<div id="#${this.id}-field-group" data-field-id="${this.id}"></div>`).appendTo(container);
+			fieldGroup = $(`<div id="${this.id}-field-group" data-field-id="${this.id}"></div>`).appendTo(container);
 		}
 
 		//Render label, mandatory and hidden logic
@@ -90,9 +81,20 @@ abstract class Field implements FieldGet, FieldSet {
 
 		this.ownContainer = $(fieldGroup).html(html).find('.field-container');
 		//Only inject inner container for easier usage
-		this.render(this.ownContainer);
+		let result = this.render(this.ownContainer);
 
-		this.hookEventHandler();
+		//If it returns a promise, waitbefore adding event handler
+		if (result && result.then) {
+			result.then(() => {
+				this.hookEventHandler();
+			});
+		} else {
+			this.hookEventHandler();
+		}
+	}
+
+	isRendered(): boolean {
+		return (this.ownContainer != null);
 	}
 }
 
@@ -105,16 +107,7 @@ enum SetterType {
 }
 
 enum EventType {
-	FieldChange, AfterRender, AfterSave, BeforeSave
-}
-
-interface IFieldEventHandler {
-	handleEvent(type: EventType, newValue: any, source?: string): void;
-}
-
-interface IEmailController {
-	getAttachmentFileHandles(): any[];
-	insertEmailValues(): void;
+	FieldChange, AfterRender, AfterSave, BeforeSave, SenderLoaded, UiAction
 }
 
 //@getter Annotation
@@ -172,182 +165,38 @@ function setter(setterType: SetterType) {
 	}
 }
 
-
-interface JiraSchema {
-	type: string,
-	custom?: string,
-	customId?: string,
-	system?: string
+interface IFieldEventHandler {
+	handleEvent(type: EventType, newValue: any, source?: string): Promise<any>;
 }
 
-interface JiraValue {
-	id: string,
-	name?: string,
-	key?: string,
-	value?: string,
-	iconUrl?: string,
-	released?: boolean,
-	archived?: boolean,
-	children?: Array<JiraValue>
+interface IEmailController {
+	getAttachmentFileHandles(): any[];
+	insertEmailValues(): void;
 }
 
-interface JiraSentObj {
-	id?: string,
-	name?: string,
-	child?: JiraSentObj
+interface LifecycleData {
+	data: any,
+	newData: any,
+	cancel?: boolean,
 }
 
-interface JiraTimetrackingValue {
-	originalEstimate?: string,
-	remainingEstimate?: string
-}
-
-interface JiraGroups {
-	total: number,
-	header: string,
-	groups: JiraGroup[]
-}
-
-interface JiraGroup {
-	html: string,
-	labels: JiraGroupLabel[],
-	name: string
-}
-
-interface JiraGroupLabel {
-	text: string,
-	title: string,
-	type: string
-}
-
-interface Jira6Epics {
-	epicNames: JiraEpic[],
-	total: number
-}
-
-interface Jira7Epics {
-	epicLists: JiraEpicList[],
-	total: number
-}
-
-interface JiraEpicList {
-	listDescriptor: string,
-	epicNames: JiraEpic[],
-}
-
-
-interface JiraEpic {
-	key: string,
+interface UiActionEventData {
 	name: string,
-	isDone?: boolean
+	value: any
 }
 
-interface JiraSprints {
-	suggestions: JiraSprint[],
-	allMatches: JiraSprint[]
+interface FieldGet {
+	getValue(onlyChangedData: boolean): any;
 }
 
-interface JiraSprint {
-	name: string,
-	id: number,
-	statusKey: string
+interface FieldGetter {
+	getValue(id: string, field: JiraMetaField, onlyChangedData: boolean, newValue?: any, initialValue?: any): any;
 }
 
-interface JiraJqlResult {
-	issues: JiraIssue[]
+interface FieldSet {
+	setValue(value: any): void;
 }
 
-interface JiraIssue {
-	id: string,
-	key: string,
-	fields: { [id: string]: any }
-}
-
-interface JiraUser {
-	key: string,
-	displayName: string,
-	emailAddress: string,
-	name: string,
-	locale: string,
-	timezone: string,
-	active: boolean,
-	avatarUrls: any
-}
-
-type JiraProjectType = 'business' | 'service_desk' | 'software';
-
-interface JiraProject {
-	id: string,
-	name: string,
-	key: string,
-	projectTypeKey?: JiraProjectType,
-	issueTypes?: JiraIssueType[],
-}
-
-interface JiraIssueType {
-	avatarId: number,
-	description: string,
-	iconUrl: string,
-	id: string,
-	name: string,
-	subtask: boolean
-}
-
-interface JiraProjectTemplate extends JiraProject {
-	senderEmail: string
-}
-
-interface JiraMetaField {
-	required: boolean,
-	schema: JiraSchema,
-	name: string,
-	key: string,
-	description?: string,
-	hasDefaultValue?: boolean,
-	operators?: Array<string>,
-	autoCompleteUrl?: string,
-	allowedValues?: Array<JiraValue>,
-	isHidden?: boolean
-}
-
-interface Select2Options {
-	allowClear?: boolean,
-	placeholder?: string,
-	templateResult?: Select2FormatMethod,
-	templateSelection?: Select2FormatMethod,
-	minimumInputLength?: number,
-	ajax?: Select2Ajax,
-	data?: Select2Element[]
-
-}
-
-interface Select2Element {
-	id: string,
-	text: string,
-	icon?: string,
-	iconClass?: string,
-	children?: Select2Element[],
-	data?: any
-}
-
-interface Select2Ajax {
-	url?: string,
-	transport?: Select2AjaxMethod,
-	processResults?: any
-}
-
-interface Select2AjaxMethod {
-	(params: Select2CallbackParams, success: Select2Callback, failure: Select2Callback): void
-}
-
-interface Select2FormatMethod {
-	(element: Select2Element): string | JQuery
-}
-
-interface Select2CallbackParams {
-	data: { q: string }
-}
-
-interface Select2Callback {
-	(result?: { results: any[] }): void
+interface FieldSetter {
+	setValue(field: Field, value: any): void;
 }

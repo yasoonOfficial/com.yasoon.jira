@@ -9,7 +9,7 @@ class CheckboxField extends Field {
 
     getDomValue(): any {
         let checkedValues = [];
-        $('#' + this.id).find('input').each(function () {
+        $(this.ownContainer).find('input').each(function () {
             if ($(this).is(':checked')) {
                 checkedValues.push({ id: $(this).val() });
             }

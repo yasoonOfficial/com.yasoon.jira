@@ -2,13 +2,16 @@
 /// <reference path="Select2AjaxField.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../../../common.js" />
+/// <reference path="../../../definitions/common.d.ts" />
 /// <reference path="../getter/GetArray.ts" />
 /// <reference path="../setter/SetTagValue.ts" />
 
 @getter(GetterType.Object, "name")
 @setter(SetterType.Option)
 class GroupSelectField extends Select2AjaxField {
+    constructor(id: string, field: JiraMetaField, options: { multiple: boolean } = { multiple: false }) {
+        super(id, field, {}, options.multiple);
+    }
 
     getData(searchTerm: string): Promise<Select2Element[]> {
         let url = '/rest/api/2/groups/picker?maxResults=50&query=' + searchTerm;
@@ -16,16 +19,20 @@ class GroupSelectField extends Select2AjaxField {
         return jiraGet(url)
             .then((data: string) => {
                 let groupsResult: JiraGroups = JSON.parse(data);
-                console.log(groupsResult);
                 let groupsArray: Select2Element[] = [];
                 groupsResult.groups.forEach((group) => {
-                    groupsArray.push({
-                        id: group.name,
-                        text: group.name
-                    });
+                    groupsArray.push(this.convertToSelect2(group));
                 });
 
                 return groupsArray;
             });
+    }
+
+    convertToSelect2(group: JiraGroup): Select2Element {
+        return {
+            id: group.name,
+            text: group.name,
+            data: group
+        };
     }
 }

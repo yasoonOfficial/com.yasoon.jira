@@ -8,7 +8,7 @@ abstract class Select2Field extends Field {
 
 	constructor(id: string, field: JiraMetaField, options: Select2Options, multiple: boolean = false, style: string = "min-width: 350px; width: 80%;") {
 		super(id, field);
-		this.options = $.extend({ minimumInputLength: 0, allowClear: true, placeholder: '', templateResult: Select2Field.formatIcon, templateSelection: Select2Field.formatIcon }, options);
+		this.options = $.extend({ data: [], minimumInputLength: 0, allowClear: true, placeholder: '', templateResult: Select2Field.formatIcon, templateSelection: Select2Field.formatIcon }, options);
 		this.styleCss = style;
 		this.multiple = multiple;
 	}
@@ -38,10 +38,19 @@ abstract class Select2Field extends Field {
 	setData(newValues: Select2Element[]): void {
 		this.options.data = newValues;
 
-		$('#' + this.id)["select2"]("destroy");
-		$('#' + this.id).remove();
-		this.render(this.ownContainer);
-		this.hookEventHandler();
+		if (this.isRendered()) {
+			//Get selected Properties
+			let isDisabled: boolean = $('#' + this.id).prop('disabled');
+
+			$('#' + this.id)["select2"]("destroy");
+			this.ownContainer.html('');
+			this.render(this.ownContainer);
+
+			//Set saved Properties
+			$('#' + this.id).prop('disabled', isDisabled);
+
+			this.hookEventHandler();
+		}
 	}
 
 	hookEventHandler(): void {
@@ -56,6 +65,8 @@ abstract class Select2Field extends Field {
 
 		$('#' + this.id)["select2"](this.options);
 	}
+
+	abstract convertToSelect2(obj: any): Select2Element;
 
 	showSpinner() {
 		$('#' + this.id + '-spinner').removeClass('hidden');
@@ -75,21 +86,6 @@ abstract class Select2Field extends Field {
 		} else {
 			return element.text;
 		}
-	}
-
-	static convertToSelect2Array(jiraValues: JiraValue[]): Select2Element[] {
-		let data = [];
-
-		jiraValues.forEach((value) => {
-			let text = value.name || value.value;
-			let newObj: Select2Element = { id: value.id, text: text };
-			if (value.iconUrl) {
-				newObj.icon = jira.icons.mapIconUrl(value.iconUrl)
-			}
-			data.push(newObj);
-		});
-
-		return data;
 	}
 }
 

@@ -2392,12 +2392,6 @@ function TeamLeadCompaniesSingleRenderer() {
 }*/
 
 //Utility Methods
-function isEqual(a, b) {
-	a = a || "";
-	b = b || "";
-	return a == b;
-}
-
 function parseSprintId(input) {
 	//Wierd --> it's an array of strings with following structure:  "com.atlassian.greenhopper.service.sprint.Sprint@7292f4[rapidViewId=<null>,state=ACTIVE,name=Sample Sprint 2,startDate=2015-04-09T01:54:26.773+02:00,endDate=2015-04-23T02:14:26.773+02:00,completeDate=<null>,sequence=1,id=1]"
 	//First get content of array (everything between [])

@@ -1,8 +1,8 @@
 /// <reference path="../Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 class SetValue implements FieldSetter {
-    setValue(id: string, value: any) {
+    setValue(field: Field, value: any) {
         if (value)
-            $('#' + id).val(value).trigger('change');
+            $('#' + field.id).val(value).trigger('change');
     }
 }

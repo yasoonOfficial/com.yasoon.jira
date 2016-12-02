@@ -2857,10 +2857,6 @@ body {
 	margin-top: 5px;
 }
 
-.attachments-blacklisted {
-	display: none;
-}
-
 .attachments-blacklisted .attachmentNameValue {
 	opacity: 0.5;
 }
@@ -2868,8 +2864,7 @@ body {
 .show-blacklisted-attachments,
 .hide-blacklisted-attachments
 {
-	margin-right: 10px; 
-	display: none;
+	margin-right: 10px;
 	cursor:pointer;
 }
 
@@ -2927,4 +2922,32 @@ button.servicedesk {
 
 .required .icon-required {
 	display: inline !important;
+}
+
+.edit-mode .jira-title {
+	display:none;
+}
+
+.jira-edit-title {
+	display:none;
+}
+
+.edit-mode .jira-edit-title {
+	display:block !important;
+}
+
+.edit-mode #createAnotherCheckbox {
+	display:none !important;
+}
+
+#label-save {
+	display:none;
+}
+
+.edit-mode #label-create {
+	display:none !important;
+}
+
+.edit-mode #label-save {
+	display: block !important;
 }

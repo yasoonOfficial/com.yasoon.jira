@@ -36,7 +36,6 @@ abstract class Select2AjaxField extends Select2Field {
 							//This handler is registered multiple times on the same promise.
 							//Check if we are responsible to make sure we call the correct success function
 							if (searchTerm == queryTerm) {
-								console.log('Result for  ' + searchTerm, result);
 								this.hideSpinner();
 								success(result);
 							}
@@ -79,7 +78,6 @@ abstract class Select2AjaxField extends Select2Field {
 		//So we only create Promises if the previous one is already fullfilled.
 		//But we need to save all Promise Data and call them debounced...
 		if (!this.currentPromise || this.currentPromise.isFulfilled()) {
-			console.log('New Promise for: ' + searchTerm, this.currentPromise);
 			this.currentPromise = new Promise((resolve, reject) => {
 				this.currentReject = reject;
 				this.currentResolve = resolve;
@@ -88,7 +86,6 @@ abstract class Select2AjaxField extends Select2Field {
 			return this.currentPromise;
 		}
 
-		console.log('Existing Promise --> Debounce: - ' + searchTerm);
 		this.debouncedFunction.call(this, searchTerm);
 		return this.currentPromise;
 	}

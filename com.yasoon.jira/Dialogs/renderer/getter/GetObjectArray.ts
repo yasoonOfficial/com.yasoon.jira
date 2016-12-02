@@ -1,7 +1,6 @@
 /// <reference path="../Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
-declare var jira: any;
-declare var isEqual: any;
+/// <reference path="../../../definitions/common.d.ts" />
 
 class GetObjectArray implements FieldGetter {
     keyName: string;

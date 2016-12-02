@@ -9,7 +9,21 @@
 class MultiSelectField extends Select2Field {
 
     constructor(id: string, field: JiraMetaField, options: any = {}) {
-        options.data = Select2Field.convertToSelect2Array(field.allowedValues);
         super(id, field, options, true);
-    };
+        this.options.data = field.allowedValues.map(this.convertToSelect2);
+    }
+
+    convertToSelect2(obj: JiraValue): Select2Element {
+        let result: Select2Element = {
+            id: obj.id,
+            text: obj.name || obj.value,
+            data: obj
+        };
+
+        if (obj.iconUrl) {
+            result.icon = jira.icons.mapIconUrl(obj.iconUrl);
+        }
+
+        return result;
+    }
 }

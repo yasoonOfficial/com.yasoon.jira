@@ -2,7 +2,8 @@
     "compilerOptions": {
         "experimentalDecorators": true,
         "outFile": "./com.yasoon.jira/Dialogs/all.js",
-        "allowJs": true
+        "allowJs": true,
+		"target": "es5"
     },
     "include": [
         "com.yasoon.jira/Dialogs/renderer/fields/*",

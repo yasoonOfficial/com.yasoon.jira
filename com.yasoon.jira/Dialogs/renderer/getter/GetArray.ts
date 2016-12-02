@@ -1,7 +1,5 @@
 /// <reference path="../Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
-declare var jira: any;
-declare var isEqual: any;
 
 class GetArray implements FieldGetter {
     getValue(id: string, field: JiraMetaField, onlyChangedData: boolean, newValue?: any, initialValue?: any) {

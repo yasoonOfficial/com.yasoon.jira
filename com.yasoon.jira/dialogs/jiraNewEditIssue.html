@@ -8,8 +8,7 @@
 <script src="dialogs/select2.full.min.js"></script>
 <script src="dialogs/jquery.datetimepicker.full.min.js"></script>
 <script src="dialogs/jquery.mentionsInput.js"></script>
-<!--script src="common.js">
-	</script>-->
+<script src="common.js"></script>
 <script src="dialogs/all.js"></script>
 <script src="dialogs/jiraFieldRendererCore.js"></script>
 <script src="dialogs/jiraFieldRenderer.js"></script>
@@ -20,6 +19,7 @@
 		id="create-issue-dialog">
 		<div class="jira-dialog-heading">
 			<h2 class="jira-title" data-bind="localizedText: 'dialog.titleCreateIssue'"></h2>
+			<h2 class="jira-edit-title" data-bind="localizedText: 'dialog.titleEditIssue'"></h2>
 		</div>
 		<div class="jira-dialog-content">
 			<div class="qf-container">
@@ -31,12 +31,14 @@
 							</div>
 							<div id="HeaderArea">
 							</div>
-							<div id="IssueArea" class="hidden">
+							<div id="IssueArea" class="hidden issue-setup-fields">
 							</div>
-							<div id="SubtaskArea" class="hidden">
+							<div id="SubtaskArea" class="hidden issue-setup-fields">
 							</div>
-							<div id="ServiceArea" class="hidden">
+							<div id="ServiceArea" class="hidden issue-setup-fields">
 								<div style="color: darkgray; font-size: 12px;" data-bind="localizedText: 'dialog.SDExplanation'">Service Desk assignments make the issue visible for the reporter in the Service Desk as "Own Request""</div>
+								<div id="ServiceAreaRequestField"></div>
+								<div id="ServiceAreaReporterField"></div>
 							</div>
 							<div id="ContentArea" class="content" style="visibility:hidden;">
 								<div id="markupLoader" style="display: none; position:absolute; background: url(images/ajax-loader.gif) no-repeat center center; width: 36px; height: 36px; left: 175px; z-index: 100; margin-top: 10px"></div>
@@ -55,7 +57,10 @@
 									<input id="qf-create-another" type="checkbox" />
 									<label for="qf-create-another" class="qf-create-another" style="margin-bottom: 2px;text-align: initial;" data-bind="localizedText: 'dialog.createAnother'"></label>
 								</div>
-								<button type="button" accesskey="s" title="" class="button" id="create-issue-submit" data-bind="localizedText: 'dialog.create'"> Create </button>
+								<button type="button" accesskey="s" title="" class="button" id="create-issue-submit">
+									<span id="label-create" data-bind="localizedText: 'dialog.create'"> Create </span>
+									<span id="label-save" data-bind="localizedText: 'dialog.save'"> Save </span>
+								</button>
 								<a href="#" accesskey="`" title="" id="create-issue-cancel" class="cancel" data-bind="localizedText: 'dialog.cancel'">Cancel</a>
 							</div>
 						</div>

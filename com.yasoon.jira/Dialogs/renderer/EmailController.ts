@@ -1,20 +1,23 @@
 /// <reference path="../../definitions/bluebird.d.ts" />
 
 class EmailController implements IEmailController {
-    public fieldMapping = {
+    static settingCreateTemplates = 'createTemplates';
+
+    fieldMapping = {
         subject: 'summary',
         body: 'description',
         sender: 'reporter',
         sentAt: ''
     }
 
-    public mail: any;
-    public settings: any;
-    public ownUser: JiraUser;
-    public attachmentHandles: any;
-    public mailAsMarkup: string;
-    public selectedTextAsMarkup: string;
-    public senderUser: JiraUser;
+    mail: any;
+    settings: any;
+    ownUser: JiraUser;
+    attachmentHandles: any;
+    mailAsMarkup: string;
+    selectedTextAsMarkup: string;
+    senderUser: JiraUser;
+    senderTemplates: JiraProjectTemplate[];
 
     private renderMarkupPromise: Promise<string>;
     private loadSenderPromise: Promise<any>;
@@ -51,8 +54,15 @@ class EmailController implements IEmailController {
                 }
             });
 
+
+        //Get Sender templates            
+        let templateString = yasoon.setting.getAppParameter(EmailController.settingCreateTemplates);
+        if (templateString) {
+            this.senderTemplates = JSON.parse(templateString);
+        }
+
         //Load Attachment Handles
-        //this.getAttachmentFileHandles();
+        this.getAttachmentFileHandles();
     }
 
     getAttachmentFileHandles() {
@@ -67,7 +77,7 @@ class EmailController implements IEmailController {
             this.attachmentHandles.push(handle);
 
             if (this.mail.attachments && this.mail.attachments.length > 0) {
-                this.mail.attachments.forEach(function (attachment) {
+                this.mail.attachments.forEach((attachment) => {
                     let handle = attachment.getFileHandle();
                     //Skip too small images	
                     if (this.settings.addAttachmentsOnNewAddIssue) {
@@ -109,23 +119,78 @@ class EmailController implements IEmailController {
             let field = FieldController.getField(this.fieldMapping.sender);
             if (field) {
                 this.loadSenderPromise.then((senderUser: JiraUser) => {
+                    FieldController.raiseEvent(EventType.SenderLoaded, senderUser);
+                    let valueUser: JiraUser;
+                    let valueMail: string;
                     if (senderUser) {
-                        if (field.getType() == 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker' || 'reporter') {
-                            field.setValue(senderUser);
-                        } else {
-                            field.setValue(senderUser.emailAddress);
-                        }
-
+                        valueUser = senderUser;
+                        valueMail = senderUser.emailAddress;
                     } else {
-                        if (field.getType() == 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker' || 'reporter') {
-                            field.setValue(this.ownUser);
-                        } else {
-                            field.setValue(this.mail.senderEmail);
-                        }
+                        valueUser = this.ownUser;
+                        valueMail = this.mail.senderEmail;
+                    }
+
+                    if (field.getType() == 'com.atlassian.jira.plugin.system.customfieldtypes:userpicker' || 'reporter') {
+                        field.setValue(valueUser);
+                    } else {
+                        field.setValue(valueMail);
+                    }
+
+                    //If Service is active, set onBehalf user
+                    let onBehalfOfField = FieldController.getField(FieldController.onBehalfOfFieldId);
+                    if (onBehalfOfField) {
+                        onBehalfOfField.setValue(valueUser);
                     }
                 });
 
             }
+        }
+    }
+
+    saveSenderTemplate(values) {
+        if (this.mail) {
+            let projectField = <ProjectField>FieldController.getField(FieldController.projectFieldId);
+            let project: JiraProject = projectField.getObjectValue();
+
+            let projectCopy: JiraProject = JSON.parse(JSON.stringify(project));
+            delete projectCopy.issueTypes;
+
+            let newValues = JSON.parse(JSON.stringify(values));
+
+            let template: JiraProjectTemplate = {
+                senderEmail: this.mail.senderEmail,
+                senderName: this.mail.senderName,
+                project: project,
+                values: values
+            }
+
+            delete template.values.fields.summary;
+            delete template.values.fields.description;
+            delete template.values.fields.duedate;
+
+            //Service Desk Data
+            if (project.projectTypeKey === 'service_desk') {
+                template.serviceDesk = {
+                    enabled: false,
+                    requestType: '100'
+                };
+            }
+
+            //Add or replace template
+            var templateFound = false;
+            this.senderTemplates.map((templ) => {
+                if (templ.senderEmail == template.senderEmail && templ.project.id == template.project.id) {
+                    templateFound = true;
+                    return template;
+                }
+                return templ;
+            });
+
+            if (!templateFound) {
+                this.senderTemplates.push(template);
+            }
+            yasoon.setting.setAppParameter(EmailController.settingCreateTemplates, JSON.stringify(this.senderTemplates));
+
         }
     }
 

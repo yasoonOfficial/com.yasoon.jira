@@ -2,9 +2,9 @@
 /// <reference path="Select2AjaxField.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../../../common.js" />
 /// <reference path="../getter/GetArray.ts" />
 /// <reference path="../setter/SetTagValue.ts" />
+/// <reference path="../../../definitions/common.d.ts" />
 
 @getter(GetterType.Array)
 @setter(SetterType.Tag)
@@ -17,6 +17,18 @@ class LabelSelectField extends Select2AjaxField {
         super(id, field, options, true);
     }
 
+    getDomValue(): string {
+        return $('#' + this.id).val() || [];
+    }
+
+    convertToSelect2(label: JiraLabel): Select2Element {
+        return {
+            id: label.label,
+            text: label.label,
+            data: label
+        };
+    }
+
     getData(searchTerm: string) {
         //Damit JIRA!! ... in old JIRA releases the autocomplete URL is wrong :/
         let url = '/rest/api/1.0/labels/suggest?maxResults=50&query=';
@@ -26,13 +38,13 @@ class LabelSelectField extends Select2AjaxField {
 
         this.lastSearchTerm = searchTerm;
         return jiraGet(url + searchTerm)
-            .then((data: string) => {
+            .then((data) => {
                 let labels = JSON.parse(data);
                 let labelArray = [];
 
                 if (labels.token === this.lastSearchTerm && labels.suggestions) {
                     labels.suggestions.forEach((label) => {
-                        labelArray.push({ text: label.label, id: label.label });
+                        labelArray.push(this.convertToSelect2(label));
                     });
                 }
                 return labelArray;

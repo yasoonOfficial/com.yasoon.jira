@@ -2,16 +2,17 @@
 /// <reference path="Select2AjaxField.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../../../common.js" />
+/// <reference path="../../../definitions/common.d.ts" />
 
-@getter(GetterType.Object, "name")
+@getter(GetterType.Object, "id")
 @setter(SetterType.Option)
-class IssueField extends Select2AjaxField {
-    static defaultMeta: JiraMetaField = { key: FieldController.issueFieldId, name: 'Issue', required: true, schema: { system: 'issue', type: '' } };
+class IssueField extends Select2AjaxField implements IFieldEventHandler {
+    static defaultMeta: JiraMetaField = { key: FieldController.issueFieldId, get name() { return yasoon.i18n('dialog.issue'); }, required: true, schema: { system: 'issue', type: '' } };
 
     private recentIssues: Select2Element[];
+    private currentProject: JiraProject;
     private excludeSubtasks: boolean;
-    private projectIssues: { [id: string]: Select2Element[] };
+    private getProjectIssues: Promise<Select2Element[]>;
 
     constructor(id: string, field: JiraMetaField, excludeSubtasks: boolean) {
         let options: Select2Options = {};
@@ -20,18 +21,28 @@ class IssueField extends Select2AjaxField {
         super(id, field, options);
 
         this.excludeSubtasks = excludeSubtasks;
-        this.projectIssues = {}
         //Load Recent Issues from DB
         let issuesString = yasoon.setting.getAppParameter('recentIssues');
         if (issuesString) {
             this.recentIssues = JSON.parse(issuesString);
         }
 
+        FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
+    }
+
+    handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
+        if (source === FieldController.projectFieldId) {
+            this.setProject(<JiraProject>newValue);
+        }
+        return null;
+
     }
 
     hookEventHandler() {
         super.hookEventHandler();
         $('#' + this.id).on('select2:select', (evt, data) => {
+
+            //Move all this to addComment Dialog
             //We trigger this event manually in setValue.
             //This leads to different eventData :/
 			/*var issue = null;
@@ -72,7 +83,7 @@ class IssueField extends Select2AjaxField {
     private getReturnStructure(issues?: Select2Element[], queryTerm?: string) {
         let result: Select2Element[] = [];
         // 1. Build recent suggestion
-        if (this.recentIssues) {
+        if (this.recentIssues && !queryTerm) {
             result.push({
                 id: 'Suggested',
                 text: yasoon.i18n('dialog.recentIssues'),
@@ -104,11 +115,11 @@ class IssueField extends Select2AjaxField {
         let jql = '';
 
         if (searchTerm) {
-            jql += 'Summary ~ "' + searchTerm + '"';
+            jql += 'key = "' + searchTerm + '" OR ( Summary ~ "' + searchTerm + '"';
         }
 
-        if (jira.selectedProjectKey) {
-            jql += ((jql) ? ' AND' : '') + ' project = "' + jira.selectedProjectKey + '"';
+        if (this.currentProject) {
+            jql += ((jql) ? ' AND' : '') + ' project = "' + this.currentProject.key + '"';
         }
 
         if (jira.settings.hideResolvedIssues) {
@@ -119,10 +130,9 @@ class IssueField extends Select2AjaxField {
             jql += ((jql) ? ' AND' : '') + ' type NOT IN subtaskIssueTypes()';
         }
 
-        jql = '( ' + jql + ' )';
-
+        //Closing brackets for first Summary
         if (searchTerm) {
-            jql += 'OR key = "' + searchTerm + '"';
+            jql += ' )';
         }
 
         console.log('JQL' + jql);
@@ -134,37 +144,41 @@ class IssueField extends Select2AjaxField {
                 console.log(jqlResult);
                 //Transform Data
                 jqlResult.issues.forEach(function (issue) {
-                    result.push({
-                        id: issue.id,
-                        text: issue.fields['summary'] + ' (' + issue.key + ')',
-                        data: issue
-                    });
+                    result.push(this.convertToSelect2(issue));
                 });
 
                 return result;
             });
     }
 
+    convertToSelect2(issue: JiraIssue): Select2Element {
+        return {
+            id: issue.id,
+            text: issue.fields['summary'] + ' (' + issue.key + ')',
+            data: issue
+        };
+    }
+
     getData(searchTerm: string): Promise<Select2Element[]> {
         return this.queryData(searchTerm)
             .then((result: Select2Element[]) => {
-                return this.getReturnStructure(result);
+                return this.getReturnStructure(result, searchTerm);
             });
     }
 
     getEmptyData(): Promise<any> {
-        if (jira.selectedProjectKey) {
-            if (this.projectIssues[jira.selectedProjectKey]) {
-                return Promise.resolve(this.getReturnStructure(this.projectIssues[jira.selectedProjectKey]));
-            } else {
-                return this.queryData('')
-                    .then((data) => {
-                        this.projectIssues[jira.selectedProjectKey] = this.getReturnStructure(data);
-                        return this.projectIssues[jira.selectedProjectKey];
-                    });
-            }
+        if (this.currentProject) {
+            return this.getProjectIssues;
         } else {
             return Promise.resolve(this.getReturnStructure());
         }
+    }
+
+    setProject(project: JiraProject): void {
+        this.currentProject = project;
+        this.getProjectIssues = this.queryData('')
+            .then((issues) => {
+                return this.getReturnStructure(issues);
+            });
     }
 }

@@ -2,8 +2,9 @@
 /// <reference path="Select2AjaxField.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../../../common.js" />
+/// <reference path="../../../definitions/common.d.ts" />
 
+@setter(SetterType.Option)
 class EpicLinkSelectField extends Select2AjaxField {
     private emptySearch;
 
@@ -27,7 +28,15 @@ class EpicLinkSelectField extends Select2AjaxField {
             value = value.replace('key:', '');
         }
 
-        this.setter.setValue(this.id, value);
+        this.setter.setValue(this, value);
+    }
+
+    convertToSelect2(epic: JiraEpic): Select2Element {
+        return {
+            id: epic.key,
+            text: epic.name + ' ( ' + epic.key + ' )',
+            data: epic
+        };
     }
 
     getData(searchTerm: string): Promise<Select2Element[]> {
@@ -45,29 +54,17 @@ class EpicLinkSelectField extends Select2AjaxField {
                     if (epics.epicLists) {
                         let epic7: Jira7Epics = epics;
                         epic7.epicLists.forEach((epicList) => {
-                            let optGroup: Select2Element = {
+                            let children = epicList.epicNames.map(this.convertToSelect2);
+                            results.push({
                                 id: epicList.listDescriptor,
                                 text: epicList.listDescriptor,
-                                children: []
-                            };
-                            epicList.epicNames.forEach((epic) => {
-                                optGroup.children.push({
-                                    id: epic.key,
-                                    text: epic.name + ' ( ' + epic.key + ' )',
-                                });
+                                children: children
                             });
-
-                            results.push(optGroup);
                         });
                     }
                     else {
                         let epic6: Jira6Epics = epics;
-                        epic6.epicNames.forEach((epic) => {
-                            results.push({
-                                id: epic.key,
-                                text: epic.name + ' ( ' + epic.key + ' )',
-                            });
-                        });
+                        results = epic6.epicNames.map(this.convertToSelect2);
                     }
                 }
                 return results;
