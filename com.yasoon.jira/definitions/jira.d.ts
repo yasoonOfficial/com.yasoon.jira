@@ -98,7 +98,29 @@ interface JiraUser {
     locale: string,
     timezone: string,
     active: boolean,
-    avatarUrls: any
+    avatarUrls: any,
+    groups?: JiraUserGroups,
+    applicationRoles?: JiraUserApplicationRoles
+}
+
+interface JiraUserGroups {
+    size: number,
+    items: JiraUserGroup[]
+}
+
+interface JiraUserGroup {
+    name: string,
+    self: string
+}
+
+interface JiraUserApplicationRoles {
+    size: number,
+    items: JiraUserApplicationRole[]
+}
+
+interface JiraUserApplicationRole {
+    key: string,
+    name: string
 }
 
 type JiraProjectType = 'business' | 'service_desk' | 'software';
@@ -176,4 +198,28 @@ interface JiraMetaField {
 
 interface JiraLabel {
     label: string
+}
+
+interface YasoonGroupHierarchy {
+    name: string,
+    position: number
+}
+
+interface YasoonInitialSelection {
+    group: string,
+    projectId: string,
+    issueTypeId: string
+}
+
+interface YasoonDefaultTemplate {
+    group: string,
+    projectId: string,
+    issueTypeId: string,
+    priority: number,
+    fields: YasoonTemplateField[]
+}
+
+interface YasoonTemplateField {
+    fieldId: string,
+    fieldValue: any
 }

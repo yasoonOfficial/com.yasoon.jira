@@ -34,8 +34,13 @@ class SetOptionValue implements FieldSetter {
         } else if (value) {
             //Single Select
 
+            //Convert value into correct value
+            let obj = selectField.convertId(value);
+            if (!obj)
+                return;
+
             // Convert value into normalized select2 format
-            let selectValue = selectField.convertToSelect2(value);
+            let selectValue = selectField.convertToSelect2(obj);
 
             //Now there are two cases:
             //All values already exist in data --> we can just select the data

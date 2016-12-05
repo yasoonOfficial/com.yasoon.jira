@@ -50,6 +50,11 @@ abstract class Select2Field extends Field {
 			$('#' + this.id).prop('disabled', isDisabled);
 
 			this.hookEventHandler();
+
+			//If intial value has been set, we need to set it again now.
+			if (this.initialValue) {
+				this.setValue(this.initialValue);
+			}
 		}
 	}
 
@@ -67,6 +72,27 @@ abstract class Select2Field extends Field {
 	}
 
 	abstract convertToSelect2(obj: any): Select2Element;
+
+	convertId(id: any): any {
+		//Best Guess: Return data object with same "ID" property
+		if (typeof id === 'string' && this.options.data) {
+			let result: Select2Element = null;
+			this.options.data.forEach((data) => {
+				if (data.children) {
+					data.children.forEach((child) => {
+						if (child.id === id)
+							result = child;
+					});
+				} else if (data.id === id) {
+					result = data;
+				}
+			});
+
+			return ((result) ? result.data : null);
+		}
+
+		return id;
+	}
 
 	showSpinner() {
 		$('#' + this.id + '-spinner').removeClass('hidden');

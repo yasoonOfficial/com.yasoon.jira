@@ -13,6 +13,7 @@ class EmailController implements IEmailController {
     mail: any;
     settings: any;
     ownUser: JiraUser;
+    attachments: any;
     attachmentHandles: any;
     mailAsMarkup: string;
     selectedTextAsMarkup: string;
@@ -25,6 +26,7 @@ class EmailController implements IEmailController {
     constructor(mail: any, selectedText: string, settings: any, ownUser: JiraUser) {
 
         this.mail = mail;
+        this.attachments = mail.attachments;
         this.settings = settings;
         this.selectedTextAsMarkup = selectedText;
         this.ownUser = ownUser;
@@ -109,9 +111,86 @@ class EmailController implements IEmailController {
             if (field) {
                 this.renderMarkupPromise.then((markup) => {
                     field.setValue(markup);
+
+                    if (jira.settings.addMailHeaderAutomatically === 'top') {
+                        markup = renderMailHeaderText(this.mail, true) + '\n' + markup;
+                    }
+                    else if (jira.settings.addMailHeaderAutomatically === 'bottom') {
+                        markup = markup + '\n' + renderMailHeaderText(this.mail, true);
+                    }
+
+                    return this.handleAttachments(markup, this.mail).then(function (newMarkup) {
+                        this.mailAsMarkup = newMarkup;
+                        field.setValue(newMarkup);
+                    });
                 });
             }
         }
+    }
+
+    handleAttachments(originalMarkup: string, mail: any): Promise<string> {
+        return Promise.resolve(originalMarkup);
+        /*
+        //Check each attachment if it needs to be embedded
+        var embeddedItems = [];
+        var markup = originalMarkup;
+
+        this.attachmentHandles.forEach((attachment) => {
+            if (markup.indexOf('!' + attachment.contentId + '!') > -1) {
+                //Mark attachments selected				
+                var handle = jira.selectedAttachments.filter(function (a) { return a.contentId === attachment.contentId; })[0];
+                if (handle) {
+                    embeddedItems.push(handle);
+                } else {
+                    var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
+                    markup = markup.replace(regEx, '');
+                }
+            }
+        });
+
+        if (embeddedItems.length === 0)
+            return Promise.resolve(originalMarkup);
+
+        //Ensure they are persisted (performance)
+        var persist = new Promise(function (resolve, reject) {
+            mail.persistAttachments(embeddedItems, resolve, reject);
+        });
+
+        return persist.then(function () {
+            return embeddedItems;
+        })
+            .map(function (handle) {
+                return yasoon.io.getFileHash(handle).then(function (hash) {
+                    handle.hash = hash;
+                    return hash;
+                });
+            })
+            .then(function (hashes) {
+                return yasoon.valueStore.queryAttachmentHashes(hashes);
+            })
+            .then(function (result) {
+                embeddedItems.forEach(function (handle) {
+                    //Skip files whose hashes that were blocked	
+                    var regEx = new RegExp('!' + handle.contentId + '!', 'g');
+                    if (result.foundHashes.indexOf(handle.hash) >= 0) {
+                        markup = markup.replace(regEx, '');
+                        handle.blacklisted = true;
+                        return;
+                    }
+
+                    //Replace the reference in the markup	
+                    handle.selected = true;
+                    markup = markup.replace(regEx, '!' + handle.getFileName() + '!');
+                    handle.setInUse();
+                });
+
+                jira.UIFormHandler.getRenderer('attachment').refresh('attachment');
+                return markup;
+            })
+            .catch(function (e) {
+                yasoon.util.log('Error during handling of attachments', yasoon.util.severity.warning, getStackTrace(e));
+            });
+            */
     }
 
     setSender() {

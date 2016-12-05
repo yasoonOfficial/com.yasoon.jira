@@ -213,6 +213,9 @@ function JiraIconController() {
 	};
 
 	this.mapIconUrl = function (url) {
+		if (!url)
+			return;
+
 		//Avoid mapping local URLs
 		if (url.indexOf('http') !== 0) {
 			return url;

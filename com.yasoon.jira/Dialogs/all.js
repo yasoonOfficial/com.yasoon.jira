@@ -58,6 +58,7 @@ var EmailController = (function () {
             sentAt: ''
         };
         this.mail = mail;
+        this.attachments = mail.attachments;
         this.settings = settings;
         this.selectedTextAsMarkup = selectedText;
         this.ownUser = ownUser;
@@ -126,14 +127,89 @@ var EmailController = (function () {
         }
     };
     EmailController.prototype.setBody = function () {
+        var _this = this;
         if (this.fieldMapping.body) {
             var field_1 = FieldController.getField(this.fieldMapping.body);
             if (field_1) {
                 this.renderMarkupPromise.then(function (markup) {
                     field_1.setValue(markup);
+                    if (jira.settings.addMailHeaderAutomatically === 'top') {
+                        markup = renderMailHeaderText(_this.mail, true) + '\n' + markup;
+                    }
+                    else if (jira.settings.addMailHeaderAutomatically === 'bottom') {
+                        markup = markup + '\n' + renderMailHeaderText(_this.mail, true);
+                    }
+                    return _this.handleAttachments(markup, _this.mail).then(function (newMarkup) {
+                        this.mailAsMarkup = newMarkup;
+                        field_1.setValue(newMarkup);
+                    });
                 });
             }
         }
+    };
+    EmailController.prototype.handleAttachments = function (originalMarkup, mail) {
+        return Promise.resolve(originalMarkup);
+        /*
+        //Check each attachment if it needs to be embedded
+        var embeddedItems = [];
+        var markup = originalMarkup;
+
+        this.attachmentHandles.forEach((attachment) => {
+            if (markup.indexOf('!' + attachment.contentId + '!') > -1) {
+                //Mark attachments selected
+                var handle = jira.selectedAttachments.filter(function (a) { return a.contentId === attachment.contentId; })[0];
+                if (handle) {
+                    embeddedItems.push(handle);
+                } else {
+                    var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
+                    markup = markup.replace(regEx, '');
+                }
+            }
+        });
+
+        if (embeddedItems.length === 0)
+            return Promise.resolve(originalMarkup);
+
+        //Ensure they are persisted (performance)
+        var persist = new Promise(function (resolve, reject) {
+            mail.persistAttachments(embeddedItems, resolve, reject);
+        });
+
+        return persist.then(function () {
+            return embeddedItems;
+        })
+            .map(function (handle) {
+                return yasoon.io.getFileHash(handle).then(function (hash) {
+                    handle.hash = hash;
+                    return hash;
+                });
+            })
+            .then(function (hashes) {
+                return yasoon.valueStore.queryAttachmentHashes(hashes);
+            })
+            .then(function (result) {
+                embeddedItems.forEach(function (handle) {
+                    //Skip files whose hashes that were blocked
+                    var regEx = new RegExp('!' + handle.contentId + '!', 'g');
+                    if (result.foundHashes.indexOf(handle.hash) >= 0) {
+                        markup = markup.replace(regEx, '');
+                        handle.blacklisted = true;
+                        return;
+                    }
+
+                    //Replace the reference in the markup
+                    handle.selected = true;
+                    markup = markup.replace(regEx, '!' + handle.getFileName() + '!');
+                    handle.setInUse();
+                });
+
+                jira.UIFormHandler.getRenderer('attachment').refresh('attachment');
+                return markup;
+            })
+            .catch(function (e) {
+                yasoon.util.log('Error during handling of attachments', yasoon.util.severity.warning, getStackTrace(e));
+            });
+            */
     };
     EmailController.prototype.setSender = function () {
         var _this = this;
@@ -265,7 +341,7 @@ var Field = (function () {
     };
     Field.prototype.triggerValueChange = function () {
         var currentValue = this.getValue(false);
-        if (this.lastValue != currentValue) {
+        if (JSON.stringify(this.lastValue) != JSON.stringify(currentValue)) {
             FieldController.raiseEvent(EventType.FieldChange, currentValue, this.id);
             this.lastValue = currentValue;
         }
@@ -281,7 +357,7 @@ var Field = (function () {
             fieldGroup = $("<div id=\"" + this.id + "-field-group\" data-field-id=\"" + this.id + "\"></div>").appendTo(container);
         }
         //Render label, mandatory and hidden logic
-        var html = "<div class=\"field-group " + ((this.fieldMeta.required) ? 'required' : '') + " " + ((this.fieldMeta.isHidden) ? 'hidden' : '') + "\" >\n\t\t\t\t\t\t<label for=\"" + this.id + "\">" + this.fieldMeta.name + " \n\t\t\t\t\t\t\t<span class=\"aui-icon icon-required\">Required</span>\n\t\t\t\t\t\t</label>\n\t\t\t\t\t\t<div class=\"field-container\">\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class=\"description\">" + ((this.fieldMeta.description) ? this.fieldMeta.description : '') + "</div>\n\t\t\t\t\t</div>";
+        var html = "<div class=\"field-group " + ((this.fieldMeta.required) ? 'required' : '') + " " + ((this.fieldMeta.isHidden) ? 'hidden' : '') + "\" >\n\t\t\t\t\t\t<label for=\"" + this.id + "\">" + this.fieldMeta.name + " \n\t\t\t\t\t\t\t<span class=\"aui-icon icon-required\">Required</span>\n\t\t\t\t\t\t</label>\n\t\t\t\t\t\t<div class=\"field-container\">\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t" + ((this.fieldMeta.description) ? '<div class="description">' + this.fieldMeta.description + '</div>' : '') + "\n\t\t\t\t\t</div>";
         this.ownContainer = $(fieldGroup).html(html).find('.field-container');
         //Only inject inner container for easier usage
         var result = this.render(this.ownContainer);
@@ -324,6 +400,7 @@ var EventType;
     EventType[EventType["BeforeSave"] = 3] = "BeforeSave";
     EventType[EventType["SenderLoaded"] = 4] = "SenderLoaded";
     EventType[EventType["UiAction"] = 5] = "UiAction";
+    EventType[EventType["Cleanup"] = 6] = "Cleanup";
 })(EventType || (EventType = {}));
 //@getter Annotation
 function getter(getterType, params) {
@@ -403,10 +480,8 @@ var FieldController;
         var hasChanged = false;
         //Look up in config and set mandatory flag
         //Look up in config and set Hidden field
-        if (field.isHidden) {
-            field.isHidden = false;
-            hasChanged = true;
-        }
+        //Currently all visible
+        field.isHidden = false;
         return hasChanged;
     }
     FieldController.enrichFieldMeta = enrichFieldMeta;
@@ -418,6 +493,7 @@ var FieldController;
         currentMeta = fields;
         for (var key in fields) {
             var field = fields[key];
+            field.key = key; //Is not always set by Jira :/
             var type = getFieldType(field);
             if (type) {
                 var buffer = fieldTypes[type];
@@ -602,6 +678,7 @@ var AttachmentField = (function (_super) {
             return jira.templates.attachmentFields;
         });
         FieldController.registerEvent(EventType.AfterSave, this);
+        FieldController.registerEvent(EventType.Cleanup, this);
     }
     AttachmentField.prototype.handleEvent = function (type, newValue, source) {
         if (type === EventType.AfterSave) {
@@ -624,6 +701,16 @@ var AttachmentField = (function (_super) {
                 });
                 return uploadPromise;
             }
+        }
+        else if (type === EventType.Cleanup) {
+            //Dispose all Attachments
+            this.attachments.forEach(function (handle) {
+                try {
+                    handle.dispose();
+                }
+                catch (e) {
+                }
+            });
         }
     };
     AttachmentField.prototype.getDomValue = function () {
@@ -866,6 +953,10 @@ var Select2Field = (function (_super) {
             //Set saved Properties
             $('#' + this.id).prop('disabled', isDisabled);
             this.hookEventHandler();
+            //If intial value has been set, we need to set it again now.
+            if (this.initialValue) {
+                this.setValue(this.initialValue);
+            }
         }
     };
     Select2Field.prototype.hookEventHandler = function () {
@@ -875,6 +966,25 @@ var Select2Field = (function (_super) {
     Select2Field.prototype.render = function (container) {
         container.append($("<select class=\"select input-field\" id=\"" + this.id + "\" name=\"" + this.id + "\" style=\"" + this.styleCss + "\" " + ((this.multiple) ? 'multiple' : '') + ">\n\t\t\t\t\t\t\t\t<option></option>\n\t\t\t\t\t\t\t</select>\n\t\t\t\t\t\t\t<img src=\"Dialogs/ajax-loader.gif\" class=\"hidden\" id=\"" + this.id + "-spinner\" />"));
         $('#' + this.id)["select2"](this.options);
+    };
+    Select2Field.prototype.convertId = function (id) {
+        //Best Guess: Return data object with same "ID" property
+        if (typeof id === 'string' && this.options.data) {
+            var result_1 = null;
+            this.options.data.forEach(function (data) {
+                if (data.children) {
+                    data.children.forEach(function (child) {
+                        if (child.id === id)
+                            result_1 = child;
+                    });
+                }
+                else if (data.id === id) {
+                    result_1 = data;
+                }
+            });
+            return ((result_1) ? result_1.data : null);
+        }
+        return id;
     };
     Select2Field.prototype.showSpinner = function () {
         $('#' + this.id + '-spinner').removeClass('hidden');
@@ -956,8 +1066,12 @@ var SetOptionValue = (function () {
         }
         else if (value) {
             //Single Select
+            //Convert value into correct value
+            var obj = selectField.convertId(value);
+            if (!obj)
+                return;
             // Convert value into normalized select2 format
-            var selectValue_1 = selectField.convertToSelect2(value);
+            var selectValue_1 = selectField.convertToSelect2(obj);
             //Now there are two cases:
             //All values already exist in data --> we can just select the data
             //Some data do not yet exist --> rerender and select data
@@ -1363,14 +1477,67 @@ var EpicLinkSelectField = (function (_super) {
     __extends(EpicLinkSelectField, _super);
     function EpicLinkSelectField(id, field) {
         _super.call(this, id, field);
+        //Update Epic JIRA 6.x and 7.0
+        this.updateEpic6 = function (newEpicLink, issueKey) {
+            return jiraAjax('/rest/greenhopper/1.0/epics/' + newEpicLink + '/add', yasoon.ajaxMethod.Put, '{ "issueKeys":["' + issueKey + '"] }');
+        };
+        //Update Epic JIRA > 7.1
+        this.updateEpic7 = function (newEpicLink, issueKey) {
+            return jiraAjax('/rest/agile/1.0/epic/' + newEpicLink + '/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }');
+        };
+        //Delete Epic JIRA 6.x and 7.0
+        this.deleteEpic6 = function (issueKey) {
+            return jiraAjax('/rest/greenhopper/1.0/epics/remove', yasoon.ajaxMethod.Put, '{ "issueKeys":["' + issueKey + '"] }');
+        };
+        //Delete Epic JIRA > 7.1
+        this.deleteEpic7 = function (issueKey) {
+            return jiraAjax('/rest/agile/1.0/epic/none/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }');
+        };
         this.setter = new SetOptionValue();
     }
+    EpicLinkSelectField.prototype.handleEvent = function (type, newValue, source) {
+        if (type === EventType.AfterSave) {
+            var newEpicLink = this.getDomValue();
+            var eventData = newValue;
+            if (jira.isEditMode) {
+                //We cannot change epic Links via standard API, so trigger the call here
+                var oldEpicLink = this.initialValue;
+                if (newEpicLink != oldEpicLink) {
+                    if (newEpicLink) {
+                        //Create or update
+                        if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
+                            return this.updateEpic7(newEpicLink, eventData.newData.key);
+                        }
+                        else {
+                            return this.updateEpic6(newEpicLink, eventData.newData.key);
+                        }
+                    }
+                    else {
+                        //Delete
+                        if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
+                            return this.deleteEpic7(eventData.newData.key);
+                        }
+                        else {
+                            return this.deleteEpic6(eventData.newData.key);
+                        }
+                    }
+                }
+            }
+            else if (!jira.isEditMode && jiraIsVersionHigher(jira.systemInfo, '7.1')) {
+                if (newEpicLink) {
+                    this.updateEpic7(newEpicLink, eventData.newData.key);
+                }
+            }
+        }
+        return null;
+    };
     EpicLinkSelectField.prototype.getValue = function (changedDataOnly) {
         //Only for creation as Epic links cannot be changed via REST APi --> Status code 500
         //Ticket: https://jira.atlassian.com/browse/GHS-10333
         //There is a workaround --> update it via unofficial greenhopper API --> For update see handleEvent
-        if (!jiraIsVersionHigher(jira.systemInfo, '7') && !changedDataOnly && $('#' + this.id).val()) {
-            return 'key:' + $('#' + this.id).val();
+        var value = this.getDomValue();
+        if (!jiraIsVersionHigher(jira.systemInfo, '7') && !changedDataOnly && value) {
+            return 'key:' + value;
         }
     };
     EpicLinkSelectField.prototype.setValue = function (value) {
@@ -1720,7 +1887,7 @@ var IssueTypeField = (function (_super) {
     IssueTypeField.prototype.handleEvent = function (type, newValue, source) {
         var _this = this;
         if (type == EventType.FieldChange) {
-            if (source === FieldController.projectFieldId) {
+            if (source === FieldController.projectFieldId && newValue) {
                 var project = newValue;
                 var promise = void 0;
                 if (!project.issueTypes) {
@@ -1738,13 +1905,6 @@ var IssueTypeField = (function (_super) {
                 promise.then(function (proj) {
                     var result = proj.issueTypes.map(_this.convertToSelect2);
                     _this.setData(result);
-                    //Set Default Value
-                    if (_this.initialValue) {
-                        _this.setValue(_this.initialValue);
-                    }
-                    else {
-                        _this.setValue(result[0].data);
-                    }
                     //Check Service Desk
                     if (proj.projectTypeKey === "service_desk") {
                         $(_this.ownContainer).find('#switchServiceMode').removeClass('hidden');
@@ -2570,22 +2730,41 @@ var SprintSelectField = (function (_super) {
     function SprintSelectField(id, field) {
         _super.call(this, id, field);
         this.setter = new SetOptionValue();
+        FieldController.registerEvent(EventType.BeforeSave, this);
     }
+    SprintSelectField.prototype.handleEvent = function (type, newValue, source) {
+        if (type === EventType.BeforeSave && jira.isEditMode) {
+            var eventData = newValue;
+            var oldSprintId = '';
+            if (eventData.data.fields[this.id])
+                oldSprintId = this.parseSprintId(eventData.data.fields[this.id]);
+            var newSprintId = this.getValue(false);
+            if (oldSprintId != newSprintId) {
+                if (newSprintId) {
+                    return jiraAjax('/rest/greenhopper/1.0/sprint/rank', yasoon.ajaxMethod.Put, '{"idOrKeys":["' + jira.currentIssue.key + '"],"sprintId":' + newSprintId + ',"addToBacklog":false}');
+                }
+                else {
+                    return jiraAjax('/rest/greenhopper/1.0/sprint/rank', yasoon.ajaxMethod.Put, '{"idOrKeys":["' + jira.currentIssue.key + '"],"sprintId":"","addToBacklog":true}');
+                }
+            }
+        }
+        return null;
+    };
     SprintSelectField.prototype.getValue = function (changedDataOnly) {
         //Only for creation as Epic links cannot be changed via REST APi --> Status code 500
         //Ticket: https://jira.atlassian.com/browse/GHS-10333
         //There is a workaround --> update it via unofficial greenhopper API --> For update see handleEvent
         //We aren't sure with which version this change happened. 7.0.0 definitely requires a string, 7.1.6. requires an int :)
         if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
-            return parseInt($('#' + this.id).val());
+            return parseInt(this.getDomValue());
         }
         else {
-            return $('#' + this.id).val();
+            return this.getDomValue();
         }
     };
     SprintSelectField.prototype.setValue = function (value) {
         if (value && value.length > 0) {
-            $('#' + this.id).val(SprintSelectField.parseSprintId(value[0])).trigger('change');
+            $('#' + this.id).val(this.parseSprintId(value[0])).trigger('change');
         }
     };
     SprintSelectField.prototype.convertToSelect2 = function (sprint) {
@@ -2621,7 +2800,7 @@ var SprintSelectField = (function (_super) {
             return result;
         });
     };
-    SprintSelectField.parseSprintId = function (input) {
+    SprintSelectField.prototype.parseSprintId = function (input) {
         //Wierd --> it's an array of strings with following structure:  "com.atlassian.greenhopper.service.sprint.Sprint@7292f4[rapidViewId=<null>,state=ACTIVE,name=Sample Sprint 2,startDate=2015-04-09T01:54:26.773+02:00,endDate=2015-04-23T02:14:26.773+02:00,completeDate=<null>,sequence=1,id=1]"
         //First get content of array (everything between [])
         //Then split at ,
@@ -2967,3 +3146,132 @@ var VersionMultiSelectField = (function (_super) {
     ], VersionMultiSelectField);
     return VersionMultiSelectField;
 }(Select2Field));
+var TemplateController = (function () {
+    function TemplateController(ownUser) {
+        var _this = this;
+        this.groupHierachy = [];
+        this.defaultTemplates = [];
+        this.ownUser = ownUser;
+        //Load Data
+        var groupsString = yasoon.setting.getAppParameter(TemplateController.settingGroupHierarchy);
+        if (!groupsString)
+            groupsString = '[]';
+        var initialDataString = yasoon.setting.getAppParameter(TemplateController.settingInitialSelection);
+        if (!initialDataString)
+            initialDataString = '[]';
+        var defaultTemplatesString = yasoon.setting.getAppParameter(TemplateController.settingDefaultTemplates);
+        if (!defaultTemplatesString)
+            defaultTemplatesString = '[]';
+        this.groupHierachy = JSON.parse(groupsString);
+        var initialSelection = JSON.parse(initialDataString);
+        this.defaultTemplates = JSON.parse(defaultTemplatesString);
+        //Filter for current Data 
+        //Only keep groups that are assigned to current user
+        this.groupHierachy = this.groupHierachy.filter(function (group) {
+            return _this.ownUser.groups.items.filter(function (userGroup) {
+                return userGroup.name === group.name;
+            }).length > 0;
+        });
+        //Only keep initial Selections necessary for current user
+        //--> Sort by Group Hierarchy and pick the highest
+        if (initialSelection.length > 0) {
+            this.initialSelection = initialSelection.sort(function (a, b) {
+                var groupA = _this.getGroup(a.group);
+                var groupB = _this.getGroup(b.group);
+                var posA = (groupA) ? groupA.position : 10000;
+                var posB = (groupB) ? groupB.position : 10000;
+                return posA - posB;
+            })[0];
+        }
+        //Only keep defaultTemplates for groups of current user
+        this.defaultTemplates = this.defaultTemplates.filter(function (defaultTemplate) {
+            return defaultTemplate.group === '-1' || _this.getGroup(defaultTemplate.group) != null;
+        });
+        //Sort Asc by priority
+        this.defaultTemplates.sort(function (a, b) { return a.priority - b.priority; });
+    }
+    TemplateController.prototype.setInitialValues = function () {
+        if (this.initialSelection) {
+            if (this.initialSelection.projectId)
+                FieldController.setValue(FieldController.projectFieldId, this.initialSelection.projectId, true);
+            if (this.initialSelection.issueTypeId != '-1') {
+                FieldController.setValue(FieldController.issueTypeFieldId, this.initialSelection.issueTypeId, true);
+            }
+        }
+    };
+    TemplateController.prototype.setFieldValues = function (projectId, issueTypeId) {
+        var _this = this;
+        if (this.defaultTemplates) {
+            //Default Templates are already filtered by current user groups and are sorted by priority --> defined on server
+            //Here we blindly pick the first template that matches our criteria
+            var result = this.getTemplate(projectId, issueTypeId);
+            if (result && result.fields) {
+                result.fields.forEach(function (field) {
+                    //Check for variables
+                    var value = null;
+                    if (typeof field.fieldValue === 'string' && field.fieldValue.indexOf('<') === 0) {
+                        //Fixed variables
+                        value = _this.getFixedValue(field.fieldValue);
+                    }
+                    else if (typeof field.fieldValue === 'string' && field.fieldValue.indexOf('|') === 0) {
+                    }
+                    else {
+                        value = field.fieldValue;
+                    }
+                    FieldController.setValue(field.fieldId, value, true);
+                });
+            }
+        }
+    };
+    TemplateController.prototype.getFixedValue = function (value) {
+        if (value === '<TODAY>') {
+            return moment(new Date()).format('YYYY-MM-DD');
+        }
+        else if (value.indexOf('<TODAY>') === 0) {
+            try {
+                //Replace all non numeric chars
+                var numOfDays = parseInt(value.replace(/\D/g, ''));
+                var currentDate = new Date();
+                currentDate.setDate(currentDate.getDate() + numOfDays);
+                return moment(currentDate).format('YYYY-MM-DD');
+            }
+            catch (e) {
+            }
+        }
+        else if (value === '<USER>') {
+            return this.ownUser;
+        }
+    };
+    TemplateController.prototype.getDynamicValue = function (value) {
+    };
+    TemplateController.prototype.getTemplate = function (projectId, issueTypeId) {
+        var result = null;
+        this.defaultTemplates.some(function (template) {
+            //Check if Project and issueType matches
+            if ((template.projectId === '-1' || template.projectId === projectId) &&
+                (template.issueTypeId === '-1' || template.issueTypeId === issueTypeId)) {
+                result = template;
+                return true;
+            }
+            return false;
+        });
+        return result;
+    };
+    TemplateController.prototype.getGroup = function (group) {
+        if (group === '-1') {
+            return {
+                name: 'Default',
+                position: 1000
+            };
+        }
+        else {
+            return this.groupHierachy.filter(function (userGroup) {
+                return userGroup.name === group;
+            })[0];
+        }
+    };
+    TemplateController.settingGroupHierarchy = 'groups';
+    TemplateController.settingInitialSelection = 'initialSelection';
+    TemplateController.settingDefaultTemplates = 'defaultTemplates';
+    return TemplateController;
+}());

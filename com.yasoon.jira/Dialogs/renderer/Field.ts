@@ -7,7 +7,7 @@
 abstract class Field implements FieldGet, FieldSet {
 	public id: string;
 	protected fieldMeta: JiraMetaField;
-	protected initialValue: any;
+	initialValue: any;
 	protected params: any;
 	protected lastValue: any;
 	ownContainer: JQuery;
@@ -45,7 +45,7 @@ abstract class Field implements FieldGet, FieldSet {
 
 	triggerValueChange(): void {
 		let currentValue = this.getValue(false);
-		if (this.lastValue != currentValue) {
+		if (JSON.stringify(this.lastValue) != JSON.stringify(currentValue)) {
 			FieldController.raiseEvent(EventType.FieldChange, currentValue, this.id);
 			this.lastValue = currentValue;
 		}
@@ -76,7 +76,7 @@ abstract class Field implements FieldGet, FieldSet {
 						</label>
 						<div class="field-container">
 						</div>
-						<div class="description">${(this.fieldMeta.description) ? this.fieldMeta.description : ''}</div>
+						${(this.fieldMeta.description) ? '<div class="description">' + this.fieldMeta.description + '</div>' : ''}
 					</div>`;
 
 		this.ownContainer = $(fieldGroup).html(html).find('.field-container');
@@ -107,7 +107,7 @@ enum SetterType {
 }
 
 enum EventType {
-	FieldChange, AfterRender, AfterSave, BeforeSave, SenderLoaded, UiAction
+	FieldChange, AfterRender, AfterSave, BeforeSave, SenderLoaded, UiAction, Cleanup
 }
 
 //@getter Annotation

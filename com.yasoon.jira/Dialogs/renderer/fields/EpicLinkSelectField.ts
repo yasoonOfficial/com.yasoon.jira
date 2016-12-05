@@ -5,7 +5,7 @@
 /// <reference path="../../../definitions/common.d.ts" />
 
 @setter(SetterType.Option)
-class EpicLinkSelectField extends Select2AjaxField {
+class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler {
     private emptySearch;
 
     constructor(id: string, field: JiraMetaField) {
@@ -13,12 +13,49 @@ class EpicLinkSelectField extends Select2AjaxField {
         this.setter = new SetOptionValue();
     }
 
+    handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
+        if (type === EventType.AfterSave) {
+            let newEpicLink = this.getDomValue()
+            let eventData: LifecycleData = newValue;
+            if (jira.isEditMode) {
+                //We cannot change epic Links via standard API, so trigger the call here
+
+                let oldEpicLink = this.initialValue;
+
+                if (newEpicLink != oldEpicLink) {
+                    if (newEpicLink) {
+                        //Create or update
+                        if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
+                            return this.updateEpic7(newEpicLink, eventData.newData.key);
+                        } else {
+                            return this.updateEpic6(newEpicLink, eventData.newData.key);
+                        }
+                    } else {
+                        //Delete
+                        if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
+                            return this.deleteEpic7(eventData.newData.key);
+                        } else {
+                            return this.deleteEpic6(eventData.newData.key);
+                        }
+                    }
+                }
+                //AfterSave is only needed for JIRA 7 on creation as the setData does not work anymore.
+            } else if (!jira.isEditMode && jiraIsVersionHigher(jira.systemInfo, '7.1')) {
+                if (newEpicLink) {
+                    this.updateEpic7(newEpicLink, eventData.newData.key);
+                }
+            }
+        }
+        return null;
+    }
+
     getValue(changedDataOnly: boolean): string {
         //Only for creation as Epic links cannot be changed via REST APi --> Status code 500
         //Ticket: https://jira.atlassian.com/browse/GHS-10333
         //There is a workaround --> update it via unofficial greenhopper API --> For update see handleEvent
-        if (!jiraIsVersionHigher(jira.systemInfo, '7') && !changedDataOnly && $('#' + this.id).val()) {
-            return 'key:' + $('#' + this.id).val();
+        let value: string = this.getDomValue();
+        if (!jiraIsVersionHigher(jira.systemInfo, '7') && !changedDataOnly && value) {
+            return 'key:' + value;
         }
     }
 
@@ -69,5 +106,24 @@ class EpicLinkSelectField extends Select2AjaxField {
                 }
                 return results;
             });
+    }
+
+    //Update Epic JIRA 6.x and 7.0
+    private updateEpic6 = function(newEpicLink, issueKey) {
+        return jiraAjax('/rest/greenhopper/1.0/epics/' + newEpicLink + '/add', yasoon.ajaxMethod.Put, '{ "issueKeys":["' + issueKey + '"] }');
+    }
+    //Update Epic JIRA > 7.1
+    private updateEpic7 = function(newEpicLink, issueKey) {
+        return jiraAjax('/rest/agile/1.0/epic/' + newEpicLink + '/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }');
+    }
+
+    //Delete Epic JIRA 6.x and 7.0
+    private deleteEpic6 = function(issueKey) {
+        return jiraAjax('/rest/greenhopper/1.0/epics/remove', yasoon.ajaxMethod.Put, '{ "issueKeys":["' + issueKey + '"] }');
+    }
+
+    //Delete Epic JIRA > 7.1
+    private deleteEpic7 = function(issueKey) {
+        return jiraAjax('/rest/agile/1.0/epic/none/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }');
     }
 }

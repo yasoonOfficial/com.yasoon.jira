@@ -31,6 +31,7 @@ class AttachmentField extends Field implements IFieldEventHandler {
             });
 
         FieldController.registerEvent(EventType.AfterSave, this);
+        FieldController.registerEvent(EventType.Cleanup, this);
     }
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
@@ -56,6 +57,15 @@ class AttachmentField extends Field implements IFieldEventHandler {
 
                 return uploadPromise;
             }
+        } else if (type === EventType.Cleanup) {
+            //Dispose all Attachments
+            this.attachments.forEach((handle) => {
+                try {
+                    handle.dispose();
+                } catch (e) {
+                    //System.Exception: TrackedObjectRegistry: Tried to access object which not found! (probably already de-referenced)
+                }
+            });
         }
     }
 

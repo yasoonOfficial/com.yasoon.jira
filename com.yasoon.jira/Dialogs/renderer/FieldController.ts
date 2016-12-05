@@ -35,11 +35,8 @@ namespace FieldController {
         //Look up in config and set mandatory flag
 
         //Look up in config and set Hidden field
-        if (field.isHidden) {
-            field.isHidden = false;
-            hasChanged = true;
-        }
-
+        //Currently all visible
+        field.isHidden = false;
         return hasChanged;
     }
     export function getMeta(): { [id: string]: JiraMetaField } {
@@ -50,6 +47,7 @@ namespace FieldController {
         currentMeta = fields;
         for (let key in fields) {
             let field: JiraMetaField = fields[key];
+            field.key = key; //Is not always set by Jira :/
             let type = getFieldType(field);
             if (type) {
                 let buffer = fieldTypes[type];
@@ -135,7 +133,7 @@ namespace FieldController {
                 if (fieldEventHandler[eventType] && fieldEventHandler[eventType][id]) {
                     fieldEventHandler[eventType][id].forEach(field => {
                         try {
-                            setTimeout(function (eventType, newValue, id) {
+                            setTimeout((eventType, newValue, id) => {
                                 field.handleEvent(eventType, newValue, id);
                             }, 1, eventType, newValue, id);
                         } catch (e) {

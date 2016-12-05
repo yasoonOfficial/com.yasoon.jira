@@ -3,13 +3,36 @@
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
 
-class SprintSelectField extends Select2AjaxField {
-    private emptySearch;
+class SprintSelectField extends Select2AjaxField implements IFieldEventHandler {
 
     constructor(id: string, field: JiraMetaField) {
         super(id, field);
         this.setter = new SetOptionValue();
+
+        FieldController.registerEvent(EventType.BeforeSave, this);
     }
+
+
+    handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
+        if (type === EventType.BeforeSave && jira.isEditMode) {
+            let eventData: LifecycleData = newValue;
+
+            let oldSprintId: string = '';
+            if (eventData.data.fields[this.id])
+                oldSprintId = this.parseSprintId(eventData.data.fields[this.id]);
+
+            var newSprintId = this.getValue(false);
+            if (oldSprintId != newSprintId) {
+                if (newSprintId) {
+                    return jiraAjax('/rest/greenhopper/1.0/sprint/rank', yasoon.ajaxMethod.Put, '{"idOrKeys":["' + jira.currentIssue.key + '"],"sprintId":' + newSprintId + ',"addToBacklog":false}');
+                } else {
+                    return jiraAjax('/rest/greenhopper/1.0/sprint/rank', yasoon.ajaxMethod.Put, '{"idOrKeys":["' + jira.currentIssue.key + '"],"sprintId":"","addToBacklog":true}');
+                }
+            }
+        }
+        return null
+    }
+
 
     getValue(changedDataOnly: boolean): any {
         //Only for creation as Epic links cannot be changed via REST APi --> Status code 500
@@ -17,15 +40,15 @@ class SprintSelectField extends Select2AjaxField {
         //There is a workaround --> update it via unofficial greenhopper API --> For update see handleEvent
         //We aren't sure with which version this change happened. 7.0.0 definitely requires a string, 7.1.6. requires an int :)
         if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
-            return parseInt($('#' + this.id).val());
+            return parseInt(this.getDomValue());
         } else {
-            return $('#' + this.id).val();
+            return this.getDomValue();
         }
     }
 
     setValue(value) {
         if (value && value.length > 0) {
-            $('#' + this.id).val(SprintSelectField.parseSprintId(value[0])).trigger('change');
+            $('#' + this.id).val(this.parseSprintId(value[0])).trigger('change');
         }
     }
 
@@ -64,7 +87,7 @@ class SprintSelectField extends Select2AjaxField {
             });
     }
 
-    static parseSprintId(input) {
+    private parseSprintId(input) {
         //Wierd --> it's an array of strings with following structure:  "com.atlassian.greenhopper.service.sprint.Sprint@7292f4[rapidViewId=<null>,state=ACTIVE,name=Sample Sprint 2,startDate=2015-04-09T01:54:26.773+02:00,endDate=2015-04-23T02:14:26.773+02:00,completeDate=<null>,sequence=1,id=1]"
         //First get content of array (everything between [])
         //Then split at ,

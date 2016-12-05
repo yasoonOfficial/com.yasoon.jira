@@ -64,7 +64,7 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
         if (type == EventType.FieldChange) {
-            if (source === FieldController.projectFieldId) {
+            if (source === FieldController.projectFieldId && newValue) {
                 let project: JiraProject = newValue;
                 let promise: Promise<JiraProject>;
                 if (!project.issueTypes) {
@@ -83,12 +83,6 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                     let result: Select2Element[] = proj.issueTypes.map(this.convertToSelect2);
 
                     this.setData(result);
-                    //Set Default Value
-                    if (this.initialValue) {
-                        this.setValue(this.initialValue);
-                    } else {
-                        this.setValue(result[0].data);
-                    }
 
                     //Check Service Desk
                     if (proj.projectTypeKey === "service_desk") {
