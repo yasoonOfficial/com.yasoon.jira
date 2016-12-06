@@ -3,6 +3,7 @@
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
 
 @setter(SetterType.Option)
 class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler {
@@ -10,7 +11,7 @@ class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler
 
     constructor(id: string, field: JiraMetaField) {
         super(id, field);
-        this.setter = new SetOptionValue();
+        FieldController.registerEvent(EventType.AfterSave, this);
     }
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
@@ -76,6 +77,17 @@ class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler
         };
     }
 
+    convertId(id: string): Promise<any> {
+        return this.getData(id)
+            .then(function (result) {
+                if (result[0].children) {
+                    return result[0].children[0].data;
+                } else {
+                    return result[0].data;
+                }
+            });
+    }
+
     getData(searchTerm: string): Promise<Select2Element[]> {
         //Result of Service
         // JIRA 6.x: {"epicNames":[{"key":"SSP-24","name":"Epic 1"},{"key":"SSP-25","name":"Epic 2"}],"total":2}
@@ -109,21 +121,21 @@ class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler
     }
 
     //Update Epic JIRA 6.x and 7.0
-    private updateEpic6 = function(newEpicLink, issueKey) {
+    private updateEpic6 = function (newEpicLink, issueKey) {
         return jiraAjax('/rest/greenhopper/1.0/epics/' + newEpicLink + '/add', yasoon.ajaxMethod.Put, '{ "issueKeys":["' + issueKey + '"] }');
     }
     //Update Epic JIRA > 7.1
-    private updateEpic7 = function(newEpicLink, issueKey) {
+    private updateEpic7 = function (newEpicLink, issueKey) {
         return jiraAjax('/rest/agile/1.0/epic/' + newEpicLink + '/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }');
     }
 
     //Delete Epic JIRA 6.x and 7.0
-    private deleteEpic6 = function(issueKey) {
+    private deleteEpic6 = function (issueKey) {
         return jiraAjax('/rest/greenhopper/1.0/epics/remove', yasoon.ajaxMethod.Put, '{ "issueKeys":["' + issueKey + '"] }');
     }
 
     //Delete Epic JIRA > 7.1
-    private deleteEpic7 = function(issueKey) {
+    private deleteEpic7 = function (issueKey) {
         return jiraAjax('/rest/agile/1.0/epic/none/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }');
     }
 }

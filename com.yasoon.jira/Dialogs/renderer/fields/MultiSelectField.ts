@@ -1,10 +1,10 @@
 /// <reference path="../Field.ts" />
 /// <reference path="Select2Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
-/// <reference path="../getter/GetObjectArray.ts" />
+/// <reference path="../getter/GetOption.ts" />
 /// <reference path="../setter/SetOptionValue.ts" />
 
-@getter(GetterType.ObjectArray, "id")
+@getter(GetterType.Option, "id")
 @setter(SetterType.Option)
 class MultiSelectField extends Select2Field {
 

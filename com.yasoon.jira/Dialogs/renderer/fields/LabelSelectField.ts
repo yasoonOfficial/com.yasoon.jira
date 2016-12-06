@@ -11,7 +11,7 @@
 class LabelSelectField extends Select2AjaxField {
 
     private lastSearchTerm: string;
-
+    private emptyData: Promise<Select2Element[]>;
     constructor(id: string, field: JiraMetaField, options: any = {}) {
         options.tags = true;
         super(id, field, options, true);
@@ -40,7 +40,7 @@ class LabelSelectField extends Select2AjaxField {
         return jiraGet(url + searchTerm)
             .then((data) => {
                 let labels = JSON.parse(data);
-                let labelArray = [];
+                let labelArray: Select2Element[] = [];
 
                 if (labels.token === this.lastSearchTerm && labels.suggestions) {
                     labels.suggestions.forEach((label) => {
@@ -52,6 +52,9 @@ class LabelSelectField extends Select2AjaxField {
     }
 
     getEmptyData() {
-        return this.getData('');
+        if (!this.emptyData)
+            this.emptyData = this.getData('');
+
+        return this.emptyData;
     }
 }

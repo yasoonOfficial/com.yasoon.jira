@@ -3,15 +3,16 @@
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
-/// <reference path="../getter/GetArray.ts" />
-/// <reference path="../setter/SetTagValue.ts" />
+/// <reference path="../getter/GetOption.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
 
-@getter(GetterType.Object, "name")
+@getter(GetterType.Option, "name")
 @setter(SetterType.Option)
 class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
     static reporterDefaultMeta: JiraMetaField = { key: FieldController.onBehalfOfFieldId, get name() { return yasoon.i18n('dialog.behalfOf'); }, required: true, schema: { system: 'user', type: '' } };
     senderUser: JiraUser;
     ownUser: JiraUser;
+    currentProject: JiraProject;
 
     private avatarPath: string;
 
@@ -21,6 +22,7 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
         this.avatarPath = yasoon.io.getLinkPath('Images/useravatar.png');
 
         FieldController.registerEvent(EventType.SenderLoaded, this);
+        FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
     }
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
@@ -28,6 +30,8 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
             if (newValue) {
                 this.senderUser = newValue;
             }
+        } else if (type === EventType.FieldChange && source === FieldController.projectFieldId) {
+            this.currentProject = newValue;
         }
 
         return null;
@@ -35,11 +39,15 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
 
     hookEventHandler(): void {
         super.hookEventHandler();
-        $('#' + this.id + '-field-group').find('.assign-to-me-trigger').click((e) => {
+        this.ownContainer.find('.assign-to-me-trigger').click((e) => {
             if (this.ownUser) {
                 this.setValue(this.ownUser);
             }
             e.preventDefault();
+        });
+
+        this.ownContainer.find('.add-myself-trigger').click((e) => {
+            //TODO
         });
     }
 
@@ -54,8 +62,15 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
         }
         super.render(container);
 
-        container.append(`<span style="display:block; padding: 5px 0px;">
-				        <a href="#${this.id}" class="assign-to-me-trigger" title="${yasoon.i18n('dialog.assignMyselfTitle')}">${yasoon.i18n('dialog.assignMyself')}</a>`);
+        if (this.options.multiple) {
+            container.append(`<span style="display:block; padding: 5px 0px;">
+				            <a href="#${this.id}" class="add-myself-trigger" title="${yasoon.i18n('dialog.addMyselfTitle')}">${yasoon.i18n('dialog.addMyself')}</a>
+                        </span>`);
+        } else {
+            container.append(`<span style="display:block; padding: 5px 0px;">
+				            <a href="#${this.id}" class="assign-to-me-trigger" title="${yasoon.i18n('dialog.assignMyselfTitle')}">${yasoon.i18n('dialog.assignMyself')}</a>
+                        </span>`);
+        }
 
         if (this.id === "assignee") {
             $('#' + this.id).val('-1').trigger('change');
@@ -120,7 +135,7 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
         let url = '/rest/api/2/user/picker?query=' + searchTerm + '&maxResults=50';
         if (this.id === 'assignee') {
             //Only get assignable users
-            url = '/rest/api/2/user/assignable/search?project=' + jira.selectedProject.key + '&username=' + searchTerm + '&maxResults=50';
+            url = '/rest/api/2/user/assignable/search?project=' + this.currentProject.key + '&username=' + searchTerm + '&maxResults=50';
         }
 
         return jiraGet(url)
@@ -128,7 +143,7 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
                 let users = JSON.parse(data);
                 //1. Build User Result Array
                 let result: Select2Element[] = [];
-                //Yay, change of return structure....
+                //Yay, Jira change of return structure....
                 let userArray = [];
                 if (users && users.users && users.users.length > 0) {
                     userArray = users.users;

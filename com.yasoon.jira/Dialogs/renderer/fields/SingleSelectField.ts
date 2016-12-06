@@ -1,9 +1,10 @@
 /// <reference path="../Field.ts" />
 /// <reference path="Select2Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
-/// <reference path="../getter/GetObject.ts" />
+/// <reference path="../getter/GetOption.ts" />
 /// <reference path="../setter/SetOptionValue.ts" />
-@getter(GetterType.Object, "id")
+
+@getter(GetterType.Option, "id")
 @setter(SetterType.Option)
 class SingleSelectField extends Select2Field {
 

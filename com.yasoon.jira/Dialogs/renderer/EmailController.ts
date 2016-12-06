@@ -61,6 +61,8 @@ class EmailController implements IEmailController {
         let templateString = yasoon.setting.getAppParameter(EmailController.settingCreateTemplates);
         if (templateString) {
             this.senderTemplates = JSON.parse(templateString);
+        } else {
+            this.senderTemplates = [];
         }
 
         //Load Attachment Handles

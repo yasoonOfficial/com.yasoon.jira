@@ -2,16 +2,21 @@
 /// <reference path="../../../definitions/jquery.d.ts" />
 
 class GetArray implements FieldGetter {
-    getValue(id: string, field: JiraMetaField, onlyChangedData: boolean, newValue?: any, initialValue?: any) {
+    getValue(field: Field, onlyChangedData: boolean) {
+        let newValue = field.getDomValue();
+        if (!Array.isArray(newValue)) {
+            newValue = [newValue];
+        }
+
         //In edit case: Only send changes
         if (onlyChangedData) {
             //Both empty
-            if (!initialValue && newValue.length === 0)
+            if (!field.initialValue && newValue.length === 0)
                 return;
 
             //If length the same and all values match, we do not need to send anything            
-            if (initialValue && initialValue.length === newValue.length) {
-                let isSame = initialValue.every(function (c) {
+            if (field.initialValue && field.initialValue.length === newValue.length) {
+                let isSame = field.initialValue.every((c) => {
                     return newValue.indexOf(c) > -1;
                 });
 

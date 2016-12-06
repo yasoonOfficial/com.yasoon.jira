@@ -6,8 +6,8 @@ interface Select2Options {
     templateSelection?: Select2FormatMethod,
     minimumInputLength?: number,
     ajax?: Select2Ajax,
-    data?: Select2Element[]
-
+    data?: Select2Element[],
+    multiple?: boolean
 }
 
 interface Select2Element {

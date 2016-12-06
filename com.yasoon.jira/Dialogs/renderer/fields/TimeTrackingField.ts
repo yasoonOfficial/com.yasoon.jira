@@ -1,7 +1,5 @@
 /// <reference path="../Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
-/// <reference path="../getter/GetTextValue.ts" />
-/// <reference path="../setter/SetValue.ts" />
 
 class TimeTrackingField extends Field {
 	private origField: SingleTextField;

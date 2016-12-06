@@ -3,8 +3,10 @@
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
+/// <reference path="../getter/GetOption.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
 
-@getter(GetterType.Object, "id")
+@getter(GetterType.Option, "id")
 @setter(SetterType.Option)
 class ProjectField extends Select2Field implements IFieldEventHandler {
 

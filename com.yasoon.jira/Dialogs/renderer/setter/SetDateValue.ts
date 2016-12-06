@@ -4,7 +4,8 @@ class SetDateValue implements FieldSetter {
     setValue(field: Field, value: any) {
         if (value) {
             var momentDate = moment(new Date(value));
-            $('#' + field.id)["datetimepicker"]('setOptions', { value: momentDate.format('L') }).trigger('change');
+            $('#' + field.id)["datetimepicker"]('setOptions', { value: momentDate.format('L') });
+            $('#' + field.id).trigger('change');
         }
     }
 }

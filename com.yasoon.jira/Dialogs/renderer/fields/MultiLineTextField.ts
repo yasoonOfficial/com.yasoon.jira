@@ -280,7 +280,7 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
     }
 
     render(container: any) {
-        container.append(`<textarea class="form-control" id="${this.id}" name="${this.id}" style="height:${this.height};overflow: initial;"></textarea>
+        container.append(`<textarea class="form-control text" id="${this.id}" name="${this.id}" style="height:${this.height};overflow: initial;"></textarea>
             <div class="mentions-help-text bg-warning"><span>${yasoon.i18n('dialog.mentionsAlert')}</span></div>`);
         if (this.isMainField) {
             this.addMainFieldHtml(container);
@@ -288,7 +288,7 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
     }
 
 
-    searchJiraUser(mode, query, callback) {
+    searchJiraUser = (mode, query, callback) => {
         if (this.currentIssue || this.currentProject) {
             var queryKey = (this.currentIssue) ? 'issueKey=' + this.currentIssue.key : 'projectKey=' + this.currentProject.key;
 

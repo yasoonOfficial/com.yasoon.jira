@@ -3,10 +3,10 @@
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
-/// <reference path="../getter/GetArray.ts" />
-/// <reference path="../setter/SetTagValue.ts" />
+/// <reference path="../getter/GetOption.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
 
-@getter(GetterType.Object, "name")
+@getter(GetterType.Option, "name")
 @setter(SetterType.Option)
 class GroupSelectField extends Select2AjaxField {
     constructor(id: string, field: JiraMetaField, options: { multiple: boolean } = { multiple: false }) {

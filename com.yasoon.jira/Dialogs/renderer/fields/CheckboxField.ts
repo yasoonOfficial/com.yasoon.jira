@@ -23,8 +23,9 @@ class CheckboxField extends Field {
     };
 
     render(container: JQuery) {
+        let innerContainer = $('<div class="awesome-wrapper"></div>').appendTo(container);
         this.fieldMeta.allowedValues.forEach(option => {
-            container.append($(`<div class="checkbox awesome">
+            innerContainer.append($(`<div class="checkbox awesome">
                                     <input type="checkbox" id="${this.id}_${option.id}" value="${option.id}">
                                     <label for="${this.id}_${option.id}">${option.value}</label>
                                 </div>`));

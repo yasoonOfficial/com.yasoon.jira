@@ -2951,3 +2951,16 @@ button.servicedesk {
 .edit-mode #label-save {
 	display: block !important;
 }
+
+form.aui .text {
+	padding-left: 6px !important;
+	padding-right: 6px !important;
+}
+
+.awesome-wrapper {
+	padding-top: 7px;
+}
+
+.mentions-input-box .mentions {
+	padding: 3px 6px !important;
+}

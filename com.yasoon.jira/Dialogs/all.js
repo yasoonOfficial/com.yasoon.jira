@@ -89,6 +89,9 @@ var EmailController = (function () {
         if (templateString) {
             this.senderTemplates = JSON.parse(templateString);
         }
+        else {
+            this.senderTemplates = [];
+        }
         //Load Attachment Handles
         this.getAttachmentFileHandles();
     }
@@ -301,10 +304,11 @@ var SetValue = (function () {
 var GetTextValue = (function () {
     function GetTextValue() {
     }
-    GetTextValue.prototype.getValue = function (id, field, onlyChangedData, newValue, initialValue) {
+    GetTextValue.prototype.getValue = function (field, onlyChangedData) {
+        var newValue = field.getDomValue();
         if (onlyChangedData)
             //In edit case: Only send if changed	
-            return (isEqual(initialValue, newValue)) ? undefined : newValue;
+            return (isEqual(field.initialValue, newValue)) ? undefined : newValue;
         else
             //In creation case: Only send if not null	
             return (newValue) ? newValue : undefined;
@@ -326,7 +330,7 @@ var Field = (function () {
         if (onlyChangedData === void 0) { onlyChangedData = false; }
         if (!getter)
             throw new Error("Please either redefine method getValue or add a @getter Annotation for " + this.id);
-        return this.getter.getValue(this.id, this.fieldMeta, onlyChangedData, this.getDomValue(), this.initialValue);
+        return this.getter.getValue(this, onlyChangedData);
     };
     Field.prototype.setInitialValue = function (value) {
         this.initialValue = value;
@@ -382,6 +386,7 @@ var GetterType;
     GetterType[GetterType["Object"] = 1] = "Object";
     GetterType[GetterType["ObjectArray"] = 2] = "ObjectArray";
     GetterType[GetterType["Array"] = 3] = "Array";
+    GetterType[GetterType["Option"] = 4] = "Option";
 })(GetterType || (GetterType = {}));
 var SetterType;
 (function (SetterType) {
@@ -418,6 +423,9 @@ function getter(getterType, params) {
                 break;
             case GetterType.Array:
                 proto.getter = new GetArray();
+                break;
+            case GetterType.Option:
+                proto.getter = new GetOption(params);
                 break;
         }
     };
@@ -657,7 +665,6 @@ function sortByText(a, b) {
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/handlebars.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
-/// <reference path="../getter/GetTextValue.ts" />
 var AttachmentField = (function (_super) {
     __extends(AttachmentField, _super);
     function AttachmentField(id, fieldMeta, params) {
@@ -922,12 +929,7 @@ var Select2Field = (function (_super) {
     }
     Select2Field.prototype.getDomValue = function () {
         if (this.multiple) {
-            var values = $('#' + this.id).val() || [];
-            var selectedValues_1 = [];
-            values.forEach(function (id) {
-                selectedValues_1.push({ id: id });
-            });
-            return selectedValues_1;
+            return $('#' + this.id).val() || [];
         }
         else {
             return $('#' + this.id).val();
@@ -982,9 +984,10 @@ var Select2Field = (function (_super) {
                     result_1 = data;
                 }
             });
-            return ((result_1) ? result_1.data : null);
+            var returnValue = ((result_1) ? result_1.data : null);
+            return Promise.resolve(returnValue);
         }
-        return id;
+        return Promise.resolve(id);
     };
     Select2Field.prototype.showSpinner = function () {
         $('#' + this.id + '-spinner').removeClass('hidden');
@@ -1007,88 +1010,8 @@ var Select2Field = (function (_super) {
     return Select2Field;
 }(Field));
 /// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
-/// <reference path="../../../definitions/common.d.ts" />
-var GetObject = (function () {
-    function GetObject(keyName) {
-        this.keyName = keyName;
-    }
-    GetObject.prototype.getValue = function (id, field, onlyChangedData, newValue, initialValue) {
-        var result = {};
-        if (onlyChangedData) {
-            //In edit case: Only send if changed	
-            if (!isEqual(initialValue, newValue)) {
-                result[this.keyName] = newValue || "-1";
-                return result;
-            }
-        }
-        else {
-            //In creation case: Only send if not null	
-            if (newValue) {
-                result[this.keyName] = newValue;
-                return result;
-            }
-        }
-    };
-    return GetObject;
-}());
-/// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
-var SetOptionValue = (function () {
-    function SetOptionValue() {
-    }
-    SetOptionValue.prototype.setValue = function (field, value) {
-        var selectField = field;
-        if (!field.isRendered()) {
-            //Not rendered, nothing to do... will be called with field.initialValue again
-            return;
-        }
-        if (value && Array.isArray(value)) {
-            //Multiselect       
-            // Convert value into normalized select2 format
-            var selectValues = value.map(selectField.convertToSelect2);
-            //Now there are two cases:
-            //All values already exist in data --> we can just select the data
-            //Some data do not yet exist --> rerender and select data
-            var nonExistingElements_1 = [];
-            var selectedValues_2 = [];
-            selectValues.forEach(function (v) {
-                if (selectField.options.data.filter(function (data) { return data.id === v.id; }).length === 0) {
-                    nonExistingElements_1.push(v);
-                }
-                selectedValues_2.push(v.id);
-            });
-            if (nonExistingElements_1.length > 0) {
-                var newValues = selectField.options.data.concat(nonExistingElements_1);
-                selectField.setData(newValues);
-            }
-            $('#' + field.id).val(selectedValues_2).trigger('change');
-        }
-        else if (value) {
-            //Single Select
-            //Convert value into correct value
-            var obj = selectField.convertId(value);
-            if (!obj)
-                return;
-            // Convert value into normalized select2 format
-            var selectValue_1 = selectField.convertToSelect2(obj);
-            //Now there are two cases:
-            //All values already exist in data --> we can just select the data
-            //Some data do not yet exist --> rerender and select data
-            if (selectField.options.data.filter(function (data) { return data.id === selectValue_1.id; }).length === 0) {
-                selectField.options.data.push(selectValue_1);
-                selectField.setData(selectField.options.data);
-            }
-            $('#' + field.id).val(selectValue_1.id).trigger('change');
-        }
-    };
-    return SetOptionValue;
-}());
-/// <reference path="../Field.ts" />
 /// <reference path="Select2Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
-/// <reference path="../getter/GetObject.ts" />
-/// <reference path="../setter/SetOptionValue.ts" />
 var CascadedSelectField = (function (_super) {
     __extends(CascadedSelectField, _super);
     function CascadedSelectField(id, field) {
@@ -1173,16 +1096,18 @@ var GetObjectArray = (function () {
     function GetObjectArray(keyName) {
         this.keyName = keyName;
     }
-    GetObjectArray.prototype.getValue = function (id, field, onlyChangedData, newValue, initialValue) {
+    GetObjectArray.prototype.getValue = function (field, onlyChangedData) {
+        var _this = this;
+        var newValue = field.getDomValue();
         //In edit case: Only send changes
         if (onlyChangedData) {
             //Both empty
-            if (!initialValue && newValue.length === 0)
+            if (!field.initialValue && newValue.length === 0)
                 return;
             //If length the same and all values match, we do not need to send anything            
-            if (initialValue && initialValue.length === newValue.length) {
-                var isSame = initialValue.every(function (c) {
-                    return findWithAttr(newValue, this.keyName, c[this.keyName]) > -1;
+            if (field.initialValue && field.initialValue.length === newValue.length) {
+                var isSame = field.initialValue.every(function (c) {
+                    return findWithAttr(newValue, _this.keyName, c[_this.keyName]) > -1;
                 });
                 if (isSame)
                     return;
@@ -1203,14 +1128,13 @@ var SetCheckedValues = (function () {
     }
     SetCheckedValues.prototype.setValue = function (field, value) {
         if (value) {
-            var elem_1 = $('#' + field.id);
             if (Array.isArray(value)) {
                 value.forEach(function (item) {
-                    elem_1.find('[value=' + item.id + ']').prop('checked', true).trigger('change');
+                    field.ownContainer.find('[value=' + item.id + ']').prop('checked', true).trigger('change');
                 });
             }
             else {
-                elem_1.find('[value=' + value.id + ']').prop('checked', true).trigger('change');
+                field.ownContainer.find('[value=' + value.id + ']').prop('checked', true).trigger('change');
             }
         }
     };
@@ -1241,8 +1165,9 @@ var CheckboxField = (function (_super) {
     ;
     CheckboxField.prototype.render = function (container) {
         var _this = this;
+        var innerContainer = $('<div class="awesome-wrapper"></div>').appendTo(container);
         this.fieldMeta.allowedValues.forEach(function (option) {
-            container.append($("<div class=\"checkbox awesome\">\n                                    <input type=\"checkbox\" id=\"" + _this.id + "_" + option.id + "\" value=\"" + option.id + "\">\n                                    <label for=\"" + _this.id + "_" + option.id + "\">" + option.value + "</label>\n                                </div>"));
+            innerContainer.append($("<div class=\"checkbox awesome\">\n                                    <input type=\"checkbox\" id=\"" + _this.id + "_" + option.id + "\" value=\"" + option.id + "\">\n                                    <label for=\"" + _this.id + "_" + option.id + "\">" + option.value + "</label>\n                                </div>"));
         });
     };
     ;
@@ -1261,7 +1186,8 @@ var SetDateValue = (function () {
     SetDateValue.prototype.setValue = function (field, value) {
         if (value) {
             var momentDate = moment(new Date(value));
-            $('#' + field.id)["datetimepicker"]('setOptions', { value: momentDate.format('L') }).trigger('change');
+            $('#' + field.id)["datetimepicker"]('setOptions', { value: momentDate.format('L') });
+            $('#' + field.id).trigger('change');
         }
     };
     return SetDateValue;
@@ -1317,7 +1243,8 @@ var SetDateTimeValue = (function () {
     SetDateTimeValue.prototype.setValue = function (field, value) {
         if (value) {
             var momentDate = moment(new Date(value));
-            $('#' + field.id)["datetimepicker"]('setOptions', { value: momentDate.format('L') + ' ' + momentDate.format('LT') }).trigger('change');
+            $('#' + field.id)["datetimepicker"]('setOptions', { value: momentDate.format('L') + ' ' + momentDate.format('HH:mm') });
+            $('#' + field.id).trigger('change');
         }
     };
     return SetDateTimeValue;
@@ -1469,10 +1396,80 @@ var Select2AjaxField = (function (_super) {
     return Select2AjaxField;
 }(Select2Field));
 /// <reference path="../Field.ts" />
+/// <reference path="../../../definitions/jquery.d.ts" />
+var SetOptionValue = (function () {
+    function SetOptionValue() {
+    }
+    SetOptionValue.prototype.setValue = function (field, value) {
+        var selectField = field;
+        if (!field.isRendered()) {
+            //Not rendered, nothing to do... will be called with field.initialValue again
+            return;
+        }
+        if (value && Array.isArray(value)) {
+            //Multiselect       
+            // Convert value into normalized select2 format
+            var select2Values = value.map(function (v) { return selectField.convertToSelect2.call(selectField, v); });
+            //Now there are two cases:
+            //All values already exist in data --> we can just select the data
+            //Some data do not yet exist --> rerender and select data
+            var nonExistingElements_1 = [];
+            var selectedValues_1 = [];
+            select2Values.forEach(function (v) {
+                var dataOptions = selectField.options.data.filter(function (data) {
+                    if (data.children) {
+                        return (data.children.filter(function (child) { return child.id === v.id; }).length === 0);
+                    }
+                    else {
+                        return data.id === v.id;
+                    }
+                });
+                if (dataOptions.length === 0) {
+                    nonExistingElements_1.push(v);
+                }
+                selectedValues_1.push(v.id);
+            });
+            if (nonExistingElements_1.length > 0) {
+                var newValues = selectField.options.data.concat(nonExistingElements_1);
+                selectField.setData(newValues);
+            }
+            $('#' + field.id).val(selectedValues_1).trigger('change');
+        }
+        else if (value) {
+            //Single Select
+            //Convert value into correct value
+            selectField.convertId(value)
+                .then(function (obj) {
+                if (!obj)
+                    return;
+                // Convert value into normalized select2 format
+                var select2Value = selectField.convertToSelect2(obj);
+                //Now there are two cases:
+                //All values already exist in data --> we can just select the data
+                //Some data do not yet exist --> rerender and select data
+                var foundValues = selectField.options.data.filter(function (data) {
+                    // if (data.children) {
+                    //     return (data.children.filter((child) => { return child.id === value.id; }).length === 0);
+                    // } else {
+                    return data.id === value.id;
+                    // }
+                });
+                if (foundValues.length === 0) {
+                    selectField.options.data.push(select2Value);
+                    selectField.setData(selectField.options.data);
+                }
+                $('#' + field.id).val(select2Value.id).trigger('change');
+            });
+        }
+    };
+    return SetOptionValue;
+}());
+/// <reference path="../Field.ts" />
 /// <reference path="Select2AjaxField.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
 var EpicLinkSelectField = (function (_super) {
     __extends(EpicLinkSelectField, _super);
     function EpicLinkSelectField(id, field) {
@@ -1493,7 +1490,7 @@ var EpicLinkSelectField = (function (_super) {
         this.deleteEpic7 = function (issueKey) {
             return jiraAjax('/rest/agile/1.0/epic/none/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }');
         };
-        this.setter = new SetOptionValue();
+        FieldController.registerEvent(EventType.AfterSave, this);
     }
     EpicLinkSelectField.prototype.handleEvent = function (type, newValue, source) {
         if (type === EventType.AfterSave) {
@@ -1554,6 +1551,17 @@ var EpicLinkSelectField = (function (_super) {
             data: epic
         };
     };
+    EpicLinkSelectField.prototype.convertId = function (id) {
+        return this.getData(id)
+            .then(function (result) {
+            if (result[0].children) {
+                return result[0].children[0].data;
+            }
+            else {
+                return result[0].data;
+            }
+        });
+    };
     EpicLinkSelectField.prototype.getData = function (searchTerm) {
         var _this = this;
         //Result of Service
@@ -1591,57 +1599,70 @@ var EpicLinkSelectField = (function (_super) {
     return EpicLinkSelectField;
 }(Select2AjaxField));
 /// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
-var GetArray = (function () {
-    function GetArray() {
+/// <reference path="../../../definitions/common.d.ts" />
+var GetOption = (function () {
+    function GetOption(keyName) {
+        this.keyName = keyName;
     }
-    GetArray.prototype.getValue = function (id, field, onlyChangedData, newValue, initialValue) {
-        //In edit case: Only send changes
-        if (onlyChangedData) {
-            //Both empty
-            if (!initialValue && newValue.length === 0)
-                return;
-            //If length the same and all values match, we do not need to send anything            
-            if (initialValue && initialValue.length === newValue.length) {
-                var isSame = initialValue.every(function (c) {
-                    return newValue.indexOf(c) > -1;
-                });
-                if (isSame)
+    GetOption.prototype.getValue = function (field, onlyChangedData) {
+        var _this = this;
+        var selectField = field;
+        var newValue = selectField.getDomValue();
+        if (selectField.multiple) {
+            var convertedValues_1 = [];
+            newValue.forEach(function (id) {
+                var obj = {};
+                obj[_this.keyName] = id;
+                convertedValues_1.push(obj);
+            });
+            //Multi Select
+            if (onlyChangedData) {
+                //Both empty
+                if (!field.initialValue && convertedValues_1.length === 0)
                     return;
+                //If length the same and all values match, we do not need to send anything            
+                if (field.initialValue && field.initialValue.length === convertedValues_1.length) {
+                    var isSame = field.initialValue.every(function (c) {
+                        return findWithAttr(convertedValues_1, _this.keyName, c[_this.keyName]) > -1;
+                    });
+                    if (isSame)
+                        return;
+                }
+                return convertedValues_1;
             }
-            return newValue;
+            else {
+                //In creation case: Only send if not null	
+                return (convertedValues_1.length > 0) ? convertedValues_1 : undefined;
+            }
         }
         else {
-            //In creation case: Only send if not null	
-            return (newValue.length > 0) ? newValue : undefined;
+            //Single Select
+            var result = {};
+            if (onlyChangedData) {
+                //In edit case: Only send if changed	
+                if (!isEqual(field.initialValue, newValue)) {
+                    result[this.keyName] = newValue || "-1";
+                    return result;
+                }
+            }
+            else {
+                //In creation case: Only send if not null	
+                if (newValue) {
+                    result[this.keyName] = newValue;
+                    return result;
+                }
+            }
         }
     };
-    return GetArray;
-}());
-/// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
-var SetTagValue = (function () {
-    function SetTagValue() {
-    }
-    SetTagValue.prototype.setValue = function (field, value) {
-        if (value) {
-            value.forEach(function (label) {
-                //Add Option tags so initial selection will work
-                $('#' + field.id).append("<option val=\"" + label + "\">" + label + "</option>");
-            });
-            $('#' + field.id).val(value).trigger('change');
-            $('#' + field.id).data('value', value);
-        }
-    };
-    return SetTagValue;
+    return GetOption;
 }());
 /// <reference path="../Field.ts" />
 /// <reference path="Select2AjaxField.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
-/// <reference path="../getter/GetArray.ts" />
-/// <reference path="../setter/SetTagValue.ts" />
+/// <reference path="../getter/GetOption.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
 var GroupSelectField = (function (_super) {
     __extends(GroupSelectField, _super);
     function GroupSelectField(id, field, options) {
@@ -1670,7 +1691,7 @@ var GroupSelectField = (function (_super) {
     };
     GroupSelectField = __decorate([
         /// <reference path="../Field.ts" />
-        getter(GetterType.Object, "name"),
+        getter(GetterType.Option, "name"),
         setter(SetterType.Option)
     ], GroupSelectField);
     return GroupSelectField;
@@ -1680,6 +1701,8 @@ var GroupSelectField = (function (_super) {
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
+/// <reference path="../getter/GetOption.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
 var IssueField = (function (_super) {
     __extends(IssueField, _super);
     function IssueField(id, field, excludeSubtasks) {
@@ -1834,7 +1857,7 @@ var IssueField = (function (_super) {
     IssueField.defaultMeta = { key: FieldController.issueFieldId, get name() { return yasoon.i18n('dialog.issue'); }, required: true, schema: { system: 'issue', type: '' } };
     IssueField = __decorate([
         /// <reference path="../Field.ts" />
-        getter(GetterType.Object, "id"),
+        getter(GetterType.Option, "id"),
         setter(SetterType.Option)
     ], IssueField);
     return IssueField;
@@ -1844,6 +1867,8 @@ var IssueField = (function (_super) {
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
+/// <reference path="../getter/GetOption.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
 var IssueTypeField = (function (_super) {
     __extends(IssueTypeField, _super);
     function IssueTypeField(id, field) {
@@ -1945,11 +1970,60 @@ var IssueTypeField = (function (_super) {
     IssueTypeField.uiActionServiceDesk = 'ServiceDeskActivated';
     IssueTypeField = __decorate([
         /// <reference path="../Field.ts" />
-        getter(GetterType.Object, "id"),
+        getter(GetterType.Option, "id"),
         setter(SetterType.Option)
     ], IssueTypeField);
     return IssueTypeField;
 }(Select2Field));
+/// <reference path="../Field.ts" />
+/// <reference path="../../../definitions/jquery.d.ts" />
+var GetArray = (function () {
+    function GetArray() {
+    }
+    GetArray.prototype.getValue = function (field, onlyChangedData) {
+        var newValue = field.getDomValue();
+        if (!Array.isArray(newValue)) {
+            newValue = [newValue];
+        }
+        //In edit case: Only send changes
+        if (onlyChangedData) {
+            //Both empty
+            if (!field.initialValue && newValue.length === 0)
+                return;
+            //If length the same and all values match, we do not need to send anything            
+            if (field.initialValue && field.initialValue.length === newValue.length) {
+                var isSame = field.initialValue.every(function (c) {
+                    return newValue.indexOf(c) > -1;
+                });
+                if (isSame)
+                    return;
+            }
+            return newValue;
+        }
+        else {
+            //In creation case: Only send if not null	
+            return (newValue.length > 0) ? newValue : undefined;
+        }
+    };
+    return GetArray;
+}());
+/// <reference path="../Field.ts" />
+/// <reference path="../../../definitions/jquery.d.ts" />
+var SetTagValue = (function () {
+    function SetTagValue() {
+    }
+    SetTagValue.prototype.setValue = function (field, value) {
+        if (value) {
+            value.forEach(function (label) {
+                //Add Option tags so initial selection will work
+                $('#' + field.id).append("<option val=\"" + label + "\">" + label + "</option>");
+            });
+            $('#' + field.id).val(value).trigger('change');
+            $('#' + field.id).data('value', value);
+        }
+    };
+    return SetTagValue;
+}());
 /// <reference path="../Field.ts" />
 /// <reference path="Select2AjaxField.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
@@ -1995,7 +2069,9 @@ var LabelSelectField = (function (_super) {
         });
     };
     LabelSelectField.prototype.getEmptyData = function () {
-        return this.getData('');
+        if (!this.emptyData)
+            this.emptyData = this.getData('');
+        return this.emptyData;
     };
     LabelSelectField = __decorate([
         /// <reference path="../Field.ts" />
@@ -2011,8 +2087,32 @@ var LabelSelectField = (function (_super) {
 var MultiLineTextField = (function (_super) {
     __extends(MultiLineTextField, _super);
     function MultiLineTextField(id, field, config) {
+        var _this = this;
         if (config === void 0) { config = { isMainField: false, hasMentions: false }; }
         _super.call(this, id, field);
+        this.searchJiraUser = function (mode, query, callback) {
+            if (_this.currentIssue || _this.currentProject) {
+                var queryKey = (_this.currentIssue) ? 'issueKey=' + _this.currentIssue.key : 'projectKey=' + _this.currentProject.key;
+                jiraGet('/rest/api/2/user/viewissue/search?' + queryKey + '&maxResults=10&username=' + query)
+                    .then(function (usersString) {
+                    var data = [];
+                    var users = JSON.parse(usersString);
+                    users.forEach(function (user) {
+                        data.push({ id: user.name, name: user.displayName, type: 'user' });
+                    });
+                    callback(data);
+                });
+            }
+            else {
+                //Show alert
+                $('.mentions-input-box + .mentions-help-text').slideDown();
+                if (_this.timeoutSearchUser) {
+                    clearTimeout(_this.timeoutSearchUser);
+                }
+                _this.timeoutSearchUser = setTimeout(function () { $('.mentions-input-box + .mentions-help-text').slideUp(); }, 2000);
+                callback([]);
+            }
+        };
         this.isMainField = (jira.emailController && jira.emailController.fieldMapping.body == id);
         this.hasMentions = config.hasMentions;
         this.height = (this.isMainField) ? '200px' : '100px';
@@ -2206,32 +2306,9 @@ var MultiLineTextField = (function (_super) {
         }
     };
     MultiLineTextField.prototype.render = function (container) {
-        container.append("<textarea class=\"form-control\" id=\"" + this.id + "\" name=\"" + this.id + "\" style=\"height:" + this.height + ";overflow: initial;\"></textarea>\n            <div class=\"mentions-help-text bg-warning\"><span>" + yasoon.i18n('dialog.mentionsAlert') + "</span></div>");
+        container.append("<textarea class=\"form-control text\" id=\"" + this.id + "\" name=\"" + this.id + "\" style=\"height:" + this.height + ";overflow: initial;\"></textarea>\n            <div class=\"mentions-help-text bg-warning\"><span>" + yasoon.i18n('dialog.mentionsAlert') + "</span></div>");
         if (this.isMainField) {
             this.addMainFieldHtml(container);
-        }
-    };
-    MultiLineTextField.prototype.searchJiraUser = function (mode, query, callback) {
-        if (this.currentIssue || this.currentProject) {
-            var queryKey = (this.currentIssue) ? 'issueKey=' + this.currentIssue.key : 'projectKey=' + this.currentProject.key;
-            jiraGet('/rest/api/2/user/viewissue/search?' + queryKey + '&maxResults=10&username=' + query)
-                .then(function (usersString) {
-                var data = [];
-                var users = JSON.parse(usersString);
-                users.forEach(function (user) {
-                    data.push({ id: user.name, name: user.displayName, type: 'user' });
-                });
-                callback(data);
-            });
-        }
-        else {
-            //Show alert
-            $('.mentions-input-box + .mentions-help-text').slideDown();
-            if (this.timeoutSearchUser) {
-                clearTimeout(this.timeoutSearchUser);
-            }
-            this.timeoutSearchUser = setTimeout(function () { $('.mentions-input-box + .mentions-help-text').slideUp(); }, 2000);
-            callback([]);
         }
     };
     MultiLineTextField = __decorate([
@@ -2244,7 +2321,7 @@ var MultiLineTextField = (function (_super) {
 /// <reference path="../Field.ts" />
 /// <reference path="Select2Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
-/// <reference path="../getter/GetObjectArray.ts" />
+/// <reference path="../getter/GetOption.ts" />
 /// <reference path="../setter/SetOptionValue.ts" />
 var MultiSelectField = (function (_super) {
     __extends(MultiSelectField, _super);
@@ -2266,7 +2343,7 @@ var MultiSelectField = (function (_super) {
     };
     MultiSelectField = __decorate([
         /// <reference path="../Field.ts" />
-        getter(GetterType.ObjectArray, "id"),
+        getter(GetterType.Option, "id"),
         setter(SetterType.Option)
     ], MultiSelectField);
     return MultiSelectField;
@@ -2304,6 +2381,8 @@ var NumberField = (function (_super) {
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
+/// <reference path="../getter/GetOption.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
 var ProjectField = (function (_super) {
     __extends(ProjectField, _super);
     function ProjectField(id, field, cache) {
@@ -2457,11 +2536,37 @@ var ProjectField = (function (_super) {
     ProjectField.settingRecentProjects = 'recentProjects';
     ProjectField = __decorate([
         /// <reference path="../Field.ts" />
-        getter(GetterType.Object, "id"),
+        getter(GetterType.Option, "id"),
         setter(SetterType.Option)
     ], ProjectField);
     return ProjectField;
 }(Select2Field));
+/// <reference path="../Field.ts" />
+/// <reference path="../../../definitions/common.d.ts" />
+var GetObject = (function () {
+    function GetObject(keyName) {
+        this.keyName = keyName;
+    }
+    GetObject.prototype.getValue = function (field, onlyChangedData) {
+        var newValue = field.getDomValue();
+        var result = {};
+        if (onlyChangedData) {
+            //In edit case: Only send if changed	
+            if (!isEqual(field.initialValue, newValue)) {
+                result[this.keyName] = newValue || "-1";
+                return result;
+            }
+        }
+        else {
+            //In creation case: Only send if not null	
+            if (newValue) {
+                result[this.keyName] = newValue;
+                return result;
+            }
+        }
+    };
+    return GetObject;
+}());
 /// <reference path="../Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../getter/GetObject.ts" />
@@ -2482,12 +2587,13 @@ var RadioField = (function (_super) {
     ;
     RadioField.prototype.render = function (container) {
         var _this = this;
+        var innerContainer = $('<div class="awesome-wrapper"></div>').appendTo(container);
         if (!this.fieldMeta.required) {
             //If it isn't required we should allow a None option
-            container.append($("<div class=\"radio awesome\">\n                                    <input type=\"radio\" id=\"" + this.id + "_none\" name=\"" + this.id + "\" value=\"\" checked>\n                                    <label for=\"" + this.id + "_none\">" + yasoon.i18n('dialog.selectNone') + "</label>\n                                </div>"));
+            innerContainer.append($("<div class=\"radio awesome\">\n                                    <input type=\"radio\" id=\"" + this.id + "_none\" name=\"" + this.id + "\" value=\"\" checked>\n                                    <label for=\"" + this.id + "_none\">" + yasoon.i18n('dialog.selectNone') + "</label>\n                                </div>"));
         }
         this.fieldMeta.allowedValues.forEach(function (option) {
-            container.append($("<div class=\"radio awesome\">\n                                    <input type=\"radio\" id=\"" + _this.id + "_" + option.id + "\" name=\"" + _this.id + "\" value=\"" + option.id + "\">\n                                    <label for=\"" + _this.id + "_" + option.id + "\">" + option.value + "</label>\n                                </div>"));
+            innerContainer.append($("<div class=\"radio awesome\">\n                                    <input type=\"radio\" id=\"" + _this.id + "_" + option.id + "\" name=\"" + _this.id + "\" value=\"" + option.id + "\">\n                                    <label for=\"" + _this.id + "_" + option.id + "\">" + option.value + "</label>\n                                </div>"));
         });
     };
     ;
@@ -2503,6 +2609,8 @@ var RadioField = (function (_super) {
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
+/// <reference path="../getter/GetOption.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
 var RequestTypeField = (function (_super) {
     __extends(RequestTypeField, _super);
     function RequestTypeField(id, field) {
@@ -2654,7 +2762,7 @@ var RequestTypeField = (function (_super) {
     RequestTypeField.defaultMeta = { key: FieldController.requestTypeFieldId, get name() { return yasoon.i18n('dialog.requestType'); }, required: true, schema: { system: 'requesttype', type: '' } };
     RequestTypeField = __decorate([
         /// <reference path="../Field.ts" />
-        getter(GetterType.Object, "id"),
+        getter(GetterType.Option, "id"),
         setter(SetterType.Option)
     ], RequestTypeField);
     return RequestTypeField;
@@ -2662,7 +2770,7 @@ var RequestTypeField = (function (_super) {
 /// <reference path="../Field.ts" />
 /// <reference path="Select2Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
-/// <reference path="../getter/GetObject.ts" />
+/// <reference path="../getter/GetOption.ts" />
 /// <reference path="../setter/SetOptionValue.ts" />
 var SingleSelectField = (function (_super) {
     __extends(SingleSelectField, _super);
@@ -2688,7 +2796,7 @@ var SingleSelectField = (function (_super) {
     };
     SingleSelectField = __decorate([
         /// <reference path="../Field.ts" />
-        getter(GetterType.Object, "id"),
+        getter(GetterType.Option, "id"),
         setter(SetterType.Option)
     ], SingleSelectField);
     return SingleSelectField;
@@ -2722,15 +2830,20 @@ var SingleTextField = (function (_super) {
     return SingleTextField;
 }(Field));
 /// <reference path="../Field.ts" />
-/// <reference path="Select2AjaxField.ts" />
+/// <reference path="Select2Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
 var SprintSelectField = (function (_super) {
     __extends(SprintSelectField, _super);
     function SprintSelectField(id, field) {
-        _super.call(this, id, field);
-        this.setter = new SetOptionValue();
+        var _this = this;
+        _super.call(this, id, field, {});
         FieldController.registerEvent(EventType.BeforeSave, this);
+        this.getData()
+            .then(function (data) {
+            _this.setData(data);
+        });
     }
     SprintSelectField.prototype.handleEvent = function (type, newValue, source) {
         if (type === EventType.BeforeSave && jira.isEditMode) {
@@ -2755,16 +2868,20 @@ var SprintSelectField = (function (_super) {
         //Ticket: https://jira.atlassian.com/browse/GHS-10333
         //There is a workaround --> update it via unofficial greenhopper API --> For update see handleEvent
         //We aren't sure with which version this change happened. 7.0.0 definitely requires a string, 7.1.6. requires an int :)
-        if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
-            return parseInt(this.getDomValue());
-        }
-        else {
-            return this.getDomValue();
+        var stringValue = this.getDomValue();
+        if (stringValue) {
+            if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
+                return parseInt(stringValue);
+            }
+            else {
+                return stringValue;
+            }
         }
     };
     SprintSelectField.prototype.setValue = function (value) {
         if (value && value.length > 0) {
-            $('#' + this.id).val(this.parseSprintId(value[0])).trigger('change');
+            var sprintId = this.parseSprintId(value[0]);
+            this.setter.setValue(this, sprintId);
         }
     };
     SprintSelectField.prototype.convertToSelect2 = function (sprint) {
@@ -2774,7 +2891,7 @@ var SprintSelectField = (function (_super) {
             data: sprint
         };
     };
-    SprintSelectField.prototype.getData = function (searchTerm) {
+    SprintSelectField.prototype.getData = function () {
         var _this = this;
         return jiraGet('/rest/greenhopper/1.0/sprint/picker')
             .then(function (data) {
@@ -2816,15 +2933,19 @@ var SprintSelectField = (function (_super) {
         }
         return result;
     };
+    SprintSelectField = __decorate([
+        /// <reference path="../Field.ts" />
+        setter(SetterType.Option)
+    ], SprintSelectField);
     return SprintSelectField;
-}(Select2AjaxField));
+}(Select2Field));
 /// <reference path="../Field.ts" />
 /// <reference path="Select2AjaxField.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../getter/GetArray.ts" />
-/// <reference path="../setter/SetTagValue.ts" />
+/// <reference path="../getter/GetTextValue.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
 var TempoAccountField = (function (_super) {
     __extends(TempoAccountField, _super);
     function TempoAccountField(id, field, options) {
@@ -2894,8 +3015,6 @@ var TempoAccountField = (function (_super) {
 }(Select2Field));
 /// <reference path="../Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
-/// <reference path="../getter/GetTextValue.ts" />
-/// <reference path="../setter/SetValue.ts" />
 var TimeTrackingField = (function (_super) {
     __extends(TimeTrackingField, _super);
     function TimeTrackingField(id, field) {
@@ -2966,8 +3085,8 @@ var TimeTrackingField = (function (_super) {
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
-/// <reference path="../getter/GetArray.ts" />
-/// <reference path="../setter/SetTagValue.ts" />
+/// <reference path="../getter/GetOption.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
 var UserSelectField = (function (_super) {
     __extends(UserSelectField, _super);
     function UserSelectField(id, field, options) {
@@ -2976,6 +3095,7 @@ var UserSelectField = (function (_super) {
         this.ownUser = jira.ownUser;
         this.avatarPath = yasoon.io.getLinkPath('Images/useravatar.png');
         FieldController.registerEvent(EventType.SenderLoaded, this);
+        FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
     }
     UserSelectField.prototype.handleEvent = function (type, newValue, source) {
         if (type == EventType.SenderLoaded) {
@@ -2983,16 +3103,22 @@ var UserSelectField = (function (_super) {
                 this.senderUser = newValue;
             }
         }
+        else if (type === EventType.FieldChange && source === FieldController.projectFieldId) {
+            this.currentProject = newValue;
+        }
         return null;
     };
     UserSelectField.prototype.hookEventHandler = function () {
         var _this = this;
         _super.prototype.hookEventHandler.call(this);
-        $('#' + this.id + '-field-group').find('.assign-to-me-trigger').click(function (e) {
+        this.ownContainer.find('.assign-to-me-trigger').click(function (e) {
             if (_this.ownUser) {
                 _this.setValue(_this.ownUser);
             }
             e.preventDefault();
+        });
+        this.ownContainer.find('.add-myself-trigger').click(function (e) {
+            //TODO
         });
     };
     UserSelectField.prototype.render = function (container) {
@@ -3005,7 +3131,12 @@ var UserSelectField = (function (_super) {
                 }];
         }
         _super.prototype.render.call(this, container);
-        container.append("<span style=\"display:block; padding: 5px 0px;\">\n\t\t\t\t        <a href=\"#" + this.id + "\" class=\"assign-to-me-trigger\" title=\"" + yasoon.i18n('dialog.assignMyselfTitle') + "\">" + yasoon.i18n('dialog.assignMyself') + "</a>");
+        if (this.options.multiple) {
+            container.append("<span style=\"display:block; padding: 5px 0px;\">\n\t\t\t\t            <a href=\"#" + this.id + "\" class=\"add-myself-trigger\" title=\"" + yasoon.i18n('dialog.addMyselfTitle') + "\">" + yasoon.i18n('dialog.addMyself') + "</a>\n                        </span>");
+        }
+        else {
+            container.append("<span style=\"display:block; padding: 5px 0px;\">\n\t\t\t\t            <a href=\"#" + this.id + "\" class=\"assign-to-me-trigger\" title=\"" + yasoon.i18n('dialog.assignMyselfTitle') + "\">" + yasoon.i18n('dialog.assignMyself') + "</a>\n                        </span>");
+        }
         if (this.id === "assignee") {
             $('#' + this.id).val('-1').trigger('change');
         }
@@ -3059,14 +3190,14 @@ var UserSelectField = (function (_super) {
         var url = '/rest/api/2/user/picker?query=' + searchTerm + '&maxResults=50';
         if (this.id === 'assignee') {
             //Only get assignable users
-            url = '/rest/api/2/user/assignable/search?project=' + jira.selectedProject.key + '&username=' + searchTerm + '&maxResults=50';
+            url = '/rest/api/2/user/assignable/search?project=' + this.currentProject.key + '&username=' + searchTerm + '&maxResults=50';
         }
         return jiraGet(url)
             .then(function (data) {
             var users = JSON.parse(data);
             //1. Build User Result Array
             var result = [];
-            //Yay, change of return structure....
+            //Yay, Jira change of return structure....
             var userArray = [];
             if (users && users.users && users.users.length > 0) {
                 userArray = users.users;
@@ -3086,7 +3217,7 @@ var UserSelectField = (function (_super) {
     UserSelectField.reporterDefaultMeta = { key: FieldController.onBehalfOfFieldId, get name() { return yasoon.i18n('dialog.behalfOf'); }, required: true, schema: { system: 'user', type: '' } };
     UserSelectField = __decorate([
         /// <reference path="../Field.ts" />
-        getter(GetterType.Object, "name"),
+        getter(GetterType.Option, "name"),
         setter(SetterType.Option)
     ], UserSelectField);
     return UserSelectField;
@@ -3094,11 +3225,11 @@ var UserSelectField = (function (_super) {
 /// <reference path="../Field.ts" />
 /// <reference path="Select2Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
-/// <reference path="../getter/GetObjectArray.ts" />
+/// <reference path="../getter/GetOption.ts" />
 /// <reference path="../setter/SetOptionValue.ts" />
-var VersionMultiSelectField = (function (_super) {
-    __extends(VersionMultiSelectField, _super);
-    function VersionMultiSelectField(id, field, config) {
+var VersionSelectField = (function (_super) {
+    __extends(VersionSelectField, _super);
+    function VersionSelectField(id, field, config) {
         var options = {
             data: []
         };
@@ -3128,7 +3259,7 @@ var VersionMultiSelectField = (function (_super) {
             this.options.data.push(releasedOptGroup);
         }
     }
-    VersionMultiSelectField.prototype.convertToSelect2 = function (version) {
+    VersionSelectField.prototype.convertToSelect2 = function (version) {
         var result = {
             id: version.id,
             text: version.name || version.value,
@@ -3139,12 +3270,12 @@ var VersionMultiSelectField = (function (_super) {
         }
         return result;
     };
-    VersionMultiSelectField = __decorate([
+    VersionSelectField = __decorate([
         /// <reference path="../Field.ts" />
-        getter(GetterType.ObjectArray, "id"),
+        getter(GetterType.Option, "id"),
         setter(SetterType.Option)
-    ], VersionMultiSelectField);
-    return VersionMultiSelectField;
+    ], VersionSelectField);
+    return VersionSelectField;
 }(Select2Field));
 var TemplateController = (function () {
     function TemplateController(ownUser) {

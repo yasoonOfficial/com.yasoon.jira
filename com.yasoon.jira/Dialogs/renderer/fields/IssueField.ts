@@ -3,8 +3,10 @@
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
+/// <reference path="../getter/GetOption.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
 
-@getter(GetterType.Object, "id")
+@getter(GetterType.Option, "id")
 @setter(SetterType.Option)
 class IssueField extends Select2AjaxField implements IFieldEventHandler {
     static defaultMeta: JiraMetaField = { key: FieldController.issueFieldId, get name() { return yasoon.i18n('dialog.issue'); }, required: true, schema: { system: 'issue', type: '' } };

@@ -1,12 +1,12 @@
 /// <reference path="../Field.ts" />
 /// <reference path="Select2Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
-/// <reference path="../getter/GetObjectArray.ts" />
+/// <reference path="../getter/GetOption.ts" />
 /// <reference path="../setter/SetOptionValue.ts" />
 
-@getter(GetterType.ObjectArray, "id")
+@getter(GetterType.Option, "id")
 @setter(SetterType.Option)
-class VersionMultiSelectField extends Select2Field {
+class VersionSelectField extends Select2Field {
 
     constructor(id: string, field: JiraMetaField, config: { releasedFirst: boolean, multiSelect: boolean }) {
         let options = {

@@ -11,15 +11,23 @@ class SetOptionValue implements FieldSetter {
         if (value && Array.isArray(value)) {
             //Multiselect       
             // Convert value into normalized select2 format
-            let selectValues = value.map(selectField.convertToSelect2);
+            let select2Values = value.map((v) => { return selectField.convertToSelect2.call(selectField, v); });
 
             //Now there are two cases:
             //All values already exist in data --> we can just select the data
             //Some data do not yet exist --> rerender and select data
             let nonExistingElements: Select2Element[] = [];
             let selectedValues = [];
-            selectValues.forEach(v => {
-                if (selectField.options.data.filter((data) => { return data.id === v.id }).length === 0) {
+            select2Values.forEach(v => {
+                let dataOptions = selectField.options.data.filter((data) => {
+                    if (data.children) {
+                        return (data.children.filter((child) => { return child.id === v.id; }).length === 0);
+                    } else {
+                        return data.id === v.id;
+                    }
+                });
+
+                if (dataOptions.length === 0) {
                     nonExistingElements.push(v);
                 }
                 selectedValues.push(v.id);
@@ -35,22 +43,31 @@ class SetOptionValue implements FieldSetter {
             //Single Select
 
             //Convert value into correct value
-            let obj = selectField.convertId(value);
-            if (!obj)
-                return;
+            selectField.convertId(value)
+                .then((obj) => {
+                    if (!obj)
+                        return;
 
-            // Convert value into normalized select2 format
-            let selectValue = selectField.convertToSelect2(obj);
+                    // Convert value into normalized select2 format
+                    let select2Value = selectField.convertToSelect2(obj);
 
-            //Now there are two cases:
-            //All values already exist in data --> we can just select the data
-            //Some data do not yet exist --> rerender and select data
-            if (selectField.options.data.filter((data) => { return data.id === selectValue.id }).length === 0) {
-                selectField.options.data.push(selectValue);
-                selectField.setData(selectField.options.data);
-            }
+                    //Now there are two cases:
+                    //All values already exist in data --> we can just select the data
+                    //Some data do not yet exist --> rerender and select data
+                    let foundValues = selectField.options.data.filter((data) => {
+                       // if (data.children) {
+                       //     return (data.children.filter((child) => { return child.id === value.id; }).length === 0);
+                       // } else {
+                            return data.id === value.id;
+                       // }
+                    });
+                    if (foundValues.length === 0) {
+                        selectField.options.data.push(select2Value);
+                        selectField.setData(selectField.options.data);
+                    }
 
-            $('#' + field.id).val(selectValue.id).trigger('change');
+                    $('#' + field.id).val(select2Value.id).trigger('change');
+                });
         }
     }
 }

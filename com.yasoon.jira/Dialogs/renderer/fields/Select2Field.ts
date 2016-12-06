@@ -15,12 +15,7 @@ abstract class Select2Field extends Field {
 
 	getDomValue(): any {
 		if (this.multiple) {
-			let values = $('#' + this.id).val() || [];
-			let selectedValues = [];
-			values.forEach(function (id) {
-				selectedValues.push({ id: id });
-			});
-			return selectedValues;
+			return $('#' + this.id).val() || [];
 		} else {
 			return $('#' + this.id).val();
 		}
@@ -73,7 +68,7 @@ abstract class Select2Field extends Field {
 
 	abstract convertToSelect2(obj: any): Select2Element;
 
-	convertId(id: any): any {
+	convertId(id: any): Promise<any> {
 		//Best Guess: Return data object with same "ID" property
 		if (typeof id === 'string' && this.options.data) {
 			let result: Select2Element = null;
@@ -88,10 +83,11 @@ abstract class Select2Field extends Field {
 				}
 			});
 
-			return ((result) ? result.data : null);
+			let returnValue = ((result) ? result.data : null);
+			return Promise.resolve(returnValue);
 		}
 
-		return id;
+		return Promise.resolve(id);
 	}
 
 	showSpinner() {

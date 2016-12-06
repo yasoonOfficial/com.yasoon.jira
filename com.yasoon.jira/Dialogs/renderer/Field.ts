@@ -25,7 +25,7 @@ abstract class Field implements FieldGet, FieldSet {
 		if (!getter)
 			throw new Error("Please either redefine method getValue or add a @getter Annotation for " + this.id);
 
-		return this.getter.getValue(this.id, this.fieldMeta, onlyChangedData, this.getDomValue(), this.initialValue);
+		return this.getter.getValue(this, onlyChangedData);
 	}
 
 	setInitialValue(value: any): void {
@@ -99,7 +99,7 @@ abstract class Field implements FieldGet, FieldSet {
 }
 
 enum GetterType {
-	Text, Object, ObjectArray, Array
+	Text, Object, ObjectArray, Array, Option
 }
 
 enum SetterType {
@@ -129,6 +129,10 @@ function getter(getterType: GetterType, params?: any) {
 
 			case GetterType.Array:
 				proto.getter = new GetArray();
+				break;
+
+			case GetterType.Option:
+				proto.getter = new GetOption(params);
 				break;
 		}
 	}
@@ -190,7 +194,7 @@ interface FieldGet {
 }
 
 interface FieldGetter {
-	getValue(id: string, field: JiraMetaField, onlyChangedData: boolean, newValue?: any, initialValue?: any): any;
+	getValue(field: Field, onlyChangedData: boolean): any;
 }
 
 interface FieldSet {

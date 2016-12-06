@@ -3,8 +3,8 @@
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../getter/GetArray.ts" />
-/// <reference path="../setter/SetTagValue.ts" />
+/// <reference path="../getter/GetTextValue.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
 
 @getter(GetterType.Text)
 @setter(SetterType.Option)

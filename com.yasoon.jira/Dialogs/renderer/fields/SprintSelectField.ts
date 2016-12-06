@@ -1,15 +1,21 @@
 /// <reference path="../Field.ts" />
-/// <reference path="Select2AjaxField.ts" />
+/// <reference path="Select2Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
 
-class SprintSelectField extends Select2AjaxField implements IFieldEventHandler {
+@setter(SetterType.Option)
+class SprintSelectField extends Select2Field implements IFieldEventHandler {
 
     constructor(id: string, field: JiraMetaField) {
-        super(id, field);
-        this.setter = new SetOptionValue();
+        super(id, field, {});
 
         FieldController.registerEvent(EventType.BeforeSave, this);
+
+        this.getData()
+            .then((data) => {
+                this.setData(data);
+            });
     }
 
 
@@ -30,7 +36,8 @@ class SprintSelectField extends Select2AjaxField implements IFieldEventHandler {
                 }
             }
         }
-        return null
+
+        return null;
     }
 
 
@@ -39,16 +46,21 @@ class SprintSelectField extends Select2AjaxField implements IFieldEventHandler {
         //Ticket: https://jira.atlassian.com/browse/GHS-10333
         //There is a workaround --> update it via unofficial greenhopper API --> For update see handleEvent
         //We aren't sure with which version this change happened. 7.0.0 definitely requires a string, 7.1.6. requires an int :)
-        if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
-            return parseInt(this.getDomValue());
-        } else {
-            return this.getDomValue();
+        let stringValue = this.getDomValue();
+        if (stringValue) {
+            if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
+
+                return parseInt(stringValue);
+            } else {
+                return stringValue;
+            }
         }
     }
 
     setValue(value) {
         if (value && value.length > 0) {
-            $('#' + this.id).val(this.parseSprintId(value[0])).trigger('change');
+            let sprintId = this.parseSprintId(value[0]);
+            this.setter.setValue(this, sprintId);
         }
     }
 
@@ -60,7 +72,7 @@ class SprintSelectField extends Select2AjaxField implements IFieldEventHandler {
         };
     }
 
-    getData(searchTerm: string): Promise<Select2Element[]> {
+    getData(): Promise<Select2Element[]> {
         return jiraGet('/rest/greenhopper/1.0/sprint/picker')
             .then((data: string) => {
                 //{"suggestions":[{"name":"Sample Sprint 2","id":1,"stateKey":"ACTIVE"}],"allMatches":[]}

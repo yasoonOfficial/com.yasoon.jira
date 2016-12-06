@@ -3,8 +3,10 @@
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
+/// <reference path="../getter/GetOption.ts" />
+/// <reference path="../setter/SetOptionValue.ts" />
 
-@getter(GetterType.Object, "id")
+@getter(GetterType.Option, "id")
 @setter(SetterType.Option)
 class RequestTypeField extends Select2Field implements IFieldEventHandler {
     static defaultMeta: JiraMetaField = { key: FieldController.requestTypeFieldId, get name() { return yasoon.i18n('dialog.requestType'); }, required: true, schema: { system: 'requesttype', type: '' } };
@@ -124,13 +126,13 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
             .then((data: string) => {
                 let serviceData: JiraServiceDeskData[] = JSON.parse(data);
                 if (serviceData.length > 0) {
-                    let serviceDeskKey = serviceData.filter(function(s) { return s.projectId == currentProject.id; })[0].key;
+                    let serviceDeskKey = serviceData.filter(function (s) { return s.projectId == currentProject.id; })[0].key;
                     this.serviceDeskKeys[currentProject.id] = serviceDeskKey;
 
                     return serviceDeskKey;
                 }
             })
-            .catch(function(e) {
+            .catch(function (e) {
                 console.log(e);
                 yasoon.util.log(e.toString(), yasoon.util.severity.warning);
                 this.serviceDeskKeys[currentProject.id] = this.currentProject.key.toLowerCase();
@@ -158,10 +160,10 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
                 .map((typeString: string) => { return JSON.parse(typeString); })
                 .then((types: [JiraRequestType[]]) => {
                     var allTypes = [];
-                    types.forEach(function(typesInner) {
-                        typesInner.forEach(function(type) {
+                    types.forEach(function (typesInner) {
+                        typesInner.forEach(function (type) {
                             //Do not add twice
-                            if (allTypes.filter(function(t) { return t.id === type.id; }).length === 0) {
+                            if (allTypes.filter(function (t) { return t.id === type.id; }).length === 0) {
                                 allTypes.push(type);
                             }
                         });

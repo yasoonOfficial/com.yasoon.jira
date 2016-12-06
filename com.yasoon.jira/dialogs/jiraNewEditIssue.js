@@ -332,7 +332,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
             //Todo Refactor Error Messages
             .catch(jiraSyncError, function (e) {
                 yasoon.util.log('Couldn\'t submit New Issue Dialog: ' + e.getUserFriendlyError() + ' || Issue: ' + JSON.stringify(result), yasoon.util.severity.warning);
-                jira.transaction.currentCallCounter = -1; //Make sure the window will never close as issue has not been created
                 yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSubmitIssue', { error: e.getUserFriendlyError() }));
                 $('#JiraSpinner').hide();
                 $('#create-issue-submit').prop('disabled', false);
@@ -345,8 +344,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
                     $('#create-issue-submit').prop('disabled', false);
                     yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSubmitIssue', { error: 'Unknown' }));
                 }
-                jira.transaction.currentCallCounter = -1; //Make sure the window will never close as issue has not been created
-
                 yasoon.util.log('Unexpected error in Create Issue Dialog: ' + e + ' || Issue: ' + JSON.stringify(result), yasoon.util.severity.error, getStackTrace(e));
             });
     };
@@ -500,10 +497,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:select', SingleSelectField);
         FieldController.register('components', MultiSelectField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:multiselect', MultiSelectField);
-        FieldController.register('fixVersions', VersionMultiSelectField, { multiSelect: true, releasedFirst: false });
-        FieldController.register('versions', VersionMultiSelectField, { multiSelect: true, releasedFirst: true });
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:multiversion', VersionMultiSelectField, { multiSelect: true, releasedFirst: true });
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:version', VersionMultiSelectField, { multiSelect: false, releasedFirst: true });
+        FieldController.register('fixVersions', VersionSelectField, { multiSelect: true, releasedFirst: false });
+        FieldController.register('versions', VersionSelectField, { multiSelect: true, releasedFirst: true });
+        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:multiversion', VersionSelectField, { multiSelect: true, releasedFirst: true });
+        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:version', VersionSelectField, { multiSelect: false, releasedFirst: true });
         FieldController.register('reporter', UserSelectField);
         FieldController.register('assignee', UserSelectField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:userpicker', UserSelectField);

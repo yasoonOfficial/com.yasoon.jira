@@ -2,7 +2,6 @@
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/handlebars.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
-/// <reference path="../getter/GetTextValue.ts" />
 
 
 class AttachmentField extends Field implements IFieldEventHandler {

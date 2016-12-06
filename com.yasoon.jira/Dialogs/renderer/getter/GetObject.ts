@@ -1,5 +1,4 @@
 /// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
 
 class GetObject implements FieldGetter {
@@ -9,11 +8,12 @@ class GetObject implements FieldGetter {
         this.keyName = keyName;
     }
 
-    getValue(id: string, field: JiraMetaField, onlyChangedData: boolean, newValue?: any, initialValue?: any) {
+    getValue(field: Field, onlyChangedData: boolean) {
+        let newValue = field.getDomValue();
         let result = {};
         if (onlyChangedData) {
             //In edit case: Only send if changed	
-            if (!isEqual(initialValue, newValue)) {
+            if (!isEqual(field.initialValue, newValue)) {
                 result[this.keyName] = newValue || "-1";
                 return result;
             }

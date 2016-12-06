@@ -16,16 +16,18 @@ class RadioField extends Field {
     };
 
     render(container: JQuery) {
+        let innerContainer = $('<div class="awesome-wrapper"></div>').appendTo(container);
+
         if (!this.fieldMeta.required) {
             //If it isn't required we should allow a None option
-            container.append($(`<div class="radio awesome">
+            innerContainer.append($(`<div class="radio awesome">
                                     <input type="radio" id="${this.id}_none" name="${this.id}" value="" checked>
                                     <label for="${this.id}_none">${yasoon.i18n('dialog.selectNone')}</label>
                                 </div>`));
         }
 
         this.fieldMeta.allowedValues.forEach((option) => {
-            container.append($(`<div class="radio awesome">
+            innerContainer.append($(`<div class="radio awesome">
                                     <input type="radio" id="${this.id}_${option.id}" name="${this.id}" value="${option.id}">
                                     <label for="${this.id}_${option.id}">${option.value}</label>
                                 </div>`));
