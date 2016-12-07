@@ -4,7 +4,7 @@
 /// <reference path="../getter/GetOption.ts" />
 /// <reference path="../setter/SetOptionValue.ts" />
 
-@getter(GetterType.Option, "id")
+@getter(GetterType.Option, "id", null)
 @setter(SetterType.Option)
 class VersionSelectField extends Select2Field {
 

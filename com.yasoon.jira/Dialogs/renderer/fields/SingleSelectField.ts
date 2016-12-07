@@ -13,7 +13,7 @@ class SingleSelectField extends Select2Field {
         super(id, field, options, false, style);
 
         //Default value or None?
-        let placeholder: string = (field.hasDefaultValue) ? yasoon.i18n('dialog.selectDefault') : yasoon.i18n('dialog.selectNone');
+        let placeholder: string = (field.hasDefaultValue && !jira.isEditMode) ? yasoon.i18n('dialog.selectDefault') : yasoon.i18n('dialog.selectNone');
 
         this.options.data = field.allowedValues.map(this.convertToSelect2);
         this.options.placeholder = placeholder;

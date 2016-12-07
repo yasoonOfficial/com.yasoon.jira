@@ -1,7 +1,7 @@
 function JiraRibbonController() {
 	var self = this;
 
-	this.createRibbon = function createRibbon (ribbonFactory) {
+	this.createRibbon = function createRibbon(ribbonFactory) {
 		jira.ribbonFactory = ribbonFactory;
 
 		//Add Ribbon in top toolbar Ribbon on new Item
@@ -18,9 +18,9 @@ function JiraRibbonController() {
 			}]
 		},
 		{
-		type: 'contextMenu',
-		idMso: 'ContextMenuMailItem',
-		items: [{
+			type: 'contextMenu',
+			idMso: 'ContextMenuMailItem',
+			items: [{
 				id: 'newIssueFullMail',
 				type: 'button',
 				image: 'logo_icon1.png',
@@ -61,7 +61,7 @@ function JiraRibbonController() {
 		//Add New Issue Ribbons in email
 		var newIssueRibbons = self.createContextRibbonItems(yasoon.i18n('ribbon.newIssue'), 'newIssueFromText', self.ribbonOnNewIssue);
 		contextMenuItems = contextMenuItems.concat(newIssueRibbons);
-		
+
 		var addToIssueRibbons = self.createContextRibbonItems(yasoon.i18n('ribbon.addToIssue'), 'addToIssueFromText', self.ribbonOnAddToIssue);
 		contextMenuItems = contextMenuItems.concat(addToIssueRibbons);
 
@@ -95,28 +95,28 @@ function JiraRibbonController() {
 						label: 'JIRA',
 						image: 'brandedlogo-64',
 						items: [{
-						    type: 'splitButton',
-						    id: 'jiraTaskSync',
-						    size: 'large',
-						    items: [{
-						        type: 'button',
-						        id: 'jiraTaskRefresh',
-						        label: yasoon.i18n('ribbon.syncTasks'),
-						        screentip: yasoon.i18n('ribbon.syncTasks'),
-						        image: 'images/ribbonSyncing.png',
-						        supertip: yasoon.i18n('ribbon.syncTasksScreenTip'),
-						        enabled: true,
-						        onAction: self.ribbonRefreshTasks
-						    }, {
-						        type: 'menu',
-						        id: 'RefreshMenu',
-						        items: [{
-						            type: 'button',
-						            id: 'jiraTaskForceRefresh',
-						            label: yasoon.i18n('ribbon.forceSyncTasks'),
-						            onAction: self.ribbonRefreshTasks
-						        }]
-						    }]
+							type: 'splitButton',
+							id: 'jiraTaskSync',
+							size: 'large',
+							items: [{
+								type: 'button',
+								id: 'jiraTaskRefresh',
+								label: yasoon.i18n('ribbon.syncTasks'),
+								screentip: yasoon.i18n('ribbon.syncTasks'),
+								image: 'images/ribbonSyncing.png',
+								supertip: yasoon.i18n('ribbon.syncTasksScreenTip'),
+								enabled: true,
+								onAction: self.ribbonRefreshTasks
+							}, {
+								type: 'menu',
+								id: 'RefreshMenu',
+								items: [{
+									type: 'button',
+									id: 'jiraTaskForceRefresh',
+									label: yasoon.i18n('ribbon.forceSyncTasks'),
+									onAction: self.ribbonRefreshTasks
+								}]
+							}]
 						}]
 					}]
 				}]
@@ -252,7 +252,7 @@ function JiraRibbonController() {
 				idMso: mso,
 				items: [{
 					type: 'button',
-					id: id+''+((counter != 1) ? counter  : ''), //Don't ask! compatibility with old ribbon updater
+					id: id + '' + ((counter != 1) ? counter : ''), //Don't ask! compatibility with old ribbon updater
 					label: label,
 					image: 'logo_icon1.png',
 					onAction: action
@@ -262,7 +262,7 @@ function JiraRibbonController() {
 
 		return result;
 	};
-	
+
 	this.createJiraRibbonGroup = function createJiraRibbonGroup(id) {
 		return [{
 			type: 'button',
@@ -271,14 +271,14 @@ function JiraRibbonController() {
 			label: yasoon.i18n('ribbon.newIssue'),
 			image: 'images/ribbonNew.png',
 			onAction: self.ribbonOnNewIssue
-		},{
+		}, {
 			type: 'button',
 			id: 'addToIssueFrom' + id,
 			size: 'large',
 			label: yasoon.i18n('ribbon.addToIssue'),
 			image: 'images/ribbonAdd.png',
 			onAction: self.ribbonOnAddToIssue
-		},{
+		}, {
 			type: 'button',
 			id: 'openIssueFrom' + id,
 			enabled: false,
@@ -286,7 +286,7 @@ function JiraRibbonController() {
 			label: yasoon.i18n('ribbon.openIssue'),
 			image: 'images/ribbonOpen.png',
 			onAction: self.ribbonOpenIssue
-		},{
+		}, {
 			type: 'dynamicMenu',
 			id: 'openIssueDynamicMenuFrom' + id,
 			size: 'large',
@@ -298,7 +298,7 @@ function JiraRibbonController() {
 				id: 'openIssueMenuFrom' + id,
 				items: []
 			}]
-			
+
 		}];
 	};
 
@@ -311,9 +311,9 @@ function JiraRibbonController() {
 
 		if (jiraIsTask(item) || item.fields) { //In update we do not have an up-to-date task, so we insert the issue.
 			var issue = item;
-			if(!issue.fields)
+			if (!issue.fields)
 				issue = JSON.parse(item.externalData);
-			
+
 			if (issue.transitions) {
 				var transitionItems = [];
 				issue.transitions.forEach(function (t) {
@@ -506,13 +506,13 @@ function JiraRibbonController() {
 		var outlookTask = ribbonCtx.items[0];
 		var issue = JSON.parse(outlookTask.externalData);
 		new JiraIssueNotification(issue).editIssue(function (type, data) {
-		    if (data && data.action === 'success') {
-		        return jira.issues.get(issue.key, true)
-		        .then(function (newIssue) {
-		            new JiraIssueTask(newIssue).saveInspector(outlookTask);
-		            jira.sync();
-		        });
-		    }
+			if (data && data.action === 'success') {
+				return jira.issues.get(issue.key, true)
+					.then(function (newIssue) {
+						new JiraIssueTask(newIssue).saveInspector(outlookTask);
+						jira.sync();
+					});
+			}
 		});
 	};
 
@@ -536,7 +536,7 @@ function JiraRibbonController() {
 				formData: formData,
 				headers: { Accept: 'application/json', 'X-Atlassian-Token': 'nocheck' },
 				error: function (data, statusCode, result, errorText, cbkParam) {
-					yasoon.dialog.showMessageBox(yasoon.i18n('general.couldNotUploadAttachments') + ' - ' + errorText );
+					yasoon.dialog.showMessageBox(yasoon.i18n('general.couldNotUploadAttachments') + ' - ' + errorText);
 				},
 				success: function () {
 					ribbonCtx.items[0].completeLoader();
@@ -546,7 +546,7 @@ function JiraRibbonController() {
 
 			ribbonCtx.items[0].showLoader([progressProvider]);
 		}
-		
+
 	};
 
 	this.ribbonExecuteTransition = function (ribbonId, ribbonCtx) {
@@ -566,41 +566,41 @@ function JiraRibbonController() {
 		});
 
 		jira.ribbonFactory.updateSingle('jiraTransitionDynamicMenu', {
-		    enabled: false
+			enabled: false
 		}, issue.inspectorId);
 
 		jiraGet('/rest/api/2/issue/' + issueKey + '/transitions?transitionId=' + transitionId)
-		.then(function (data) {
-			var transObj = JSON.parse(data);
-			if (transObj.transitions[0].hasScreen) {
-				yasoon.openBrowser(jira.settings.baseUrl + '/login.jsp?os_destination=' + encodeURIComponent('/secure/CommentAssignIssue!default.jspa?id=' + issueId + '&action=' + transitionId));
-			} else {
-				return jiraAjax('/rest/api/2/issue/' + issueKey + '/transitions', yasoon.ajaxMethod.Post, body)
-				.then(function () {
-					return jira.issues.get(issueKey, true);
-				})
-				.then(function (newIssue) {
-				    jira.ribbonFactory.updateSingle('jiraTransitionDynamicMenu', {
-				        enabled: true
-				    }, issue.inspectorId);
+			.then(function (data) {
+				var transObj = JSON.parse(data);
+				if (transObj.transitions[0].hasScreen) {
+					yasoon.openBrowser(jira.settings.baseUrl + '/login.jsp?os_destination=' + encodeURIComponent('/secure/CommentAssignIssue!default.jspa?id=' + issueId + '&action=' + transitionId));
+				} else {
+					return jiraAjax('/rest/api/2/issue/' + issueKey + '/transitions', yasoon.ajaxMethod.Post, body)
+						.then(function () {
+							return jira.issues.get(issueKey, true);
+						})
+						.then(function (newIssue) {
+							jira.ribbonFactory.updateSingle('jiraTransitionDynamicMenu', {
+								enabled: true
+							}, issue.inspectorId);
 
-					self.updateRibbons(newIssue, issue.inspectorId);
+							self.updateRibbons(newIssue, issue.inspectorId);
 
-					new JiraIssueTask(newIssue).saveInspector(issue);
+							new JiraIssueTask(newIssue).saveInspector(issue);
 
-					jira.sync();
-				});
-			}
-		})
-		.catch(function (error) {
-			var msg = (error.getUserFriendlyError) ? error.getUserFriendlyError() : error;
-			yasoon.dialog.showMessageBox(yasoon.i18n('notification.changeStatusNotPossible', { error: msg }));
-			yasoon.util.log('Unexpected error in Set Transition in Task: ' + error, yasoon.util.severity.error, getStackTrace(error));
+							jira.sync();
+						});
+				}
+			})
+			.catch(function (error) {
+				var msg = (error.getUserFriendlyError) ? error.getUserFriendlyError() : error;
+				yasoon.dialog.showMessageBox(yasoon.i18n('notification.changeStatusNotPossible', { error: msg }));
+				yasoon.util.log('Unexpected error in Set Transition in Task: ' + error, yasoon.util.severity.error, getStackTrace(error));
 
-			jira.ribbonFactory.updateSingle('jiraTransitionDynamicMenu', {
-			    enabled: true
-			}, issue.inspectorId);
-		});
+				jira.ribbonFactory.updateSingle('jiraTransitionDynamicMenu', {
+					enabled: true
+				}, issue.inspectorId);
+			});
 	};
 
 	this.ribbonRefreshTasks = function (ribbonId, ribbonCtx) {
@@ -611,16 +611,16 @@ function JiraRibbonController() {
 		var forceSync = (ribbonId == 'jiraTaskForceRefresh');
 
 		jira.tasks.syncTasks(forceSync)
-		.then(function () {
-			yasoon.dialog.showMessageBox(yasoon.i18n('general.taskSyncSuccess'));
+			.then(function () {
+				yasoon.dialog.showMessageBox(yasoon.i18n('general.taskSyncSuccess'));
 
-			jira.ribbonFactory.update('jiraTaskSync', {
-				enabled: true
-			}, true);
-		})
-		.catch(function () {
-			yasoon.dialog.showMessageBox(yasoon.i18n('general.taskSyncFailed'));
-		});
+				jira.ribbonFactory.update('jiraTaskSync', {
+					enabled: true
+				}, true);
+			})
+			.catch(function () {
+				yasoon.dialog.showMessageBox(yasoon.i18n('general.taskSyncFailed'));
+			});
 	};
 
 	this.ribbonOnNewIssue = function ribbonOnNewIssue(ribbonId, ribbonCtx) {
@@ -649,16 +649,15 @@ function JiraRibbonController() {
 			initParameter: initParams,
 			closeCallback: self.ribbonOnCloseNewIssue
 		};
-		
+
 		if (ribbonId == 'newIssueFullMail' || ribbonId == 'newIssueFromMailMain' || ribbonId == 'newIssueFromMailRead') {
 			//Ribbon on Mail Item
 			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
-			yasoon.dialog.open(dialogOptions);
-			return;
+			initParams.type = 'wholeMail';
+
 		} else if (ribbonId == 'newIssue') {
 			//Ribbon in Standard New EMail Dropdown
-			yasoon.dialog.open(dialogOptions);
-			return;
+			initParams.type = '';
 		} else {
 			var selection = '';
 			try {
@@ -668,24 +667,16 @@ function JiraRibbonController() {
 				return;
 			}
 			if (!selection || !selection.trim()) {
-					yasoon.dialog.showMessageBox(yasoon.i18n('general.selectTextFirst'));
-					return;
+				yasoon.dialog.showMessageBox(yasoon.i18n('general.selectTextFirst'));
+				return;
 			}
-						
+
 			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
-						
-			yasoon.outlook.mail.renderSelection(ribbonCtx.items[ribbonCtx.readingPaneItem], 'jiraMarkup')
-			.then(function (markup) {
-				initParams.text = markup;
-				yasoon.dialog.open(dialogOptions);
-			})
-			.catch(function () {
-				initParams.text = yasoon.i18n('general.couldNotRenderMarkup');
-				yasoon.dialog.open(dialogOptions);
-			});
-			
-			return;
+			initParams.type = 'selectedText';
 		}
+
+		yasoon.dialog.open(dialogOptions);
+		return;
 	};
 
 	this.ribbonOnAddToIssue = function ribbonOnAddToIssue(ribbonId, ribbonCtx) {
@@ -698,8 +689,8 @@ function JiraRibbonController() {
 			return;
 		}
 
-		var initParams = { 
-			settings: jira.settings, 
+		var initParams = {
+			settings: jira.settings,
 			ownUser: jira.data.ownUser,
 			projects: jira.data.projects,
 			systemInfo: jira.sysInfo
@@ -740,19 +731,19 @@ function JiraRibbonController() {
 			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
 
 			yasoon.outlook.mail.renderSelection(ribbonCtx.items[ribbonCtx.readingPaneItem], 'jiraMarkup')
-			.then(function (markup) {
-				initParams.text = markup;
-				yasoon.dialog.open(dialogOptions);
-			})
-			.catch(function () {
-				initParams.text = yasoon.i18n('general.couldNotRenderMarkup');
-				yasoon.dialog.open(dialogOptions);
-			});
+				.then(function (markup) {
+					initParams.text = markup;
+					yasoon.dialog.open(dialogOptions);
+				})
+				.catch(function () {
+					initParams.text = yasoon.i18n('general.couldNotRenderMarkup');
+					yasoon.dialog.open(dialogOptions);
+				});
 		}
 	};
 
 	this.ribbonOnCloseNewIssue = function ribbonOnCloseNewIssue(type, data) {
-		if(data && data.action === 'success')
+		if (data && data.action === 'success')
 			jira.sync();
 	};
 
@@ -795,9 +786,9 @@ function JiraContactController() {
 				avatarUrl = c.externalAvatarUrl;
 
 			if (c.contactId != actor.name ||
-			   c.contactLastName != actor.displayName ||
-			   c.contactEmailAddress != actor.contactEmailAddress ||
-			   c.externalAvatarUrl != avatarUrl) {
+				c.contactLastName != actor.displayName ||
+				c.contactEmailAddress != actor.contactEmailAddress ||
+				c.externalAvatarUrl != avatarUrl) {
 
 				var updContact = {
 					contactId: actor.name,
@@ -828,7 +819,7 @@ function JiraContactController() {
 			avatarUrl = c.externalAvatarUrl;
 
 		var oldOwnUser = {};
-		if(c.externalData) 
+		if (c.externalData)
 			oldOwnUser = JSON.parse(c.externalData);
 
 		if (ownUser.displayName != oldOwnUser.displayName || c.externalAvatarUrl != avatarUrl) {
@@ -846,7 +837,7 @@ function JiraContactController() {
 				lastName = nameParts[nameParts.length - 1];
 				firstName = cleanName.replace(lastName, '').trim();
 			}
-			
+
 			c.externalAvatarUrl = avatarUrl;
 			c.useAuthedDownloadService = jira.settings.currentService;
 			c.contactFirstName = firstName;
@@ -976,7 +967,7 @@ function JiraFilterController() {
 		var path = jsonPath.split('.');
 		var currentObj = obj;
 		//Use some so it stops after any element has returned true
-		path.some(function (currentPath,i) {
+		path.some(function (currentPath, i) {
 			if (!currentObj)
 				return true;
 
@@ -997,9 +988,9 @@ function JiraFilterController() {
 					currentObj = [];
 					//Get remaining path
 					var remainingPath = '';
-					path.forEach(function(remPath, index) {
-						if(index > i) {
-							if(remainingPath)
+					path.forEach(function (remPath, index) {
+						if (index > i) {
+							if (remainingPath)
 								remainingPath += '.';
 
 							remainingPath += remPath;
@@ -1048,7 +1039,7 @@ function JiraFilterController() {
 
 				if ($.isArray(currentKeyObj)) {
 					//Add Each currentValueObj as seperate entry
-					currentKeyObj.forEach(function (key,i) {
+					currentKeyObj.forEach(function (key, i) {
 						if (self.values[filter.key][key] != currentValueObj[i]) {
 							self.values[filter.key][key] = currentValueObj[i];
 							saveNeeded = true;
@@ -1061,7 +1052,7 @@ function JiraFilterController() {
 			}
 		});
 
-		if(saveNeeded)
+		if (saveNeeded)
 			self.save();
 	};
 
@@ -1076,26 +1067,26 @@ function JiraFilterController() {
 
 					if (page.CurrentPage < page.TotalPages) {
 						indexPages(page.nextPage())
-						.then(function () {
-							resolve();
-						});
+							.then(function () {
+								resolve();
+							});
 					} else {
 						resolve();
 					}
 				} else {
 					resolve();
 				}
-			},1);
+			}, 1);
 		});
 	}
 
 	this.reIndex = function reindexFilter() {
 		var newValues = {};
 		return Promise.resolve()
-		.then(function () {
-			var page = yasoon.notification.getAll();
-			return indexPages(page);
-		});
+			.then(function () {
+				var page = yasoon.notification.getAll();
+				return indexPages(page);
+			});
 	};
 
 }
@@ -1189,7 +1180,7 @@ function getJiraMarkupRenderer() {
 	var inTableCount = 0;
 	var lastOp = '';
 	var lastColor = '';
-	
+
 	var reservedChars = [
 		{ char: '|', regex: '\\|' },
 		{ char: '*', regex: '\\*' },
@@ -1207,9 +1198,9 @@ function getJiraMarkupRenderer() {
 	}
 
 	return new MailRenderer({
-		renderTextElement: function(text, style, context) {
+		renderTextElement: function (text, style, context) {
 			lastOp = 'renderTextElement';
-			
+
 			//Escape characters that would change the markup (|,* , etc)
 			text = escapeText(text);
 			if (context && context.inHyperlink)
@@ -1220,35 +1211,35 @@ function getJiraMarkupRenderer() {
 			var prefix = text.substring(0, text.indexOf(trimmedText));
 			var suffix = text.substring(text.indexOf(trimmedText) + trimmedText.length, text.length);
 			var result = trimmedText;
-			
-			if(style.isBold)
+
+			if (style.isBold)
 				result = '*' + result + '*';
-			
-			if(style.isItalic)
+
+			if (style.isItalic)
 				result = '_' + result + '_';
-				
-			if(style.isUnderline)
+
+			if (style.isUnderline)
 				result = '+' + result + '+';
-				
-			if(style.isStrikethrough)
+
+			if (style.isStrikethrough)
 				result = '-' + result + '-';
-				
+
 			if (style.color && style.color != '#1F497D' && style.color != '#000000') //Do not add Outlook standard blue or black as markup
 				result = '{color:' + style.color + '}' + result + '{color}';
-			 
+
 			if (style.isHeading) { //Heading needs to be the first element in line. 
 				result = 'h' + style.headingSize + '. ' + result;
 			}
-			
-			return prefix + result + suffix; 
+
+			return prefix + result + suffix;
 		},
-		renderImage: function(image) {
+		renderImage: function (image) {
 			return '!' + image + '!';
-		},		
-		renderHyperlink: function(url, label, style) {
+		},
+		renderHyperlink: function (url, label, style) {
 			lastOp = 'renderHyperlink';
-			
-			if(label)
+
+			if (label)
 				return '[' + label + '|' + url + ']';
 			else
 				return '[' + url + ']';
@@ -1257,7 +1248,7 @@ function getJiraMarkupRenderer() {
 			//JIRA does not support nested tables
 			//So we count how often renderTable has been called and only render rows & cells if inTableCount = 1.
 			lastOp = 'renderTable';
-			
+
 			if (time === 0)
 				inTableCount++;
 			else
@@ -1270,9 +1261,9 @@ function getJiraMarkupRenderer() {
 			lastOp = 'renderTableRow';
 			if (time === 0)
 				return '|';
-			else if(time === 1)
+			else if (time === 1)
 				return '\n';
-				
+
 			return '';
 		},
 		renderTableCell: function (time, rowType, colType) {
@@ -1280,11 +1271,11 @@ function getJiraMarkupRenderer() {
 				return '';
 
 			lastOp = 'renderTableCell';
-			if(time === 1)
+			if (time === 1)
 				return ' |'; //Add trailing whitespace to support empty cells
 		},
 		renderNewLine: function () {
-			if(inTableCount > 0 && lastOp === 'newLine')
+			if (inTableCount > 0 && lastOp === 'newLine')
 				return '';
 			if (inTableCount > 1 && lastOp === 'renderTable') //We ignore nested tables, so ignore their linebreaks as well.
 				return '';
@@ -1292,15 +1283,15 @@ function getJiraMarkupRenderer() {
 			lastOp = 'newLine';
 			return '\n';
 		},
-		renderListLine: function(listLine) {
+		renderListLine: function (listLine) {
 			var result = '';
-			for(var i = 0; i <= listLine.indentLevel; i++) {
-				if(listLine.indentStyle[i].format === 0) //decimal
+			for (var i = 0; i <= listLine.indentLevel; i++) {
+				if (listLine.indentStyle[i].format === 0) //decimal
 					result = result + '#';
-				else 
+				else
 					result = result + '*';
 			}
-			
+
 			result += ' ';
 			return result;
 		}
@@ -1312,8 +1303,8 @@ function jiraSyncQueue() {
 	var lastPromise = null;
 
 	this.add = function (fct, args) {
-	    if (!$.isArray(args))
-	        args = [args];
+		if (!$.isArray(args))
+			args = [args];
 
 		return new Promise(function (resolve, reject) {
 			var promise = null;
@@ -1322,18 +1313,18 @@ function jiraSyncQueue() {
 					return fct.apply(this, args);
 				});
 			} else {
-			    promise = Promise.resolve().then(function() { return fct.apply(this, args) });
+				promise = Promise.resolve().then(function () { return fct.apply(this, args) });
 			}
 
 			lastPromise = promise
-			.then(function () {
-				//next();
-				resolve.apply(this, arguments);
-			})
-			.catch(function () {
-				//next();
-				resolve.apply(this, arguments);
-			});
+				.then(function () {
+					//next();
+					resolve.apply(this, arguments);
+				})
+				.catch(function () {
+					//next();
+					resolve.apply(this, arguments);
+				});
 		});
 	};
 }

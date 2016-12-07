@@ -1,6 +1,5 @@
 /// <reference path="../../definitions/jquery.d.ts" />
 declare var jira;
-declare var yasoon;
 
 namespace FieldController {
     export const projectFieldId = 'project';
@@ -9,6 +8,8 @@ namespace FieldController {
     export const requestTypeFieldId = 'requesttype';
     export const reporterFieldId = 'reporter';
     export const onBehalfOfFieldId = 'onBehalfOf';
+    export const attachmentFieldId = 'attachment';
+    export const descriptionFieldId = 'description';
 
     let fieldTypes: any = {};
     let metaFields: { [id: string]: Field } = {};
@@ -123,7 +124,7 @@ namespace FieldController {
         }
     }
 
-    export function raiseEvent(eventType: EventType, newValue: any, id?: string): Promise<any> {
+    export function raiseEvent(eventType: EventType, newValue?: any, id?: string): Promise<any> {
         //Check for Event Type
         console.log('Event raised', eventType, id, newValue);
         let returnPromises: Promise<any>[] = [];

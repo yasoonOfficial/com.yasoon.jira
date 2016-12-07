@@ -58,16 +58,21 @@ class CascadedSelectField extends Field implements IFieldEventHandler {
 
     setValue(value: any): void {
         this.parentField.setValue(value.id);
+        this.parentField.initialValue = value.id;
         if (value.child) {
             this.childField.setValue(value.child.id);
+            this.childField.initialValue = value.child.id;
         }
     }
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
         if (source === this.id + '_parent') {
             //Adjust Child Collection
-            let currentSelection = this.fieldMeta.allowedValues.filter(function (v) { return v.id == newValue.id; })[0];
-            let allowedValues = (currentSelection) ? currentSelection.children : [];
+            let allowedValues = [];
+            if (newValue) {
+                let currentSelection = this.fieldMeta.allowedValues.filter(function (v) { return v.id == newValue.id; })[0];
+                allowedValues = (currentSelection) ? currentSelection.children : [];
+            }
 
             this.childField.setData(allowedValues.map(this.childField.convertToSelect2));
         }

@@ -21,7 +21,7 @@ class ProjectField extends Select2Field implements IFieldEventHandler {
     constructor(id: string, field: JiraMetaField, cache: JiraProject[]) {
         let options: Select2Options = {};
         options.placeholder = yasoon.i18n('dialog.placeholderSelectProject');
-        options.allowClear = false;
+        options.allowClear = (FieldController.projectFieldId !== id);
         super(id, field, options);
 
         this.isMainProjectField = (id === FieldController.projectFieldId);
@@ -53,7 +53,10 @@ class ProjectField extends Select2Field implements IFieldEventHandler {
 
     triggerValueChange() {
         let project: JiraProject = this.getObjectValue();
-        FieldController.raiseEvent(EventType.FieldChange, project, this.id);
+        if (!this.lastValue || this.lastValue.id !== project.id) {
+            FieldController.raiseEvent(EventType.FieldChange, project, this.id);
+            this.lastValue = project;
+        }
     }
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {

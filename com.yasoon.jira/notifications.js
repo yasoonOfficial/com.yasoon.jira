@@ -722,7 +722,8 @@ function JiraIssueNotification(issue) {
 				'settings': jira.settings,
 				'ownUser': jira.data.ownUser,
 				'editIssueId': self.issue.id,
-				'systemInfo': jira.sysInfo
+				'systemInfo': jira.sysInfo,
+				'projects': jira.data.projects
 			},
 			closeCallback: cbk
 		});

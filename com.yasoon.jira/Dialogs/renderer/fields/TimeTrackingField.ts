@@ -32,10 +32,10 @@ class TimeTrackingField extends Field {
 		let result: JiraTimetrackingValue = {};
 		//Edit Case
 		if (onlyChangedData) {
-			if (origVal && this.initialValue.originalEstimate != origVal) {
+			if ((!this.initialValue && origVal) || (this.initialValue && this.initialValue.originalEstimate != origVal)) {
 				result.originalEstimate = origVal;
 			}
-			if (remainVal && this.initialValue.remainingEstimate != remainVal) {
+			if ((!this.initialValue && remainVal) || (this.initialValue && this.initialValue.remainingEstimate != remainVal)) {
 				result.remainingEstimate = remainVal;
 			}
 		} else {

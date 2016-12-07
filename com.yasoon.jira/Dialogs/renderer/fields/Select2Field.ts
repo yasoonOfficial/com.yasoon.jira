@@ -8,17 +8,19 @@ abstract class Select2Field extends Field {
 
 	constructor(id: string, field: JiraMetaField, options: Select2Options, multiple: boolean = false, style: string = "min-width: 350px; width: 80%;") {
 		super(id, field);
-		this.options = $.extend({ data: [], minimumInputLength: 0, allowClear: true, placeholder: '', templateResult: Select2Field.formatIcon, templateSelection: Select2Field.formatIcon }, options);
+		this.options = $.extend({ data: [], minimumInputLength: 0, allowClear: true, templateResult: Select2Field.formatIcon, templateSelection: Select2Field.formatIcon }, options);
 		this.styleCss = style;
 		this.multiple = multiple;
+
+		//https://github.com/select2/select2/issues/3497
+		//AllowClear needs placeholder
+		if (this.options.allowClear && !this.options.placeholder) {
+			this.options.placeholder = '';
+		}
 	}
 
 	getDomValue(): any {
-		if (this.multiple) {
-			return $('#' + this.id).val() || [];
-		} else {
-			return $('#' + this.id).val();
-		}
+		return $('#' + this.id).val();
 	}
 
 	getObjectValue(): any {
@@ -30,9 +32,8 @@ abstract class Select2Field extends Field {
 		}
 	}
 
-	setData(newValues: Select2Element[]): void {
+	setData(newValues: Select2Element[], fromSetValue: boolean = false): void {
 		this.options.data = newValues;
-
 		if (this.isRendered()) {
 			//Get selected Properties
 			let isDisabled: boolean = $('#' + this.id).prop('disabled');
@@ -47,7 +48,7 @@ abstract class Select2Field extends Field {
 			this.hookEventHandler();
 
 			//If intial value has been set, we need to set it again now.
-			if (this.initialValue) {
+			if (this.initialValue && !fromSetValue) {
 				this.setValue(this.initialValue);
 			}
 		}
@@ -59,7 +60,7 @@ abstract class Select2Field extends Field {
 
 	render(container: JQuery) {
 		container.append($(`<select class="select input-field" id="${this.id}" name="${this.id}" style="${this.styleCss}" ${(this.multiple) ? 'multiple' : ''}>
-								<option></option>
+							${ ((!this.multiple) ? '<option></option>' : '')}
 							</select>
 							<img src="Dialogs/ajax-loader.gif" class="hidden" id="${this.id}-spinner" />`));
 

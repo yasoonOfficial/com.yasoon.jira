@@ -107,11 +107,11 @@ enum SetterType {
 }
 
 enum EventType {
-	FieldChange, AfterRender, AfterSave, BeforeSave, SenderLoaded, UiAction, Cleanup
+	FieldChange, AfterRender, AfterSave, BeforeSave, SenderLoaded, UiAction, Cleanup, AttachmentChanged
 }
 
 //@getter Annotation
-function getter(getterType: GetterType, params?: any) {
+function getter(getterType: GetterType, ...params: any[]) {
 	return function (target) {
 		let proto: Field = target.prototype;
 		switch (getterType) {
@@ -120,11 +120,11 @@ function getter(getterType: GetterType, params?: any) {
 				break;
 
 			case GetterType.Object:
-				proto.getter = new GetObject(params);
+				proto.getter = new GetObject(params[0]);
 				break;
 
 			case GetterType.ObjectArray:
-				proto.getter = new GetObjectArray(params);
+				proto.getter = new GetObjectArray(params[0]);
 				break;
 
 			case GetterType.Array:
@@ -132,7 +132,7 @@ function getter(getterType: GetterType, params?: any) {
 				break;
 
 			case GetterType.Option:
-				proto.getter = new GetOption(params);
+				proto.getter = new GetOption(params[0], params[1]);
 				break;
 		}
 	}

@@ -142,7 +142,8 @@
                 "serviceDeskWarning": "No Request Type",
                 "attachmentAddToBlacklistDialog": "Do you want to ignore this image for future uploads? This can be used to exclude small, recurring images (like signatures) from being selected/included automatically. Please note, that this ignore list will distribute to your colleagues!",
                 "attachmentAddToBlacklist": "Mark image as excluded",
-                "attachmentReferenceStillActive": "The description still contains a reference to this attachment - remove it as well?"
+                "attachmentReferenceStillActive": "The description still contains a reference to this attachment - remove it as well?",
+                "noRecipient": "no one"
             },
             "filter": {
                 "projectFilter": "Project",

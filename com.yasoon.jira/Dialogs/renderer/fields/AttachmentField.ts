@@ -11,14 +11,12 @@ class AttachmentField extends Field implements IFieldEventHandler {
 
     getTemplate: Promise<any> = null;
     currentParameters: any = null;
-    attachments: any[] = [];
+    attachments: JiraFileHandle[] = [];
     descriptionField: Field = null;
-    constructor(id: string, fieldMeta: JiraMetaField, params?: any) {
-        super(id, fieldMeta, params);
+    constructor(id: string, fieldMeta: JiraMetaField, attachments: JiraFileHandle[]) {
+        super(id, fieldMeta);
 
-        if (jira.emailController) {
-            this.attachments = jira.emailController.getAttachmentFileHandles();
-        }
+        this.attachments = attachments;
 
         this.getTemplate = Promise.all([
             $.getScript(yasoon.io.getLinkPath('templates/attachmentFields.hbs.js')),
@@ -30,6 +28,7 @@ class AttachmentField extends Field implements IFieldEventHandler {
             });
 
         FieldController.registerEvent(EventType.AfterSave, this);
+        FieldController.registerEvent(EventType.AttachmentChanged, this);
         FieldController.registerEvent(EventType.Cleanup, this);
     }
 
@@ -65,6 +64,14 @@ class AttachmentField extends Field implements IFieldEventHandler {
                     //System.Exception: TrackedObjectRegistry: Tried to access object which not found! (probably already de-referenced)
                 }
             });
+        } else if (type === EventType.AttachmentChanged) {
+            if (newValue)
+                this.attachments = newValue;
+
+            this.render(this.ownContainer)
+                .then(() => {
+                    this.hookEventHandler();
+                });
         }
     }
 
@@ -83,7 +90,7 @@ class AttachmentField extends Field implements IFieldEventHandler {
 
     getCurrentAttachment(elem: JQuery): any {
         let handleId = $(elem).closest('.jiraAttachmentLink').data('id');
-        return this.attachments.filter(function (item) { return item.id === handleId; })[0];
+        return this.attachments.filter((item) => { return item.id === handleId; })[0];
     }
 
     submitRename(elem): void {
@@ -149,9 +156,9 @@ class AttachmentField extends Field implements IFieldEventHandler {
                     handle.selected = true;
                 });
 
-                this.attachments = this.attachments.concat(selectedFiles);
+                let attachments = this.attachments.concat(selectedFiles);
                 //Rerender
-                this.render(this.ownContainer);
+                FieldController.raiseEvent(EventType.AttachmentChanged, attachments);
             });
         });
 
@@ -203,7 +210,7 @@ class AttachmentField extends Field implements IFieldEventHandler {
                     handle.selected = false;
 
                     //rerender
-                    this.render(this.ownContainer);
+                    FieldController.raiseEvent(EventType.AttachmentChanged);
 
                     //Now remove all references from the description field
                     this.raiseHandleChangedEvent(handle);

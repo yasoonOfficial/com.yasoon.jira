@@ -10,7 +10,7 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
     private hasMentions: boolean;
     private height: string;
     private timeoutSearchUser: any;
-
+    private emailController: EmailController;
     private currentProject: JiraProject;
     private currentIssue: JiraIssue;
 
@@ -20,7 +20,10 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
 
     constructor(id: string, field: any, config: { isMainField: boolean, hasMentions: boolean } = { isMainField: false, hasMentions: false }) {
         super(id, field);
-        this.isMainField = (jira.emailController && jira.emailController.fieldMapping.body == id);
+
+        this.emailController = jira.emailController;
+
+        this.isMainField = ((this.emailController && this.emailController.fieldMapping.body == id) || id === FieldController.descriptionFieldId);
         this.hasMentions = config.hasMentions;
         this.height = (this.isMainField) ? '200px' : '100px';
 
@@ -46,13 +49,20 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
         return false;
     }
 
+    private showOptionToolbar(useMarkup, showUndo) {
+        this.ownContainer.find('#DescriptionOptionToolbar').removeClass('hidden');
+        this.ownContainer.find('#DescriptionUseJiraMarkup').prop('checked', useMarkup);
+        if (showUndo)
+            this.ownContainer.find('#DescriptionUndoAction').removeClass('hidden');
+    }
+
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
         if (type === EventType.UiAction && this.isMainField) {
             let eventData: UiActionEventData = newValue;
 
             if (eventData.name === AttachmentField.uiActionRename) {
                 //Replace references of this attachment with new name (if necessary)
-                let oldText = $(this.id).val();
+                let oldText = $('#' + this.id).val();
                 if (oldText) {
                     let regEx = new RegExp(eventData.value.oldName, 'g');
                     let newText = oldText.replace(regEx, eventData.value.newName);
@@ -174,10 +184,9 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
 
         if (this.isMainField) {
             //Private vars for event Handler
-            let defaultSelectedText: string = ((jira.selectedText) ? jira.mail.getSelection(0) : '');
             let useMarkup: boolean = true;
             let backup: string = '';
-            let lastAction: string = ((jira.selectedText) ? 'selectedText' : (jira.mail) ? 'wholeMail' : '');
+            let lastAction: string = this.emailController.type;
 
 
             //Static toggle JIRA markup in drop down menus
@@ -191,23 +200,27 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
             //Temporary toggle markup button below text field until user changes some content
             this.ownContainer.find('#DescriptionUseJiraMarkup').on("change", (e) => {
                 useMarkup = e.target['checked'];
-                let newContent;
+
+                let newContent: string;
                 //Make sure all other toggles (even in other fields) have the same state
                 $('.toggleJiraMarkup').prop('checked', useMarkup);
 
                 if (lastAction == 'selectedText') {
                     if (useMarkup)
-                        newContent = jira.selectedText;
+                        newContent = this.emailController.selectionAsMarkup;
                     else
-                        newContent = defaultSelectedText;
+                        newContent = this.emailController.selectionPlain;
 
                 } else if (lastAction == 'wholeMail') {
                     if (useMarkup) {
-                        newContent = jira.mailAsMarkup;
+                        newContent = this.emailController.bodyAsMarkup;
                     } else {
-                        newContent = jira.mail.getBody(0);
+                        newContent = this.emailController.bodyPlain;
                     }
+                } else if (lastAction == 'mailHeader') {
+                    newContent = this.emailController.getMailHeaderText(useMarkup) + backup;
                 }
+
                 this.setValue(newContent);
                 e.preventDefault();
 
@@ -225,34 +238,29 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
             this.ownContainer.find('#DescriptionSelectedText').on('click', (e) => {
                 backup = $('#' + this.id).val();
                 lastAction = 'selectedText';
-                this.ownContainer.find('#DescriptionOptionToolbar').removeClass('hidden');
-                this.ownContainer.find('#DescriptionUseJiraMarkup').prop('checked', useMarkup);
-                this.ownContainer.find('#DescriptionUndoAction').removeClass('hidden');
 
-                if (useMarkup)
-                    $('#' + this.id).val(jira.selectedText);
-                else
-                    $('#' + this.id).val(defaultSelectedText);
+
+                let content: string = (useMarkup) ? this.emailController.selectionAsMarkup : this.emailController.selectionPlain;
+                $('#' + this.id).val(content);
             });
 
             this.ownContainer.find('#DescriptionFullMail').on('click', (e) => {
                 backup = $('#' + this.id).val();
                 lastAction = 'wholeMail';
-                this.ownContainer.find('#DescriptionOptionToolbar').removeClass('hidden');
-                this.ownContainer.find('#DescriptionUseJiraMarkup').prop('checked', useMarkup);
-                this.ownContainer.find('#DescriptionUndoAction').removeClass('hidden');
+                this.showOptionToolbar(useMarkup, true);
 
-                if (useMarkup) {
-                    $('#' + this.id).val(jira.mailAsMarkup);
-                } else {
-                    $('#' + this.id).val(jira.mail.getBody(0));
-                }
+                let content: string = (useMarkup) ? this.emailController.bodyAsMarkup : this.emailController.bodyPlain;
+                $('#' + this.id).val(content);
             });
 
             this.ownContainer.find('#DescriptionMailInformation').on('click', (e) => {
                 let field = $('#' + this.id);
+
+                lastAction = 'mailHeader';
                 backup = field.val();
-                insertAtCursor(field[0], renderMailHeaderText(jira.mail, useMarkup));
+                this.showOptionToolbar(useMarkup, true);
+
+                field.val(this.emailController.getMailHeaderText(useMarkup) + backup);
             });
         }
 

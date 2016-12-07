@@ -12,7 +12,10 @@ class TempoAccountField extends Select2Field {
 
     constructor(id: string, field: JiraMetaField, options: Select2Options = {}) {
         super(id, field, options);
-        this.getData();
+        this.getData()
+            .then((elements: Select2Element[]) => {
+                this.setData(elements);
+            });
     }
 
     getDomValue(): number {
@@ -64,15 +67,7 @@ class TempoAccountField extends Select2Field {
                         });
                     }
                 }
-
-                if (this.isRendered()) {
-                    this.setData(result);
-                    if (this.initialValue) {
-                        this.setValue(this.initialValue);
-                    }
-                } else {
-                    this.options.data = result;
-                }
+                return result;
             });
     }
 

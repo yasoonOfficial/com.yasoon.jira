@@ -2,9 +2,13 @@
 /// <reference path="../../../definitions/common.d.ts" />
 class GetOption implements FieldGetter {
     keyName: string;
+    nullValue: any = '-1';
 
-    constructor(keyName: string) {
+    constructor(keyName: string, nullValue?: any) {
         this.keyName = keyName;
+        if (nullValue !== undefined) {
+            this.nullValue = nullValue;
+        }
     }
 
     getValue(field: Field, onlyChangedData: boolean) {
@@ -44,10 +48,18 @@ class GetOption implements FieldGetter {
             let result = {};
             if (onlyChangedData) {
                 //In edit case: Only send if changed	
-                if (!isEqual(field.initialValue, newValue)) {
-                    result[this.keyName] = newValue || "-1";
+
+                //Normalize
+                let select2Value = { id: null };
+                if (field.initialValue) {
+                    select2Value = selectField.convertToSelect2(field.initialValue);
+                }
+
+                if (!isEqual(select2Value.id, newValue)) {
+                    result[this.keyName] = newValue || this.nullValue;
                     return result;
                 }
+
             } else {
                 //In creation case: Only send if not null	
                 if (newValue) {

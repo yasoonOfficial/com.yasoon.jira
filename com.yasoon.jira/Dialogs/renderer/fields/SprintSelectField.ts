@@ -24,10 +24,11 @@ class SprintSelectField extends Select2Field implements IFieldEventHandler {
             let eventData: LifecycleData = newValue;
 
             let oldSprintId: string = '';
-            if (eventData.data.fields[this.id])
-                oldSprintId = this.parseSprintId(eventData.data.fields[this.id]);
+            if (this.initialValue)
+                oldSprintId = this.parseSprintId(this.initialValue);
 
             var newSprintId = this.getValue(false);
+
             if (oldSprintId != newSprintId) {
                 if (newSprintId) {
                     return jiraAjax('/rest/greenhopper/1.0/sprint/rank', yasoon.ajaxMethod.Put, '{"idOrKeys":["' + jira.currentIssue.key + '"],"sprintId":' + newSprintId + ',"addToBacklog":false}');
@@ -46,13 +47,15 @@ class SprintSelectField extends Select2Field implements IFieldEventHandler {
         //Ticket: https://jira.atlassian.com/browse/GHS-10333
         //There is a workaround --> update it via unofficial greenhopper API --> For update see handleEvent
         //We aren't sure with which version this change happened. 7.0.0 definitely requires a string, 7.1.6. requires an int :)
-        let stringValue = this.getDomValue();
-        if (stringValue) {
-            if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
+        if (!changedDataOnly) {
+            let stringValue = this.getDomValue();
+            if (stringValue) {
+                if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
 
-                return parseInt(stringValue);
-            } else {
-                return stringValue;
+                    return parseInt(stringValue);
+                } else {
+                    return stringValue;
+                }
             }
         }
     }

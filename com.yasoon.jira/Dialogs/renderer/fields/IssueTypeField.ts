@@ -12,6 +12,8 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
     static defaultMeta: JiraMetaField = { key: FieldController.issueTypeFieldId, get name() { return yasoon.i18n('dialog.issueType'); }, required: true, schema: { system: 'issue', type: '' } };
     static uiActionServiceDesk = 'ServiceDeskActivated';
 
+    private currentProject: JiraProject;
+
     constructor(id: string, field: JiraMetaField) {
         let options: Select2Options = {};
         options.placeholder = yasoon.i18n('dialog.placeholderIssueType');
@@ -52,7 +54,10 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
 
     triggerValueChange() {
         let issueType: JiraIssueType = this.getObjectValue();
-        FieldController.raiseEvent(EventType.FieldChange, issueType, this.id);
+        if (!this.lastValue || this.lastValue.id !== issueType.id) {
+            FieldController.raiseEvent(EventType.FieldChange, issueType, this.id);
+            this.lastValue = issueType;
+        }
     }
 
     convertToSelect2(issueType: JiraIssueType): Select2Element {
@@ -68,6 +73,9 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
         if (type == EventType.FieldChange) {
             if (source === FieldController.projectFieldId && newValue) {
                 let project: JiraProject = newValue;
+                if (this.currentProject && this.currentProject.id == project.id)
+                    return;
+
                 let promise: Promise<JiraProject>;
                 if (!project.issueTypes) {
                     this.showSpinner();
@@ -82,6 +90,7 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                 }
 
                 promise.then((proj) => {
+                    this.currentProject = proj;
                     let result: Select2Element[] = proj.issueTypes.map(this.convertToSelect2);
 
                     this.setData(result);

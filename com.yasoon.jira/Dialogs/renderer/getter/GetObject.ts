@@ -13,7 +13,15 @@ class GetObject implements FieldGetter {
         let result = {};
         if (onlyChangedData) {
             //In edit case: Only send if changed	
-            if (!isEqual(field.initialValue, newValue)) {
+
+
+            //Normalize
+            let value = null;
+            if (field.initialValue) {
+                value = field.initialValue[this.keyName];
+            }
+
+            if (!isEqual(value, newValue)) {
                 result[this.keyName] = newValue || "-1";
                 return result;
             }

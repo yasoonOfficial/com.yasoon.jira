@@ -223,3 +223,5 @@ interface YasoonTemplateField {
     fieldId: string,
     fieldValue: any
 }
+
+type JiraDialogType = 'selectedText' | 'wholeMail' | '';

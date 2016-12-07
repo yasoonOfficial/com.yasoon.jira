@@ -6,7 +6,7 @@
 /// <reference path="../getter/GetOption.ts" />
 /// <reference path="../setter/SetOptionValue.ts" />
 
-@getter(GetterType.Option, "name")
+@getter(GetterType.Option, "name", null)
 @setter(SetterType.Option)
 class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
     static reporterDefaultMeta: JiraMetaField = { key: FieldController.onBehalfOfFieldId, get name() { return yasoon.i18n('dialog.behalfOf'); }, required: true, schema: { system: 'user', type: '' } };
@@ -47,7 +47,20 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
         });
 
         this.ownContainer.find('.add-myself-trigger').click((e) => {
-            //TODO
+            e.preventDefault();
+
+            if (this.ownUser) {
+                let currentValues: JiraUser[] = this.getObjectValue() || [];
+                console.log('Current User', currentValues);
+                if (currentValues.filter((user) => { return user.name === this.ownUser.name; }).length > 0) {
+                    //Check if own user is already added
+                    return;
+                }
+
+                currentValues.push(this.ownUser);
+
+                this.setValue(currentValues);
+            }
         });
     }
 
@@ -79,8 +92,9 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
 
     convertToSelect2(user: JiraUser) {
         let result: Select2Element = {
-            'id': user.name,
-            'text': user.displayName
+            id: user.name,
+            text: user.displayName,
+            data: user
         };
 
         if (this.senderUser && user.name == this.senderUser.name) {

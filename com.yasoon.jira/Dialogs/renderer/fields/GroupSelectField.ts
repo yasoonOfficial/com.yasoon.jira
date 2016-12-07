@@ -6,7 +6,7 @@
 /// <reference path="../getter/GetOption.ts" />
 /// <reference path="../setter/SetOptionValue.ts" />
 
-@getter(GetterType.Option, "name")
+@getter(GetterType.Option, "name", null)
 @setter(SetterType.Option)
 class GroupSelectField extends Select2AjaxField {
     constructor(id: string, field: JiraMetaField, options: { multiple: boolean } = { multiple: false }) {

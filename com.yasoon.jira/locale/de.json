@@ -142,7 +142,8 @@
 				"serviceDeskWarning": "Kein Anfragetyp",
 				"attachmentAddToBlacklistDialog": "Willst du dieses Bild zukünftig ignorieren? Dies ist sinnvoll, um kleine, oft verwendete Bilder auszuschließen (wie z.B. Signaturbilder). Bitte beachte, dass die ignorierten Bilder automatisch auch bei deinen Kollegen ignoriert werden!",
 				"attachmentAddToBlacklist": "Bild zukünftig ignorieren",
-				"attachmentReferenceStillActive": "Die Beschreibung enthält noch eine Referenz zu dem de-selektieren Anhang - ebenfalls entfernen?"
+				"attachmentReferenceStillActive": "Die Beschreibung enthält noch eine Referenz zu dem de-selektieren Anhang - ebenfalls entfernen?",
+				"noRecipient": "keiner"
 			},
 			"filter": {
 				"projectFilter": "Projekt",

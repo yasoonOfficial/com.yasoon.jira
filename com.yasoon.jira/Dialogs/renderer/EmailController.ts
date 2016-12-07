@@ -1,4 +1,15 @@
 /// <reference path="../../definitions/bluebird.d.ts" />
+/// <reference path="../../definitions/yasoon.d.ts" />
+
+interface JiraFileHandle extends yasoonModel.EmailAttachmentFileHandle {
+    selected: boolean;
+    hash: string;
+    blacklisted: boolean;
+    fileName: string;
+    extension: string;
+    fileIcon: string;
+    fileNameNoExtension: string;
+}
 
 class EmailController implements IEmailController {
     static settingCreateTemplates = 'createTemplates';
@@ -10,26 +21,35 @@ class EmailController implements IEmailController {
         sentAt: ''
     }
 
-    mail: any;
+    mail: yasoonModel.Email;
     settings: any;
     ownUser: JiraUser;
-    attachments: any;
-    attachmentHandles: any;
-    mailAsMarkup: string;
-    selectedTextAsMarkup: string;
+    attachments: yasoonModel.OutlookAttachment[];
+    attachmentHandles: JiraFileHandle[];
+
+    bodyAsMarkup: string;
+    bodyPlain: string;
+
+    selectionAsMarkup: string;
+    selectionPlain: string;
+
     senderUser: JiraUser;
     senderTemplates: JiraProjectTemplate[];
 
-    private renderMarkupPromise: Promise<string>;
+    //Initial action
+    type: JiraDialogType;
+
+    private renderBodyMarkupPromise: Promise<string>;
+    private renderSelectionMarkupPromise: Promise<string>;
     private loadSenderPromise: Promise<any>;
 
-    constructor(mail: any, selectedText: string, settings: any, ownUser: JiraUser) {
+    constructor(mail: yasoonModel.Email, type: JiraDialogType, settings: any, ownUser: JiraUser) {
 
         this.mail = mail;
         this.attachments = mail.attachments;
         this.settings = settings;
-        this.selectedTextAsMarkup = selectedText;
         this.ownUser = ownUser;
+        this.type = type;
 
         let fieldMappingString = yasoon.setting.getAppParameter('fieldMapping');
         if (fieldMappingString) {
@@ -37,14 +57,30 @@ class EmailController implements IEmailController {
         }
 
         //Start Render Markup
-        this.renderMarkupPromise = yasoon.outlook.mail.renderBody(mail, 'jiraMarkup')
+        this.renderBodyMarkupPromise = yasoon.outlook.mail.renderBody(mail, 'jiraMarkup')
             .then((markup: string) => {
-                this.mailAsMarkup = markup;
+                this.bodyAsMarkup = markup;
                 return markup;
             })
             .catch(() => {
-                this.mailAsMarkup = yasoon.i18n('general.couldNotRenderMarkup');
+                this.bodyAsMarkup = yasoon.i18n('general.couldNotRenderMarkup');
             });
+
+        this.bodyPlain = jira.mail.getBody(0).replace(/\r/g, '').replace(/\n\n/g, '\n');
+
+        if (this.type === 'selectedText') {
+            this.selectionPlain = this.mail.getSelection(0).replace(/\r/g, '').replace(/\n\n/g, '\n');
+
+            this.renderSelectionMarkupPromise = yasoon.outlook.mail.renderSelection(mail, 'jiraMarkup')
+                .then((markup) => {
+                    this.selectionAsMarkup = markup;
+                    return markup;
+                })
+                .catch(() => {
+                    this.selectionAsMarkup = yasoon.i18n('general.couldNotRenderMarkup');
+                    return this.selectionAsMarkup;
+                });
+        }
 
         //Get Reporter User
         this.loadSenderPromise = jiraGet('/rest/api/2/user/search?username=' + mail.senderEmail)
@@ -52,6 +88,7 @@ class EmailController implements IEmailController {
                 let users = JSON.parse(data);
                 if (users.length > 0) {
                     this.senderUser = users[0];
+                    FieldController.raiseEvent(EventType.SenderLoaded, this.senderUser);
                     return this.senderUser;
                 }
             });
@@ -74,7 +111,7 @@ class EmailController implements IEmailController {
         if (this.mail && !this.attachmentHandles) {
             this.attachmentHandles = [];
             //Add current mail to clipboard
-            let handle = this.mail.getFileHandle();
+            let handle = <JiraFileHandle>this.mail.getFileHandle();
             if (this.settings.addEmailOnNewAddIssue) {
                 handle.selected = true;
             }
@@ -82,7 +119,7 @@ class EmailController implements IEmailController {
 
             if (this.mail.attachments && this.mail.attachments.length > 0) {
                 this.mail.attachments.forEach((attachment) => {
-                    let handle = attachment.getFileHandle();
+                    let handle = <JiraFileHandle>attachment.getFileHandle();
                     //Skip too small images	
                     if (this.settings.addAttachmentsOnNewAddIssue) {
                         handle.selected = true;
@@ -111,7 +148,15 @@ class EmailController implements IEmailController {
         if (this.fieldMapping.body) {
             let field = FieldController.getField(this.fieldMapping.body);
             if (field) {
-                this.renderMarkupPromise.then((markup) => {
+                let markupPromise = Promise.resolve('');
+
+                if (this.type === 'wholeMail') {
+                    markupPromise = this.renderBodyMarkupPromise;
+                } else if (this.type === 'selectedText') {
+                    markupPromise = this.renderSelectionMarkupPromise;
+                }
+
+                markupPromise.then((markup) => {
                     field.setValue(markup);
 
                     if (jira.settings.addMailHeaderAutomatically === 'top') {
@@ -121,32 +166,53 @@ class EmailController implements IEmailController {
                         markup = markup + '\n' + renderMailHeaderText(this.mail, true);
                     }
 
-                    return this.handleAttachments(markup, this.mail).then(function (newMarkup) {
-                        this.mailAsMarkup = newMarkup;
-                        field.setValue(newMarkup);
-                    });
+                    return this.handleAttachments(markup, this.mail)
+                        .then((newMarkup) => {
+                            if (this.type === 'selectedText') {
+                                this.selectionAsMarkup = newMarkup;
+                            } else if (this.type === 'wholeMail') {
+                                this.bodyAsMarkup = newMarkup;
+                            }
+                            field.setValue(newMarkup);
+                        });
                 });
             }
         }
     }
 
-    handleAttachments(originalMarkup: string, mail: any): Promise<string> {
-        return Promise.resolve(originalMarkup);
-        /*
+    getMailHeaderText(useMarkup: boolean): string {
+        var result = '';
+
+        if (useMarkup) {
+            result = yasoon.i18n('mail.mailHeaderMarkup', {
+                senderName: this.mail.senderName,
+                senderEmail: this.mail.senderEmail,
+                date: moment(this.mail.receivedAt).format('LLL'),
+                recipients: ((this.mail.recipients.length > 0) ? '[mailto:' + this.mail.recipients.join('],[mailto:') + ']' : yasoon.i18n('dialog.noRecipient')),
+                subject: this.mail.subject
+            });
+        } else {
+            result = yasoon.i18n('mail.mailHeaderPlain', {
+                senderName: this.mail.senderName,
+                senderEmail: this.mail.senderEmail,
+                date: moment(this.mail.receivedAt).format('LLL'),
+                recipients: ((this.mail.recipients.length > 0) ? this.mail.recipients.join(',') : yasoon.i18n('dialog.noRecipient')),
+                subject: this.mail.subject
+            });
+        }
+
+        return result;
+    }
+
+    handleAttachments(originalMarkup: string, mail: yasoonModel.Email): Promise<string> {
+
         //Check each attachment if it needs to be embedded
-        var embeddedItems = [];
-        var markup = originalMarkup;
+        let embeddedItems: JiraFileHandle[] = [];
+        let markup = originalMarkup;
 
         this.attachmentHandles.forEach((attachment) => {
             if (markup.indexOf('!' + attachment.contentId + '!') > -1) {
-                //Mark attachments selected				
-                var handle = jira.selectedAttachments.filter(function (a) { return a.contentId === attachment.contentId; })[0];
-                if (handle) {
-                    embeddedItems.push(handle);
-                } else {
-                    var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
-                    markup = markup.replace(regEx, '');
-                }
+                embeddedItems.push(attachment);
             }
         });
 
@@ -154,26 +220,30 @@ class EmailController implements IEmailController {
             return Promise.resolve(originalMarkup);
 
         //Ensure they are persisted (performance)
-        var persist = new Promise(function (resolve, reject) {
+        return new Promise((resolve, reject) => {
             mail.persistAttachments(embeddedItems, resolve, reject);
-        });
-
-        return persist.then(function () {
-            return embeddedItems;
         })
-            .map(function (handle) {
-                return yasoon.io.getFileHash(handle).then(function (hash) {
-                    handle.hash = hash;
-                    return hash;
-                });
+            .then(() => {
+                return embeddedItems;
             })
-            .then(function (hashes) {
-                return yasoon.valueStore.queryAttachmentHashes(hashes);
+            .map((handle: JiraFileHandle) => {
+                return yasoon.io.getFileHash(handle)
+                    .then((hash) => {
+                        handle.hash = hash;
+                        return hash;
+                    });
             })
-            .then(function (result) {
-                embeddedItems.forEach(function (handle) {
+            .then((hashes) => {
+                return yasoon.valueStore.queryAttachmentHashes(hashes)
+                    .catch((e) => {
+                        yasoon.util.log('Could not load Attachment Blacklist', yasoon.util.severity.warning, getStackTrace(e));
+                        return { foundHashes: [] };
+                    });
+            })
+            .then((result) => {
+                embeddedItems.forEach((handle) => {
                     //Skip files whose hashes that were blocked	
-                    var regEx = new RegExp('!' + handle.contentId + '!', 'g');
+                    let regEx = new RegExp('!' + handle.contentId + '!', 'g');
                     if (result.foundHashes.indexOf(handle.hash) >= 0) {
                         markup = markup.replace(regEx, '');
                         handle.blacklisted = true;
@@ -186,13 +256,12 @@ class EmailController implements IEmailController {
                     handle.setInUse();
                 });
 
-                jira.UIFormHandler.getRenderer('attachment').refresh('attachment');
+                FieldController.raiseEvent(EventType.AttachmentChanged, this.attachmentHandles);
                 return markup;
             })
             .catch(function (e) {
                 yasoon.util.log('Error during handling of attachments', yasoon.util.severity.warning, getStackTrace(e));
             });
-            */
     }
 
     setSender() {
@@ -200,7 +269,6 @@ class EmailController implements IEmailController {
             let field = FieldController.getField(this.fieldMapping.sender);
             if (field) {
                 this.loadSenderPromise.then((senderUser: JiraUser) => {
-                    FieldController.raiseEvent(EventType.SenderLoaded, senderUser);
                     let valueUser: JiraUser;
                     let valueMail: string;
                     if (senderUser) {

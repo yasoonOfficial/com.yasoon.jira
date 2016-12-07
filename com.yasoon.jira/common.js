@@ -470,8 +470,15 @@ function jiraIsTask(item) {
 }
 
 function isEqual(a, b) {
-	a = a || "";
-	b = b || "";
-	return a == b;
+	if (typeof a === 'number' || typeof b === 'number') {
+		//Compare numbers
+		return a === b;
+	} else {
+		//Compare strings and normalize nulls
+		a = a || "";
+		b = b || "";
+		return a == b;
+	}
+
 }
 //@ sourceURL=http://Jira/common.js

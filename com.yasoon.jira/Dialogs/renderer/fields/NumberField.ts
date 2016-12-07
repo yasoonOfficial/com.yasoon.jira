@@ -8,7 +8,12 @@
 class NumberField extends Field {
 
 	getDomValue(): number {
-		return parseFloat($('#' + this.id).val());
+		var domValue = $('#' + this.id).val();
+		if (domValue !== '') {
+			return parseFloat(domValue);
+		} else {
+			return null;
+		}
 	}
 
 	hookEventHandler(): void {
