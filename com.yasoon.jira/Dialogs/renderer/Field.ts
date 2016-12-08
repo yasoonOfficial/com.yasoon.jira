@@ -52,6 +52,7 @@ abstract class Field implements FieldGet, FieldSet {
 	}
 
 	updateFieldMeta(newMeta: JiraMetaField) {
+		this.lastValue = undefined;
 		this.fieldMeta = newMeta;
 	}
 

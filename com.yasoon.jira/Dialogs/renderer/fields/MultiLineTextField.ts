@@ -23,7 +23,7 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
 
         this.emailController = jira.emailController;
 
-        this.isMainField = ((this.emailController && this.emailController.fieldMapping.body == id) || id === FieldController.descriptionFieldId);
+        this.isMainField = ((this.emailController && this.emailController.fieldMapping.body == id)); //|| id === FieldController.descriptionFieldId
         this.hasMentions = config.hasMentions;
         this.height = (this.isMainField) ? '200px' : '100px';
 

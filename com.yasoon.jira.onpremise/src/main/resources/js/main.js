@@ -1,6 +1,6 @@
 var authToken = '';
-var yasoonServerUrl = 'https://store.yasoon.com';
-//var yasoonServerUrl = 'http://localhost:1337';
+//var yasoonServerUrl = 'https://store.yasoon.com';
+var yasoonServerUrl = 'http://localhost:1337';
 var isInstanceRegistered = false;
 var currentPage = 1;
 var serverId = null;
@@ -10,6 +10,7 @@ var shareUserList = {};
 var foundUsers = {};
 var isCloud = false;
 var jwtToken = null;
+var templateModel = null;
 
 Promise.config({
     // Enable cancellation.
@@ -45,53 +46,57 @@ $(document).ready(function () {
     }
 
     prom.then(function () {
-        if(isCloud)
+        if (isCloud)
             AP.sizeToParent();
 
-        //Load token even if it may does not exist.
+        //Load token even if it may does nost exist.
         authToken = $.cookie('yasoonAuthToken');
-        
+
         loadSystemInfo()
-        .then(function () {
-            //Hook up Raven error logging        
-            Raven.config('https://6271d99937bd403da519654c1cf47879@sentry2.yasoon.com/4', {
-                tags: {
-                    serverId: serverId,
-                    key: 'onpremise'
-                }
-            }).install();
-
-            if (systemInfo.userName && systemInfo.userEmailAddress) {
-                zE(function () {
-                    zE.identify({
-                        ze23772381: 'JIRA for Outlook',
-                        name: systemInfo.userName,
-                        email: systemInfo.userEmailAddress
+            .then(function () {
+                //Hook up Raven error logging   
+                /*     
+                Raven.config('https://6271d99937bd403da519654c1cf47879@sentry2.yasoon.com/4', {
+                    tags: {
+                        serverId: serverId,
+                        key: 'onpremise'
+                    }
+                }).install();
+                */
+                /*
+                if (systemInfo.userName && systemInfo.userEmailAddress) {
+                    zE(function () {
+                        zE.identify({
+                            ze23772381: 'JIRA for Outlook',
+                            name: systemInfo.userName,
+                            email: systemInfo.userEmailAddress
+                        });
                     });
-                });
-            }
+                }
+                */
 
-            //Check if this instance is registered
-            return getIsInstanceRegistered();
-        })
-        .then(function (isRegistered) {
-            isInstanceRegistered = isRegistered;
-            
-            return getOwnUser()
-                .caught(function () {
-                    return null;        
-                });
-            
-        }).then(function (ownUser) {
-            //Initialize the UI
-            initUI(isInstanceRegistered, ownUser);
-        })
-        .caught(function (e) {
-            swal("Oops...", "Failed to load initial data, please contact us at support@yasoon.de", "error");
-            captureMessage('Error while document ready execution!', e);
-        });
+                //Check if this instance is registered
+                return getIsInstanceRegistered();
+            })
+            .then(function (isRegistered) {
+                isInstanceRegistered = isRegistered;
+
+                return getOwnUser()
+                    .caught(function () {
+                        return null;
+                    });
+
+            }).then(function (ownUser) {
+                //Initialize the UI
+                initUI(isInstanceRegistered, ownUser);
+            })
+            .caught(function (e) {
+                console.log(e, e.stack);
+                swal("Oops...", "Failed to load initial data, please contact us at support@yasoon.de", "error");
+                captureMessage('Error while document ready execution!', e);
+            });
     }).caught(function (e) {
-        console.log(e);
+        console.log(e, e.stack);
         swal("Oops...", "Failed to load nessecary files, please contact us at support@yasoon.de", "error");
     });
 });
@@ -126,7 +131,7 @@ function loadSystemInfo() {
                     systemInfo = info;
 
                 serverId = systemInfo.serverId || systemInfo.licenseInfo.instances[0].serverId;
-                
+
                 if (systemInfo.licenseInfo.addon)
                     sen = systemInfo.licenseInfo.addon.supportEntitlementNumber;
             });
@@ -139,19 +144,23 @@ function getIsInstanceRegistered() {
         data: getIdentifyingParams(),
         type: 'GET'
     }))
-    .then(function (data) {
-        return data.registered;
-    });
+        .then(function (data) {
+            return data.registered;
+        });
 }
 
 function loadRegisteredUIState() {
+    //Init knockout
+    templateModel = new templateViewModel();
+    ko.applyBindings(templateModel, document.getElementById('templates'));
+
     checkAppLink();
     checkDownloadLink();
     checkProduct();
     getCustomCert();
 }
 
-function initUI(isRegistered, ownUser) { 
+function initUI(isRegistered, ownUser) {
     console.log('initUi', isRegistered);
     $('.wizard').bootstrapWizard();
     //Hide page loader first
@@ -174,18 +183,18 @@ function initUI(isRegistered, ownUser) {
         }
     } else if (isRegistered && (currentPage >= 2 || currentPage <= 4)) {
         //Already registered but didn't finish the wizard yet.
-        if(isAuthed) {
+        if (isAuthed) {
             gotoPage(currentPage);
-             $('#AreaUnregistered').removeClass('hidden');
+            $('#AreaUnregistered').removeClass('hidden');
         } else {
             $('#AreaLogin').removeClass('hidden');
         }
-    }        
+    }
     else {
         //Unregistered
         currentPage = 1;
         setTimeout(function () {
-            $('ul.tabs').tabs('select_tab', 'tab1');
+            $('#unregisteredTabs').tabs('select_tab', 'tab1');
         }, 1);
         $('#AreaPreRegister').removeClass('hidden');
         $('#AreaUnregistered').removeClass('hidden');
@@ -207,9 +216,9 @@ function initUI(isRegistered, ownUser) {
 
         //Prefill Wizard
         if (isCloud) {
-             $('#comment').val('Registered via JIRA Cloud');
+            $('#comment').val('Registered via JIRA Cloud');
         } else {
-             $('#comment').val('Registered via JIRA Server');
+            $('#comment').val('Registered via JIRA Server');
         }
         if (systemInfo.userName) {
             var userNameSplitted = systemInfo.userName.split(' ');
@@ -223,20 +232,20 @@ function initUI(isRegistered, ownUser) {
     });
 
     //Init Modals
-    $('.modal-trigger').leanModal({
+    $('.modal-trigger').modal({
         ready: onUserDialogOpen
     });
-    
+
 
     if (isCloud) {
         $('.subscribeLink').attr('href', systemInfo.baseUrl + '/plugins/servlet/upm');
         $('.applicationCreateLink').attr('href', systemInfo.baseUrl + '/plugins/servlet/applinks/listApplicationLinks');
         $('.checkCloudApplicationLink').click(handleCheckCloudApplicationLink);
-        $('.showCustomCertLink').leanModal();
+        $('.show-customcert-link').modal();
     } else {
-        $('.purchaseDialogLink').leanModal();
+        $('.purchaseDialogLink').modal();
     }
-    
+
 
     //Init Popover
     $('[data-toggle="popover"]').popover({
@@ -270,7 +279,7 @@ function initUI(isRegistered, ownUser) {
     $('#addApplicationLinkButton, #addApplicationLinkButtonMain').click(handleAddApplicationLink);
     $('#LoginYasoonButton').click(handleLogin);
 
-   
+
 }
 
 function handleLogin() {
@@ -336,7 +345,7 @@ function handleLogin() {
                 $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
                 if (isCloud)
                     return;
-                
+
                 return $.ajax({
                     url: yasoonServerUrl + '/jira/install',
                     contentType: 'application/json',
@@ -365,7 +374,7 @@ function handleLogin() {
 
     return promise;
 }
-function handleCheckCloudApplicationLink () {
+function handleCheckCloudApplicationLink() {
     //Add Spinner & disabled
     $('.checkCloudApplicationLink').find('.link-text').text('Refreshing').prop('disabled', true);
     checkAppLink()
@@ -462,29 +471,29 @@ function handleNext() {
             $('#next').prop("disabled", true);
             $('#nextText').text('checking...');
             return checkAppLink()
-            .then(function (appLinkExists) {
-                $('#next').prop("disabled", false);
-                $('#nextText').text('Yes, Application Link created!');
-                if (appLinkExists)
-                    gotoNextPage();
-                else {
-                    swal({
-                        title: "Are you sure?",
-                        text: "We could not find a correctly configured application link and JIRA for Outlook may not work until you have created it. ",
-                        type: "warning",
-                        showCancelButton: true,
-                        confirmButtonText: "Continue anyway",
-                        cancelButtonText: "Cancel",
-                    },
-                    function successHandler(isConfirm){
-                        if (isConfirm)
-                            gotoNextPage();    
-                    });
+                .then(function (appLinkExists) {
+                    $('#next').prop("disabled", false);
+                    $('#nextText').text('Yes, Application Link created!');
+                    if (appLinkExists)
+                        gotoNextPage();
+                    else {
+                        swal({
+                            title: "Are you sure?",
+                            text: "We could not find a correctly configured application link and JIRA for Outlook may not work until you have created it. ",
+                            type: "warning",
+                            showCancelButton: true,
+                            confirmButtonText: "Continue anyway",
+                            cancelButtonText: "Cancel",
+                        },
+                            function successHandler(isConfirm) {
+                                if (isConfirm)
+                                    gotoNextPage();
+                            });
 
-                }
-            });
+                    }
+                });
         } else {
-            gotoNextPage();  
+            gotoNextPage();
         }
     }
     else if (currentPage === 4) {
@@ -525,18 +534,18 @@ function gotoPage(newPage) {
             $('#next').prop('disabled', true);
             $('#nextText').text('Loading...');
             getCustomCert()
-            .then(function (cert) {
-                if (!cert.customCert) {
-                    return cloudUpdateCerts();
-                }
-            })
-            .then(function () {
-                $('#next').prop('disabled', false);
-                $('#nextText').text('Yes, Application Link created!');
-            })
-            .caught(function () {
-                swal("Oops...", "Could not generate Certificates. Please reload to page to try again or contact us via the help button below.", "error");
-            });
+                .then(function (cert) {
+                    if (!cert.customCert) {
+                        return cloudUpdateCerts();
+                    }
+                })
+                .then(function () {
+                    $('#next').prop('disabled', false);
+                    $('#nextText').text('Yes, Application Link created!');
+                })
+                .caught(function () {
+                    swal("Oops...", "Could not generate Certificates. Please reload to page to try again or contact us via the help button below.", "error");
+                });
         } else {
             $('#next').prop('disabled', true);
             $('#nextText').text('Next');
@@ -668,16 +677,16 @@ function registerAccount(cbk) {
 
 function getInstanceData() {
     return {
-            clientKey: serverId,
-            supportEntitlementNumber: sen,
-            baseUrl: systemInfo.baseUrl,
-            key: 'com.yasoon.jira.onpremise',
-            pluginsVersion: systemInfo.pluginVersion,
-            description: 'Jira on Premise',
-            productType: 'jira',
-            serverVersion: systemInfo.version,
-            licenseInfo: systemInfo.licenseInfo,
-            eventType: 'installed'
+        clientKey: serverId,
+        supportEntitlementNumber: sen,
+        baseUrl: systemInfo.baseUrl,
+        key: 'com.yasoon.jira.onpremise',
+        pluginsVersion: systemInfo.pluginVersion,
+        description: 'Jira on Premise',
+        productType: 'jira',
+        serverVersion: systemInfo.version,
+        licenseInfo: systemInfo.licenseInfo,
+        eventType: 'installed'
     };
 }
 
@@ -718,14 +727,14 @@ function checkProduct() {
             $('#trialStatus').removeClass('hidden');
         } else {
             //License Ok
-            if(product.parameters && product.parameters.supportUntil)
+            if (product.parameters && product.parameters.supportUntil)
                 $('#JiraSupportDate').text(new Date(product.parameters.supportUntil).toLocaleDateString());
 
             if (product.id === 9) {
                 $('#JiraLicensedFlexible').removeClass('hidden');
                 $('#JiraLicensedAllUsers').addClass('hidden');
                 $('#JiraUserNumber').text(product.userCount);
-            }            
+            }
             $('#purchasedStatus').removeClass('hidden');
         }
     })
@@ -741,7 +750,7 @@ function refreshLicense() {
         return;
 
     licenseRefreshActive = true;
-    $('.licenseRefresh').addClass('grey-text text-lighten-2');    
+    $('.licenseRefresh').addClass('grey-text text-lighten-2');
     if (isCloud) {
         return Promise.resolve($.ajax({
             url: yasoonServerUrl + '/jira/checkCloudLicense?jwt=' + jwtToken,
@@ -752,8 +761,8 @@ function refreshLicense() {
         }))
             .then(function (data) {
                 if (data.success && data.product) {
-                   loadRegisteredUIState();
-               }
+                    loadRegisteredUIState();
+                }
             })
             .caught(function () {
                 swal("Oops...", 'Something went wrong while refreshing your license information. Please try once more or contact us via the help button.', "error");
@@ -792,7 +801,7 @@ function refreshLicense() {
                 licenseRefreshActive = false;
                 $('.licenseRefresh').removeClass('grey-text text-lighten-2');
             });
-    }    
+    }
 }
 
 var intervalTimer = null;
@@ -897,7 +906,7 @@ function checkAppLink() {
 function getCustomCert() {
     if (!isCloud)
         return Promise.resolve();
-    
+
     return new Promise(function (resolve, reject) {
         $.ajax({
             url: yasoonServerUrl + '/jira/getCustomCert',
@@ -911,7 +920,7 @@ function getCustomCert() {
             reject('Could not load Custom Cert');
         });
     });
-   
+
 }
 
 function getIdentifyingParams() {
@@ -951,12 +960,12 @@ function createOAuthService(cert) {
             processData: false,
             type: 'POST'
         })
-        .done(function () {
-            resolve();
-        })
-        .fail(function () {
-            reject('Could not create oAuth Service');
-        });
+            .done(function () {
+                resolve();
+            })
+            .fail(function () {
+                reject('Could not create oAuth Service');
+            });
     });
 }
 
@@ -970,12 +979,12 @@ function updateCustomJiraCert(cert) {
             processData: false,
             type: 'PUT'
         })
-        .done(function () {
-            resolve();
-        })
-        .fail(function () {
-            reject('Could not update Custom JIRA Certificate');
-        });
+            .done(function () {
+                resolve();
+            })
+            .fail(function () {
+                reject('Could not update Custom JIRA Certificate');
+            });
     });
 }
 
@@ -983,7 +992,7 @@ function getOwnUser() {
     return new Promise(function (resolve, reject) {
         if (!authToken)
             return reject('No Auth token');
-        
+
         $.ajax({
             url: yasoonServerUrl + '/api/user/ownUser',
             contentType: 'application/json',
@@ -991,12 +1000,12 @@ function getOwnUser() {
             processData: false,
             type: 'GET'
         })
-        .done(function (data) {
-            resolve(data);
-        })
-        .fail(function () {
-            reject('Auth token not valid');
-        });
+            .done(function (data) {
+                resolve(data);
+            })
+            .fail(function () {
+                reject('Auth token not valid');
+            });
     });
 }
 
@@ -1064,7 +1073,7 @@ function searchUser(term) {
         return new Promise(function (resolve, reject) {
             AP.require('request', function (request) {
                 request({
-                    url: '/rest/api/2/user/search?username='  + term,
+                    url: '/rest/api/2/user/search?username=' + term,
                     type: 'GET',
                     success: function (users) {
                         users = JSON.parse(users);
@@ -1076,7 +1085,7 @@ function searchUser(term) {
     } else {
         return Promise.resolve($.get(systemInfo.baseUrl + '/rest/api/2/user/search?username=' + term));
     }
-    
+
 }
 function dialogSearch() {
     var term = $('#userNameSearch').val();
@@ -1147,7 +1156,7 @@ function captureMessage(message, e) {
         }
     } catch (ex) {
         console.log('Error while sending Raven error! ' + message, e, ex);
-    }    
+    }
 }
 
 function isError(what) {
@@ -1159,3 +1168,97 @@ function isError(what) {
 function isObject(what) {
     return typeof what === 'object' && what !== null;
 }
+
+ko.bindingHandlers.select2 = {
+    init: function (el, valueAccessor, allBindingsAccessor, viewModel) {
+        ko.utils.domNodeDisposal.addDisposeCallback(el, function () {
+            $(el).select2('destroy');
+        });
+
+        var allBindings = allBindingsAccessor();
+        var select2 = ko.utils.unwrapObservable(allBindings.select2);
+        if (select2.dataObs) {
+            select2.data = select2.dataObs();
+        }
+
+        var optionAdded = false;
+        var oldValue = ko.utils.unwrapObservable(allBindings.value);
+        if (oldValue && select2.dataObs) {
+            var obj = select2.dataObs().filter(function (e) { return e.id == oldValue; })[0];
+            if (obj) {
+                $(el).append('<option value="' + obj.id + '" selected>' + obj.text + '</option>');
+                optionAdded = true;
+            }
+        }
+
+        $(el).select2(select2);
+
+        if (optionAdded) {
+            $(el).val(oldValue).trigger('change');
+        }
+    },
+    update: function (el, valueAccessor, allBindingsAccessor, viewModel) {
+        var allBindings = allBindingsAccessor();
+        if ("value" in allBindings) {
+            if ((allBindings.select2.multiple || el.multiple) && allBindings.value().constructor != Array) {
+                $(el).val(allBindings.value().split(',')).trigger('change');
+            }
+            else {
+                $(el).val(allBindings.value()).trigger('change');
+            }
+        } else if ("selectedOptions" in allBindings) {
+            var converted = [];
+            var textAccessor = function (value) { return value; };
+            if ("optionsText" in allBindings) {
+                textAccessor = function (value) {
+                    var valueAccessor = function (item) { return item; }
+                    if ("optionsValue" in allBindings) {
+                        valueAccessor = function (item) { return item[allBindings.optionsValue]; }
+                    }
+                    var items = $.grep(allBindings.options(), function (e) { return valueAccessor(e) == value });
+                    if (items.length == 0 || items.length > 1) {
+                        return "UNKNOWN";
+                    }
+                    return items[0][allBindings.optionsText];
+                }
+            }
+            $.each(allBindings.selectedOptions(), function (key, value) {
+                converted.push({ id: value, text: textAccessor(value) });
+            });
+            $(el).select2("data", converted);
+        }
+        $(el).trigger("change");
+    }
+};
+
+$.fn.sortable = function (options) {
+    return sortable(this, options);
+};
+
+ko.bindingHandlers.sortable = {
+    init: function (el, valueAccessor, allBindingsAccessor, viewModel) {
+        var data = ko.utils.unwrapObservable(valueAccessor());
+        var options = {
+            items: 'li:not(.disabled)',
+            forcePlaceholderSize: true,
+            placeholder: '<li>&nbsp;</li>',
+            handle: '.material-icons'
+        };
+        $(el).sortable(options);
+
+        $(el).on('sortupdate', function (event, args) {
+            var list = ko.utils.unwrapObservable(valueAccessor());
+            console.log('Move from ' + args.oldindex + ' to ' + args.index, JSON.parse(JSON.stringify(list)));
+            var currentItem = list.splice(args.oldindex, 1)[0];
+            list.splice(args.index, 0, currentItem);
+
+            valueAccessor()(list);
+            viewModel.rerender();
+            console.log('List after:', JSON.parse(JSON.stringify(list)));
+        });
+    },
+    update: function (el, valueAccessor, allBindingsAccessor, viewModel) {
+        var data = ko.utils.unwrapObservable(valueAccessor());
+        setTimeout(function () { $(el).sortable('reload') }, 1);
+    }
+};

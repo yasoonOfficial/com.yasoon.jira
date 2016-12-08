@@ -1,11 +1,13 @@
 
-class TemplateController {
+class TemplateController implements IFieldEventHandler {
     static settingGroupHierarchy = 'groups';
     static settingInitialSelection = 'initialSelection';
     static settingDefaultTemplates = 'defaultTemplates';
 
+
     private ownUser: JiraUser;
     private groupHierachy: YasoonGroupHierarchy[] = [];
+    private dependentFields: { [id: string]: string } = {};
     initialSelection: YasoonInitialSelection;
     defaultTemplates: YasoonDefaultTemplate[] = [];
 
@@ -57,8 +59,21 @@ class TemplateController {
         });
 
         //Sort Asc by priority
-        this.defaultTemplates.sort((a, b) => { return a.priority - b.priority; });
+        this.defaultTemplates = this.defaultTemplates.sort((a, b) => { return a.priority - b.priority; });
 
+    }
+
+    handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
+        if (type === EventType.FieldChange) {
+            let dependentFieldId = this.dependentFields[source];
+            let dependentField = FieldController.getField(dependentFieldId);
+            let currentValue = dependentField.getValue(false);
+            if (!currentValue || !dependentField.initialValue || JSON.stringify(currentValue) == JSON.stringify(dependentField.initialValue)) {
+                FieldController.setValue(dependentFieldId, newValue, true);
+            }
+        }
+
+        return null;
     }
 
     setInitialValues() {
@@ -86,12 +101,14 @@ class TemplateController {
                         //Fixed variables
                         value = this.getFixedValue(field.fieldValue);
                     } else if (typeof field.fieldValue === 'string' && field.fieldValue.indexOf('|') === 0) {
-
+                        value = this.getDynamicValue(field.fieldId, field.fieldValue);
                     } else {
                         value = field.fieldValue
                     }
 
-                    FieldController.setValue(field.fieldId, value, true);
+                    if (value) {
+                        FieldController.setValue(field.fieldId, value, true);
+                    }
                 });
             }
 
@@ -118,8 +135,15 @@ class TemplateController {
         }
     }
 
-    private getDynamicValue(value: string) {
+    private getDynamicValue(fieldId: string, value: string) {
+        let parentFieldId = value.replace(/\|/g, '');
+        let parentField = FieldController.getField(parentFieldId);
+        if (parentField) {
+            this.dependentFields[parentFieldId] = fieldId;
+            FieldController.registerEvent(EventType.FieldChange, this, parentFieldId);
 
+            return parentField.getValue(false);
+        }
     }
 
     private getTemplate(projectId: string, issueTypeId: string): YasoonDefaultTemplate {

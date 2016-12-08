@@ -390,6 +390,7 @@ var Field = (function () {
         }
     };
     Field.prototype.updateFieldMeta = function (newMeta) {
+        this.lastValue = undefined;
         this.fieldMeta = newMeta;
     };
     Field.prototype.renderField = function (container) {
@@ -2186,7 +2187,7 @@ var MultiLineTextField = (function (_super) {
             }
         };
         this.emailController = jira.emailController;
-        this.isMainField = ((this.emailController && this.emailController.fieldMapping.body == id) || id === FieldController.descriptionFieldId);
+        this.isMainField = ((this.emailController && this.emailController.fieldMapping.body == id)); //|| id === FieldController.descriptionFieldId
         this.hasMentions = config.hasMentions;
         this.height = (this.isMainField) ? '200px' : '100px';
         if (this.hasMentions) {
@@ -3280,10 +3281,19 @@ var UserSelectField = (function (_super) {
         }
         return result;
     };
+    UserSelectField.prototype.convertId = function (user) {
+        if (!user.displayName) {
+            return this.getData(user.name)
+                .then(function (result) {
+                return result[0].children[0].data;
+            });
+        }
+        return Promise.resolve(user);
+    };
     UserSelectField.prototype.getData = function (searchTerm) {
         var _this = this;
         var url = '/rest/api/2/user/picker?query=' + searchTerm + '&maxResults=50';
-        if (this.id === 'assignee') {
+        if (this.id === 'assignee' && this.currentProject) {
             //Only get assignable users
             url = '/rest/api/2/user/assignable/search?project=' + this.currentProject.key + '&username=' + searchTerm + '&maxResults=50';
         }
@@ -3376,6 +3386,7 @@ var TemplateController = (function () {
     function TemplateController(ownUser) {
         var _this = this;
         this.groupHierachy = [];
+        this.dependentFields = {};
         this.defaultTemplates = [];
         this.ownUser = ownUser;
         //Load Data
@@ -3414,8 +3425,19 @@ var TemplateController = (function () {
             return defaultTemplate.group === '-1' || _this.getGroup(defaultTemplate.group) != null;
         });
         //Sort Asc by priority
-        this.defaultTemplates.sort(function (a, b) { return a.priority - b.priority; });
+        this.defaultTemplates = this.defaultTemplates.sort(function (a, b) { return a.priority - b.priority; });
     }
+    TemplateController.prototype.handleEvent = function (type, newValue, source) {
+        if (type === EventType.FieldChange) {
+            var dependentFieldId = this.dependentFields[source];
+            var dependentField = FieldController.getField(dependentFieldId);
+            var currentValue = dependentField.getValue(false);
+            if (!currentValue || !dependentField.initialValue || JSON.stringify(currentValue) == JSON.stringify(dependentField.initialValue)) {
+                FieldController.setValue(dependentFieldId, newValue, true);
+            }
+        }
+        return null;
+    };
     TemplateController.prototype.setInitialValues = function () {
         if (this.initialSelection) {
             if (this.initialSelection.projectId)
@@ -3440,11 +3462,14 @@ var TemplateController = (function () {
                         value = _this.getFixedValue(field.fieldValue);
                     }
                     else if (typeof field.fieldValue === 'string' && field.fieldValue.indexOf('|') === 0) {
+                        value = _this.getDynamicValue(field.fieldId, field.fieldValue);
                     }
                     else {
                         value = field.fieldValue;
                     }
-                    FieldController.setValue(field.fieldId, value, true);
+                    if (value) {
+                        FieldController.setValue(field.fieldId, value, true);
+                    }
                 });
             }
         }
@@ -3468,7 +3493,14 @@ var TemplateController = (function () {
             return this.ownUser;
         }
     };
-    TemplateController.prototype.getDynamicValue = function (value) {
+    TemplateController.prototype.getDynamicValue = function (fieldId, value) {
+        var parentFieldId = value.replace(/\|/g, '');
+        var parentField = FieldController.getField(parentFieldId);
+        if (parentField) {
+            this.dependentFields[parentFieldId] = fieldId;
+            FieldController.registerEvent(EventType.FieldChange, this, parentFieldId);
+            return parentField.getValue(false);
+        }
     };
     TemplateController.prototype.getTemplate = function (projectId, issueTypeId) {
         var result = null;

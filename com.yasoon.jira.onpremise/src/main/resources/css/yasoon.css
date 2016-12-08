@@ -78,7 +78,7 @@
 
 .materialize-wrapper .collection-item {
 	min-height: 0 !important;
-	cursor: pointer !important;
+/*	cursor: pointer !important; */
 }
 
 .materialize-wrapper .secondary-content label {
@@ -92,16 +92,41 @@
 
 
 .materialize-wrapper .afterSetup {
-	padding-bottom: 20px !important;
+	padding-bottom: 40px !important;
 	padding-top: 30px !important;
 	position: relative;
-	min-height: 510px;
 }
 			
 .materialize-wrapper .afterSetup .card {
 	margin-left: 30px !important;				
 }
 			
+
+.materialize-wrapper h1 {
+  font-size: 2em;
+  margin: 0.67em 0;
+}
+
+.materialize-wrapper h1, h2, h3, h4, h5, h6 {
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.materialize-wrapper h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+  font-weight: inherit;
+}
+
+.materialize-wrapper h1 {
+  font-size: 4.2rem;
+  line-height: 110%;
+  margin: 2.1rem 0 1.68rem 0;
+}
+
+.materialize-wrapper h2 {
+  font-size: 3.56rem;
+  line-height: 110%;
+  margin: 1.78rem 0 1.424rem 0;
+}
             
 .hidden {
     display:none !important;
@@ -122,4 +147,25 @@
 
 .isOnPremise .cloudVisible {
     display:none;
+}
+
+.header {
+    color: #ee6e73;
+    font-weight: 300;
+}
+
+.heading-col {
+	padding: 10px 30px 20px;
+}
+
+.hover-only {
+	display:none;
+}
+
+.hover-target:hover .hover-only {
+	display: block;
+}
+
+.custom-red {
+	color: #ee6e73;
 }

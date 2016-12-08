@@ -145,9 +145,19 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
         return result;
     }
 
+    convertId(user: any): Promise<any> {
+        if (!user.displayName) {
+            return this.getData(user.name)
+                .then((result) => {
+                    return result[0].children[0].data;
+                });
+        }
+        return Promise.resolve(user);
+    }
+
     getData(searchTerm: string): Promise<Select2Element[]> {
         let url = '/rest/api/2/user/picker?query=' + searchTerm + '&maxResults=50';
-        if (this.id === 'assignee') {
+        if (this.id === 'assignee' && this.currentProject) {
             //Only get assignable users
             url = '/rest/api/2/user/assignable/search?project=' + this.currentProject.key + '&username=' + searchTerm + '&maxResults=50';
         }
