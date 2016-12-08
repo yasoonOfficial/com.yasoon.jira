@@ -1062,18 +1062,18 @@ function AttachmentLinkRenderer() {
 		var blacklistedCount = parameters[id].blacklistedAttachments.length;
 		if (blacklistedCount > 0) {
 			$('#' + id).find('#blacklistedAttachmentCount').text(blacklistedCount);
-			$('#' + id).find('.show-blacklisted-attachments').show();
-			$('#' + id).find('.show-blacklisted-attachments').off().click(function (e) {
+			$('#' + id).find('.show-blacklisted-attachments-old').show();
+			$('#' + id).find('.show-blacklisted-attachments-old').off().click(function (e) {
 				e.preventDefault();
-				$('#' + id + '-blacklisted').show();
-				$('#' + id).find('.hide-blacklisted-attachments').show();
+				$('#' + id + '-blacklisted-old').show();
+				$('#' + id).find('.hide-blacklisted-attachments-old').show();
 				$(this).hide();
 			});
 
-			$('#' + id).find('.hide-blacklisted-attachments').off().click(function (e) {
+			$('#' + id).find('.hide-blacklisted-attachments-old').off().click(function (e) {
 				e.preventDefault();
-				$('#' + id + '-blacklisted').hide();
-				$('#' + id).find('.show-blacklisted-attachments').show();
+				$('#' + id + '-blacklisted-old').hide();
+				$('#' + id).find('.show-blacklisted-attachments-old').show();
 				$(this).hide();
 			});
 		}

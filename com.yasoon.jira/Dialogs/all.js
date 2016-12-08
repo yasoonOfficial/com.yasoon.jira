@@ -722,7 +722,7 @@ var AttachmentField = (function (_super) {
         this.descriptionField = null;
         this.attachments = attachments;
         this.getTemplate = Promise.all([
-            $.getScript(yasoon.io.getLinkPath('templates/attachmentFields.hbs.js')),
+            $.getScript(yasoon.io.getLinkPath('templates/attachmentFieldsNew.hbs.js')),
             $.getScript(yasoon.io.getLinkPath('templates/attachmentLink.hbs.js')),
         ])
             .spread(function () {

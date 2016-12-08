@@ -2861,13 +2861,6 @@ body {
 	opacity: 0.5;
 }
 
-.show-blacklisted-attachments,
-.hide-blacklisted-attachments
-{
-	margin-right: 10px;
-	cursor:pointer;
-}
-
 .modal-dialog {
 	margin-top: 30%;
 }
@@ -2963,4 +2956,25 @@ form.aui .text {
 
 .mentions-input-box .mentions {
 	padding: 3px 6px !important;
+}
+
+
+/* Not nessecary with new renderer */
+.attachments-blacklisted-old {
+	display: none;
+}
+
+.show-blacklisted-attachments-old,
+.hide-blacklisted-attachments-old
+{
+	margin-right: 10px;
+	cursor:pointer;
+	display:none;
+}
+
+.show-blacklisted-attachments,
+.hide-blacklisted-attachments
+{
+	margin-right: 10px;
+	cursor:pointer;
 }

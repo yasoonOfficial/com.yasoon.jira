@@ -200,6 +200,10 @@ yasoon.dialog.load(new function() { //jshint ignore:line
                     return self.renderIssue(meta.fields);
                 })
                 .then(function() {
+                    $('#LoaderArea').addClass('hidden');
+                    $('#ContentArea').css('visibility', 'visible');
+                })
+                .then(function() {
                     //Set Email Values
                     if (jira.emailController) {
                         jira.emailController.insertEmailValues();
@@ -214,10 +218,7 @@ yasoon.dialog.load(new function() { //jshint ignore:line
                         jira.templateController.setFieldValues(self.selectedProject.id, self.selectedIssueType.id);
                     }
                 })
-                .then(function() {
-                    $('#LoaderArea').addClass('hidden');
-                    $('#ContentArea').css('visibility', 'visible');
-                })
+
                 .catch(function(e) {
                     console.log('Error during rendering', e, e.stack)
                 });

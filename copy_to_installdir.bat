@@ -1,5 +1,6 @@
 CMD /C tsc
 CMD /C handlebars com.yasoon.jira\templates\addWorklog.handlebars -f com.yasoon.jira\templates\addWorklog.hbs.js --namespace=jira.templates
+CMD /C handlebars com.yasoon.jira\templates\attachmentFieldsNew.handlebars -f com.yasoon.jira\templates\attachmentFieldsNew.hbs.js --namespace=jira.templates
 CMD /C handlebars com.yasoon.jira\templates\attachmentFields.handlebars -f com.yasoon.jira\templates\attachmentFields.hbs.js --namespace=jira.templates
 CMD /C handlebars com.yasoon.jira\templates\attachmentLink.handlebars -f com.yasoon.jira\templates\attachmentLink.hbs.js --namespace=jira.templates
 CMD /C handlebars com.yasoon.jira\templates\settings.handlebars -f com.yasoon.jira\templates\settings.hbs.js --namespace=jira.templates
