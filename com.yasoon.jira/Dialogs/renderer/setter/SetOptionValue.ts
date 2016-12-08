@@ -10,26 +10,37 @@ class SetOptionValue implements FieldSetter {
 
         if (value && Array.isArray(value)) {
             //Multiselect       
-            // Convert value into normalized select2 format
-            let select2Values = value.map((v) => { return selectField.convertToSelect2.call(selectField, v); });
+            Promise.all(
+                value.map((v) => { return selectField.convertId(v); })
+            )
+                .then((arrayObj) => {
+                    arrayObj = arrayObj.filter((v) => !!v);
 
-            //Now there are two cases:
-            //All values already exist in data --> we can just select the data
-            //Some data do not yet exist --> rerender and select data
-            let nonExistingElements: Select2Element[] = [];
-            let selectedValues = [];
-            select2Values.forEach(v => {
-                if (!this.findInOptions(selectField.options.data, v.id)) {
-                    nonExistingElements.push(v);
-                }
-                selectedValues.push(v.id);
-            });
+                    if (arrayObj.length === 0)
+                        return;
 
-            if (nonExistingElements.length > 0) {
-                let newValues = selectField.options.data.concat(nonExistingElements);
-                selectField.setData(newValues);
-            }
-            $('#' + field.id).val(selectedValues).trigger('change');
+                    // Convert value into normalized select2 format
+                    let select2Values = arrayObj.map((v) => { return selectField.convertToSelect2.call(selectField, v); });
+
+                    //Now there are two cases:
+                    //All values already exist in data --> we can just select the data
+                    //Some data do not yet exist --> rerender and select data
+                    let nonExistingElements: Select2Element[] = [];
+                    let selectedValues = [];
+                    select2Values.forEach(v => {
+                        if (!this.findInOptions(selectField.options.data, v.id)) {
+                            nonExistingElements.push(v);
+                        }
+                        selectedValues.push(v.id);
+                    });
+
+                    if (nonExistingElements.length > 0) {
+                        let newValues = selectField.options.data.concat(nonExistingElements);
+                        selectField.setData(newValues);
+                    }
+                    $('#' + field.id).val(selectedValues).trigger('change');
+                });
+
 
         } else if (value) {
             //Single Select

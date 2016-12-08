@@ -1,6 +1,6 @@
 var authToken = '';
-//var yasoonServerUrl = 'https://store.yasoon.com';
-var yasoonServerUrl = 'http://localhost:1337';
+var yasoonServerUrl = 'https://store.yasoon.com';
+//var yasoonServerUrl = 'http://localhost:1337';
 var isInstanceRegistered = false;
 var currentPage = 1;
 var serverId = null;
@@ -55,14 +55,14 @@ $(document).ready(function () {
         loadSystemInfo()
             .then(function () {
                 //Hook up Raven error logging   
-                /*     
+
                 Raven.config('https://6271d99937bd403da519654c1cf47879@sentry2.yasoon.com/4', {
                     tags: {
                         serverId: serverId,
                         key: 'onpremise'
                     }
                 }).install();
-                */
+
                 /*
                 if (systemInfo.userName && systemInfo.userEmailAddress) {
                     zE(function () {
@@ -1248,13 +1248,11 @@ ko.bindingHandlers.sortable = {
 
         $(el).on('sortupdate', function (event, args) {
             var list = ko.utils.unwrapObservable(valueAccessor());
-            console.log('Move from ' + args.oldindex + ' to ' + args.index, JSON.parse(JSON.stringify(list)));
             var currentItem = list.splice(args.oldindex, 1)[0];
             list.splice(args.index, 0, currentItem);
 
             valueAccessor()(list);
             viewModel.rerender();
-            console.log('List after:', JSON.parse(JSON.stringify(list)));
         });
     },
     update: function (el, valueAccessor, allBindingsAccessor, viewModel) {

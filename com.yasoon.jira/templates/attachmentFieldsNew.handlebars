@@ -1,0 +1,12 @@
+<div id="{{id}}-selected-container" style="position:relative;">
+	{{#each attachments}} {{> attachmentLink}} {{/each}}
+	<hr style="margin-top: 10px; margin-bottom: 0px;">
+	<div class="attachments-blacklisted hidden">
+		{{#each blacklistedAttachments}} {{> attachmentLink}} {{/each}}
+	</div>
+</div>
+<div class="attachment-bottom-actions ">
+	<a class="show-blacklisted-attachments hidden">{{i18n 'dialog.showBlacklistedAttachments'}} (<span id="blacklistedAttachmentCount">{{blacklistedAttachments.length}}</span>)</a>
+	<a class="hide-blacklisted-attachments hidden">{{i18n 'dialog.hideBlacklistedAttachments'}} </a>
+	<a class="addAttachmentLink">{{i18n 'dialog.attachmentAdd'}}</a>
+</div>

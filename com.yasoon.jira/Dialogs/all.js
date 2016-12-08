@@ -1470,24 +1470,30 @@ var SetOptionValue = (function () {
         }
         if (value && Array.isArray(value)) {
             //Multiselect       
-            // Convert value into normalized select2 format
-            var select2Values = value.map(function (v) { return selectField.convertToSelect2.call(selectField, v); });
-            //Now there are two cases:
-            //All values already exist in data --> we can just select the data
-            //Some data do not yet exist --> rerender and select data
-            var nonExistingElements_1 = [];
-            var selectedValues_1 = [];
-            select2Values.forEach(function (v) {
-                if (!_this.findInOptions(selectField.options.data, v.id)) {
-                    nonExistingElements_1.push(v);
+            Promise.all(value.map(function (v) { return selectField.convertId(v); }))
+                .then(function (arrayObj) {
+                arrayObj = arrayObj.filter(function (v) { return !!v; });
+                if (arrayObj.length === 0)
+                    return;
+                // Convert value into normalized select2 format
+                var select2Values = arrayObj.map(function (v) { return selectField.convertToSelect2.call(selectField, v); });
+                //Now there are two cases:
+                //All values already exist in data --> we can just select the data
+                //Some data do not yet exist --> rerender and select data
+                var nonExistingElements = [];
+                var selectedValues = [];
+                select2Values.forEach(function (v) {
+                    if (!_this.findInOptions(selectField.options.data, v.id)) {
+                        nonExistingElements.push(v);
+                    }
+                    selectedValues.push(v.id);
+                });
+                if (nonExistingElements.length > 0) {
+                    var newValues = selectField.options.data.concat(nonExistingElements);
+                    selectField.setData(newValues);
                 }
-                selectedValues_1.push(v.id);
+                $('#' + field.id).val(selectedValues).trigger('change');
             });
-            if (nonExistingElements_1.length > 0) {
-                var newValues = selectField.options.data.concat(nonExistingElements_1);
-                selectField.setData(newValues);
-            }
-            $('#' + field.id).val(selectedValues_1).trigger('change');
         }
         else if (value) {
             //Single Select
