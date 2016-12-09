@@ -90,24 +90,19 @@ abstract class Select2AjaxField extends Select2Field {
 		return this.currentPromise;
 	}
 
-	private getEmptyDataInternal(): Promise<any> {
-		return this.getEmptyData()
-			.then(result => {
-				return [result, '']; //Keep signature for spread
-			});
+	private async getEmptyDataInternal(): Promise<any> {
+		let result = await this.getEmptyData();
+		return [result, '']; //Keep signature for spread
 	}
 
 	abstract getData(searchTerm: string): Promise<Select2Element[]>;
 
-	getEmptyData(): Promise<Select2Element[]> {
+	async getEmptyData(): Promise<Select2Element[]> {
 		if (this.emptySearchResult)
-			return Promise.resolve(this.emptySearchResult);
+			return this.emptySearchResult;
 
-		return this.getData("")
-			.then((result) => {
-				this.emptySearchResult = result;
-				return result;
-			});
+		this.emptySearchResult = await this.getData("");
+		return this.emptySearchResult;
 	}
 }
 

@@ -1,14 +1,17 @@
 {
     "compilerOptions": {
         "experimentalDecorators": true,
-        "outFile": "./com.yasoon.jira/Dialogs/all.js",
+        "outFile": "./com.yasoon.jira/dialogs/js/all.js",
         "allowJs": true,
-		"target": "es5"
+        "target": "es5"
     },
     "include": [
-        "com.yasoon.jira/Dialogs/renderer/fields/*",
-        "com.yasoon.jira/Dialogs/renderer/getter/*",
-        "com.yasoon.jira/Dialogs/renderer/setter/*",
-        "com.yasoon.jira/Dialogs/renderer/*"
+        "com.yasoon.jira/dialogs/renderer/fields/plugins/teamlead/*",
+        "com.yasoon.jira/dialogs/renderer/fields/plugins/tempo/*",
+        "com.yasoon.jira/dialogs/renderer/fields/plugins/*",
+        "com.yasoon.jira/dialogs/renderer/fields/*",
+        "com.yasoon.jira/dialogs/renderer/getter/*",
+        "com.yasoon.jira/dialogs/renderer/setter/*",
+        "com.yasoon.jira/dialogs/renderer/*"
     ]
 }

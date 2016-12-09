@@ -3,7 +3,6 @@
 /// <reference path="../../../definitions/handlebars.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
 
-
 class AttachmentField extends Field implements IFieldEventHandler {
     static uiActionRename = 'renameAttachment';
     static uiActionSelect = 'selectAttachment';
@@ -17,7 +16,6 @@ class AttachmentField extends Field implements IFieldEventHandler {
         super(id, fieldMeta);
 
         this.attachments = attachments;
-
         this.getTemplate = Promise.all([
             $.getScript(yasoon.io.getLinkPath('templates/attachmentFieldsNew.hbs.js')),
             $.getScript(yasoon.io.getLinkPath('templates/attachmentLink.hbs.js')),

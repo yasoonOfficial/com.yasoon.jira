@@ -1,10 +1,10 @@
-/// <reference path="../Field.ts" />
-/// <reference path="Select2AjaxField.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
-/// <reference path="../../../definitions/common.d.ts" />
-/// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../getter/GetTextValue.ts" />
-/// <reference path="../setter/SetOptionValue.ts" />
+/// <reference path="../../../Field.ts" />
+/// <reference path="../../Select2AjaxField.ts" />
+/// <reference path="../../../../../definitions/jquery.d.ts" />
+/// <reference path="../../../../../definitions/common.d.ts" />
+/// <reference path="../../../../../definitions/bluebird.d.ts" />
+/// <reference path="../../../getter/GetTextValue.ts" />
+/// <reference path="../../../setter/SetOptionValue.ts" />
 
 @getter(GetterType.Text)
 @setter(SetterType.Option)
