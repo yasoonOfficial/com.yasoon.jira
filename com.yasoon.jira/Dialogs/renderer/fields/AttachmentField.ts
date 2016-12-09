@@ -24,7 +24,7 @@ class AttachmentField extends Field implements IFieldEventHandler {
         ])
             .spread(function () {
                 Handlebars.registerPartial("attachmentLink", jira.templates.attachmentLink);
-                return jira.templates.attachmentFields;
+                return jira.templates.attachmentFieldsNew;
             });
 
         FieldController.registerEvent(EventType.AfterSave, this);

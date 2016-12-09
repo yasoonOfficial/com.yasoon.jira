@@ -101,6 +101,8 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                     } else {
                         $(this.ownContainer).find('#switchServiceMode').addClass('hidden');
                     }
+
+                    this.setValue(result[0].data);
                 });
             } else if (source === FieldController.requestTypeFieldId) {
                 let requestType: JiraRequestType = newValue;

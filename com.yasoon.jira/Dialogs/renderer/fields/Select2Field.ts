@@ -62,7 +62,7 @@ abstract class Select2Field extends Field {
 		container.append($(`<select class="select input-field" id="${this.id}" name="${this.id}" style="${this.styleCss}" ${(this.multiple) ? 'multiple' : ''}>
 							${ ((!this.multiple) ? '<option></option>' : '')}
 							</select>
-							<img src="Dialogs/ajax-loader.gif" class="hidden" id="${this.id}-spinner" />`));
+							<img src="images/ajax-loader.gif" class="hidden" id="${this.id}-spinner" />`));
 
 		$('#' + this.id)["select2"](this.options);
 	}
