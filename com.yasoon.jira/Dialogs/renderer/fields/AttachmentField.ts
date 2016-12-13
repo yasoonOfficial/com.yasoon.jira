@@ -4,6 +4,8 @@
 /// <reference path="../../../definitions/common.d.ts" />
 
 class AttachmentField extends Field implements IFieldEventHandler {
+    static defaultMeta: JiraMetaField = { key: FieldController.attachmentFieldId, get name() { return yasoon.i18n('dialog.attachment'); }, required: false, schema: { system: 'attachment', type: '' } };
+
     static uiActionRename = 'renameAttachment';
     static uiActionSelect = 'selectAttachment';
     static uiActionAddRef = 'addRefAttachment';
@@ -15,10 +17,10 @@ class AttachmentField extends Field implements IFieldEventHandler {
     constructor(id: string, fieldMeta: JiraMetaField, attachments: JiraFileHandle[]) {
         super(id, fieldMeta);
 
-        this.attachments = attachments;
+        this.attachments = attachments || [];
         this.getTemplate = Promise.all([
-            $.getScript(yasoon.io.getLinkPath('templates/attachmentFieldsNew.hbs.js')),
-            $.getScript(yasoon.io.getLinkPath('templates/attachmentLink.hbs.js')),
+            $.getScript(yasoon.io.getLinkPath('templates/attachmentFieldsNew.js')),
+            $.getScript(yasoon.io.getLinkPath('templates/attachmentLink.js')),
         ])
             .spread(function () {
                 Handlebars.registerPartial("attachmentLink", jira.templates.attachmentLink);
@@ -84,6 +86,10 @@ class AttachmentField extends Field implements IFieldEventHandler {
 
     setValue() {
         //Attachments work differently
+    }
+
+    getSelectedAttachments() {
+        return this.attachments.filter((a) => a.selected);
     }
 
     getCurrentAttachment(elem: JQuery): any {
@@ -274,6 +280,9 @@ class AttachmentField extends Field implements IFieldEventHandler {
     }
 
     render(container: JQuery) {
+        if (!this.attachments)
+            return;
+
         return this.getTemplate
             .then((template) => {
                 this.attachments.forEach((attachment) => {
@@ -292,8 +301,8 @@ class AttachmentField extends Field implements IFieldEventHandler {
 
                 this.currentParameters = {
                     id: this.id,
-                    attachments: this.attachments.filter(function (val) { return !val.blacklisted; }),
-                    blacklistedAttachments: this.attachments.filter(function (val) { return val.blacklisted; })
+                    attachments: this.attachments.filter(function (val) { return !val.blacklisted; }) || [],
+                    blacklistedAttachments: this.attachments.filter(function (val) { return val.blacklisted; }) || []
                 };
 
                 $(container).html(template(this.currentParameters));

@@ -40,48 +40,6 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
 
     }
 
-    hookEventHandler() {
-        super.hookEventHandler();
-        $('#' + this.id).on('select2:select', (evt, data) => {
-
-            //Move all this to addComment Dialog
-            //We trigger this event manually in setValue.
-            //This leads to different eventData :/
-			/*var issue = null;
-			if (data) {
-				issue = {
-					project: data.fields.project,
-					id: data.id
-				};
-			} else if (jira.mode === 'jiraAddCommentDialog' && evt.params && evt.params.data) {
-				issue = evt.params.data;
-			} else {
-				$('.buttons').removeClass('servicedesk');
-				$('.buttons').removeClass('no-requesttype');
-				return;
-			}
-
-
-			var currentProject = jira.projects.filter(function (p) { return p.id === issue.project.id; })[0];
-			if (!currentProject || currentProject.projectTypeKey !== 'service_desk') {
-				$('.buttons').removeClass('servicedesk');
-				$('.buttons').removeClass('no-requesttype');
-				return;
-			}
-
-			//We have a service Project... Check if it is a service request
-			jiraGet('/rest/servicedeskapi/request/' + issue.id)
-				.then(function (data) {
-					$('.buttons').addClass('servicedesk');
-					$('.buttons').removeClass('no-requesttype');
-				})
-				.catch(function (e) {
-					$('.buttons').addClass('no-requesttype');
-					$('.buttons').removeClass('servicedesk');
-				});*/
-        });
-    }
-
     private getReturnStructure(issues?: Select2Element[], queryTerm?: string) {
         let result: Select2Element[] = [];
         // 1. Build recent suggestion
@@ -145,12 +103,17 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
                 let result: Select2Element[] = [];
                 console.log(jqlResult);
                 //Transform Data
-                jqlResult.issues.forEach(function (issue) {
-                    result.push(this.convertToSelect2(issue));
-                });
-
+                result = jqlResult.issues.map(this.convertToSelect2);
                 return result;
             });
+    }
+
+    triggerValueChange() {
+        let issue: JiraIssue = this.getObjectValue();
+        if ((!this.lastValue && issue) || (this.lastValue && !issue) || (this.lastValue && issue && this.lastValue.id !== issue.id)) {
+            FieldController.raiseEvent(EventType.FieldChange, issue, this.id);
+            this.lastValue = issue;
+        }
     }
 
     convertToSelect2(issue: JiraIssue): Select2Element {
@@ -178,9 +141,11 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
 
     setProject(project: JiraProject): void {
         this.currentProject = project;
-        this.getProjectIssues = this.queryData('')
-            .then((issues) => {
-                return this.getReturnStructure(issues);
-            });
+        if (this.currentProject) {
+            this.getProjectIssues = this.queryData('')
+                .then((issues) => {
+                    return this.getReturnStructure(issues);
+                });
+        }
     }
 }

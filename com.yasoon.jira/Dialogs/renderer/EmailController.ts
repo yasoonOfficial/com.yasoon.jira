@@ -11,7 +11,7 @@ interface JiraFileHandle extends yasoonModel.EmailAttachmentFileHandle {
     fileNameNoExtension: string;
 }
 
-class EmailController implements IEmailController {
+class EmailController implements IEmailController, IFieldEventHandler {
     static settingCreateTemplates = 'createTemplates';
 
     fieldMapping = {
@@ -35,6 +35,8 @@ class EmailController implements IEmailController {
 
     senderUser: JiraUser;
     senderTemplates: JiraProjectTemplate[];
+
+    mailConversationData: YasoonConversationData;
 
     //Initial action
     type: JiraDialogType;
@@ -106,6 +108,32 @@ class EmailController implements IEmailController {
         this.getAttachmentFileHandles();
     }
 
+    handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
+        if (type === EventType.AfterSave && this.mail) {
+            let eventData: LifecycleData = newValue;
+            try {
+                //Set Conversation Data
+                let conversationData = this.getConversationData();
+                let issue: JiraIssue = eventData.newData;
+
+                conversationData.issues[issue.id] = { id: issue.id, key: issue.key, summary: issue.fields['summary'], projectId: issue.fields['project'].id };
+                yasoon.outlook.mail.setConversationData(this.mail, JSON.stringify(conversationData)); //jira.mail.setConversationData(JSON.stringify(conversation));
+
+                //Set new message class to switch icon
+                if (!this.mail.isSignedOrEncrypted || jira.settings.overwriteEncrypted)
+                    this.mail.setMessageClass('IPM.Note.Jira');
+            } catch (e) {
+                //Not so important
+                yasoon.util.log('Failed to set Conversation data', yasoon.util.severity.info, getStackTrace(e));
+            }
+
+            //Save Template if created by Email
+            this.saveSenderTemplate(eventData.newData);
+
+        }
+
+        return null;
+    }
     getAttachmentFileHandles() {
         //If created by email, check for templates and attachments
         if (this.mail && !this.attachmentHandles) {
@@ -144,9 +172,12 @@ class EmailController implements IEmailController {
         }
     }
 
-    setBody() {
-        if (this.fieldMapping.body) {
-            let field = FieldController.getField(this.fieldMapping.body);
+    setBody(fieldId?: string) {
+        if (!fieldId)
+            fieldId = this.fieldMapping.body;
+
+        if (fieldId) {
+            let field = FieldController.getField(fieldId);
             if (field) {
                 let markupPromise = Promise.resolve('');
 
@@ -296,10 +327,31 @@ class EmailController implements IEmailController {
         }
     }
 
-    saveSenderTemplate(values) {
+    getConversationData(): YasoonConversationData {
+        if (!this.mailConversationData) {
+            let convData: string = yasoon.outlook.mail.getConversationData(this.mail);
+            if (convData) {
+                this.mailConversationData = JSON.parse(convData);
+            } else {
+                this.mailConversationData = {
+                    issues: {}
+                };
+            }
+        }
+
+        return this.mailConversationData;
+    }
+
+    saveSenderTemplate(values: JiraIssue) {
         if (this.mail) {
-            let projectField = <ProjectField>FieldController.getField(FieldController.projectFieldId);
-            let project: JiraProject = projectField.getObjectValue();
+            let project: JiraProject = null;
+            if (values.fields && values.fields['project']) {
+                project = values.fields['project'];
+            } else {
+                let projectField = <ProjectField>FieldController.getField(FieldController.projectFieldId);
+                project = projectField.getObjectValue();
+            }
+
 
             let projectCopy: JiraProject = JSON.parse(JSON.stringify(project));
             delete projectCopy.issueTypes;
@@ -310,7 +362,7 @@ class EmailController implements IEmailController {
                 senderEmail: this.mail.senderEmail,
                 senderName: this.mail.senderName,
                 project: project,
-                values: values
+                values: newValues
             }
 
             delete template.values.fields.summary;

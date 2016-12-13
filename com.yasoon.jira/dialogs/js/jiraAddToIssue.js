@@ -2,7 +2,7 @@ var jira = {};
 
 $(function () {
 	$('body').css('overflow-y', 'hidden');
-	$('form').on('submit', function(e) {
+	$('form').on('submit', function (e) {
 		e.preventDefault();
 		return false;
 	});
@@ -11,46 +11,34 @@ $(function () {
 $(window).resize(resizeWindow);
 
 yasoon.dialog.load(new function () { //jshint ignore:line
+	var a = {}; //just for correct highlighting :) Otherwise Visual Code does not work correctly
 	var self = this;
-   
 	jira = this;
-	jira.CONST_HEADER = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
-
-	this.UIFormHandler = UIRenderer;
 	this.icons = new JiraIconController();
-	this.settings = null;
 
-	this.mail = null;
-	this.issue = null;
-	this.mailConversationData = null;
-	this.addedAttachmentIds = [];
-	this.selectedAttachments = [];
-	this.projects = [];
-	this.selectedProjectId = null;
-	this.selectedProjectKey = null;
-	this.mode = 'jiraAddCommentDialog';
-
-	this.mailAsMarkup = '';
-	this.recentIssues = [];
-	this.recentProjects = [];
-	this.projectIssues = [];
+	this.settings = {};
+	this.mail = {};
 	this.cacheProjects = [];
-	this.fieldTypes = {};
-	
+	this.issue = {};
+	this.type = ''; //Either '' or 'wholeMail' or 'selectedText'
+
+
+	this.currentProject = null;
+	this.currentIssue = null;
+
 
 	this.init = function (initParams) {
 		//Parameter taken over from Main JIRA
 		self.mail = initParams.mail;
-		self.isEditMode = false;
-		self.isAddCommentMode = true;
 		self.settings = initParams.settings;
 		self.selectedText = initParams.text;
 		self.cacheProjects = initParams.projects;
 		self.issue = initParams.issue;
+		self.type = initParams.type;
 
 		//Register Close Handler
 		yasoon.dialog.onClose(self.cleanup);
-		
+
 		// Resize Window if nessecary (sized are optimized for default Window - user may have changed that)
 		resizeWindow();
 
@@ -63,199 +51,92 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			template: '<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title" style="background-color:#fcf8e3;"></h3><div class="popover-content"></div></div>',
 			trigger: 'click' //'click'
 		});
-		
-		//Save FieldType for later reuse.
-		self.fieldTypes = {
-			comment: { name: yasoon.i18n('dialog.comment'), schema: { system: 'description' } },
-			attachment: { name: yasoon.i18n('dialog.attachment'), schema: { system: 'attachment' } }
-		};
+		setTimeout(self.initDelayed, 1);
+	};
 
-		//Render fields
-		self.UIFormHandler.render('comment', self.fieldTypes.comment, $('#ContentArea'));
-		self.UIFormHandler.render('attachment', self.fieldTypes.attachment, $('#ContentArea'));
-		
-		//Load Recent Issues from DB
-		var projectsString = yasoon.setting.getAppParameter('recentProjects');
-		if (projectsString) {
-			self.recentProjects = JSON.parse(projectsString);
-		}
-		
-		//Load Recent Issues from DB
-		var issuesString = yasoon.setting.getAppParameter('recentIssues');
-		if (issuesString) {
-			self.recentIssues = JSON.parse(issuesString);
-		}
+	this.initDelayed = function () {
+		//Render Header fields
+		FieldController.loadField(ProjectField.defaultMeta, ProjectField, { cache: jira.cacheProjects, allowClear: true });
+		FieldController.render(FieldController.projectFieldId, $('#HeaderArea'));
 
-		//Render current mail (just in case we need it as it probably needs some time)
-		if (self.mail) {
-			//Add current mail to clipboard
-			var handle = self.mail.getFileHandle();
-			if (self.settings.addEmailOnNewAddIssue) {
-				handle.selected = true;
-			}
-			self.selectedAttachments.push(handle);
+		FieldController.loadField(IssueField.defaultMeta, IssueField);
+		FieldController.render(FieldController.issueFieldId, $('#IssueArea'));
 
-			if (self.mail.attachments && self.mail.attachments.length > 0) {
-				self.mail.attachments.forEach(function (attachment) {
-					var handle = attachment.getFileHandle();
-					if (self.settings.addAttachmentsOnNewAddIssue) {
-						handle.selected = true;
-					}
-					self.selectedAttachments.push(handle);
-				});
-			}
+		//Render Content fields
+		FieldController.loadField(MultiLineTextField.defaultCommentMeta, MultiLineTextField, { hasMentions: true });
+		FieldController.render(FieldController.commentFieldId, $('#ContentArea'));
 
-			//Only show loader if no text is rendered yet 
-			if (!self.selectedText)
-				$('#markupLoader').show();
-								
-			yasoon.outlook.mail.renderBody(self.mail, 'jiraMarkup')
-			.then(function (markup) {
-				jira.mailAsMarkup = markup;
-				//If there is no selection, set this as description;
-				if (!self.selectedText) {
-					//Handle auto header add setting
-					return self.setBodyMarkup(markup);
-				}
-			})
-			.catch(function () {
-				jira.mailAsMarkup = yasoon.i18n('general.couldNotRenderMarkup');
-				if (!self.selectedText) {
-					jira.UIFormHandler.setValue('description', { schema: { custom: 'description' } }, jira.mailAsMarkup);
-				}
-			})
-			.finally(function() {
-				$('#markupLoader').hide();
-			});
-		}		
+		FieldController.loadField(AttachmentField.defaultMeta, AttachmentField);
+		FieldController.render(FieldController.attachmentFieldId, $('#ContentArea'));
 
-		//Add Default Data
-		if (self.selectedText) {
-			self.setBodyMarkup(self.selectedText);
+
+		//Hook up events
+		FieldController.registerEvent(EventType.FieldChange, self, FieldController.projectFieldId);
+		FieldController.registerEvent(EventType.FieldChange, self, FieldController.issueFieldId);
+
+		if (jira.mail) {
+			jira.emailController = new EmailController(jira.mail, jira.type, jira.settings, jira.ownUser);
+			jira.emailController.setBody(FieldController.commentFieldId);
 		}
 
-		//Init Projects
-		$('#project').select2({
-			placeholder: yasoon.i18n('dialog.placeholderFilterProject')
-		});
-		$('#ProjectSpinner').css('display', 'inline');
-
-		//Please don't change, weird resize bug whatever
-		// => We need the thenable to be executed async
-		var projectGet = Promise.delay(jira.cacheProjects, 1);
-			
-		if (!jira.cacheProjects || jira.cacheProjects.length === 0) 
-			projectGet = Promise.resolve(jiraGet('/rest/api/2/project'));
-				
-		projectGet
-		.then(function (data) {
-			//Populate Project Dropdown
-			if (typeof(data) === 'string')
-				self.projects = JSON.parse(data);
-			else
-				self.projects = data;
-					
-			self.createProjectLoader(self.projects);
-
-			//Issue is provided by Task Object
-			if (self.issue) {
-				$('#project').val(self.issue.fields.project.id).trigger('change');
-				return;
-			}
-			//If mail is provided && subject contains reference to project, pre-select that
-			else if (self.mail) {					
-				var convData = self.getConversationData(self.mail);
-				if(convData) {
-					//Try to find project that matches
-					//We could just lookup the first issue and directly select the projectId.
-					//However, we want to support longterm enhancements where conversationData could be shared with others and then the project might not exist for this user.
-					for (var id in convData.issues) {
-						id = parseInt(id);
-						if (self.projects.filter(function (el) { return el.id === convData.issues[id].projectId; }).length > 0) //jshint ignore:line
-						{
-							$('#project').val(convData.issues[id].projectId).trigger('change');
-							return; //Quit loop & promise chain -> subject handling will not be done if we find something here
-						}
-					}
-				}
-					
-				if (self.mail.subject) {
-					//Sort projects by key length descending, so we will match the following correctly:
-					// Subject: This is for DEMODD project
-					// Keys: DEMO, DEMOD, DEMODD
-					var projectsByKeyLength = self.projects.sort(function(a, b) {
-						return b.key.length - a.key.length; // ASC -> a - b; DESC -> b - a
-					});
-						
-					for (var i = 0; i < projectsByKeyLength.length; i++) {
-						var curProj = projectsByKeyLength[i];
-						if (self.mail.subject.indexOf(curProj.key) >= 0) {							
-							$('#project').val(curProj.id).trigger('change');
-							break;
-						}
-					}
-				}
-			}
-		}).catch(jira.handleError);
+		// Resize Window to maximize Comment field
+		resizeWindow();
 
 		//Submit Button - (Create & Edit)
 		$('.submit-button').off().click(self.submitForm);
 		$('#add-issue-cancel').off().click(function () {
-			self.close({ action: 'cancel' });
+			yasoon.dialog.close({ action: 'cancel' });
 		});
-
-		self.createIssueLoader();
-	}; 
-
-	this.setBodyMarkup = function(baseMarkup) {
-		var markup = baseMarkup;		
-
-		if (self.settings.addMailHeaderAutomatically === 'top') {
-			markup = renderMailHeaderText(self.mail, true) + '\n' + markup;
-		}
-		else if (self.settings.addMailHeaderAutomatically === 'bottom') {
-			markup = markup + '\n' + renderMailHeaderText(self.mail, true);
-		}
-
-		return handleAttachments(markup, self.mail).then(function(newMarkup) {
-			jira.mailAsMarkup = newMarkup;
-			$('#comment').val(newMarkup);
-		});
-	};
-
-	this.close = function (params) {
-		yasoon.dialog.close(params);
 	};
 
 	this.cleanup = function () {
-		//Invalidate dialog events, so that the following won't throw any events => will lead to errors
+		//Invalidate dialog events so the following won't throw any events => will lead to errors
 		// due to pending dialog.close
 		yasoon.dialog.clearEvents();
 
-		//Dispose all Attachments
-		jira.selectedAttachments.forEach(function (handle) {
-			try {
-				handle.dispose();
-			} catch (e) {
-				//System.Exception: TrackedObjectRegistry: Tried to access object which not found! (probably already de-referenced)
+		FieldController.raiseEvent(EventType.Cleanup, null);
+	};
+
+	this.handleEvent = function (type, newValue, source) {
+		if (source === FieldController.projectFieldId) {
+			self.currentProject = newValue;
+		} else if (source === FieldController.issueFieldId) {
+			self.currentIssue = newValue;
+			if (newValue) {
+				self.currentProject = newValue.fields.project;
 			}
-		});
+			console.log(newValue);
+			$('.buttons').removeClass('servicedesk');
+			$('.buttons').addClass('no-requesttype');
+
+			if (self.currentIssue && self.currentIssue.fields.project && self.currentIssue.fields.project.projectTypeKey === 'service_desk') {
+
+				//We have a service Project... Check if it is a service request
+				jiraGet('/rest/servicedeskapi/request/' + self.currentIssue.id)
+					.then(function (data) {
+						$('.buttons').addClass('servicedesk');
+						$('.buttons').removeClass('no-requesttype');
+					})
+					.catch(function (e) {
+						$('.buttons').addClass('no-requesttype');
+						$('.buttons').removeClass('servicedesk');
+					});
+			}
+		}
 	};
 
 	this.submitForm = function (e) {
-		//technical stuff:
-		//If Issue has been preselected, the data attributes may be found on $('issue') instead of the option itself.
-		var selectedIssueId = self.getSelectedIssueId();
-		var selectedOption = self.getSelectedIssueOption();
-
-		if (!selectedIssueId) {
+		if (!self.selectedIssue) {
 			yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSelectIssue'));
 			return;
 		}
-		var comment = jira.UIFormHandler.getValue('comment', self.fieldTypes.comment);
+
+		var comment = FieldController.getValue(FieldController.commentFieldId);
 		console.log('Kommentar:', comment);
 
-		if (!comment && !jira.selectedAttachments.length) {
+		var attachments = FieldController.getField(FieldController.attachmentFieldId).getSelectedAttachments();
+
+		if (!comment && (!attachments || attachments.length === 0)) {
 			yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorNoData'));
 			return;
 		}
@@ -265,21 +146,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		$('#add-issue-submit').attr('disabled', 'disabled');
 		$('#JiraSpinner').show();
 
-		//Add Recent issue
-		var text = selectedOption.data('text');
-		var issueKey = selectedOption.data('key');
-		var issueSummary = selectedOption.data('summary');
-		var projectKey = selectedOption.data('projectKey');
-		var projectId = selectedOption.data('projectId');
-		projectId = projectId.toString();
-
-		self.addRecentIssue({ id: selectedIssueId, text: text, key: issueKey, project: { id: projectId, key: projectKey }, summary: issueSummary });
+		//Todo: Add Recent Issue
+		//Add Recent Project
 
 		var promises = [];
 
 		var url = '';
 		var body = null;
-		var type = $(this).data('type');
+		var type = $(e.target).data('type');
 		if (type == 'submit') {
 			url = '/rest/api/2/issue/' + selectedIssueId + '/comment';
 			body = { body: comment };
@@ -295,88 +169,42 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 			//Upload comment
 			promises.push(
 				jiraAjax(url, yasoon.ajaxMethod.Post, JSON.stringify(body))
-				.catch(jiraSyncError, function (e) {
-					$('#MainAlert .errorText').text(yasoon.i18n('dialog.errorSubmitComment', { error: e.getUserFriendlyError() }));
-					$('#MainAlert').show();
-					yasoon.util.log('Error on sending a comment: ' + e.getUserFriendlyError(), yasoon.util.severity.info);
-					throw e;
-				})
-				.then(function() {
-					//Save issueId in conversation data
-					if (jira.mail) {
-						try {
-							//Set Conversation Data
-							var conversationString = yasoon.outlook.mail.getConversationData(jira.mail);
-							var conversation = {
-								issues: {}
-							};
-	
-							if (conversationString)
-								conversation = JSON.parse(conversationString);
-
-							conversation.issues[selectedIssueId] = { id: selectedIssueId, key: issueKey, summary: issueSummary, projectId: projectId };
-							yasoon.outlook.mail.setConversationData(jira.mail, JSON.stringify(conversation));
-						
-							//Set new message class to switch icon
-							if(!jira.mail.isSignedOrEncrypted || jira.settings.overwriteEncrypted)
-								jira.mail.setMessageClass('IPM.Note.Jira');
-
-						} catch (e) {
-							yasoon.util.log('Failed to set Conversation data', yasoon.util.severity.info, getStackTrace(e));
-						}
-					}
-				})
+					.catch(jiraSyncError, function (e) {
+						$('#MainAlert .errorText').text(yasoon.i18n('dialog.errorSubmitComment', { error: e.getUserFriendlyError() }));
+						$('#MainAlert').show();
+						yasoon.util.log('Error on sending a comment: ' + e.getUserFriendlyError(), yasoon.util.severity.info);
+						throw e;
+					})
 			);
 		}
 
-		if (jira.selectedAttachments.length > 0) {
-			//Upload files
-			var formData = [];
-			self.selectedAttachments.forEach(function (file) {
-				if (file.selected) {
-					formData.push({
-						type: yasoon.formData.File,
-						name: 'file',
-						value: file
-					});
-				}
-			});
-			if (formData.length > 0) {
-				promises.push(
-					jiraAjax('/rest/api/2/issue/' + selectedIssueId + '/attachments', yasoon.ajaxMethod.Post, null, formData)
-					.catch(jiraSyncError, function (e) {
-						yasoon.util.log(e.message + ' || ' + e.statusCode + ' || ' + e.errorText + ' || ' + e.result + ' || ' + e.data + ' || ' + e.getUserFriendlyError() + ' || ' + JSON.stringify(formData), yasoon.util.severity.warning);
-						$('#MainAlert .errorText').text(yasoon.i18n('dialog.errorAttachment', { error: e.getUserFriendlyError() }));
-						$('#MainAlert').show();
-						throw e;
-					})
-				);
-			}
+		var lifecycleData = {
+			newData: self.selectedIssue
+		};
+
+		//Wait till all AfterSave actions are done
+		var eventPromise = FieldController.raiseEvent(EventType.AfterSave, lifecycleData);
+		if (eventPromise) {
+			promises.push(eventPromise);
 		}
 
 		Promise.all(promises)
-		.then(function () {
-			self.close({ action: "success" });
-		})
-		.catch(function (e) {
-			console.log('Exception occured', e);
-			if (e.name === 'SyncError') {
-				yasoon.util.log(e.message + ' || ' + e.statusCode + ' || ' + e.errorText + ' || ' + e.result + ' || ' + e.data , yasoon.util.severity.warning);
-			}
-		}).finally(function () {
-			$('#add-issue-submit').removeAttr("disabled");
-			$('#JiraSpinner').hide();
-		});
-		
+			.then(function () {
+				self.close({ action: "success" });
+			})
+			.catch(function (e) {
+				console.log('Exception occured', e);
+				if (e.name === 'SyncError') {
+					yasoon.util.log(e.message + ' || ' + e.statusCode + ' || ' + e.errorText + ' || ' + e.result + ' || ' + e.data, yasoon.util.severity.warning);
+				}
+			}).finally(function () {
+				$('#add-issue-submit').removeAttr("disabled");
+				$('#JiraSpinner').hide();
+			});
+
 		e.preventDefault();
 	};
 
-	this.handleError = function (data, statusCode, result, errorText, cbkParam) {
-		$('#MainAlert .errorText').text(yasoon.i18n('dialog.connectionError'));
-		$('#MainAlert').show();
-		$('#LoaderArea').hide();
-		yasoon.util.log(statusCode + ' || ' + errorText + ' || ' + result + ' || ' + data, yasoon.util.severity.warning);
-	};
 
 	this.selectProject = function () {
 		jira.selectedProjectKey = $('#project').find(':selected').data('key');
@@ -388,10 +216,10 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		if (self.issue) {
 			issueKey = self.issue.key;
 
-		//If mail is provided && subject contains reference to issue, pre-select that
+			//If mail is provided && subject contains reference to issue, pre-select that
 		} else if (self.mail) {
 			var convData = self.getConversationData(self.mail);
-			
+
 			if (convData) {
 				//Try to find issue key that is in selected project
 				for (var id in convData.issues) {
@@ -410,34 +238,34 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 				if (match && match.length > 0) {
 					issueKey = match[0];
 				}
-			}			
+			}
 		}
 
 		if (issueKey) {
 			$('#IssueSpinner').css('display', 'inline');
 			return jiraGet('/rest/api/2/issue/' + issueKey)
-			.then(function (data) {
-				var issue = JSON.parse(data);
+				.then(function (data) {
+					var issue = JSON.parse(data);
 
-				//Add the issue to the dropdown
-				self.projectIssues.push({
-					id: issue.id,
-					key: issue.key,
-					text: issue.fields.summary + ' (' + issue.key + ')',
-					summary: issue.fields.summary,
-					project: { id: issue.fields.project.id, key: issue.fields.project.key }
+					//Add the issue to the dropdown
+					self.projectIssues.push({
+						id: issue.id,
+						key: issue.key,
+						text: issue.fields.summary + ' (' + issue.key + ')',
+						summary: issue.fields.summary,
+						project: { id: issue.fields.project.id, key: issue.fields.project.key }
+					});
+
+					//Rebuild select2
+					self.createIssueLoader(issue);
+				})
+				.catch(function () {
+					yasoon.util.log('Couldn\'t find issue: ' + issueKey, yasoon.util.severity.warning);
+					//Issue not found? Ignore..
+				})
+				.finally(function () {
+					$('#IssueSpinner').css('display', 'none');
 				});
-
-				//Rebuild select2
-				self.createIssueLoader(issue);
-			})
-			.catch(function () {
-				yasoon.util.log('Couldn\'t find issue: ' + issueKey, yasoon.util.severity.warning);
-				//Issue not found? Ignore..
-			})
-			.finally(function () {
-				$('#IssueSpinner').css('display', 'none');
-			});
 		}
 	};
 
@@ -453,102 +281,6 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		}
 	};
 
-	this.createIssueLoader = function createIssueLoader(issue) {
-		var issueRenderer = new IssuePickerRenderer();
-
-		issueRenderer.render('issue', { required: true }, $('#IssueArea'));
-
-		//Create Initial Selection
-		if (issue) {
-			console.log('Init Selection' , issue);
-			issueRenderer.setValue('issue', issue);
-		}		
-	};
-	
-	this.createProjectLoader = function createProjectLoader(projects) {
-		if ($('#project').data('select2')) {
-			//Refresh
-			$('#project').select2("destroy").removeData();
-		}
-
-		//Create new DOM
-		var group = $('#project').find('.all').empty();
-		$.each(projects, function (i, project) {
-			group.append('<option value="' + project.id + '" data-icon="' + getProjectIcon(project) + '" data-key="' + project.key + '">' + project.name + '</option>');
-		});
-				
-		group = $('#project').find('.recent').empty();
-		$.each(self.recentProjects, function (i, proj) {
-			var project = projects.filter(function (p) { return p.key === proj.key; })[0];
-			if (project) {
-				group.append('<option value="' + project.id + '" data-icon="' + getProjectIcon(project) + '" data-key="' + project.key + '">' + project.name + '</option>');
-			}
-		});
-
-
-		$('#project').select2({
-			placeholder: yasoon.i18n('dialog.placeholderFilterProject'),
-			templateResult: formatIcon,
-			templateSelection: formatIcon,
-			allowClear: true
-		});
-
-		$('#ProjectSpinner').css('display', 'none');
-		$('#project').change(self.selectProject);
-		$('#project').next().find('.select2-selection').first().focus();
-	};
-	
-	this.getConversationData = function getConversationData(mail) {
-		if(!self.mailConversationData) {
-			var convData = yasoon.outlook.mail.getConversationData(self.mail);					
-			if (convData) {
-				self.mailConversationData = JSON.parse(convData);
-			}
-		}
-
-		return self.mailConversationData;
-	};
-
-	this.getSelectedIssueId = function getSelectedIssueId() {
-		return self.getSelectedIssueOption().data('id');
-	};
-
-	this.getSelectedIssueOption = function getSelectedIssueOption() {
-		var selectedOption = $('#issue').find(':selected');
-		var id = selectedOption.data('id');
-		if (!id) {
-			selectedOption = $('#issue');
-		}
-		return selectedOption;
-	};
-
-	this.handleAttachments = function (markup, attachments) {
-		//Check each attachment if it needs to be embedded
-		attachments.forEach(function (attachment) {
-			if (markup.indexOf('!' + attachment.contentId + '!') > -1) {
-				//Mark attachments selected
-				var handle = self.selectedAttachments.filter(function (a) { return a.contentId === attachment.contentId; })[0];
-				if (handle) {
-					//Provide unique name for attachments
-					var uniqueKey = getUniqueKey();
-					var oldFileName = handle.getFileName();
-					var newFileName = oldFileName.substring(0, oldFileName.lastIndexOf('.'));
-					newFileName = newFileName + '_' + uniqueKey + oldFileName.substring(oldFileName.lastIndexOf('.'));
-					handle.setFileName(newFileName);
-					handle.selected = true;
-
-					//Replace the reference in the markup								
-					var regEx = new RegExp('!' + attachment.contentId + '!', 'g');
-					markup = markup.replace(regEx, '!' + handle.getFileName() + '!');
-					handle.setInUse();
-				}
-			}
-		});
-
-		jira.UIFormHandler.getRenderer('attachment').refresh('attachment');
-		return markup;
-	};
-
 }); //jshint ignore:line
 
 function resizeWindow() {
@@ -561,7 +293,7 @@ function resizeWindow() {
 		//155 => Min height of comment field
 
 		//If the rest has 270 pixel, only increase the comment field
-		if ((bodyHeight - 185 - 270 - 155) > 0) 
+		if ((bodyHeight - 185 - 270 - 155) > 0)
 			$('#comment').height((bodyHeight - 185 - 270));
 
 	} else {

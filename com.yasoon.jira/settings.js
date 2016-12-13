@@ -77,7 +77,7 @@ function JiraSettingController() {
 		};
 
 		if (!templateLoaded) {
-			var path = yasoon.io.getLinkPath('templates/settings.hbs.js');
+			var path = yasoon.io.getLinkPath('templates/settings.js');
 			$.getScript(path, function (template) {
 				templateLoaded = true;
 				settingTemplate = jira.templates.settings;

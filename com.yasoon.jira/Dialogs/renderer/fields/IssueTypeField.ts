@@ -13,6 +13,7 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
     static uiActionServiceDesk = 'ServiceDeskActivated';
 
     private currentProject: JiraProject;
+    private initialId: string;
 
     constructor(id: string, field: JiraMetaField) {
         let options: Select2Options = {};
@@ -102,7 +103,18 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                         $(this.ownContainer).find('#switchServiceMode').addClass('hidden');
                     }
 
-                    this.setValue(result[0].data);
+                    if (this.initialValue) {
+                        //Check if this issue type is still available for this project
+                        let issueType = result.filter((it) => { return it.id === this.initialValue; })[0];
+                        if (issueType) {
+                            this.setValue(issueType);
+                        } else {
+                            this.setValue(result[0].data);
+                        }
+                    } else {
+                        this.setValue(result[0].data);
+                    }
+
                 });
             } else if (source === FieldController.requestTypeFieldId) {
                 let requestType: JiraRequestType = newValue;

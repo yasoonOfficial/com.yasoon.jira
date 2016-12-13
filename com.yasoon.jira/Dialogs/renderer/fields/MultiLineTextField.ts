@@ -6,6 +6,8 @@
 @getter(GetterType.Text)
 @setter(SetterType.Text)
 class MultiLineTextField extends Field implements IFieldEventHandler {
+    static defaultCommentMeta: JiraMetaField = { key: FieldController.commentFieldId, get name() { return yasoon.i18n('dialog.comment'); }, required: false, schema: { system: 'description', type: '' } };
+
     private isMainField: boolean;
     private hasMentions: boolean;
     private height: string;

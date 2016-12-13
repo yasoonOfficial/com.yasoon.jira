@@ -6,6 +6,13 @@
 /// <reference path="../getter/GetOption.ts" />
 /// <reference path="../setter/SetOptionValue.ts" />
 
+
+
+interface ProjectFieldOptions {
+    cache?: JiraProject[];
+    allowClear?: boolean;
+}
+
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
 class ProjectField extends Select2Field implements IFieldEventHandler {
@@ -18,10 +25,10 @@ class ProjectField extends Select2Field implements IFieldEventHandler {
     returnStructure: Select2Element[];
     isMainProjectField: boolean;
 
-    constructor(id: string, field: JiraMetaField, cache: JiraProject[]) {
+    constructor(id: string, field: JiraMetaField, fieldOptions: ProjectFieldOptions = { cache: [], allowClear: false }) {
         let options: Select2Options = {};
         options.placeholder = yasoon.i18n('dialog.placeholderSelectProject');
-        options.allowClear = (FieldController.projectFieldId !== id);
+        options.allowClear = fieldOptions.allowClear;
         super(id, field, options);
 
         this.isMainProjectField = (id === FieldController.projectFieldId);
@@ -32,8 +39,8 @@ class ProjectField extends Select2Field implements IFieldEventHandler {
             this.recentProjects = JSON.parse(projectsString);
         }
 
-        if (cache) {
-            this.projectCache = cache;
+        if (fieldOptions.cache) {
+            this.projectCache = fieldOptions.cache;
         }
 
         //Start Getting Data
@@ -53,7 +60,7 @@ class ProjectField extends Select2Field implements IFieldEventHandler {
 
     triggerValueChange() {
         let project: JiraProject = this.getObjectValue();
-        if (!this.lastValue || this.lastValue.id !== project.id) {
+        if ((!this.lastValue && project) || (this.lastValue && !project) || (this.lastValue && project && this.lastValue.id !== project.id)) {
             FieldController.raiseEvent(EventType.FieldChange, project, this.id);
             this.lastValue = project;
         }
@@ -79,8 +86,29 @@ class ProjectField extends Select2Field implements IFieldEventHandler {
     }
 
     setDefaultProject() {
+        //Applications like tasks may insert 
+        if (jira.issue && jira.issue.fields && jira.issue.fields.project) {
+            this.setValue(jira.issue.fields.project);
+        }
+        // Mail may already contain a conversation. Should this also be valid for newIssue?!
+        else if (jira.emailController) {
+            let convData: YasoonConversationData = jira.emailController.getConversationData();
+            if (convData) {
+                //Try to find project that matches
+                //We could just lookup the first issue and directly select the projectId.
+                //However, we want to support longterm enhancements where conversationData could be shared with others and then the project might not exist for this user.
+                for (let id in convData.issues) {
+                    let intId = parseInt(id);
+                    if (this.projectCache.filter((el) => { return el.id === convData.issues[id].projectId; }).length > 0) //jshint ignore:line
+                    {
+                        this.setValue(convData.issues[id].projectId);
+                        return; //-> subject handling will not be done if we find something here
+                    }
+                }
+            }
+        }
         //If mail is provided && subject contains reference to project, pre-select that
-        if (jira.emailController && jira.emailController.mail && jira.emailController.mail.subject && this.projectCache && this.projectCache.length > 0) {
+        else if (jira.emailController && jira.emailController.mail && jira.emailController.mail.subject && this.projectCache && this.projectCache.length > 0) {
             //Sort projects by key length descending, so we will match the following correctly:
             // Subject: This is for DEMODD project
             // Keys: DEMO, DEMOD, DEMODD

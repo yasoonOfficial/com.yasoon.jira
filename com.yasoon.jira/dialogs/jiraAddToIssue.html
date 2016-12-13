@@ -1,17 +1,15 @@
-<link rel="stylesheet" href="dialogs/style.css">
-<link rel="stylesheet" href="dialogs/select2.min.css">
-<link rel="stylesheet" href="dialogs/jquery-date.min.css" />
-<link rel="stylesheet" href="dialogs/jquery.mentionsInput.css" />
-<link rel="stylesheet" href="dialogs/switch.css">
-<script src="dialogs/select2.full.min.js"></script>
-<script src="dialogs/jquery.mentionsInput.js"></script>
+<link rel="stylesheet" href="dialogs/css/style.css">
+<link rel="stylesheet" href="libs/select2/select2.min.css">
+<link rel="stylesheet" href="libs/mentionsInput/jquery.mentionsInput.css" />
+<script src="libs/select2/select2.full.min.js"></script>
+<script src="libs/mentionsInput/jquery.mentionsInput.js"></script>
 <script src="common.js"></script>
-<script src="dialogs/jiraFieldRendererCore.js"></script>
-<script src="dialogs/jiraFieldRenderer.js"></script>
-<script src="dialogs/jiraAddToIssue.js"></script>
+<script src="dialogs/js/renderer.js"></script>
+<script src="dialogs/js/jiraAddToIssue.js"></script>
 
 <div style="padding: 10px;">
-	<div style="display:block; width: 100%; min-width: 550px;" class="jira-dialog addToIssue box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready" id="add-to-issue-dialog">
+	<div style="display:block; width: 100%; min-width: 550px;" class="jira-dialog addToIssue box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready"
+		id="add-to-issue-dialog">
 		<div class="jira-dialog-heading">
 			<h2 class="jira-title" data-bind="localizedText: 'dialog.titleAddToIssue'"></h2>
 		</div>
@@ -23,23 +21,11 @@
 							<div id="MainAlert" class="alert alert-danger" style="display:none; margin: -20px -20px 0px -20px; border-radius: 0px;">
 								<span class="errorText" data-bind="localizedText: 'dialog.connectionError'">Connection Error. Loading Values from Jira not possible.</span>
 							</div>
-							<div class="issue-setup-fields">
-								<div class="qf-field qf-field-project qf-required">
-									<div class="field-group ">
-										<label for="project" data-bind="localizedText: 'dialog.project'"></label>
-										<select class="select input-field" id="project" name="pid" style="width: 80%">
-											<option></option>
-											<optgroup class="recent" label="Recent Projects" data-bind="localizedText: {'label' : 'dialog.recentProjects' }"></optgroup>
-											<optgroup class="all" label="All Projects" data-bind="localizedText: {'label' : 'dialog.allProjects' }"></optgroup>
-										</select>
-										<img src="images/ajax-loader.gif" style="display:none;" id="ProjectSpinner" />
-									</div>
-								</div>
-								<div id="IssueArea" class="qf-field qf-field-issuetype qf-required">
-								</div>
+							<div id="HeaderArea">
+							</div>
+							<div id="IssueArea" class="issue-setup-fields">
 							</div>
 							<div id="ContentArea" class="content">
-								<div id="markupLoader"></div>
 							</div>
 							<div id="LoaderArea" style="display: none; position:absolute; background: url(/images/ajax-loader.gif) no-repeat center center; width: 500px; height: 350px;">
 							</div>
@@ -47,10 +33,11 @@
 						<div class="buttons-container form-footer">
 							<div class="buttons">
 								<img src="images/ajax-loader.gif" style="display:none; margin-right: 20px; margin-top: -12px;" id="JiraSpinner">
-								<span class="servicedesk-warning"><i class="fa fa-exclamation-circle servicedesk-popover" style="color:#ffd800; font-size: 20px; cursor:pointer; margin-right: 10px;" aria-hidden="true"></i></span>
+								<span class="servicedesk-warning"><i class="fa fa-exclamation-circle servicedesk-popover hidden" style="color:#ffd800; font-size: 20px; cursor:pointer; margin-right: 10px;" aria-hidden="true"></i></span>
 								<button type="button" accesskey="s" title="" class="button jira submit-button" id="add-issue-submit" data-type="submit" data-bind="localizedText: 'dialog.add'"></button>
-								<button type="button" accesskey="s" title="" class="aui-button aui-button-primary servicedesk submit-button" data-type="submitCustomer" data-bind="localizedText: 'dialog.addCustomer'"> Share with customer</button>
-								<button type="button" accesskey="s" title="" class="button servicedesk submit-button" data-type="submitInternal"  data-bind="localizedText: 'dialog.addInternal'"> Share internally</button>
+								<button type="button" accesskey="s" title="" class="aui-button aui-button-primary servicedesk submit-button" data-type="submitCustomer"
+									data-bind="localizedText: 'dialog.addCustomer'"> Share with customer</button>
+								<button type="button" accesskey="s" title="" class="button servicedesk submit-button" data-type="submitInternal" data-bind="localizedText: 'dialog.addInternal'"> Share internally</button>
 								<a href="#" accesskey="`" title="" id="add-issue-cancel" class="cancel" data-bind="localizedText: 'dialog.cancel'"></a>
 							</div>
 						</div>

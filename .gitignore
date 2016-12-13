@@ -1,4 +1,5 @@
 *Thumbs.db
 *amps-standalone*
 *node_modules*
+/distribution
 /com.yasoon.jira.onpremise/target/

@@ -78,8 +78,9 @@ class TemplateController implements IFieldEventHandler {
 
     setInitialValues() {
         if (this.initialSelection) {
-            if (this.initialSelection.projectId)
+            if (this.initialSelection.projectId) {
                 FieldController.setValue(FieldController.projectFieldId, this.initialSelection.projectId, true);
+            }
 
             if (this.initialSelection.issueTypeId != '-1') {
                 FieldController.setValue(FieldController.issueTypeFieldId, this.initialSelection.issueTypeId, true);

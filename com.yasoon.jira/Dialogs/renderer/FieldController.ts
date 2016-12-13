@@ -11,6 +11,9 @@ namespace FieldController {
     export const attachmentFieldId = 'attachment';
     export const descriptionFieldId = 'description';
 
+    // Add-to-Issue
+    export const commentFieldId = 'comment';
+
     let fieldTypes: any = {};
     let metaFields: { [id: string]: Field } = {};
     let currentMeta: { [id: string]: JiraMetaField } = {};

@@ -224,4 +224,18 @@ interface YasoonTemplateField {
     fieldValue: any
 }
 
+//{ "issues":{ "17801":{ "id":"17801", "key":"YJD-12", "summary":"Verbesserungsvorschlag", "projectId":"10300" } } }
+interface YasoonConversationData {
+    issues: YasoonConversationIssueDict;
+}
+
+type YasoonConversationIssueDict = { [id: string]: YasoonConversationIssue };
+
+interface YasoonConversationIssue {
+    id: string,
+    key: string,
+    summary: string,
+    projectId: string
+}
+
 type JiraDialogType = 'selectedText' | 'wholeMail' | '';

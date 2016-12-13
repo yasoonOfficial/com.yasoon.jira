@@ -44,7 +44,7 @@ abstract class Field implements FieldGet, FieldSet {
 	}
 
 	triggerValueChange(): void {
-		let currentValue = this.getValue(false);
+		let currentValue = this.getValue(false) || null; //harmonize null / undefined
 		if (JSON.stringify(this.lastValue) != JSON.stringify(currentValue)) {
 			FieldController.raiseEvent(EventType.FieldChange, currentValue, this.id);
 			this.lastValue = currentValue;
