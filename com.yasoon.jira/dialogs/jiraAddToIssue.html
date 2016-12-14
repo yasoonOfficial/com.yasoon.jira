@@ -1,6 +1,7 @@
-<link rel="stylesheet" href="dialogs/css/style.css">
+<link rel="stylesheet" href="dialogs/css/jirastyle.css">
 <link rel="stylesheet" href="libs/select2/select2.min.css">
 <link rel="stylesheet" href="libs/mentionsInput/jquery.mentionsInput.css" />
+<link rel="stylesheet" href="dialogs/css/customstyle.css">
 <script src="libs/select2/select2.full.min.js"></script>
 <script src="libs/mentionsInput/jquery.mentionsInput.js"></script>
 <script src="common.js"></script>
@@ -18,7 +19,7 @@
 				<div class="qf-unconfigurable-form">
 					<form name="jiraform" action="#" class="aui">
 						<div class="form-body" style="height: 390px;">
-							<div id="MainAlert" class="alert alert-danger" style="display:none; margin: -20px -20px 0px -20px; border-radius: 0px;">
+							<div id="MainAlert" class="alert alert-danger hidden">
 								<span class="errorText" data-bind="localizedText: 'dialog.connectionError'">Connection Error. Loading Values from Jira not possible.</span>
 							</div>
 							<div id="HeaderArea">
@@ -27,18 +28,18 @@
 							</div>
 							<div id="ContentArea" class="content">
 							</div>
-							<div id="LoaderArea" style="display: none; position:absolute; background: url(/images/ajax-loader.gif) no-repeat center center; width: 500px; height: 350px;">
+							<div id="LoaderArea" class="hidden">
 							</div>
 						</div>
 						<div class="buttons-container form-footer">
 							<div class="buttons">
-								<img src="images/ajax-loader.gif" style="display:none; margin-right: 20px; margin-top: -12px;" id="JiraSpinner">
-								<span class="servicedesk-warning"><i class="fa fa-exclamation-circle servicedesk-popover hidden" style="color:#ffd800; font-size: 20px; cursor:pointer; margin-right: 10px;" aria-hidden="true"></i></span>
-								<button type="button" accesskey="s" title="" class="button jira submit-button" id="add-issue-submit" data-type="submit" data-bind="localizedText: 'dialog.add'"></button>
-								<button type="button" accesskey="s" title="" class="aui-button aui-button-primary servicedesk submit-button" data-type="submitCustomer"
+								<img src="images/ajax-loader.gif" class="hidden" id="JiraSpinner">
+								<span class="servicedesk-warning"><i class="fa fa-exclamation-circle servicedesk-popover" aria-hidden="true"></i></span>
+								<button type="button" class="button jira submit-button" id="add-issue-submit" data-type="submit" data-bind="localizedText: 'dialog.add'"></button>
+								<button type="button" class="aui-button aui-button-primary servicedesk submit-button" data-type="submitCustomer"
 									data-bind="localizedText: 'dialog.addCustomer'"> Share with customer</button>
-								<button type="button" accesskey="s" title="" class="button servicedesk submit-button" data-type="submitInternal" data-bind="localizedText: 'dialog.addInternal'"> Share internally</button>
-								<a href="#" accesskey="`" title="" id="add-issue-cancel" class="cancel" data-bind="localizedText: 'dialog.cancel'"></a>
+								<button type="button" class="button servicedesk submit-button" data-type="submitInternal" data-bind="localizedText: 'dialog.addInternal'"> Share internally</button>
+								<a href="#"  id="add-issue-cancel" class="cancel" data-bind="localizedText: 'dialog.cancel'"></a>
 							</div>
 						</div>
 					</form>

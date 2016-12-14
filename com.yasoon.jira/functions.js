@@ -708,13 +708,10 @@ function JiraRibbonController() {
 
 		if (ribbonId == 'addToIssueFullMail' || ribbonId == 'addToIssueFromMailMain' || ribbonId == 'newIssueFromMailRead') {
 			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
-			yasoon.dialog.open(dialogOptions);
-			return;
+			initParams.type = 'wholeMail';
 		} else if (ribbonId == 'jiraAddTask') {
 			var task = ribbonCtx.items[ribbonCtx.readingPaneItem];
 			initParams.issue = JSON.parse(task.externalData);
-			yasoon.dialog.open(dialogOptions);
-			return;
 		} else {
 			var selection = '';
 			try {
@@ -729,17 +726,10 @@ function JiraRibbonController() {
 			}
 
 			initParams.mail = ribbonCtx.items[ribbonCtx.readingPaneItem];
-
-			yasoon.outlook.mail.renderSelection(ribbonCtx.items[ribbonCtx.readingPaneItem], 'jiraMarkup')
-				.then(function (markup) {
-					initParams.text = markup;
-					yasoon.dialog.open(dialogOptions);
-				})
-				.catch(function () {
-					initParams.text = yasoon.i18n('general.couldNotRenderMarkup');
-					yasoon.dialog.open(dialogOptions);
-				});
+			initParams.type = 'selectedText';
 		}
+
+		yasoon.dialog.open(dialogOptions);
 	};
 
 	this.ribbonOnCloseNewIssue = function ribbonOnCloseNewIssue(type, data) {

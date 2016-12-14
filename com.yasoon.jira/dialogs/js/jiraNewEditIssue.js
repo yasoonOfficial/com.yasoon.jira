@@ -332,6 +332,9 @@ yasoon.dialog.load(new function () { //jshint ignore:line
                 window.lastError = e;
                 console.log('Error in new renderLogic - switch to old one', e);
                 return self.renderIssueFixed(meta);
+            })
+            .finally(function () {
+                return FieldController.raiseEvent(EventType.AfterRender, {});
             });
     };
 

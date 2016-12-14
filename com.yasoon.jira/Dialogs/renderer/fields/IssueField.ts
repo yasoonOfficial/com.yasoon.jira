@@ -40,6 +40,16 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
 
     }
 
+    convertId(issueIdOrKey: string): Promise<any> {
+        if (issueIdOrKey) {
+            return jiraGet('/rest/api/2/issue/' + issueIdOrKey + '?fields=summary,project')
+                .then((data) => {
+                    let issue: JiraIssue = JSON.parse(data);
+                });
+        }
+        return Promise.resolve();
+    }
+
     private getReturnStructure(issues?: Select2Element[], queryTerm?: string) {
         let result: Select2Element[] = [];
         // 1. Build recent suggestion
