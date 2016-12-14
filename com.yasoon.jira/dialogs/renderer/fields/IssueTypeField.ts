@@ -92,6 +92,7 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
 
                 promise.then((proj) => {
                     this.currentProject = proj;
+                    let currentIssueType: JiraIssueType = this.getObjectValue();
                     let result: Select2Element[] = proj.issueTypes.map(this.convertToSelect2);
 
                     this.setData(result);
@@ -103,14 +104,16 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                         $(this.ownContainer).find('#switchServiceMode').addClass('hidden');
                     }
 
-                    if (this.initialValue) {
+                    let issueType: JiraIssueType = null;
+                    if (this.initialValue && typeof this.initialValue === 'string') {
                         //Check if this issue type is still available for this project
-                        let issueType = result.filter((it) => { return it.id === this.initialValue; })[0];
-                        if (issueType) {
-                            this.setValue(issueType);
-                        } else {
-                            this.setValue(result[0].data);
-                        }
+                        issueType = proj.issueTypes.filter((it) => { return it.id === this.initialValue; })[0];
+                    } else if (currentIssueType) {
+                        issueType = proj.issueTypes.filter((it) => { return it.id === currentIssueType.id; })[0];
+                    }
+
+                    if (issueType) {
+                        this.setValue(issueType);
                     } else {
                         this.setValue(result[0].data);
                     }

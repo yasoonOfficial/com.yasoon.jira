@@ -17,3 +17,5 @@ declare function renderMailHeaderText(mail: any, useMarkup: boolean): string;
 declare function isEqual(a: any, b: any): boolean;
 
 declare function handleAttachments(markup: string, mail: any): Promise<string>;
+
+declare function jiraMinimizeIssue(issue: JiraIssue): JiraIssue;

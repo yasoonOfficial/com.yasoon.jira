@@ -14,12 +14,13 @@ class VersionSelectField extends Select2Field {
         };
 
         super(id, field, options, config.multiSelect);
+        let allowedValues: JiraVersion[] = <JiraVersion[]>field.allowedValues;
 
-        let releasedVersions = field.allowedValues
+        let releasedVersions = allowedValues
             .filter(option => { return option.released && !option.archived })
             .map(this.convertToSelect2);
 
-        let unreleasedVersions = field.allowedValues
+        let unreleasedVersions = allowedValues
             .filter(option => { return !option.released && !option.archived })
             .map(this.convertToSelect2);
 

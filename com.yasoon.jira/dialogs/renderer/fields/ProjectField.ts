@@ -6,8 +6,6 @@
 /// <reference path="../getter/GetOption.ts" />
 /// <reference path="../setter/SetOptionValue.ts" />
 
-
-
 interface ProjectFieldOptions {
     cache?: JiraProject[];
     allowClear?: boolean;
@@ -15,15 +13,14 @@ interface ProjectFieldOptions {
 
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
-class ProjectField extends Select2Field implements IFieldEventHandler {
+class ProjectField extends Select2Field {
 
     static defaultMeta: JiraMetaField = { key: FieldController.projectFieldId, get name() { return yasoon.i18n('dialog.project'); }, required: true, schema: { system: 'project', type: '' } };
-    static settingRecentProjects = 'recentProjects';
 
     projectCache: JiraProject[];
-    recentProjects: JiraProject[];
     returnStructure: Select2Element[];
     isMainProjectField: boolean;
+    recentItems: RecentItemController;
 
     constructor(id: string, field: JiraMetaField, fieldOptions: ProjectFieldOptions = { cache: [], allowClear: false }) {
         let options: Select2Options = {};
@@ -33,11 +30,7 @@ class ProjectField extends Select2Field implements IFieldEventHandler {
 
         this.isMainProjectField = (id === FieldController.projectFieldId);
 
-        //Load Recent Projects from DB
-        let projectsString = yasoon.setting.getAppParameter(ProjectField.settingRecentProjects);
-        if (projectsString) {
-            this.recentProjects = JSON.parse(projectsString);
-        }
+        this.recentItems = jira.recentItems;
 
         if (fieldOptions.cache) {
             this.projectCache = fieldOptions.cache;
@@ -64,25 +57,6 @@ class ProjectField extends Select2Field implements IFieldEventHandler {
             FieldController.raiseEvent(EventType.FieldChange, project, this.id);
             this.lastValue = project;
         }
-    }
-
-    handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
-        if (type === EventType.AfterSave) {
-            //SAVE TO RECENT PROJECTS
-            let project = this.getObjectValue();
-            //First make sure to remove the currently selected project
-            this.recentProjects = this.recentProjects.filter((proj) => { return proj.id != project.id; });
-
-            //We only want to have 5 entries --> delete the last one if nessecary
-            if (this.recentProjects.length > 4) {
-                this.recentProjects = this.recentProjects.slice(0, 4);
-            }
-
-            //Add current project
-            this.recentProjects.unshift(project);
-            yasoon.setting.setAppParameter(ProjectField.settingRecentProjects, JSON.stringify(this.recentProjects));
-        }
-        return null;
     }
 
     setDefaultProject() {
@@ -152,7 +126,6 @@ class ProjectField extends Select2Field implements IFieldEventHandler {
                 }
                 return false;
             });
-
             //1.2 Map and Add
             if (currentTemplates && currentTemplates.length > 0) {
                 let children: Select2Element[] = currentTemplates.map(this.convertToSelect2);
@@ -165,19 +138,21 @@ class ProjectField extends Select2Field implements IFieldEventHandler {
         }
 
         //2. Recent Projects
-        if (this.recentProjects) {
+        if (this.recentItems && this.recentItems.recentProjects) {
             //2.1 Filter
-            let currentRecent = this.recentProjects.filter(recent => {
+            let currentRecent = this.recentItems.recentProjects.filter(recent => {
                 return projects.filter(p => { return p.id === recent.id; }).length > 0;
             });
 
-            //2.2 Map and Add
-            let children: Select2Element[] = currentRecent.map(this.convertToSelect2);
-            result.push({
-                id: 'recent',
-                text: yasoon.i18n('dialog.recentProjects'),
-                children: children
-            });
+            if (currentRecent.length > 0) {
+                //2.2 Map and Add
+                let children: Select2Element[] = currentRecent.map(this.convertToSelect2);
+                result.push({
+                    id: 'recent',
+                    text: yasoon.i18n('dialog.recentProjects'),
+                    children: children
+                });
+            }
         }
 
         //3. All Projects

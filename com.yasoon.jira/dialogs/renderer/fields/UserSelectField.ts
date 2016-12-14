@@ -13,7 +13,7 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
     senderUser: JiraUser;
     ownUser: JiraUser;
     currentProject: JiraProject;
-
+    recentItems: RecentItemController;
     private avatarPath: string;
 
     constructor(id: string, field: JiraMetaField, options: any = {}) {
@@ -21,6 +21,7 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
         this.ownUser = jira.ownUser;
         this.avatarPath = yasoon.io.getLinkPath('Images/useravatar.png');
 
+        this.recentItems = jira.recentItems;
         FieldController.registerEvent(EventType.SenderLoaded, this);
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
     }
@@ -51,17 +52,38 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
 
             if (this.ownUser) {
                 let currentValues: JiraUser[] = this.getObjectValue() || [];
-                console.log('Current User', currentValues);
                 if (currentValues.filter((user) => { return user.name === this.ownUser.name; }).length > 0) {
                     //Check if own user is already added
                     return;
                 }
 
                 currentValues.push(this.ownUser);
-
                 this.setValue(currentValues);
             }
         });
+    }
+
+    //Overwrite:
+    triggerValueChange() {
+        let lastValue = this.lastValue;
+
+        super.triggerValueChange();
+
+        // Save recent user
+        let value = this.getObjectValue();
+        if (Array.isArray(value)) {
+            let users: JiraUser[] = value;
+            let lastUsers: JiraUser[] = lastValue;
+
+            if (users.length > lastUsers.length) {
+                //Only necessary if user was added
+                this.recentItems.addRecentUser(users[users.length - 1]);
+            }
+        } else {
+            let user: JiraUser = value;
+            this.recentItems.addRecentUser(user);
+        }
+
     }
 
     render(container: JQuery): void {
@@ -131,6 +153,11 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
 
             if (this.senderUser) {
                 suggestions.push(this.convertToSelect2(this.senderUser));
+            }
+
+            if (this.recentItems && this.recentItems.recentUsers) {
+                let recentUsers = this.recentItems.recentUsers.map((item) => { return this.convertToSelect2(item); });
+                suggestions = suggestions.concat(recentUsers);
             }
 
             result.push({

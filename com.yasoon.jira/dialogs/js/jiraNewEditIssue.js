@@ -1,8 +1,8 @@
 var jira = {};
 
-$(function () {
+$(function() {
     $('body').css('overflow-y', 'hidden');
-    $('form').on('submit', function (e) {
+    $('form').on('submit', function(e) {
         e.preventDefault();
         return false;
     });
@@ -10,7 +10,7 @@ $(function () {
 
 $(window).resize(resizeWindow);
 
-yasoon.dialog.load(new function () { //jshint ignore:line
+yasoon.dialog.load(new function() { //jshint ignore:line
     var a = {}; //just for correct highlighting :) Otherwise Visual Code does not work correctly
 
     var self = this;
@@ -47,7 +47,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
         $.getScript('dialogs/customScript.js');
     }
 
-    this.init = function (initParams) {
+    this.init = function(initParams) {
         //Parameter taken over from Main JIRA
         self.settings = initParams.settings;
         self.ownUser = initParams.ownUser || {};
@@ -75,7 +75,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
         setTimeout(self.initDelayed, 1);
     };
 
-    this.initDelayed = function () {
+    this.initDelayed = function() {
         //Init Fields
         self.loadFields();
 
@@ -104,6 +104,8 @@ yasoon.dialog.load(new function () { //jshint ignore:line
         if (jira.mail)
             jira.emailController = new EmailController(jira.mail, jira.type, jira.settings, jira.ownUser);
 
+        jira.recentItems = new RecentItemController(jira.ownUser);
+
         //Render Header fields
         FieldController.loadField(ProjectField.defaultMeta, ProjectField, { cache: jira.cacheProjects, allowClear: false });
         FieldController.render(FieldController.projectFieldId, $('#HeaderArea'));
@@ -130,7 +132,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
             $('#' + FieldController.projectFieldId).prop('disabled', true);
             $('#' + FieldController.issueTypeFieldId).prop('disabled', true);
             jiraGet('/rest/api/2/issue/' + self.editIssueId + '?expand=editmeta,renderedFields')
-                .then(function (issueString) {
+                .then(function(issueString) {
                     jira.currentIssue = JSON.parse(issueString);
 
                     //Set Project and issueType 
@@ -145,12 +147,12 @@ yasoon.dialog.load(new function () { //jshint ignore:line
         //Submit Button - (Create & Edit)
         $('#create-issue-submit').click(self.submitForm);
 
-        $('#create-issue-cancel').click(function () {
+        $('#create-issue-cancel').click(function() {
             self.close({ action: 'cancel' });
         });
     };
 
-    this.handleEvent = function (type, newValue, source) {
+    this.handleEvent = function(type, newValue, source) {
         if (source === FieldController.projectFieldId) {
             var project = newValue;
             jira.selectedProject = project;
@@ -194,16 +196,16 @@ yasoon.dialog.load(new function () { //jshint ignore:line
             $('#LoaderArea').removeClass('hidden');
             $('#ContentArea').css('visibility', 'hidden');
             self.getMetaData(jira.selectedProject.id, issueType.id)
-                .then(function (meta) {
+                .then(function(meta) {
                     //Set this as current meta
                     FieldController.loadMeta(meta.fields);
                     return self.renderIssue(meta.fields);
                 })
-                .then(function () {
+                .then(function() {
                     $('#LoaderArea').addClass('hidden');
                     $('#ContentArea').css('visibility', 'visible');
                 })
-                .then(function () {
+                .then(function() {
                     //Set Email Values
                     if (jira.emailController) {
                         jira.emailController.insertEmailValues();
@@ -219,14 +221,14 @@ yasoon.dialog.load(new function () { //jshint ignore:line
                     }
                 })
 
-                .catch(function (e) {
+                .catch(function(e) {
                     console.log('Error during rendering', e, e.stack)
                 });
 
         }
     };
 
-    this.close = function (params) {
+    this.close = function(params) {
         //Check if dialog should be closed or not
         if (params && params.action === 'success' && $('#qf-create-another').is(':checked')) {
             $('#JiraSpinner').hide();
@@ -244,7 +246,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
         }
     };
 
-    this.cleanup = function () {
+    this.cleanup = function() {
         //Invalidate dialog events so the following won't throw any events => will lead to errors
         // due to pending dialog.close
         yasoon.dialog.clearEvents();
@@ -252,7 +254,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
         FieldController.raiseEvent(EventType.Cleanup, null);
     };
 
-    this.submitForm = function (e) {
+    this.submitForm = function(e) {
         e.preventDefault();
         //Reset data
         var lifecycleData = {};
@@ -269,7 +271,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
         var isServiceDesk = jira.selectedProject.projectTypeKey == 'service_desk' && $('#switchServiceMode').hasClass('active');
 
         return Promise.resolve()
-            .then(function () {
+            .then(function() {
 
                 //1. Collect data:
                 result = FieldController.getFormData(jira.isEditMode);
@@ -284,7 +286,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
                 return FieldController.raiseEvent(EventType.BeforeSave, lifecycleData);
 
             })
-            .then(function () {
+            .then(function() {
                 if (result.cancel) {
                     //Todo cancel this shit
                     throw new Exception("Save canceled");
@@ -297,24 +299,29 @@ yasoon.dialog.load(new function () { //jshint ignore:line
                 //Submit request		
                 return jiraAjax(url, method, JSON.stringify(result));
             })
-            .then(function (data) {
-                var issue = self.isEditMode ? jira.currentIssue : JSON.parse(data);
+            .then(function(data) {
+                var issue = JSON.parse(data);
                 jira.issueCreated = true;
+                return jiraGet('/rest/api/2/issue/' + issue.id);
+            })
+            .then(function(data) {
+                var issue = JSON.parse(data);
+                issue.fields.project = jira.selectedProject;
                 lifecycleData.newData = issue;
                 //Wait till all AfterSave actions are done
                 return FieldController.raiseEvent(EventType.AfterSave, lifecycleData);
             })
-            .then(function () {
+            .then(function() {
                 jira.close({ action: 'success' });
             })
             //Todo Refactor Error Messages
-            .catch(jiraSyncError, function (e) {
+            .catch(jiraSyncError, function(e) {
                 yasoon.util.log('Couldn\'t submit New Issue Dialog: ' + e.getUserFriendlyError() + ' || Issue: ' + JSON.stringify(result), yasoon.util.severity.warning);
                 yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSubmitIssue', { error: e.getUserFriendlyError() }));
                 $('#JiraSpinner').hide();
                 $('#create-issue-submit').prop('disabled', false);
             })
-            .catch(function (e) {
+            .catch(function(e) {
                 $('#JiraSpinner').hide();
                 if (jira.issueCreated) {
                     yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorAfterSubmitIssue', { error: 'Unknown' }));
@@ -326,21 +333,21 @@ yasoon.dialog.load(new function () { //jshint ignore:line
             });
     };
 
-    this.renderIssue = function (meta) {
+    this.renderIssue = function(meta) {
         return self.renderIssueUser(meta)
-            .catch(function (e) {
+            .catch(function(e) {
                 window.lastError = e;
                 console.log('Error in new renderLogic - switch to old one', e);
                 return self.renderIssueFixed(meta);
             })
-            .finally(function () {
+            .finally(function() {
                 return FieldController.raiseEvent(EventType.AfterRender, {});
             });
     };
 
-    this.renderIssueUser = function (meta) {
+    this.renderIssueUser = function(meta) {
         return self.getUserPreferences()
-            .then(function (renderData) {
+            .then(function(renderData) {
                 //First clean up everything
                 $('#ContainerFields').empty();
                 $('#tab-list').empty();
@@ -348,7 +355,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
                 //Render each field
                 var renderedTabs = {};
-                renderData.fields.forEach(function (field) {
+                renderData.fields.forEach(function(field) {
                     if (field.id === FieldController.projectFieldId || field.id === FieldController.issueTypeFieldId)
                         return;
 
@@ -386,7 +393,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
             });
     };
 
-    this.renderIssueFixed = function (meta) {
+    this.renderIssueFixed = function(meta) {
         $('#ContainerFields').empty();
         $('#tab-list').empty();
         $('#tab-list').addClass('hidden');
@@ -394,7 +401,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
         var addedFields = [];
 
         //Render Standard Fields on a predefined order if they are in the current meta. (We do not get any order from JIRA, so we assume one for standard fields)
-        fieldOrder.forEach(function (name) {
+        fieldOrder.forEach(function(name) {
             if (meta[name]) {
                 FieldController.render(name, $('#ContainerFields'));
                 addedFields.push(name);
@@ -402,7 +409,7 @@ yasoon.dialog.load(new function () { //jshint ignore:line
         });
 
         //Render all other fields (ordered by id - aka random :))
-        Object.keys(meta).forEach(function (name) {
+        Object.keys(meta).forEach(function(name) {
             FieldController.render(name, $('#ContainerFields'));
         });
 
@@ -410,37 +417,37 @@ yasoon.dialog.load(new function () { //jshint ignore:line
     };
 
 
-    this.getMetaData = function (projectId, issueTypeId) {
+    this.getMetaData = function(projectId, issueTypeId) {
         if (self.currentIssue && self.currentIssue.editMeta) {
             return Promise.resolve(self.currentIssue.editMeta);
         }
         return self.getProjectMeta(projectId)
-            .then(function (projectMeta) {
-                return projectMeta.issuetypes.filter(function (it) { return it.id === issueTypeId; })[0];
+            .then(function(projectMeta) {
+                return projectMeta.issuetypes.filter(function(it) { return it.id === issueTypeId; })[0];
             });
     };
 
-    this.getProjectMeta = function (projectId) {
+    this.getProjectMeta = function(projectId) {
         //Check in Cache
         //Do not check cache for Teamlead Instance to have latest data every time.
         if (jira.cacheCreateMetas && jira.cacheCreateMetas.length > 0 && !jira.settings.teamleadApiKey) {
-            var projectMeta = jira.cacheCreateMetas.filter(function (m) { return m.id === projectId; })[0];
+            var projectMeta = jira.cacheCreateMetas.filter(function(m) { return m.id === projectId; })[0];
             if (projectMeta) {
                 return Promise.resolve(projectMeta);
             }
         }
 
         return jiraGet('/rest/api/2/issue/createmeta?projectIds=' + projectId + '&expand=projects.issuetypes.fields')
-            .then(function (data) {
+            .then(function(data) {
                 var meta = JSON.parse(data);
                 //Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
-                var projectMeta = meta.projects.filter(function (p) { return p.id === projectId; })[0];
+                var projectMeta = meta.projects.filter(function(p) { return p.id === projectId; })[0];
                 jira.cacheCreateMetas.push(projectMeta);
                 return projectMeta;
             });
     };
 
-    this.getUserPreferences = function () {
+    this.getUserPreferences = function() {
         //Check Cache
         if (jira.cacheUserMeta && jira.cacheUserMeta[jira.selectedProject.id] && jira.cacheUserMeta[jira.selectedProject.id][jira.selectedIssueType.id]) {
             return Promise.resolve(jira.cacheUserMeta[jira.selectedProject.id][jira.selectedIssueType.id]);
@@ -448,16 +455,16 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 
         if (jira.isEditMode) {
             return jiraGet('/secure/QuickEditIssue!default.jspa?issueId=' + jira.editIssueId + '&decorator=none')
-                .then(function (data) { return JSON.parse(data); })
-                .catch(function () { });
+                .then(function(data) { return JSON.parse(data); })
+                .catch(function() { });
         } else {
             return jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + jira.selectedProject.id + '&issuetype=' + jira.selectedIssueType.id)
-                .then(function (data) { return JSON.parse(data); })
-                .catch(function () { });
+                .then(function(data) { return JSON.parse(data); })
+                .catch(function() { });
         }
     };
 
-    this.loadFields = function () {
+    this.loadFields = function() {
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:textfield', SingleTextField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:url', SingleTextField);
         FieldController.register('com.pyxis.greenhopper.jira:gh-epic-label', SingleTextField);

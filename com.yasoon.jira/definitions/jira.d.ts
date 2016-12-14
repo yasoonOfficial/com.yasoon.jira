@@ -13,8 +13,6 @@ interface JiraValue {
     key?: string,
     value?: string,
     iconUrl?: string,
-    released?: boolean,
-    archived?: boolean,
     children?: Array<JiraValue>
 }
 
@@ -84,6 +82,27 @@ interface JiraJqlResult {
     issues: JiraIssue[]
 }
 
+interface JiraComponent {
+    id: string,
+    name: string,
+    description: string,
+    isAssigneeTypeValid: boolean
+}
+
+interface JiraVersion {
+    id: string,
+    name: string,
+    description?: string,
+    archived?: boolean,
+    projectId?: number,
+    releaseStart?: string, //format: 2015-09-13
+    released?: boolean,
+    startDate?: string, //format 2015-09-13
+    userReleaseDate?: string, //Userformat: e.g. 13/Sept/2015
+    userStartDate?: string //Userformat: e.g. 13/Sept/2015
+
+}
+
 interface JiraIssue {
     id: string,
     key: string,
@@ -96,9 +115,9 @@ interface JiraUser {
     emailAddress: string,
     name: string,
     locale: string,
-    timezone: string,
-    active: boolean,
-    avatarUrls: any,
+    timezone?: string,
+    active?: boolean,
+    avatarUrls?: any,
     groups?: JiraUserGroups,
     applicationRoles?: JiraUserApplicationRoles
 }
@@ -131,6 +150,12 @@ interface JiraProject {
     key: string,
     projectTypeKey?: JiraProjectType,
     issueTypes?: JiraIssueType[],
+    avatarUrls?: { [id: string]: string },
+    roles?: { [id: string]: string },
+    assigneeType?: string,
+    components?: JiraComponent[],
+    lead?: JiraUser,
+    versions?: JiraVersion[]
 }
 
 interface JiraIssueType {
@@ -230,6 +255,7 @@ interface YasoonConversationData {
 }
 
 type YasoonConversationIssueDict = { [id: string]: YasoonConversationIssue };
+
 
 interface YasoonConversationIssue {
     id: string,

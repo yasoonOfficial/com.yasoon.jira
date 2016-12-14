@@ -347,11 +347,17 @@ class EmailController implements IEmailController, IFieldEventHandler {
             let project: JiraProject = null;
             if (values.fields && values.fields['project']) {
                 project = values.fields['project'];
-            } else {
+            }
+            //Don't think we will need this
+            /* else {
                 let projectField = <ProjectField>FieldController.getField(FieldController.projectFieldId);
                 project = projectField.getObjectValue();
-            }
+            } */
 
+            if (!project) {
+                console.error('Trying to save a senderTemplate without project');
+                return;
+            }
 
             let projectCopy: JiraProject = JSON.parse(JSON.stringify(project));
             delete projectCopy.issueTypes;
@@ -379,7 +385,7 @@ class EmailController implements IEmailController, IFieldEventHandler {
 
             //Add or replace template
             var templateFound = false;
-            this.senderTemplates.map((templ) => {
+            this.senderTemplates.forEach((templ) => {
                 if (templ.senderEmail == template.senderEmail && templ.project.id == template.project.id) {
                     templateFound = true;
                     return template;

@@ -36,7 +36,7 @@ class AttachmentField extends Field implements IFieldEventHandler {
         if (type === EventType.AfterSave) {
             let lifecycleData: LifecycleData = newValue;
             let formData = [];
-            let selectedAttachments = this.attachments.forEach((file) => {
+            this.attachments.forEach((file) => {
                 if (file.selected) {
                     formData.push({
                         type: yasoon.formData.File,
@@ -49,6 +49,8 @@ class AttachmentField extends Field implements IFieldEventHandler {
             if (formData.length > 0) {
                 let uploadPromise = jiraAjax('/rest/api/2/issue/' + lifecycleData.newData.id + '/attachments', yasoon.ajaxMethod.Post, null, formData)
                     .catch(jiraSyncError, (e) => {
+                        console.log(e);
+                        window['lastError'] = e;
                         yasoon.util.log('Couldn\'t upload attachments: ' + e.getUserFriendlyError() + ' || ' + JSON.stringify(formData), yasoon.util.severity.warning);
                         yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorCreateAttachment', { key: lifecycleData.newData.key, error: e.getUserFriendlyError() }));
                     });

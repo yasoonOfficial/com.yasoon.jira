@@ -334,7 +334,7 @@ form.aui .text {
 #markupLoader 
 {
 	position:absolute;
-	background: url(images/ajax-loader.gif) no-repeat center center;
+	background: url(../../images/ajax-loader.gif) no-repeat center center;
 	width: 36px;
 	height: 36px;
 	left: 175px; 

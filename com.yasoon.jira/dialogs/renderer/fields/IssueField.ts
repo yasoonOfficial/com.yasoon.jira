@@ -11,9 +11,9 @@
 class IssueField extends Select2AjaxField implements IFieldEventHandler {
     static defaultMeta: JiraMetaField = { key: FieldController.issueFieldId, get name() { return yasoon.i18n('dialog.issue'); }, required: true, schema: { system: 'issue', type: '' } };
 
-    private recentIssues: Select2Element[];
     private currentProject: JiraProject;
     private excludeSubtasks: boolean;
+    private recentItems: RecentItemController;
     private getProjectIssues: Promise<Select2Element[]>;
 
     constructor(id: string, field: JiraMetaField, excludeSubtasks: boolean) {
@@ -23,11 +23,7 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
         super(id, field, options);
 
         this.excludeSubtasks = excludeSubtasks;
-        //Load Recent Issues from DB
-        let issuesString = yasoon.setting.getAppParameter('recentIssues');
-        if (issuesString) {
-            this.recentIssues = JSON.parse(issuesString);
-        }
+        this.recentItems = jira.recentItems;
 
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
     }
@@ -53,11 +49,12 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
     private getReturnStructure(issues?: Select2Element[], queryTerm?: string) {
         let result: Select2Element[] = [];
         // 1. Build recent suggestion
-        if (this.recentIssues && !queryTerm) {
+        if (this.recentItems && this.recentItems.recentIssues && !queryTerm) {
+            let currentIssues = this.recentItems.recentIssues.map(this.convertToSelect2);
             result.push({
                 id: 'Suggested',
                 text: yasoon.i18n('dialog.recentIssues'),
-                children: this.recentIssues,
+                children: currentIssues,
             });
         }
         //2. Search Results
