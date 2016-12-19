@@ -13,7 +13,7 @@
                 "changeTransition": "Change Transition",
                 "syncTasks": "Sync Tasks",
                 "syncTasksScreenTip": "Usually not nessecary but if something went out-of-sync, you can use this to force a full-sync",
-                "forceSyncTasks":  "Force Sync Tasks"
+                "forceSyncTasks": "Force Sync Tasks"
             },
             "general": {
                 "couldNotUploadAttachments": "Couldn't upload all attachments. Please try again.",
@@ -39,6 +39,7 @@
                 "couldNotUploadAttachments": "Could not upload attachment(s)",
                 "jiraNewsDesktopNotifTitle": "News on JIRA",
                 "jiraNewsDesktopNotifMultiple": "Multiple new Notifications",
+                "jiraDesktopNotifNewCommentTitle": "New Comment on {{key}}: {{- title}}",
                 "more": "more"
             },
             "dialog": {
@@ -252,7 +253,6 @@
                 "taskProjectAvailable": "All Projects",
                 "taskProjectActive": "Active Projects"
             },
-
             "purchase": {
                 "heading": "Jira for Outlook Trial expired",
                 "introText": "Thanks for using JIRA for Outlook. We hope, it saved you a lot of time and it has been useful for you. <br /> Unfortunately your JIRA for Outlook is currently running in a trial and it has come to an end.",
@@ -267,7 +267,7 @@
                 "adminActionButton": "Get Licenses",
                 "userText": "If you like to continue to use, please ask your JIRA admin to get a full license for you. <br />Here is some help who to contact: <br />",
                 "userEmailLabel": "Email",
-                "userActionButton":  "Send your admin a mail now"
+                "userActionButton": "Send your admin a mail now"
             }
         }
     }
