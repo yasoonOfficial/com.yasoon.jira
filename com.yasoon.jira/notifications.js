@@ -98,16 +98,26 @@ function JiraNotificationController() {
 		if (notificationCounter === 1) {
 			//jiraLog('Single Desktop Notification shown: ', notification);
 			var type = '';
+			var verbs = [];
 			if (notificationEvent['activity:object'] && notificationEvent['activity:object']['activity:object-type'])
 				type = notificationEvent['activity:object']['activity:object-type']['#text'];
 
-			if (type === 'http://activitystrea.ms/schema/1.0/comment') {
+			if (notificationEvent['activity:verb'])
+				verbs = notificationEvent['activity:verb'].map(function (el) { return el['#text']; })
+
+			if (type === 'http://streams.atlassian.com/syndication/types/issue' && verbs.indexOf('http://streams.atlassian.com/syndication/verbs/jira/transition') > -1) {
+				var issueSummary = notificationEvent['activity:object']['summary']['#text'];
+				content = $('<div>' + notification.content + ' </div>').text().replace(/\s\s+/g, ' ').replace('- ' + issueSummary, '').replace(/\s\s+/g, ' ');
+				title = yasoon.i18n('feed.jiraDesktopNotifTransition', { key: notificationEvent.issue.key, title: issueSummary });
+				yasoon.notification.showPopup({ title: title, text: content, contactId: notification.contactId });
+			}
+			else if (type === 'http://activitystrea.ms/schema/1.0/comment') {
 				content = $('<div>' + notification.content + ' </div>').text();
 				title = yasoon.i18n('feed.jiraDesktopNotifNewCommentTitle', { key: notificationEvent.issue.key, title: notificationEvent.issue.fields.summary });
 				yasoon.notification.showPopup({ title: title, text: content, contactId: notification.contactId });
 			}
 			else {
-				content = $('<div>' + notification.title + ' </div>').text();
+				content = $('<div>' + notification.title + ' </div>').text().replace(/\s\s+/g, ' ');
 				yasoon.notification.showPopup({ title: yasoon.i18n('feed.jiraNewsDesktopNotifTitle'), text: content, contactId: notification.contactId });
 			}
 		}

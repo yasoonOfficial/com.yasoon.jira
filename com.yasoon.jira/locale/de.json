@@ -40,6 +40,7 @@
 				"jiraNewsDesktopNotifTitle": "Neuigkeiten in JIRA",
 				"jiraNewsDesktopNotifMultiple": "Mehrere neue Benachrichtigungen",
 				"jiraDesktopNotifNewCommentTitle": "Neuer Kommentar zu {{key}}: {{- title}}",
+				"jiraDesktopNotifTransition": "Status Änderung zu {{key}}: {{- title}}",
 				"more": "mehr"
 			},
 			"dialog": {
