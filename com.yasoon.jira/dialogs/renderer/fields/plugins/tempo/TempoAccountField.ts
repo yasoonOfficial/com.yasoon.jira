@@ -68,7 +68,8 @@ class TempoAccountField extends Select2Field {
                     }
                 }
                 return result;
-            });
+            })
+            .catch(this.handleError);
     }
 
 }

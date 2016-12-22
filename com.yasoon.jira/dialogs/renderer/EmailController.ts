@@ -9,6 +9,7 @@ interface JiraFileHandle extends yasoonModel.EmailAttachmentFileHandle {
     extension: string;
     fileIcon: string;
     fileNameNoExtension: string;
+    attachment: yasoonModel.OutlookAttachment;
 }
 
 class EmailController implements IEmailController, IFieldEventHandler {
@@ -149,6 +150,8 @@ class EmailController implements IEmailController, IFieldEventHandler {
                 this.mail.attachments.forEach((attachment) => {
                     let handle = <JiraFileHandle>attachment.getFileHandle();
                     //Skip too small images	
+                    handle.attachment = attachment;
+
                     if (this.settings.addAttachmentsOnNewAddIssue) {
                         handle.selected = true;
                     }
@@ -212,14 +215,13 @@ class EmailController implements IEmailController, IFieldEventHandler {
     }
 
     getMailHeaderText(useMarkup: boolean): string {
-        var result = '';
-
+        let result = '';
         if (useMarkup) {
             result = yasoon.i18n('mail.mailHeaderMarkup', {
                 senderName: this.mail.senderName,
                 senderEmail: this.mail.senderEmail,
                 date: moment(this.mail.receivedAt).format('LLL'),
-                recipients: ((this.mail.recipients.length > 0) ? '[mailto:' + this.mail.recipients.join('],[mailto:') + ']' : yasoon.i18n('dialog.noRecipient')),
+                recipients: ((this.mail.recipients.length > 0) ? '[mailto:' + this.mail.recipients.join('], [mailto:') + ']' : yasoon.i18n('dialog.noRecipient')),
                 subject: this.mail.subject
             });
         } else {
@@ -231,6 +233,27 @@ class EmailController implements IEmailController, IFieldEventHandler {
                 subject: this.mail.subject
             });
         }
+       //Add Attachments if available 
+        let attachments = '';
+        this.attachmentHandles.forEach((handle) => {
+            if(handle.attachment && !handle.attachment.isEmbeddedItem) {
+                if(useMarkup) {
+                    attachments = attachments + ((attachments) ? ', ' : ' ') + '[^' + handle.fileName + ']';
+                } else {
+                    attachments = attachments + ((attachments) ? ', ' : ' ')  + handle.fileName;
+                }
+            }
+        });
+
+        if(attachments) {
+            let label = yasoon.i18n('mail.attachments');
+            if(useMarkup) {
+                label = '*' + label + '*';
+            }
+            result = result + label + ':' + attachments + '\n'; 
+        }
+        //Add Final seperator
+        result = result + '----\n';
 
         return result;
     }

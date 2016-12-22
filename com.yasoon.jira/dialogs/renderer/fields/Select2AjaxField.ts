@@ -8,6 +8,7 @@ abstract class Select2AjaxField extends Select2Field {
 	multiple: boolean;
 
 	private debouncedFunction;
+	private currentSearchTerm: string;
 	private currentPromise: Promise<any>;
 	private currentResolve;
 	private currentReject;
@@ -18,13 +19,13 @@ abstract class Select2AjaxField extends Select2Field {
 			options.ajax = {
 				url: '',
 				transport: (params, success, failure) => {
-					let queryTerm = '';
+					this.currentSearchTerm = '';
 					if (params && params.data && params.data.q) {
-						queryTerm = params.data.q;
+						this.currentSearchTerm = params.data.q;
 					}
 					let promise: Promise<any>;
-					if (queryTerm) {
-						promise = this.getDataDebounced(queryTerm);
+					if (this.currentSearchTerm) {
+						promise = this.getDataDebounced(this.currentSearchTerm);
 					} else {
 						promise = this.getEmptyDataInternal();
 					}
@@ -34,8 +35,8 @@ abstract class Select2AjaxField extends Select2Field {
 					promise
 						.spread((result, searchTerm) => {
 							//This handler is registered multiple times on the same promise.
-							//Check if we are responsible to make sure we call the correct success function
-							if (searchTerm == queryTerm) {
+							//Check if we are still responsible to make sure we call the correct success function
+							if (searchTerm == this.currentSearchTerm) {
 								this.hideSpinner();
 								success(result);
 							}

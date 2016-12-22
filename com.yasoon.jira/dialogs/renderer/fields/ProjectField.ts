@@ -46,7 +46,8 @@ class ProjectField extends Select2Field {
                     this.setDefaultProject();
                     $('#' + this.id).next().find('.select2-selection').first().focus();
                 }
-            });
+            })
+            .catch(this.handleError);
 
 
     }
@@ -175,7 +176,6 @@ class ProjectField extends Select2Field {
             .then((data: string) => {
                 let projects: JiraProject[] = JSON.parse(data);
                 this.projectCache = projects;
-                console.log('Return API projects', projects);
                 return projects.map(this.convertToSelect2);
             });
     }

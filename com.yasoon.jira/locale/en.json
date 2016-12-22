@@ -158,8 +158,9 @@
                 "componentFilter": "Component"
             },
             "mail": {
-                "mailHeaderMarkup": "*From:* {{senderName}} <[mailto:{{senderEmail}}]> \n*Sent:* {{date}}\n*To:* {{recipients}}\n*Subject*: {{subject}}\n----\n",
-                "mailHeaderPlain": "From: {{senderName}} <{{senderEmail}}> \n Sent: {{date}} \n To: {{recipients}}\n Subject: {{subject}}\n"
+                "mailHeaderMarkup": "*From:* {{senderName}} <[mailto:{{senderEmail}}]> \n*Sent:* {{date}}\n*To:* {{recipients}}\n*Subject*: {{subject}}\n",
+                "mailHeaderPlain": "From: {{senderName}} <{{senderEmail}}> \n Sent: {{date}} \n To: {{recipients}}\n Subject: {{subject}}\n",
+                "attachments": "Attachments"
             },
             "logWork": {
                 "title": "Log Work",

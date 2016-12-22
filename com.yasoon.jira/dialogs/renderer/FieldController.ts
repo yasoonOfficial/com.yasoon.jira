@@ -89,7 +89,7 @@ namespace FieldController {
             try {
                 return renderer.getValue(changedDataOnly);
             } catch (e) {
-                yasoon.util.log('Error: ' + e.message + '. Couldn\'t getValue for field ' + id, yasoon.util.severity.warning);
+                yasoon.util.log('Error: ' + e.message + '. Couldn\'t getValue for field ' + id, yasoon.util.severity.error);
             }
         }
     }
@@ -113,7 +113,7 @@ namespace FieldController {
                 if (isInitialValue)
                     field.setInitialValue(value);
             } catch (e) {
-                yasoon.util.log('Error: ' + e.message + '. Couldn\'t setValue for field ' + id, yasoon.util.severity.warning);
+                yasoon.util.log('Error: ' + e.message + '. Couldn\'t setValue for field ' + id, yasoon.util.severity.error, getStackTrace(e));
             }
         }
     }
@@ -129,20 +129,19 @@ namespace FieldController {
 
     export function raiseEvent(eventType: EventType, newValue?: any, id?: string): Promise<any> {
         //Check for Event Type
-        console.log('Event raised', eventType, id, newValue);
         let returnPromises: Promise<any>[] = [];
         switch (eventType) {
             case EventType.FieldChange:
                 //get Field handler
                 if (fieldEventHandler[eventType] && fieldEventHandler[eventType][id]) {
                     fieldEventHandler[eventType][id].forEach(field => {
-                        try {
                             setTimeout((eventType, newValue, id) => {
+                                try {
                                 field.handleEvent(eventType, newValue, id);
+                                } catch(e) {
+                                    yasoon.util.log('Error: ' + e.message + ' in raiseEvent. EventType FieldChange|| newValue ' + newValue + ' || Id: ' + id, yasoon.util.severity.error, getStackTrace(e));
+                                }
                             }, 1, eventType, newValue, id);
-                        } catch (e) {
-                            console.log('Error occured', e, e.stack);
-                        }
                     });
                 }
                 break;
@@ -155,7 +154,7 @@ namespace FieldController {
                                 returnPromises.push(result);
                             }
                         } catch (e) {
-                            console.log('Error occured', e, e.stack);
+                             yasoon.util.log('Error: ' + e.message + ' in raiseEvent. EventType ' + eventType + ' || newValue ' + newValue, yasoon.util.severity.error, getStackTrace(e));
                         }
                     });
                 }

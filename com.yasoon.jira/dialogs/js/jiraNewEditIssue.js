@@ -262,9 +262,9 @@ yasoon.dialog.load(new function() { //jshint ignore:line
         jira.issueCreated = false;
 
         //Prepare UI
-        $('#MainAlert').hide();
+        $('#MainAlert').addClass('hidden');
         $('#create-issue-submit').prop('disabled', true);
-        $('#JiraSpinner').show();
+        $('#JiraSpinner').removeClass('hidden');
 
 
         //Check if Request type is needed and add it
@@ -289,7 +289,7 @@ yasoon.dialog.load(new function() { //jshint ignore:line
             .then(function() {
                 if (result.cancel) {
                     //Todo cancel this shit
-                    throw new Exception("Save canceled");
+                    //Not yet supported :-)
                 }
                 console.log('Send Data:', result);
                 //Switch for edit or create
@@ -314,22 +314,24 @@ yasoon.dialog.load(new function() { //jshint ignore:line
             .then(function() {
                 jira.close({ action: 'success' });
             })
-            //Todo Refactor Error Messages
-            .catch(jiraSyncError, function(e) {
-                yasoon.util.log('Couldn\'t submit New Issue Dialog: ' + e.getUserFriendlyError() + ' || Issue: ' + JSON.stringify(result), yasoon.util.severity.warning);
-                yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSubmitIssue', { error: e.getUserFriendlyError() }));
-                $('#JiraSpinner').hide();
-                $('#create-issue-submit').prop('disabled', false);
-            })
             .catch(function(e) {
-                $('#JiraSpinner').hide();
-                if (jira.issueCreated) {
-                    yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorAfterSubmitIssue', { error: 'Unknown' }));
-                } else {
-                    $('#create-issue-submit').prop('disabled', false);
-                    yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSubmitIssue', { error: 'Unknown' }));
+                $('#JiraSpinner').addClass('hidden');
+                $('#create-issue-submit').prop('disabled', false);
+
+                var text = 'Unknown';
+                if(typeof e === 'jiraSyncError') {
+                    text = e.getUserFriendlyError();
+                } else if(e.message){
+                    text = e.message;
                 }
-                yasoon.util.log('Unexpected error in Create Issue Dialog: ' + e + ' || Issue: ' + JSON.stringify(result), yasoon.util.severity.error, getStackTrace(e));
+
+                yasoon.util.log('Couldn\'t submit New Issue Dialog: ' + text + ' || Issue: ' + JSON.stringify(result), yasoon.util.severity.warning);
+                if(jira.issueCreated) {
+                    $('#MainAlert').find('.error-text').text(yasoon.i18n('dialog.errorAfterSubmitIssue', { error: text }));
+                } else {
+                    $('#MainAlert').find('.error-text').text(yasoon.i18n('dialog.errorSubmitIssue', { error: text }));
+                    
+                }
             });
     };
 
@@ -517,4 +519,4 @@ function resizeWindow() {
         $(".form-body").height(290);
     }
 }
-//@ sourceURL=http://Jira/Dialog/jiraDialog.js
+//@ sourceURL=http://Jira/Dialog/jiraNewEditIssue.js

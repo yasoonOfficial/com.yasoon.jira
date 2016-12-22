@@ -85,7 +85,8 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                             this.hideSpinner();
                             let proj: JiraProject = JSON.parse(data);
                             return proj;
-                        });
+                        })
+                        .catch(this.handleError);
                 } else {
                     promise = Promise.resolve(project);
                 }

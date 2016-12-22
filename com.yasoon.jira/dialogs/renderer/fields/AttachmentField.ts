@@ -48,11 +48,15 @@ class AttachmentField extends Field implements IFieldEventHandler {
 
             if (formData.length > 0) {
                 let uploadPromise = jiraAjax('/rest/api/2/issue/' + lifecycleData.newData.id + '/attachments', yasoon.ajaxMethod.Post, null, formData)
-                    .catch(jiraSyncError, (e) => {
-                        console.log(e);
-                        window['lastError'] = e;
-                        yasoon.util.log('Couldn\'t upload attachments: ' + e.getUserFriendlyError() + ' || ' + JSON.stringify(formData), yasoon.util.severity.warning);
-                        yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorCreateAttachment', { key: lifecycleData.newData.key, error: e.getUserFriendlyError() }));
+                    .catch((e:any) => {
+                        if(typeof e === 'jiraSyncError') {
+                            //Todo
+                            let error: jiraSyncError = e;
+                            yasoon.util.log('Couldn\'t upload attachments: ' + error.getUserFriendlyError() + ' || ' + JSON.stringify(formData), yasoon.util.severity.warning, getStackTrace(e));
+                            //yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorCreateAttachment', { key: lifecycleData.newData.key, error: e.getUserFriendlyError() }));
+                        } else  {
+                            let error: Error = e;
+                        }
                     });
 
                 return uploadPromise;

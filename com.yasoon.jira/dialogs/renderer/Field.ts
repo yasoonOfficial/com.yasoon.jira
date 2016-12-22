@@ -93,7 +93,15 @@ abstract class Field implements FieldGet, FieldSet {
 			this.hookEventHandler();
 		}
 	}
-
+	
+	handleError(e:Error): void {
+		console.log('Error during field rendering: ', e, e.message, e.stack);
+		yasoon.util.log('Error during field rendering. ' + e.message + ' Field: ' + this.id + ' Meta: ' + JSON.stringify(this.fieldMeta), yasoon.util.severity.error, getStackTrace(e));
+		if(this.isRendered()) {
+			this.ownContainer.html('<span style="color:red;"><i class="fa fa-exclamation-triangle"></i></span>');
+		}
+	}
+	
 	isRendered(): boolean {
 		return (this.ownContainer != null);
 	}

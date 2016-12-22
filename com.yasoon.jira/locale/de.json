@@ -158,8 +158,9 @@
 				"componentFilter": "Komponente"
 			},
 			"mail": {
-				"mailHeaderMarkup": "*Von:* {{senderName}} <[mailto:{{senderEmail}}]> \n*Gesendet:* {{date}}\n*An:* {{recipients}}\n*Betreff*: {{subject}}\n----\n",
-				"mailHeaderPlain": "Von: {{senderName}} <{{senderEmail}}> \n Gesendet: {{date}} \n An: {{recipients}}\n Betreff: {{subject}}\n"
+				"mailHeaderMarkup": "*Von:* {{senderName}} <[mailto:{{senderEmail}}]> \n*Gesendet:* {{date}}\n*An:* {{recipients}}\n*Betreff*: {{subject}}\n",
+				"mailHeaderPlain": "Von: {{senderName}} <{{senderEmail}}> \n Gesendet: {{date}} \n An: {{recipients}}\n Betreff: {{subject}}\n",
+				"attachments": "Anhänge"
 			},
 			"logWork": {
 				"title": "Arbeit protokollieren",

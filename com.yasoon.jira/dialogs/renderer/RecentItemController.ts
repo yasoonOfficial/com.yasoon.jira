@@ -87,24 +87,25 @@ class RecentItemController implements IFieldEventHandler {
     }
 
     addRecentUser(user: JiraUser): void {
+        if(!user)
+            return;
+            
         if (user.name === this.ownUser.name)
             return;
 
         setTimeout(() => {
-            setTimeout(() => {
-                user = this.minifyUser(user);
+            user = this.minifyUser(user);
 
-                //First remove old one
-                //Second make sure list is not too long.
-                //Third Add newUser at first position
-                this.recentUsers = this.recentUsers.filter((i) => { return i.name !== user.name; });
-                if (this.recentUsers.length >= this.numberRecentUsers) {
-                    this.recentUsers = this.recentUsers.slice(1);
-                }
-                this.recentUsers.unshift(user);
+            //First remove old one
+            //Second make sure list is not too long.
+            //Third Add newUser at first position
+            this.recentUsers = this.recentUsers.filter((i) => { return i.name !== user.name; });
+            if (this.recentUsers.length >= this.numberRecentUsers) {
+                this.recentUsers = this.recentUsers.slice(1);
+            }
+            this.recentUsers.unshift(user);
 
-                yasoon.setting.setAppParameter(RecentItemController.recentUserSetting, JSON.stringify(this.recentUsers));
-            });
+            yasoon.setting.setAppParameter(RecentItemController.recentUserSetting, JSON.stringify(this.recentUsers));
         });
     }
 
