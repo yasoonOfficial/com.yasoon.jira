@@ -10,6 +10,7 @@
 	<link href="//fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css" />
 	<link href="//fonts.googleapis.com/css?family=Roboto:400,500,700,300,100" rel="stylesheet" type="text/css" />
 	<script src="//cdn.ravenjs.com/1.2.0/jquery,native/raven.min.js"></script>
+	<script src="//cdn.tinymce.com/4/tinymce.min.js"></script>
 
 	<!--[if lte IE 9]>
                 <script type='text/javascript' src='//cdnjs.cloudflare.com/ajax/libs/jquery-ajaxtransport-xdomainrequest/1.0.3/jquery.xdomainrequest.min.js'></script>
@@ -39,11 +40,12 @@
         </script>
 </head>
 
+
 <body style="margin: 10px 20px !important; background:white;">
 	<div id="pageLoading" class="materialize-wrapper">
-		<img src="https://www.yasoon.com/jira_admin/loader_small.gif" />
+		<img src="https://yasoon.com/store-ressources/images/loader_small.gif" />
 	</div>
-	<div id="pageContent" class="ac-content materialize-wrapper">
+	<div id="pageContent" class="ac-content materialize-wrapper ">
 		<div id="AreaUnregistered" class="hidden">
 			<div class="main row">
 				<div class="wizard col s12 z-depth-1">
@@ -176,7 +178,7 @@
 												</p>
 											</div>
 											<div class="card-action">
-												<img src="https://www.yasoon.com/jira_admin/loader_small.gif">
+												<img src="https://yasoon.com/store-ressources/images/loader_small.gif">
 											</div>
 										</div>
 									</div>
@@ -218,7 +220,7 @@
 							<button id="next" class="waves-effect waves-light btn light-green darken-2 hidden" data-type="register"><i class="material-icons right">play_arrow</i><span id="nextText">Next</span></button>
 						</div>
 						<div class="logo-branding">
-							<img src="https://www.yasoon.com/jira_admin/logo_with_jira.png" />
+							<img src="https://yasoon.com/store-ressources/images/logo_with_jira.png" />
 						</div>
 					</div>
 				</div>
@@ -233,17 +235,18 @@
 					<ul class="tabs" style="display:block;">
 						<li class="tab"><a class="active" href="#general">General</a></li>
 						<li class="tab"><a href="#settings">Settings</a></li>
-						<li class="tab"><a href="#templates">Templates</a></li>
+						<li class="tab"><a href="#templates">Issue Templates</a></li>
 					</ul>
 				</div>
-				<div id="general" class="col s12">
+				<div id="general" class="col s12 tab-container">
 					<div class="main row">
 						<div class="afterSetup z-depth-1">
-							<div class="s12 heading-col">
-								<h4 class="header"> General Overview </h4>
-								<p>
-									Have a quick overview about the most important things that really affects the if JIRA for Outlook is working or not.
-								</p>
+							<div class="row">
+								<div class="s12 heading-col">
+									<p>
+										Have a quick overview about the most important things that really affects the if JIRA for Outlook is working or not.
+									</p>
+								</div>
 							</div>
 							<!-- Account Status -->
 							<div id="purchasedStatus" class="card col s4 hidden">
@@ -394,37 +397,200 @@
 									</p>
 								</div>
 								<div class="card-action">
-									<img src="https://www.yasoon.com/jira_admin/loader_small.gif">
+									<img src="https://yasoon.com/store-ressources/images/loader_small.gif">
 								</div>
 							</div>
 
 							<div style="clear: both;">&nbsp;</div>
 							<div class="logo-branding">
-								<img src="https://www.yasoon.com/jira_admin/logo_with_jira.png" />
+								<img src="https://yasoon.com/store-ressources/images/logo_with_jira.png" />
 							</div>
 
 						</div>
 					</div>
 				</div>
-				<div id="settings" class="col s12">
-					<div class="main row">
-						<div class="afterSetup z-depth-1">
-							<div class="s12 heading-col">
-								<h4 class="header"> Settings </h4>
-								<p>
-									Here you can change all technical settings in JIRA for Outlook.<br /> There are default settings that can be overwritten
-									by the user, but there are also settings that are set by the admin to control how JIRA for Outlook works.
-								</p>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div id="templates" class="col s12">
+				<div id="settings" class="col s12 tab-container">
 					<div class="main row">
 						<div class="afterSetup z-depth-1">
 							<div class="row">
 								<div class="s12 heading-col">
-									<h4 class="header"> Issue Templates</h4>
+									<p>
+										Here you can change all technical settings in JIRA for Outlook.<br />
+										 <b>Yasoon Settings</b> Control some general behaviours of JIRA for Outlook and cannot be changed by the user if not stated explicitly.<br />
+										 <b>Initial Jira Settings</b> Sets the intial settings forthe Jira application but the user can change them. <br />
+										 <b>Jira Settings</b> Controls technical settings and general workflows. Cannot be changed by user <br />
+									</p>
+								</div>
+							</div>
+							<div class="row">
+								<div class="s12 heading-col">
+									<ul class="collapsible popout" data-collapsible="expandable">
+										<li>
+											<div class="collapsible-header"><i class="material-icons">language</i>General Settings</div>
+											<div class="collapsible-body" data-bind="with:yasoonSettings" style="padding: 0px 20px;">
+												 <form class="col s12" style="float:none;">
+												 	 <div class="icons-grey black-label" style="padding-top: 10px;">
+														<div class="row bootstrap-wrapper">
+															<a href="#" class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="No software is without bugs - neither is ours. Please help us finding the issues quickly with automatic bug reports." data-title="Automatic error logs">
+																<i class="material-icons">help_outline</i>
+															</a>
+															<label>
+																Send automatic error logs 
+															</label>
+															<div class="switch"><label>Off<input type="checkbox" data-bind="checked: sendErrorLogs"><span class="lever"></span>On</label></div> 
+														</div>
+														<div class="row bootstrap-wrapper">
+															<a href="#" class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="To improve future developments we track which parts of the software are used regularly - and which aren't. We cluster and anonymize these data, so nobody can track single users activities." data-title="Yasoon Analytics">
+																<i class="material-icons">help_outline</i>
+															</a>
+															<label>
+																Send analytics
+															</label>
+															<div class="switch"><label>Off<input type="checkbox" data-bind="checked: sendAnalytics"><span class="lever"></span>On</label></div>          
+														</div>
+														<div class="row bootstrap-wrapper">
+															<a href="#" class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="When users install the addon the first time, they will get a series of 3-4 mails so they understand JIRA for Outlook easier. If you train your users yourself, you can turn them off. <br /> This setting is only used once during the installation. Users that have already installed will receive the rest of their email series. " data-title="Introduction Mails">
+																<i class="material-icons">help_outline</i>
+															</a>
+															<label>
+																Send introduction emails
+															</label>
+															<div class="switch"><label>Off<input type="checkbox" data-bind="checked: sendMails"><span class="lever"></span>On</label></div>          
+														</div>
+														<div class="row bootstrap-wrapper">
+															<a href="#" class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="<b>Important:</b> This can break some functionalities in Outlook! We need to save data locally and if you are not using Exchange, we create a local .pst file for safety. Depending on your mail infrastructure Jira for Outlook may or may not work correctly. <br /> This setting is only used once during the installation. Existing .pst files will not get removed." data-title="Local .pst File">
+																<i class="material-icons">help_outline</i>
+															</a>
+															<label>
+																Prevent local .pst file
+
+															</label>
+															<div class="switch"><label>Off<input type="checkbox" data-bind="checked: noPstFile"><span class="lever"></span>On</label></div>          
+														</div>
+														<div class="row bootstrap-wrapper">
+															<a href="#" class="left" style="margin-right: 15px;" data-toggle="popover" data-title="Yasoon Navigation" data-html="true" data-content="We have different ways to display the Navigation Tab. This sets the inital setting and can be overwritten by the user in Outlook: File --> Jira.  <br /> This setting is only used once during installation." >
+																<i class="material-icons">help_outline</i>
+															</a>
+															<label>
+																Yasoon Navigation
+															</label>
+															<div class="select-wrap">	
+																<select style="width: 400px;" data-bind="select2: yasoonNavigationOptions, value:yasoonNavigation"></select>
+															</div>
+														</div>
+														<div class="divider" style="margin-bottom: 10px;"></div>
+														<div class="row bootstrap-wrapper">
+															<a href="#" class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="Is shown to the user at the first start. A good welcome message gives guidence about the process and tells the user how to get help. We recommend a maximum total width of 600px which is the width of the editor" data-title="Welcome Message">
+																<i class="material-icons">help_outline</i>
+															</a>
+															<div style="float:left">
+																<label for="welcomeMessage">Welcome Message</label>
+																<textarea id="welcomeMessage" class="materialize-textarea tiny-mce" data-bind="wysiwyg:welcomeMessage"></textarea>
+															</div>
+														</div>
+													</div>
+													<div style="padding: 2rem;">
+														<a class="waves-effect waves-light btn" data-bind="click:save"><i class="material-icons left">save</i> Save </a>
+													</div>
+												</form>
+											</div>
+										</li>
+										<li>
+											<div class="collapsible-header"><i class="material-icons">build</i>Initial Jira Settings</div>
+											<div class="collapsible-body" data-bind="with:jiraSettings" style="padding: 0px 20px;">
+												<form class="col s12" style="float:none;">
+												 	 <div class="icons-grey black-label">
+														<div class="row bootstrap-wrapper"  style="padding-top: 10px;">
+															<a href="#" class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="User will recieve a notification on his Desktop when something important happens for him in JIRA." data-title="Desktop Notifications">
+																<i class="material-icons">help_outline</i>
+															</a>
+															<label>
+																Show Desktop Notifications
+															</label>
+															<div class="switch"><label>Off<input type="checkbox" data-bind="checked: defaultSettings.showDesktopNotif"><span class="lever"></span>On</label></div> 
+														</div>
+														<div class="row bootstrap-wrapper">
+															<a href="#" class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="Defines how the feed is synchronized. <b>Automatically</b> means every 2 minutes, <b>manually</b> only refreshes when the button is pressed by user and <b>off</b> does not sync at all." data-title="Sync Feed">
+																<i class="material-icons">help_outline</i>
+															</a>
+															<label>
+																Sync Feed
+															</label>
+															<div class="select-wrap">	
+																<select style="width: 400px;" data-bind="select2: syncFeedOptions, value:defaultSettings.syncFeed"></select>
+															</div>
+														</div>
+														<div class="divider" style="margin-bottom: 10px;"></div>
+														<div class="row bootstrap-wrapper">
+															<a href="#" class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="Attachments of emails will be marked for upload automatically when using 'New Issue' or 'Add To Issue'" data-title="Automatically Add Attachments">
+																<i class="material-icons">help_outline</i>
+															</a>
+															<label>
+																Automatically Add Attachments
+															</label>
+															<div class="switch"><label>Off<input type="checkbox" data-bind="checked: defaultSettings.addAttachmentsOnNewAddIssue"><span class="lever"></span>On</label></div> 
+														</div>
+														<div class="row bootstrap-wrapper">
+															<a href="#" class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="The email will be marked for upload automatically when using 'New Issue' or 'Add To Issue'" data-title="Automatically Add Email">
+																<i class="material-icons">help_outline</i>
+															</a>
+															<label>
+																Automatically Add Email as .msg File
+															</label>
+															<div class="switch"><label>Off<input type="checkbox" data-bind="checked: defaultSettings.addEmailOnNewAddIssue"><span class="lever"></span>On</label></div> 
+														</div>
+														<div class="row bootstrap-wrapper">
+															<a href="#" class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="The email meta data like sender, recipient, sent date and subject will be added automatically when using 'New Issue' or 'Add To Issue'" data-title="Automatically Add Email Header">
+																<i class="material-icons">help_outline</i>
+															</a>
+															<label>
+																Automatically Add Email Header
+															</label>
+															<div class="select-wrap">	
+																<select style="width: 400px;" data-bind="select2: emailHeaderOptions, value:defaultSettings.addMailHeaderAutomatically"></select>
+															</div>
+														</div>
+													</div>
+													<div style="padding: 2rem;">
+														<a class="waves-effect waves-light btn" data-bind="click:save"><i class="material-icons left">save</i> Save </a>
+													</div>
+												</form>
+											</div>
+										</li>
+
+										<li>
+											<div class="collapsible-header"><i class="material-icons">settings</i>Jira Settings</div>
+											<div class="collapsible-body" data-bind="with:jiraSettings" style="padding: 0px 20px;">
+												<form class="col s12" style="float:none;">
+													<div class="icons-grey black-label">
+														<div class="row bootstrap-wrapper" style="padding-top: 10px;">
+															<a href="#" class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="Hides completed issues in all type of issue pickers in 'Create Issue' dialog as well as in 'Add to Issue' dialog." data-title="Hide completed issues">
+																<i class="material-icons">help_outline</i>
+															</a>
+															<label>
+																Hide completed issues
+															</label>
+															<div class="switch"><label>Off<input type="checkbox" data-bind="checked: defaultSettings.hideResolvedIssues"><span class="lever"></span>On</label></div> 
+														</div>
+													</div>
+													<div style="padding: 2rem;">
+														<a class="waves-effect waves-light btn" data-bind="click:save"><i class="material-icons left">save</i> Save </a>
+													</div>
+												</form>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+							<div style="clear:both;"></div>
+						</div>
+					</div>
+				</div>
+				<div id="templates" class="col s12 tab-container">
+					<div class="main row">
+						<div class="afterSetup z-depth-1">
+							<div class="row">
+								<div class="s12 heading-col">
 									<p>
 										Here you can define issue templates based on selected criterias. These templates will be executed automatically during issue
 										creation process in Outlook to set default values. <br /> The templates will be distributed to the client
@@ -571,78 +737,77 @@
 															<!-- /ko -->
 														</tbody>
 													</table>
-													<div id="fieldPickerModal" class="modal modal-fixed-footer">
-														<!-- ko if: editObj -->
-														<div class="modal-content" data-bind="with:editObj">
-															<h4>Select Default Values</h4>
-															<div class="row" style="padding-left: 40px; margin-bottom: 20px;">
-																Here you can define the values for each field. <br>
-																<ul>
-																	<li>
-																		<span style="font-weight:bold;">Technical Ids:</span> For all select list values you'll have to use the
-																		technical IDs.
-																	</li>
-																	<li>
-																		<span style="font-weight:bold;">Multiple Values:</span> should be inserted comma separated. E.g.: 10100,10200
-																	</li>
-																	<li>
-																		<span style="font-weight:bold;">Date Values:</span>
-																		<div style="margin-left: 40px;">
-																			<ul>
-																				<li>
-																					<span style="font-weight:bold;">Date format:</span> yyyy-mm-dd (2016-12-31)
-																				</li>
-																				<li>
-																					<span style="font-weight:bold;">Date Time:</span> YYYY-MM-DD[T]HH:mm:ss.[000]Z (2016-12-31T21:00:00.000Z)
-																				</li>
-																			</ul>
-																		</div>
-																	</li>
-																	<li>
-																		<span style="font-weight:bold;">Variables:</span> We currently support the following variables:
-																		<div style="margin-left: 40px;">
-																			<ul>
-																				<li>
-																					<span style="font-weight:bold;">&lt;TODAY&gt;:</span> Inserts current date
-																				</li>
-																				<li>
-																					<span style="font-weight:bold;">&lt;TODAY&gt; + x:</span> Inserts current date + x days
-																				</li>
-																				<li>
-																					<span style="font-weight:bold;">&lt;USER&gt;:</span> Inserts current user
-																				</li>
-																				<li>
-																					<span style="font-weight:bold;">|FIELDID|:</span> Use technical field Id to default to the value of
-																					another field
-																				</li>
-																			</ul>
-																		</div>
-																	</li>
-																</ul>
-															</div>
-															<div class="row">
-																<!-- ko foreach: fields -->
-																<div class="col s6">
-																	<a style="cursor:pointer; float:left; padding-top: 2px;" data-bind="click:$parent.removeField, visible: !isEmpty()">
-																		<i class="material-icons left custom-red">delete</i>
-																	</a>
-																	<div style="padding-left: 40px;">
-																		<field-picker params="fieldId: fieldId, chosenField: currentField"></field-picker>
+												</div>
+												<div id="fieldPickerModal" class="modal modal-fixed-footer">
+													<!-- ko if: editObj -->
+													<div class="modal-content" data-bind="with:editObj">
+														<h4>Select Default Values</h4>
+														<div class="row" style="padding-left: 40px; margin-bottom: 20px;">
+															Here you can define the values for each field. <br>
+															<ul>
+																<li>
+																	<span style="font-weight:bold;">Technical Ids:</span> For all select list values you'll have to use the
+																	technical IDs.
+																</li>
+																<li>
+																	<span style="font-weight:bold;">Multiple Values:</span> should be inserted comma separated. E.g.: 10100,10200
+																</li>
+																<li>
+																	<span style="font-weight:bold;">Date Values:</span>
+																	<div style="margin-left: 40px;">
+																		<ul>
+																			<li>
+																				<span style="font-weight:bold;">Date format:</span> yyyy-mm-dd (2016-12-31)
+																			</li>
+																			<li>
+																				<span style="font-weight:bold;">Date Time:</span> YYYY-MM-DD[T]HH:mm:ss.[000]Z (2016-12-31T21:00:00.000Z)
+																			</li>
+																		</ul>
 																	</div>
-																</div>
-																<div class="col s4">
-																	<input style="width: 100%; height: 2rem;" type="text" data-bind="textInput: fieldValue">
-																</div>
-																<!-- /ko -->
-															</div>
+																</li>
+																<li>
+																	<span style="font-weight:bold;">Variables:</span> We currently support the following variables:
+																	<div style="margin-left: 40px;">
+																		<ul>
+																			<li>
+																				<span style="font-weight:bold;">&lt;TODAY&gt;:</span> Inserts current date
+																			</li>
+																			<li>
+																				<span style="font-weight:bold;">&lt;TODAY&gt; + x:</span> Inserts current date + x days
+																			</li>
+																			<li>
+																				<span style="font-weight:bold;">&lt;USER&gt;:</span> Inserts current user
+																			</li>
+																			<li>
+																				<span style="font-weight:bold;">|FIELDID|:</span> Use technical field Id to default to the value of
+																				another field
+																			</li>
+																		</ul>
+																	</div>
+																</li>
+															</ul>
 														</div>
-														<!-- /ko -->
-														<div class="modal-footer">
-															<a href="#!" id="saveFields" class="waves-effect waves-light btn modal-action modal-close"><i class="material-icons left">close</i>Close</a>
+														<div class="row">
+															<!-- ko foreach: fields -->
+															<div class="col s6">
+																<a style="cursor:pointer; float:left; padding-top: 2px;" data-bind="click:$parent.removeField, visible: !isEmpty()">
+																	<i class="material-icons left custom-red">delete</i>
+																</a>
+																<div style="padding-left: 40px;">
+																	<field-picker params="fieldId: fieldId, chosenField: currentField"></field-picker>
+																</div>
+															</div>
+															<div class="col s4">
+																<input style="width: 100%; height: 2rem;" type="text" data-bind="textInput: fieldValue">
+															</div>
+															<!-- /ko -->
 														</div>
 													</div>
+													<!-- /ko -->
+													<div class="modal-footer">
+														<a href="#!" id="saveFields" class="waves-effect waves-light btn modal-action modal-close"><i class="material-icons left">close</i>Close</a>
+													</div>
 												</div>
-
 												<div style="padding: 2rem;">
 													<a class="waves-effect waves-light btn" data-bind="click:$root.save"><i class="material-icons left">save</i> Save </a>
 												</div>
@@ -656,7 +821,6 @@
 				</div>
 			</div>
 		</div>
-
 		<div id="AreaLogin" class="hidden" style="max-width: 600px; margin: 50px; margin-top: 0px;">
 			<div class="bootstrap-wrapper page-header">
 				<h2>yasoon<small> Login </small></h2>
@@ -682,10 +846,9 @@
 				</form>
 			</div>
 			<div class="logo-branding">
-				<img src="https://www.yasoon.com/jira_admin/logo_with_jira.png" />
+				<img src="https://yasoon.com/store-ressources/images/logo_with_jira.png" />
 			</div>
 		</div>
-
 		<div id="purchaseDialog" class="modal">
 			<div class="modal-content">
 				<div class="row">
@@ -730,7 +893,7 @@
 
 		<form id="UserEmailForm" class="hidden" method="post" action="">
 		</form>
-
+	
 		<div id="userPicker" class="modal modal-fixed-footer">
 			<div class="modal-content">
 				<h4>Select Users</h4>
@@ -755,7 +918,6 @@
 			</div>
 		</div>
 	</div>
-
 </body>
 
 </html>

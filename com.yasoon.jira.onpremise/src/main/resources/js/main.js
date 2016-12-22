@@ -46,8 +46,11 @@ $(document).ready(function () {
     }
 
     prom.then(function () {
-        if (isCloud)
-            AP.sizeToParent();
+        if (isCloud) {
+            //AP.sizeToParent();
+            AP.resize('100%', (window.screen.availHeight - 250) + 'px');
+            $('.tab-container').css('max-height',(window.screen.availHeight - 330) + 'px')
+        }
 
         //Load token even if it may does nost exist.
         authToken = $.cookie('yasoonAuthToken');
@@ -55,14 +58,14 @@ $(document).ready(function () {
         loadSystemInfo()
             .then(function () {
                 //Hook up Raven error logging   
-
+                /*     
                 Raven.config('https://6271d99937bd403da519654c1cf47879@sentry2.yasoon.com/4', {
                     tags: {
                         serverId: serverId,
                         key: 'onpremise'
                     }
                 }).install();
-
+                */
                 /*
                 if (systemInfo.userName && systemInfo.userEmailAddress) {
                     zE(function () {
@@ -150,9 +153,25 @@ function getIsInstanceRegistered() {
 }
 
 function loadRegisteredUIState() {
+     ko.bindingHandlers['wysiwyg'].defaults = {
+        height: 300,
+        width: 600,
+        menubar: false,
+        plugins: [
+            'advlist autolink lists link image charmap print preview anchor',
+            'searchreplace visualblocks code fullscreen',
+            'insertdatetime media table contextmenu paste code'
+        ],
+        toolbar: ['undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify',
+                    'bullist numlist outdent indent | link image table code'],
+    };
     //Init knockout
-    templateModel = new templateViewModel();
+    var templateModel = new templateViewModel();
     ko.applyBindings(templateModel, document.getElementById('templates'));
+    var settingsModel = new settingsViewModel();
+    ko.applyBindings(settingsModel, document.getElementById('settings'));
+
+
 
     checkAppLink();
     checkDownloadLink();
@@ -409,7 +428,7 @@ function handleAddApplicationLink() {
             });
         })
         .caught(function (e) {
-            captureMessage('Error during handleAddApplicationLink: ', e);
+            captureMessage('Error during handleAddApplicationLink: ', ((e.message) ? e.message : e));
             swal("Oops...", 'An error occurred while creating the application link. Please contact us via the help button and we\'ll fix this quickly.', "error");
         })
         .then(function () {
@@ -1248,11 +1267,13 @@ ko.bindingHandlers.sortable = {
 
         $(el).on('sortupdate', function (event, args) {
             var list = ko.utils.unwrapObservable(valueAccessor());
+            console.log('Move from ' + args.oldindex + ' to ' + args.index, JSON.parse(JSON.stringify(list)));
             var currentItem = list.splice(args.oldindex, 1)[0];
             list.splice(args.index, 0, currentItem);
 
             valueAccessor()(list);
             viewModel.rerender();
+            console.log('List after:', JSON.parse(JSON.stringify(list)));
         });
     },
     update: function (el, valueAccessor, allBindingsAccessor, viewModel) {

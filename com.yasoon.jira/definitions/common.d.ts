@@ -2,7 +2,15 @@ declare function jiraGet(relativeUrl: string): Promise<string>;
 
 declare function jiraAjax(relativeUrl: string, method: number, data?: any, formData?: any): Promise<any>;
 
-declare function jiraSyncError(message: string, statusCode: number, errorText: string, data: any, result?: any);
+declare interface jiraSyncError {
+    message?: string, 
+    statusCode?: number, 
+    errorText?: string, 
+    data?: any, 
+    result?: any,
+    getUserFriendlyError(): string
+}
+
 
 declare function jiraIsVersionHigher(systemInfo, versionString: string): boolean;
 

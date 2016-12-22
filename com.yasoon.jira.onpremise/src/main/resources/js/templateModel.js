@@ -123,6 +123,16 @@ function templateViewModel() {
                 processData: false,
                 type: 'PUT'
             }))
+                .then(function () {
+                    notyfy({
+                        text: 'Save Successfull',
+                        type: 'success',
+                        dismissQueue: true,
+                        timeout: 1500,
+                        layout: 'topCenter',
+                        buttons: false
+                    });
+                })
                 .caught(function (e) {
                     swal({
                         title: "Save was not possible",
@@ -155,13 +165,13 @@ function templateViewModel() {
         type: 'GET'
     }))
         .then(function (data) {
-            console.log(data);
+            console.log('Template Data', data);
             self.groupHierarchy.load(data.overwrite.groups);
             self.initialSelection.load(data.overwrite.initialSelection);
             self.defaultTemplates.load(data.overwrite.defaultTemplates);
         })
         .caught(function (e) {
-
+            console.log(e, e.stack);
         });
 }
 

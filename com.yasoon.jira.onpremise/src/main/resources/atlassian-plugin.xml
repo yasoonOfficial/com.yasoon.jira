@@ -20,6 +20,8 @@
         <resource type="download" name="materialize.css" location="/css/materialize.css"/>
         <resource type="download" name="sweetalert.css" location="/css/sweetalert.css"/>
         <resource type="download" name="select2.min.css" location="/css/select2.min.css"/>
+		<resource type="download" name="jquery.notyfy.css" location="/css/jquery.notyfy.css"/>
+        <resource type="download" name="notyfy.theme.default.css" location="/css/notyfy.theme.default.css"/>
         <resource type="download" name="yasoon.css" location="/css/yasoon.css"/>
         <resource type="download" name="jquery-1.11.3.min.js" location="/js/jquery-1.11.3.min.js"/>
         <resource type="download" name="jquery.cookie.js" location="/js/jquery.cookie.js"/>
@@ -31,16 +33,21 @@
         <resource type="download" name="bluebird.min.js" location="/js/bluebird.min.js" />
 		<resource type="download" name="jquery.bootstrap.wizard.min.js" location="/js/jquery.bootstrap.wizard.min.js"/>
         <resource type="download" name="html.sortable.js" location="/js/html.sortable.js" />
-        <resource type="download" name="templateModel.js" location="/js/templateModel.js" />
+		<resource type="download" name="jquery.notyfy.js" location="/js/jquery.notyfy.js" />
+		<resource type="download" name="jquery.tinymce.min.js" location="/js/jquery.tinymce.min.js" />
+		<resource type="download" name="tinymce-knockout-bindung.js" location="/js/tinymce-knockout-bindung.js" />
+        <resource type="download" name="settingsModel.js" location="/js/settingsModel.js" />
+		<resource type="download" name="templateModel.js" location="/js/templateModel.js" />
         <resource type="download" name="field-picker.js" location="/js/components/field-picker.js" />
         <resource type="download" name="group-picker.js" location="/js/components/group-picker.js" />
         <resource type="download" name="group-picker-data.js" location="/js/components/group-picker-data.js" />
         <resource type="download" name="issue-type-picker.js" location="/js/components/issue-type-picker.js" />
         <resource type="download" name="project-picker.js" location="/js/components/project-picker.js" />
-
         <resource type="download" name="main.js" location="/js/main.js"/>
         <resource type="download" name="main.html" location="main.html"/>
+		<resource type="download" name="images/logo_with_jira.png" location="images/logo_with_jira.png"/>
         <resource type="download" name="images/" location="/images"/>
+		<resource type="download" name="img/" location="/img"/>
         
         <context>cloud</context>
     </web-resource>
