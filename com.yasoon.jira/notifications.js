@@ -234,7 +234,7 @@ function JiraNotificationController() {
 
 	self.loadWorklogTemplate = function (issueKey, issueId, cbk) {
 		if (!self.templateLoaded) {
-			var path = yasoon.io.getLinkPath('templates/addWorklog.hbs.js');
+			var path = yasoon.io.getLinkPath('templates/addWorklog.js');
 			$.getScript(path, function (template) {
 				self.templateLoaded = true;
 				self.worklogTemplate = jira.templates.addWorklog;
@@ -492,7 +492,7 @@ function JiraIssueNotification(issue) {
 			self.issue.renderedFields.resolutiondate = moment(new Date(self.issue.fields.resolutiondate)).format('L');
 
 		//Start rendering
-		feed.setTemplate('templates/issueNotification.hbs', {
+		feed.setTemplate('templates/issueNotification.js', {
 			fields: self.issue.fields,
 			renderedFields: self.issue.renderedFields,
 			assignee: {
@@ -746,8 +746,8 @@ function JiraIssueNotification(issue) {
 				'settings': jira.settings,
 				'ownUser': jira.data.ownUser,
 				'editIssueId': self.issue.id,
-				'editProject': self.issue.fields.project,
-				'systemInfo': jira.sysInfo
+				'systemInfo': jira.sysInfo,
+				'projects': jira.data.projects
 			},
 			closeCallback: cbk
 		});

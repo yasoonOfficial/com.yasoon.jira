@@ -77,7 +77,7 @@
                 "placeholderSearchIssue": "Search for an Issue",
                 "recentIssues": "Recent",
                 "projectIssues": "Project Issues",
-                "titleSearchResults": "Results for {{term}}",
+                "titleSearchResults": "Results for \"{{term}}\"",
                 "errorSelectIssue": "Please select the issue you want to comment!",
                 "errorNoData": "Please add either an comment or select an attachment",
                 "errorSubmitComment": "Connection Error! Commenting did not work: {{error}}",
@@ -85,7 +85,7 @@
                 "errorSubmitIssue": "Sorry, that did not work. Check your input and try again.  \n {{error}}",
                 "errorAfterSubmitIssue": "The issue has been created, but there happend an error afterwards. Please check your data. \n {{error}}",
                 "errorCreateAttachment": "Issue {{key}} created, but uploading the attachments did not work. {{error}}",
-                "SDAssignment": "Service Desk assignment",
+                "SDAssignment": "Create Service Desk assignment",
                 "SDExplanation": "Service Desk assignments make the issue visible for the reporter in the Service Desk as \"Own Request\"",
                 "requestType": "Request Type",
                 "behalfOf": "On behalf of",
@@ -108,7 +108,9 @@
                 "releasedVersions": "Released Versions",
                 "unreleasedVersions": "Unreleased Versions",
                 "assignMyself": "Assign to me",
-                "assignMyselfTitle": "Assign this issue to yourself",
+                "assignMyselfTitle": "Replace with own user",
+                "addMyself": "Add myself",
+                "addMyselfTitle": "Add own user",
                 "createUserLink": "Create User {{name}}",
                 "createUserError403": "You are not allowed to create new users in JIRA. Please contact your administrator to use this function",
                 "createUserError404": "Your JIRA instance is too old and does not support this functionality",
@@ -142,7 +144,8 @@
                 "serviceDeskWarning": "No Request Type",
                 "attachmentAddToBlacklistDialog": "Do you want to ignore this image for future uploads? This can be used to exclude small, recurring images (like signatures) from being selected/included automatically. Please note, that this ignore list will distribute to your colleagues!",
                 "attachmentAddToBlacklist": "Mark image as excluded",
-                "attachmentReferenceStillActive": "The description still contains a reference to this attachment - remove it as well?"
+                "attachmentReferenceStillActive": "The description still contains a reference to this attachment - remove it as well?",
+                "noRecipient": "no one"
             },
             "filter": {
                 "projectFilter": "Project",
@@ -157,8 +160,9 @@
                 "componentFilter": "Component"
             },
             "mail": {
-                "mailHeaderMarkup": "*From:* {{senderName}} <[mailto:{{senderEmail}}]> \n*Sent:* {{date}}\n*To:* {{recipients}}\n*Subject*: {{subject}}\n----\n",
-                "mailHeaderPlain": "From: {{senderName}} <{{senderEmail}}> \n Sent: {{date}} \n To: {{recipients}}\n Subject: {{subject}}\n"
+                "mailHeaderMarkup": "*From:* {{senderName}} <[mailto:{{senderEmail}}]> \n*Sent:* {{date}}\n*To:* {{recipients}}\n*Subject*: {{subject}}\n",
+                "mailHeaderPlain": "From: {{senderName}} <{{senderEmail}}> \n Sent: {{date}} \n To: {{recipients}}\n Subject: {{subject}}\n",
+                "attachments": "Attachments"
             },
             "logWork": {
                 "title": "Log Work",

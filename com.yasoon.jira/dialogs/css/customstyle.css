@@ -1,0 +1,362 @@
+/* Custom */
+.input-field {
+	width: 250px;
+}
+.select2-container-multi .select2-choices {
+	border: 0px !important;
+}
+
+/*.hidden {
+	display:none;
+}*/
+
+.assign-to-me-trigger {
+	margin-left: 0;
+	margin-top: 5px;
+}
+
+
+body {
+	font-family: 'open_sansregular',Arial, Helvetica, Wingdings, Calibri, Cambria,Consolas,sans-serif !important; 
+}
+
+.addToIssue form.aui .field-group {
+	padding: 4px 0 4px 95px !important;
+}
+
+.addToIssue form.aui .field-group > label {
+	margin-left: -95px !important;
+	width: 80px !important;
+}
+
+.hidePortal {
+	display: none;
+}
+
+.active .hidePortal {
+	display: inline;
+}
+
+.active .showPortal {
+	display: none;
+}
+
+#behalfReporter-container{
+	padding:0px;
+}
+
+#markupLoader { 
+	display: none;
+	position:absolute;
+	background: url(/images/ajax-loader.gif) no-repeat center center;
+	width: 36px;
+	height: 36px;
+	left: 120px;
+	z-index: 110;
+	margin-top: 10px;
+}
+
+#create-issue-dialog .mentions-help-text {
+	position: absolute;
+	display:none;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	padding: 10px;
+	margin: 5px 2px 5px 147px;
+	z-index: 1000;
+}
+
+#add-to-issue-dialog .mentions-help-text {
+	position: absolute;
+	display:none;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	padding: 10px;
+	margin: 5px 2px 5px 97px;
+	z-index: 1000;
+}
+
+
+/* Attachments */
+
+.jiraAttachmentLink{
+	margin-bottom: 2px;
+	position: relative;
+}
+
+.attachmentCheckbox{
+	position: absolute !important;
+}
+
+.attachmentIcon{
+	position: absolute;
+	left: 20px;
+	top: 7px;
+}
+
+.attachmentIcon img {
+	width:16px;
+}
+
+.attachmentMain{
+	margin-left: 40px;
+	margin-right: 40px;
+}
+
+.attachmentName{
+	padding-top: 7px;
+}
+
+.attachmentNewName{
+	display: none;
+	padding-top: 3px;
+}
+
+.edit .attachmentName {
+	display:none;
+}
+
+.edit .attachmentNewName {
+	display: block !important;
+}
+
+.attachmentNewName .input-group{
+	display: inline-table;
+	width: 350px;
+}
+
+.attachmentRenameActions{
+	font-size: 20px; 
+	margin-left: 5px;
+	color: #707070;
+	vertical-align: top;
+	display: inline-block;
+}
+
+.attachmentRenameActions i {
+	cursor: pointer;
+}
+
+.attachmentRenameActions i:not(:first-child) {
+	margin-left: 5px;
+}
+
+.attachmentMoreDropup {
+	display: inline-block;
+}
+
+.attachmentMore{
+	cursor: pointer;
+	color:grey;
+}
+
+.attachmentMoreIcons{
+	font-size:6px;	
+    position: relative;
+	top: -1px;
+}
+
+.attachmentMoreIcons:after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  bottom: -8px;
+  left: -2px;
+  right: -2px;
+  cursor: pointer;
+}
+
+.attachmentMoreIcons i:not(:first-child) {
+	margin-left: 1px;
+}
+
+.addAttachmentLink{	
+	cursor:pointer;
+}
+
+.attachment-bottom-actions {
+	margin-top: 5px;
+}
+
+.attachments-blacklisted .attachmentNameValue {
+	opacity: 0.5;
+}
+
+.modal-dialog {
+	margin-top: 30%;
+}
+
+.modal-footer {
+	padding: 10px !important;
+	margin-top: 0px !important;
+}
+
+.modal-footer .checkbox {
+	float: left;
+	margin-bottom: 0;
+	margin-top: 6px;
+}
+
+.modal-footer .awesome.checkbox label::after {
+	left: -2px !important;
+	top: 1px !important;
+}
+
+.modal-footer .awesome.checkbox label::before {
+	top: 1px;
+}
+
+/* Add to issue Service Comment Buttons */
+button.servicedesk {
+	display:none !important;
+}
+
+.servicedesk button.jira {
+	display:none !important;
+}
+
+.servicedesk button.servicedesk {
+	display: inline !important;
+}
+
+.servicedesk-warning {
+	display: none;
+}
+.no-requesttype .servicedesk-warning {
+	display: inline !important;
+}
+
+.buttons-container {
+	overflow: visible !important;
+}
+
+.icon-required {
+	display: none;
+}
+
+.required .icon-required {
+	display: inline !important;
+}
+
+.edit-mode .jira-title {
+	display:none;
+}
+
+.jira-edit-title {
+	display:none;
+}
+
+.edit-mode .jira-edit-title {
+	display:block !important;
+}
+
+.edit-mode #createAnotherCheckbox {
+	display:none !important;
+}
+
+#label-save {
+	display:none;
+}
+
+.edit-mode #label-create {
+	display:none !important;
+}
+
+.edit-mode #label-save {
+	display: block !important;
+}
+
+form.aui .text {
+	padding-left: 6px !important;
+	padding-right: 6px !important;
+}
+
+.awesome-wrapper {
+	padding-top: 7px;
+}
+
+.mentions-input-box .mentions {
+	padding: 3px 6px !important;
+}
+
+
+/* Not nessecary with new renderer */
+.attachments-blacklisted-old {
+	display: none;
+}
+
+.show-blacklisted-attachments-old,
+.hide-blacklisted-attachments-old
+{
+	margin-right: 10px;
+	cursor:pointer;
+	display:none;
+}
+
+.show-blacklisted-attachments,
+.hide-blacklisted-attachments
+{
+	margin-right: 10px;
+	cursor:pointer;
+}
+
+#MainAlert
+{
+	margin: -20px -20px 0px -20px; 
+	border-radius: 0px;
+}
+
+#LoaderArea 
+{
+	position:absolute;
+	top: 0px;
+	background: url(/images/ajax-loader.gif) no-repeat center center;
+	width: 500px;
+	height: 350px;
+}
+
+#JiraSpinner 
+{
+	margin-right: 20px;
+	 margin-top: -12px;
+}
+
+.servicedesk-popover 
+{
+	color:#ffd800;
+	font-size: 20px;
+	cursor:pointer;
+	margin-right: 10px;
+}
+
+#markupLoader 
+{
+	position:absolute;
+	background: url(../../images/ajax-loader.gif) no-repeat center center;
+	width: 36px;
+	height: 36px;
+	left: 175px; 
+	z-index: 100;
+	margin-top: 10px;
+}
+
+::-webkit-scrollbar{
+	width: 10px;
+}
+
+::-webkit-scrollbar-track-piece{
+	background-color: #FFF;
+}
+
+::-webkit-scrollbar-thumb{
+	background-color: #CBCBCB;
+	outline: 2px solid #FFF;
+	outline-offset: -2px;
+	border: .1px solid #B7B7B7;
+}
+
+::-webkit-scrollbar-thumb:hover{
+	background-color: #909090;
+}

@@ -1,89 +1,65 @@
-<link rel="stylesheet" href="dialogs/request-types.css">
-<link rel="stylesheet" href="dialogs/style.css">
-<link rel="stylesheet" href="dialogs/select2.min.css">
-<link rel="stylesheet" href="dialogs/jquery.datetimepicker.css">
-<link rel="stylesheet" href="dialogs/jquery.mentionsInput.css" />
-<link rel="stylesheet" href="dialogs/switch.css">
-<link rel="stylesheet" href="dialogs/jquery-date.min.css" />
-<script src="dialogs/select2.full.min.js"></script>
-<script src="dialogs/jquery.datetimepicker.full.min.js"></script>
-<script src="dialogs/jquery.mentionsInput.js"></script>
+<link rel="stylesheet" href="dialogs/css/request-types.css">
+<link rel="stylesheet" href="dialogs/css/switch.css">
+<link rel="stylesheet" href="dialogs/css/jirastyle.css">
+<link rel="stylesheet" href="libs/select2/select2.min.css">
+<link rel="stylesheet" href="libs/datetimePicker/jquery.datetimepicker.css">
+<link rel="stylesheet" href="libs/mentionsInput/jquery.mentionsInput.css" />
+<link rel="stylesheet" href="dialogs/css/customstyle.css">
+
+<!--<link rel="stylesheet" href="dialogs/jquery-date.min.css" /> -->
+<script src="libs/select2/select2.full.min.js"></script>
+<script src="libs/datetimePicker/jquery.datetimepicker.full.min.js"></script>
+<script src="libs/mentionsInput/jquery.mentionsInput.js"></script>
 <script src="common.js"></script>
-<script src="dialogs/jiraFieldRendererCore.js"></script>
-<script src="dialogs/jiraFieldRenderer.js"></script>
-<script src="dialogs/jiraNewEditIssue.js"></script>
+<script src="dialogs/js/renderer.js"></script>
+<script src="dialogs/js/jiraNewEditIssue.js"></script>
 
 <div style="padding:10px; position: fixed; width: 100%">
-	<div style="display: block; width: 100%; min-width: 690px;" class="jira-dialog box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready" id="create-issue-dialog">
+	<div style="display: block; width: 100%; min-width: 690px;" class="jira-dialog box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready"
+		id="create-issue-dialog">
 		<div class="jira-dialog-heading">
 			<h2 class="jira-title" data-bind="localizedText: 'dialog.titleCreateIssue'"></h2>
+			<h2 class="jira-edit-title" data-bind="localizedText: 'dialog.titleEditIssue'"></h2>
 		</div>
 		<div class="jira-dialog-content">
 			<div class="qf-container">
 				<div class="qf-unconfigurable-form">
 					<form name="jiraform" action="#" class="aui">
 						<div class="form-body" style="height: 530px;">
-							<div id="MainAlert" class="alert alert-danger" style="display:none; margin: -20px -20px 0px -20px; border-radius: 0px;">
-								<span data-bind="localizedText: 'dialog.connectionError'">Connection Error. Loading Values from Jira not possible.</span>
+							<div id="MainAlert" class="alert alert-danger hidden">
+								<span class="error-text" data-bind="localizedText: 'dialog.connectionError'">Connection Error. Loading Values from Jira not possible.</span>
 							</div>
-							<div class="">
-								<div class="qf-field qf-field-project qf-required">
-									<div class="field-group ">
-										<label for="project" data-bind="localizedText: 'dialog.project'"></label>
-										<select class="select input-field" id="project" name="pid" style="min-width: 350px; width: 80%;">
-											<option></option>
-											<optgroup class="templates" label="" style="display:none;"></optgroup>
-											<optgroup class="recent" label="Recent Projects" data-bind="localizedText: {'label' : 'dialog.recentProjects' }"></optgroup>
-											<optgroup class="all" label="All Projects" data-bind="localizedText: {'label' : 'dialog.allProjects' }"></optgroup>
-										</select>
-										<img src="images/ajax-loader.gif" style="display:none;" id="ProjectSpinner" />
-									</div>
-								</div>
-								<div id="IssueArea" class="qf-field qf-field-issuetype issue-setup-fields qf-required" style="display:none;">
-									<div class="field-group input-field">
-										<label for="issuetype"><span id="issueTypeLabel" data-bind="localizedText: 'dialog.issueType'"></span><span class="aui-icon icon-required" data-bind="localizedText: 'dialog.required'">Required</span></label>
-										<select class="select input-field" id="issuetype" name="issuetype" style="min-width: 350px; width: 80%;"></select>
-										<br />
-										<a id="switchServiceMode"  class="hidden" style="cursor:pointer;" title="">
-											<span class="showPortal"><i class="fa fa-plus"></i><span data-bind="localizedText: 'dialog.SDAssignment'">Service Desk assignment</span> </span>
-											<span class="hidePortal"><i class="fa fa-minus"></i><span data-bind="localizedText: 'dialog.SDAssignment'">Service Desk assignment</span> </span>
-										</a>
-									</div>
-								</div>
-								<div id="SubtaskArea" class="qf-field qf-field-issuetype issue-setup-fields qf-required hidden">
-								</div>
-								<div id="ServiceArea" class="qf-field qf-field-issuetype issue-setup-fields qf-required hidden">
-									<div style="color: darkgray; font-size: 12px;" data-bind="localizedText: 'dialog.SDExplanation'">Service Desk assignments make the issue visible for the reporter in the Service Desk as "Own Request""</div>
-									<div class="field-group input-field">
-										<label for="requestType"><span id="requestTypeLabel" data-bind="localizedText: 'dialog.requestType'">Request Type</span><span class="aui-icon icon-required" data-bind="localizedText: 'dialog.required'">Required</span></label>
-										<select class="select input-field" id="requestType" name="requestType" style="min-width: 350px; width: 80%;"></select>
-									</div>
-									<div class="field-group input-field" id="behalfOfUserDiv">
-										<label for="behalfReporter" data-bind="localizedText: 'dialog.behalfOf'">On behalf of</label>
-										<div id="behalfOfUserReporter" style="min-width: 350px; width: 100%; overflow: hidden;">
-
-										</div>
-									</div>
-								</div>
+							<div id="HeaderArea">
+							</div>
+							<div id="IssueArea" class="hidden issue-setup-fields">
+							</div>
+							<div id="SubtaskArea" class="hidden issue-setup-fields">
+							</div>
+							<div id="ServiceArea" class="hidden issue-setup-fields">
+								<div style="color: darkgray; font-size: 12px;" data-bind="localizedText: 'dialog.SDExplanation'">Service Desk assignments make the issue visible for the reporter in the Service Desk as "Own Request""</div>
+								<div id="ServiceAreaRequestField"></div>
+								<div id="ServiceAreaReporterField"></div>
 							</div>
 							<div id="ContentArea" class="content" style="visibility:hidden;">
-								<div id="markupLoader" style="display: none; position:absolute; background: url(images/ajax-loader.gif) no-repeat center center; width: 36px; height: 36px; left: 175px; z-index: 100; margin-top: 10px"></div>
+								<div id="markupLoader" class="hidden"></div>
 								<ul id="tab-list" class="nav nav-tabs" role="tablist"></ul>
 								<div id="ContainerFields">
-									
 								</div>
 							</div>
-							<div id="LoaderArea" style="display: none; position: absolute; top: 0px; background: url(images/ajax-loader.gif) no-repeat center center; width: 600px; height: 350px;">
+							<div id="LoaderArea" class="hidden">
 							</div>
 						</div>
 						<div class="buttons-container form-footer">
 							<div class="buttons">
-								<img src="images/ajax-loader.gif" style="display:none; margin-right: 20px; margin-top: -12px;" id="JiraSpinner">
+								<img src="images/ajax-loader.gif" class="hidden" id="JiraSpinner">
 								<div id="createAnotherCheckbox" class="checkbox awesome" style="display: inline-block">
 									<input id="qf-create-another" type="checkbox" />
 									<label for="qf-create-another" class="qf-create-another" style="margin-bottom: 2px;text-align: initial;" data-bind="localizedText: 'dialog.createAnother'"></label>
 								</div>
-								<button type="button" accesskey="s" title="" class="button" id="create-issue-submit" data-bind="localizedText: 'dialog.create'"> Create </button>
+								<button type="button" accesskey="s" title="" class="button" id="create-issue-submit">
+									<span id="label-create" data-bind="localizedText: 'dialog.create'"> Create </span>
+									<span id="label-save" data-bind="localizedText: 'dialog.save'"> Save </span>
+								</button>
 								<a href="#" accesskey="`" title="" id="create-issue-cancel" class="cancel" data-bind="localizedText: 'dialog.cancel'">Cancel</a>
 							</div>
 						</div>

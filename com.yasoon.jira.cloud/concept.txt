@@ -15,4 +15,7 @@ https://{HOSTNAME}:{PORT}/{CONTEXT}/rest/atlassian-connect/latest/license
 
 Run Cloud command
 atlas-run-standalone --product jira --version 6.4-OD-11-014 --bundled-plugins com.atlassian.bundles:json-schema-validator-atlassian-bundle:1.0.4,com.atlassian.webhooks:atlassian-webhooks-plugin:1.0.6,com.atlassian.jwt:jwt-plugin:1.2.2,com.atlassian.upm:atlassian-universal-plugin-manager-plugin:2.18.2-D20141112T015724,com.atlassian.plugins:atlassian-connect-plugin:1.1.17 --jvmargs -Datlassian.upm.on.demand=true
+
+atlas-run-standalone --container tomcat7x --product jira --version 7.2.0-OD-05-023 --data-version 7.2.0-OD-05-023 --bundled-plugins com.atlassian.bundles:json-schema-validator-atlassian-bundle:1.0.4,com.atlassian.upm:atlassian-universal-plugin-manager-plugin:2.21-D20160128T024330,com.atlassian.jwt:jwt-plugin:1.5.9-0019,com.atlassian.plugins:atlassian-connect-plugin:1.1.84 --jvmargs -Datlassian.upm.on.demand=true
+
 http-server -p 8000

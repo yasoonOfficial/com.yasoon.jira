@@ -1,0 +1,54 @@
+var gulp = require('gulp');
+
+//1. Generate Typescript
+var ts = require('gulp-typescript');
+
+// 1.1 Typescript Renderer
+gulp.task('buildRenderer', function () {
+    return gulp.src('com.yasoon.jira/dialogs/renderer/**/*.ts')
+        .pipe(ts({
+            "experimentalDecorators": true,
+            "outFile": "./renderer.js",
+            "allowJs": true,
+            "target": "es5"
+        }))
+        .pipe(gulp.dest('distribution/com.yasoon.jira/dialogs/js'));
+});
+gulp.start('buildRenderer');
+
+//2. Compile Templates
+var handlebars = require('gulp-handlebars');
+var wrap = require('gulp-wrap');
+var declare = require('gulp-declare');
+gulp.task('generateTemplates', function () {
+    return gulp.src(['com.yasoon.jira/templates/*.hbs', 'com.yasoon.jira/templates/*.handlebars'])
+        .pipe(handlebars({
+            handlebars: require('handlebars')
+        }))
+        .pipe(wrap('Handlebars.template(<%= contents %>)'))
+        .pipe(declare({
+            namespace: 'jira.templates',
+            //noRedeclare: true, // Avoid duplicate declarations
+        }))
+        //.pipe(concat('templates.js'))
+        .pipe(gulp.dest('distribution/com.yasoon.jira/templates/'));
+});
+
+gulp.start('generateTemplates');
+
+//3. Copy files into distribution folders
+var copyfiles = require('copyfiles');
+var pathes = [
+    'com.yasoon.jira/*',
+    'com.yasoon.jira/assets/*',
+    'com.yasoon.jira/dialogs/*',
+    'com.yasoon.jira/dialogs/js/*',
+    'com.yasoon.jira/dialogs/css/*',
+    'com.yasoon.jira/images/*',
+    'com.yasoon.jira/libs/**/*',
+    'com.yasoon.jira/locale/*',
+    'distribution'
+];
+copyfiles(pathes, null, function () {
+
+});

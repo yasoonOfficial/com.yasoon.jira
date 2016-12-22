@@ -51,9 +51,9 @@ function program3(depth0,data) {
   if (helper = helpers.id) { stack1 = helper.call(depth0, {hash:{},data:data}); }
   else { helper = (depth0 && depth0.id); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
   buffer += escapeExpression(stack1)
-    + "-link\" class=\"attachment-bottom-actions\">\r\n			<a class=\"show-blacklisted-attachments\">"
+    + "-link\" class=\"attachment-bottom-actions\">\r\n			<a class=\"show-blacklisted-attachments-old\">"
     + escapeExpression((helper = helpers.i18n || (depth0 && depth0.i18n),options={hash:{},data:data},helper ? helper.call(depth0, "dialog.showBlacklistedAttachments", options) : helperMissing.call(depth0, "i18n", "dialog.showBlacklistedAttachments", options)))
-    + " (<span id=\"blacklistedAttachmentCount\">3</span>)</a>\r\n			<a class=\"hide-blacklisted-attachments\">"
+    + " (<span id=\"blacklistedAttachmentCount\">3</span>)</a>\r\n			<a class=\"hide-blacklisted-attachments-old\">"
     + escapeExpression((helper = helpers.i18n || (depth0 && depth0.i18n),options={hash:{},data:data},helper ? helper.call(depth0, "dialog.hideBlacklistedAttachments", options) : helperMissing.call(depth0, "i18n", "dialog.hideBlacklistedAttachments", options)))
     + " </a>			\r\n			<a class=\"addAttachmentLink\">"
     + escapeExpression((helper = helpers.i18n || (depth0 && depth0.i18n),options={hash:{},data:data},helper ? helper.call(depth0, "dialog.attachmentAdd", options) : helperMissing.call(depth0, "i18n", "dialog.attachmentAdd", options)))

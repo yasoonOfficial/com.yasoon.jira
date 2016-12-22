@@ -77,7 +77,7 @@
 				"placeholderSearchIssue": "Suche nach einem Vorgang",
 				"recentIssues": "Letzte Vorgänge",
 				"projectIssues": "Projekt Vorgänge",
-				"titleSearchResults": "Ergebnis für {{term}}",
+				"titleSearchResults": "Ergebnis für \"{{term}}\"",
 				"errorSelectIssue": "Bitte wähle einen Vorgang den du kommentieren möchtest!",
 				"errorNoData": "Bitte entweder einen Kommentar hinzufügen oder einen Anhang wählen.",
 				"errorSubmitComment": "Verbindungsfehler! Kommentieren hat nicht funktioniert: {{error}}",
@@ -85,7 +85,7 @@
 				"errorSubmitIssue": "Das hat leider nicht funktioniert. Bitte prüfe deine Eingaben und versuche es erneut.  \n {{error}}",
 				"errorAfterSubmitIssue": "Der Vorgang wurde angelegt, allerdings ist anschließend ein Fehler aufgetreten. Bitte prüfe den Vorgang. \n {{error}}",
 				"errorCreateAttachment": "Vergang {{key}} wurde angelegt, aber beim hochladen der Anhänge sind Fehler aufgetreten. {{error}}",
-				"SDAssignment": "Service Anfrage stellen",
+				"SDAssignment": "Service Anfrage erstellen",
 				"SDExplanation": "Service Anfragen sind für den Autor im Service Portal unter \"Eigene Anfragen\" sichtbar ",
 				"requestType": "Anfragetyp",
 				"behalfOf": "Im Namen von",
@@ -108,7 +108,9 @@
 				"releasedVersions": "Veröffentlichte Versionen",
 				"unreleasedVersions": "Unveröffentlichte Versionen",
 				"assignMyself": "Mir zuweisen",
-				"assignMyselfTitle": "Den Vorgang dir selbst zuweisen",
+				"assignMyselfTitle": "Den eigenen Benutzer in das Feld eintragen",
+				"addMyself": "Mich hinzufügen",
+				"addMyselfTitle": "Den eigenen Benutzer hinzufügen",
 				"createUserLink": "Benutzer {{name}} anlegen",
 				"createUserError403": "Du hast nicht die Berechtigungen um einen neuen Benutzer in JIRA anzulegen. Bitte wende dich an deinen Administrator.",
 				"createUserError404": "Dein JIRA ist auf einem älteren Release und unterstützt diese Funktion leider nicht.",
@@ -142,7 +144,8 @@
 				"serviceDeskWarning": "Kein Anfragetyp",
 				"attachmentAddToBlacklistDialog": "Willst du dieses Bild zukünftig ignorieren? Dies ist sinnvoll, um kleine, oft verwendete Bilder auszuschließen (wie z.B. Signaturbilder). Bitte beachte, dass die ignorierten Bilder automatisch auch bei deinen Kollegen ignoriert werden!",
 				"attachmentAddToBlacklist": "Bild zukünftig ignorieren",
-				"attachmentReferenceStillActive": "Die Beschreibung enthält noch eine Referenz zu dem de-selektieren Anhang - ebenfalls entfernen?"
+				"attachmentReferenceStillActive": "Die Beschreibung enthält noch eine Referenz zu dem de-selektieren Anhang - ebenfalls entfernen?",
+				"noRecipient": "keiner"
 			},
 			"filter": {
 				"projectFilter": "Projekt",
@@ -157,8 +160,9 @@
 				"componentFilter": "Komponente"
 			},
 			"mail": {
-				"mailHeaderMarkup": "*Von:* {{senderName}} <[mailto:{{senderEmail}}]> \n*Gesendet:* {{date}}\n*An:* {{recipients}}\n*Betreff*: {{subject}}\n----\n",
-				"mailHeaderPlain": "Von: {{senderName}} <{{senderEmail}}> \n Gesendet: {{date}} \n An: {{recipients}}\n Betreff: {{subject}}\n"
+				"mailHeaderMarkup": "*Von:* {{senderName}} <[mailto:{{senderEmail}}]> \n*Gesendet:* {{date}}\n*An:* {{recipients}}\n*Betreff*: {{subject}}\n",
+				"mailHeaderPlain": "Von: {{senderName}} <{{senderEmail}}> \n Gesendet: {{date}} \n An: {{recipients}}\n Betreff: {{subject}}\n",
+				"attachments": "Anhänge"
 			},
 			"logWork": {
 				"title": "Arbeit protokollieren",
