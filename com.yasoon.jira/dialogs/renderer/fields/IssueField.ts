@@ -15,6 +15,7 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
     private excludeSubtasks: boolean;
     private recentItems: RecentItemController;
     private getProjectIssues: Promise<Select2Element[]>;
+    private emailController: EmailController;
 
     constructor(id: string, field: JiraMetaField, excludeSubtasks: boolean) {
         let options: Select2Options = {};
@@ -24,6 +25,7 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
 
         this.excludeSubtasks = excludeSubtasks;
         this.recentItems = jira.recentItems;
+        this.emailController = jira.emailController;
 
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
     }
@@ -31,16 +33,50 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
         if (source === FieldController.projectFieldId) {
             this.setProject(<JiraProject>newValue);
+            this.setDefaultIssue();
         }
         return null;
 
+    }
+
+    setDefaultIssue() {
+        if (jira.issue) {
+			this.setValue(jira.issue.id);
+            return;
+        }
+
+		//If mail is provided && subject contains reference to issue, pre-select that
+		if (this.emailController) {
+			let convData = this.emailController.getConversationData();
+			
+			if (convData) {
+				//Try to find issue key that is in selected project
+				for (let id in convData.issues) {
+					if (convData.issues[id].projectId === this.currentProject.id) {
+						this.setValue(convData.issues[id].key);
+                        return;
+					}
+				}
+			}
+            let subject = this.emailController.mail.subject;
+			if (subject) {
+				//Try to extract issue key from subject
+				var regEx = new RegExp(this.currentProject.key + '.[0-9]+', 'g');
+				var match = regEx.exec(subject);
+
+				if (match && match.length > 0) {
+                    this.setValue(match[0]);
+                    return;
+				}
+			}
+		}
     }
 
     convertId(issueIdOrKey: string): Promise<any> {
         if (issueIdOrKey) {
             return jiraGet('/rest/api/2/issue/' + issueIdOrKey + '?fields=summary,project')
                 .then((data) => {
-                    let issue: JiraIssue = JSON.parse(data);
+                    return <JiraIssue>JSON.parse(data);
                 });
         }
         return Promise.resolve();

@@ -76,7 +76,7 @@ class AddToIssueDialog implements IFieldEventHandler {
         this.recentItems = new RecentItemController(this.ownUser);
 
         //Render Header fields
-        var projectDefaultMeta = ProjectField.defaultMeta;
+        let projectDefaultMeta = ProjectField.defaultMeta;
         projectDefaultMeta.required = false;
         FieldController.loadField(projectDefaultMeta, ProjectField, { cache: this.cacheProjects, allowClear: true });
         FieldController.render(FieldController.projectFieldId, $('#HeaderArea'));
@@ -88,7 +88,7 @@ class AddToIssueDialog implements IFieldEventHandler {
         FieldController.loadField(MultiLineTextField.defaultCommentMeta, MultiLineTextField, { hasMentions: true });
         FieldController.render(FieldController.commentFieldId, $('#ContentArea'));
 
-        var attachments = [];
+        let attachments = [];
         if (this.emailController) {
             attachments = this.emailController.getAttachmentFileHandles();
         }

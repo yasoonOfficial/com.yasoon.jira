@@ -68,9 +68,10 @@ class ProjectField extends Select2Field {
         //Applications like tasks may insert 
         if (jira.issue && jira.issue.fields && jira.issue.fields.project) {
             this.setValue(jira.issue.fields.project);
+            return;
         }
         // Mail may already contain a conversation. Should this also be valid for newIssue?!
-        else if (jira.emailController) {
+        if (jira.emailController) {
             let convData: YasoonConversationData = jira.emailController.getConversationData();
             if (convData) {
                 //Try to find project that matches
@@ -78,16 +79,17 @@ class ProjectField extends Select2Field {
                 //However, we want to support longterm enhancements where conversationData could be shared with others and then the project might not exist for this user.
                 for (let id in convData.issues) {
                     let intId = parseInt(id);
-                    if (this.projectCache.filter((el) => { return el.id === convData.issues[id].projectId; }).length > 0) //jshint ignore:line
+                    let issue:YasoonConversationIssue = convData.issues[id];
+                    if (this.projectCache.filter((el) => { return el.id === issue.projectId; }).length > 0) //jshint ignore:line
                     {
-                        this.setValue(convData.issues[id].projectId);
+                        this.setValue(issue.projectId);
                         return; //-> subject handling will not be done if we find something here
                     }
                 }
             }
         }
         //If mail is provided && subject contains reference to project, pre-select that
-        else if (jira.emailController && jira.emailController.mail && jira.emailController.mail.subject && this.projectCache && this.projectCache.length > 0) {
+        if (jira.emailController && jira.emailController.mail && jira.emailController.mail.subject && this.projectCache && this.projectCache.length > 0) {
             //Sort projects by key length descending, so we will match the following correctly:
             // Subject: This is for DEMODD project
             // Keys: DEMO, DEMOD, DEMODD
@@ -99,7 +101,7 @@ class ProjectField extends Select2Field {
                 let curProj = projectsByKeyLength[i];
                 if (jira.emailController.mail.subject.indexOf(curProj.key) >= 0) {
                     this.setValue(curProj);
-                    break;
+                    return;
                 }
             }
         }
