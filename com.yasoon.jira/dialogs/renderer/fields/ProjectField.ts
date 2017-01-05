@@ -1,4 +1,5 @@
 /// <reference path="../Field.ts" />
+/// <reference path="../FieldController.ts" />
 /// <reference path="Select2AjaxField.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
@@ -47,7 +48,7 @@ class ProjectField extends Select2Field {
                     $('#' + this.id).next().find('.select2-selection').first().focus();
                 }
             })
-            .catch(this.handleError);
+            .catch((e) => { this.handleError(e); });
 
 
     }
@@ -61,6 +62,9 @@ class ProjectField extends Select2Field {
     }
 
     setDefaultProject() {
+        if(this.initialValue)
+            return;
+
         //Applications like tasks may insert 
         if (jira.issue && jira.issue.fields && jira.issue.fields.project) {
             this.setValue(jira.issue.fields.project);
@@ -110,6 +114,15 @@ class ProjectField extends Select2Field {
         };
     }
 
+    handleError(e: Error) {
+        super.handleError(e);
+        if (e instanceof jiraSyncError) {
+            $('#MainAlert').removeClass('hidden').find('.error-text').text(yasoon.i18n('dialog.errorInitConnection'));
+        } else {
+            $('#MainAlert').removeClass('hidden').find('.error-text').text(yasoon.i18n('dialog.errorInitUnknown'));
+        }
+    }
+
     private getReturnStructure(projects?: Select2Element[], queryTerm?: string): Select2Element[] {
         let result: Select2Element[] = [];
         //1. User Templates
@@ -141,17 +154,16 @@ class ProjectField extends Select2Field {
         //2. Recent Projects
         if (this.recentItems && this.recentItems.recentProjects) {
             //2.1 Filter
-            let currentRecent = this.recentItems.recentProjects.filter(recent => {
-                return projects.filter(p => { return p.id === recent.id; }).length > 0;
+            let currentRecent = projects.filter(p => {
+                return this.recentItems.recentProjects.filter(recent => { return p.id === recent.id; }).length > 0;
             });
 
             if (currentRecent.length > 0) {
                 //2.2 Map and Add
-                let children: Select2Element[] = currentRecent.map(this.convertToSelect2);
                 result.push({
                     id: 'recent',
                     text: yasoon.i18n('dialog.recentProjects'),
-                    children: children
+                    children: currentRecent
                 });
             }
         }
@@ -171,7 +183,6 @@ class ProjectField extends Select2Field {
         if (this.projectCache && this.projectCache.length > 0) {
             return Promise.resolve(this.projectCache.map(this.convertToSelect2));
         }
-
         return jiraGet('/rest/api/2/project')
             .then((data: string) => {
                 let projects: JiraProject[] = JSON.parse(data);

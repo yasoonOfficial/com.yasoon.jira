@@ -304,8 +304,12 @@ form.aui .text {
 
 #MainAlert
 {
-	margin: -20px -20px 0px -20px; 
 	border-radius: 0px;
+	position: fixed;
+	z-index: 100;
+	width: 100%;
+	white-space: normal;
+	margin: -10px -10px;	
 }
 
 #LoaderArea 
@@ -323,12 +327,35 @@ form.aui .text {
 	 margin-top: -12px;
 }
 
+.field-error 
+{
+	color:red;
+}
+
+.field-error .fa 
+{
+	margin-top: 9px;
+}
+
 .servicedesk-popover 
 {
 	color:#ffd800;
 	font-size: 20px;
 	cursor:pointer;
 	margin-right: 10px;
+}
+
+.select2-icon-size
+{
+	width: 20px;
+	max-width: 20px;
+	max-height: 20px;
+
+}
+.select2-icon-margin
+{
+	margin-top: -3px;
+	margin-right: 4px;
 }
 
 #markupLoader 

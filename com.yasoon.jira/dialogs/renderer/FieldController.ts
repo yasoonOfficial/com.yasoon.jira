@@ -1,5 +1,6 @@
 /// <reference path="../../definitions/jquery.d.ts" />
-declare var jira;
+
+declare var jira: any;
 
 namespace FieldController {
     export const projectFieldId = 'project';
@@ -34,6 +35,10 @@ namespace FieldController {
         return metaFields[id];
     }
 
+    export function getAllFields(): { [id: string]: Field } {
+        return metaFields;
+    }
+
     export function enrichFieldMeta(field: JiraMetaField): boolean {
         let hasChanged = false;
         //Look up in config and set mandatory flag
@@ -49,6 +54,8 @@ namespace FieldController {
 
     export function loadMeta(fields: { [id: string]: JiraMetaField }): void {
         currentMeta = fields;
+
+        //Add/ Update Fields with current meta
         for (let key in fields) {
             let field: JiraMetaField = fields[key];
             field.key = key; //Is not always set by Jira :/
@@ -58,6 +65,14 @@ namespace FieldController {
                 if (buffer) {
                     loadField(field, buffer.field, buffer.params);
                 }
+            }
+        }
+
+        //Remove fields that are not present in current meta        
+        for (let key in metaFields) {
+            if (!fields[key]) {
+                console.log('Delete key', key);
+                delete metaFields[key];
             }
         }
     }
@@ -79,7 +94,12 @@ namespace FieldController {
     export function render(id: string, container: JQuery): void {
         let field = getField(id);
         if (field) {
-            field.renderField(container);
+            try {
+                field.renderField(container);
+            } catch (e) {
+                field.handleError(e);
+            }
+
         }
     }
 
@@ -113,6 +133,7 @@ namespace FieldController {
                 if (isInitialValue)
                     field.setInitialValue(value);
             } catch (e) {
+                console.log('Error setting Field Value', e, e.message, e.stack);
                 yasoon.util.log('Error: ' + e.message + '. Couldn\'t setValue for field ' + id, yasoon.util.severity.error, getStackTrace(e));
             }
         }
@@ -133,15 +154,24 @@ namespace FieldController {
         switch (eventType) {
             case EventType.FieldChange:
                 //get Field handler
+                let raiseChangeEvent = (field: IFieldEventHandler, evenType:EventType, newValue:any, id:string) => {
+                     setTimeout((eventType, newValue, id) => {
+                            try {
+                                field.handleEvent(eventType, newValue, id);
+                            } catch (e) {
+                                yasoon.util.log('Error: ' + e.message + ' in raiseEvent. EventType FieldChange|| newValue ' + newValue + ' || Id: ' + id, yasoon.util.severity.error, getStackTrace(e));
+                            }
+                        }, 1, eventType, newValue, id);
+                };
+
                 if (fieldEventHandler[eventType] && fieldEventHandler[eventType][id]) {
                     fieldEventHandler[eventType][id].forEach(field => {
-                            setTimeout((eventType, newValue, id) => {
-                                try {
-                                field.handleEvent(eventType, newValue, id);
-                                } catch(e) {
-                                    yasoon.util.log('Error: ' + e.message + ' in raiseEvent. EventType FieldChange|| newValue ' + newValue + ' || Id: ' + id, yasoon.util.severity.error, getStackTrace(e));
-                                }
-                            }, 1, eventType, newValue, id);
+                       raiseChangeEvent(field, eventType, newValue, id);
+                    });
+                }
+                if (fieldEventHandler[eventType] && fieldEventHandler[eventType]['*']) {
+                    fieldEventHandler[eventType]['*'].forEach(field => {
+                       raiseChangeEvent(field, eventType, newValue, id);
                     });
                 }
                 break;
@@ -154,7 +184,7 @@ namespace FieldController {
                                 returnPromises.push(result);
                             }
                         } catch (e) {
-                             yasoon.util.log('Error: ' + e.message + ' in raiseEvent. EventType ' + eventType + ' || newValue ' + newValue, yasoon.util.severity.error, getStackTrace(e));
+                            yasoon.util.log('Error: ' + e.message + ' in raiseEvent. EventType ' + eventType + ' || newValue ' + newValue, yasoon.util.severity.error, getStackTrace(e));
                         }
                     });
                 }

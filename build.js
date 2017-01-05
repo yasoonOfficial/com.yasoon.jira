@@ -16,6 +16,18 @@ gulp.task('buildRenderer', function () {
 });
 gulp.start('buildRenderer');
 
+// 1.2 Typescript Dialogs
+gulp.task('buildDialogs', function () {
+    return gulp.src('com.yasoon.jira/dialogs/js/*.ts')
+        .pipe(ts({
+            "experimentalDecorators": true,
+            "allowJs": true,
+            "target": "es5"
+        }))
+        .pipe(gulp.dest('distribution/com.yasoon.jira/dialogs/js'));
+});
+gulp.start('buildDialogs');
+
 //2. Compile Templates
 var handlebars = require('gulp-handlebars');
 var wrap = require('gulp-wrap');
@@ -30,7 +42,6 @@ gulp.task('generateTemplates', function () {
             namespace: 'jira.templates',
             //noRedeclare: true, // Avoid duplicate declarations
         }))
-        //.pipe(concat('templates.js'))
         .pipe(gulp.dest('distribution/com.yasoon.jira/templates/'));
 });
 
@@ -42,8 +53,9 @@ var pathes = [
     'com.yasoon.jira/*',
     'com.yasoon.jira/assets/*',
     'com.yasoon.jira/dialogs/*',
-    'com.yasoon.jira/dialogs/js/*',
+    'com.yasoon.jira/dialogs/js/*.js',
     'com.yasoon.jira/dialogs/css/*',
+	'com.yasoon.jira/templates/issueNotification.handlebars',
     'com.yasoon.jira/images/*',
     'com.yasoon.jira/libs/**/*',
     'com.yasoon.jira/locale/*',

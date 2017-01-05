@@ -103,9 +103,9 @@ abstract class Select2Field extends Field {
 		if (!element.id) return element.text; // optgroup
 
 		if (element.icon)
-			return $('<span><img style="margin-right:3px; width: 16px;" src="' + element.icon + '"  onerror="jiraHandleImageFallback(this)"/>' + element.text + '</span>');
+			return $('<span><img class="select2-icon-size select2-icon-margin" src="' + element.icon + '"  onerror="jiraHandleImageFallback(this)"/>' + element.text + '</span>');
 		else if (element.iconClass) {
-			return $('<span><i style="margin-right:4px;" class="' + element.iconClass + '"></i><span>' + element.text + '</span></span>');
+			return $('<span><i class="select2-icon-margin ' + element.iconClass + '"></i><span>' + element.text + '</span></span>');
 		} else {
 			return element.text;
 		}

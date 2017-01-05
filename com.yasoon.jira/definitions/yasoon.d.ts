@@ -1060,12 +1060,12 @@ declare namespace yasoonModel {
   }
 
   interface NotificationPopupParam {
-    imagePath: string;
-    contactId: string;
+    imagePath?: string;
+    contactId?: string;
     title: string;
-    text: string;
-    click: any;
-    eventParam: any;
+    text?: string;
+    click?: any;
+    eventParam?: any;
   }
 
   interface Contact {

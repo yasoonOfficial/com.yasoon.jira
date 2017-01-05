@@ -14,7 +14,7 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
     private currentProject: JiraProject;
     private serviceDeskKeys: { [id: string]: string };
     private requestTypes: { [id: string]: JiraRequestType[] };
-    private isServiceDeskActive: boolean;
+    isServiceDeskActive: boolean;
 
     constructor(id: string, field: JiraMetaField) {
         let options: Select2Options = {};
@@ -51,11 +51,15 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
         } else if (type === EventType.AfterSave) {
             //Service Request? Assignment Type have an own call
             if (this.isServiceDeskActive) {
-                let requestTypeId = this.getValue(false);
-                let lifecycleData: LifecycleData = newValue;
+                try {
+                    let requestTypeOption:{id: string} = this.getValue(false);
+                    let requestTypeId = parseInt(requestTypeOption.id);
+                    let lifecycleData: LifecycleData = newValue;
 
-
-                return jiraAjax('/rest/servicedesk/1/servicedesk/request/' + lifecycleData.newData.id + '/request-types', yasoon.ajaxMethod.Post, JSON.stringify({ rtId: requestTypeId }));
+                    return jiraAjax('/rest/servicedesk/1/servicedesk/request/' + lifecycleData.newData.id + '/request-types', yasoon.ajaxMethod.Post, JSON.stringify({ rtId: requestTypeId }));
+                } catch (e) {
+                    return Promise.reject(new Error('Could not create ServiceDesk Data'));
+                }
             }
         }
 

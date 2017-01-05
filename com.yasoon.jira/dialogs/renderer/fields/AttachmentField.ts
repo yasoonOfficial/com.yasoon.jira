@@ -1,7 +1,9 @@
 /// <reference path="../Field.ts" />
+/// <reference path="../FieldController.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/handlebars.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
+/// <reference path="../Confirmation.ts" />
 
 class AttachmentField extends Field implements IFieldEventHandler {
     static defaultMeta: JiraMetaField = { key: FieldController.attachmentFieldId, get name() { return yasoon.i18n('dialog.attachment'); }, required: false, schema: { system: 'attachment', type: '' } };
@@ -10,6 +12,7 @@ class AttachmentField extends Field implements IFieldEventHandler {
     static uiActionSelect = 'selectAttachment';
     static uiActionAddRef = 'addRefAttachment';
 
+    deactivatePreview = false;
     getTemplate: Promise<any> = null;
     currentParameters: any = null;
     attachments: JiraFileHandle[] = [];
@@ -45,21 +48,10 @@ class AttachmentField extends Field implements IFieldEventHandler {
                     });
                 }
             });
+            this.deactivatePreview = true;
 
             if (formData.length > 0) {
-                let uploadPromise = jiraAjax('/rest/api/2/issue/' + lifecycleData.newData.id + '/attachments', yasoon.ajaxMethod.Post, null, formData)
-                    .catch((e:any) => {
-                        if(typeof e === 'jiraSyncError') {
-                            //Todo
-                            let error: jiraSyncError = e;
-                            yasoon.util.log('Couldn\'t upload attachments: ' + error.getUserFriendlyError() + ' || ' + JSON.stringify(formData), yasoon.util.severity.warning, getStackTrace(e));
-                            //yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorCreateAttachment', { key: lifecycleData.newData.key, error: e.getUserFriendlyError() }));
-                        } else  {
-                            let error: Error = e;
-                        }
-                    });
-
-                return uploadPromise;
+                return jiraAjax('/rest/api/2/issue/' + lifecycleData.newData.id + '/attachments', yasoon.ajaxMethod.Post, null, formData);
             }
         } else if (type === EventType.Cleanup) {
             //Dispose all Attachments
@@ -256,7 +248,7 @@ class AttachmentField extends Field implements IFieldEventHandler {
             let domAttachmentLink = elem.closest('.jiraAttachmentLink');
             let handle = this.getCurrentAttachment(elem);
 
-            if (handle.hasFilePreview()) {
+            if (this.deactivatePreview === false && handle.hasFilePreview()) {
                 var timeoutFct = setTimeout(function () {
                     yasoon.io.getFilePreviewPath(handle)
                         .then((path) => {
@@ -312,7 +304,8 @@ class AttachmentField extends Field implements IFieldEventHandler {
                 };
 
                 $(container).html(template(this.currentParameters));
-            });
+            })
+            .catch((e) => { this.handleError(e); });
 
     };
 }

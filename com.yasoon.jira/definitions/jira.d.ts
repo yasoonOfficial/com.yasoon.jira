@@ -104,9 +104,10 @@ interface JiraVersion {
 }
 
 interface JiraIssue {
-    id: string,
-    key: string,
-    fields: { [id: string]: any }
+    id: string;
+    key: string;
+    fields: { [id: string]: any };
+    editMeta?: { [id: string]: JiraMetaField};
 }
 
 interface JiraUser {
@@ -158,13 +159,25 @@ interface JiraProject {
     versions?: JiraVersion[]
 }
 
-interface JiraIssueType {
-    avatarId: number,
-    description: string,
-    iconUrl: string,
+interface JiraProjectMeta {
     id: string,
     name: string,
-    subtask: boolean
+    key: string,
+    issuetypes: JiraIssueTypeMeta[],
+    avatarUrls: { [id: string]: string }
+}
+
+interface JiraIssueType {
+    avatarId: number;
+    description: string;
+    iconUrl: string;
+    id: string;
+    name: string;
+    subtask: boolean;
+}
+
+interface JiraIssueTypeMeta extends JiraIssueType {
+    fields?: {[id: string]: JiraMetaField }
 }
 
 interface JiraRequestType {
@@ -183,6 +196,44 @@ interface JiraRequestType {
     order: number,
     usedByEmailSettings: boolean,
     groups: JiraRequestTypeGroup[]
+}
+
+interface JiraUserConfigMeta {
+    fields?: {[id: string]: JiraUserConfigField };
+    sortedTabs: JiraTab[];
+    userPreferences: JiraUserPreferences;
+}
+
+interface JiraUserConfigField {
+    id: string;
+    label: string;
+    required: boolean;
+    tab?: JiraUserConfigFieldTab;
+}
+
+interface JiraUserConfigFieldTab {
+    label : string;
+    position: number;
+}
+
+interface JiraTab {
+    label: string;
+    fields: JiraTabField[];
+}
+
+interface JiraTabField {
+    id: string;
+    label: string;
+}
+
+interface JiraSystemInfo {
+    versionNumbers: number[];
+}
+
+interface JiraUserPreferences {
+    fields: string[];
+    showWelcomeScreen: boolean;
+    useQuickForm: boolean;
 }
 
 interface JiraRequestTypeGroup {
@@ -223,6 +274,11 @@ interface JiraMetaField {
 
 interface JiraLabel {
     label: string
+}
+
+interface JiraSubmitComment {
+    body: string;
+    public?: boolean;
 }
 
 interface YasoonGroupHierarchy {

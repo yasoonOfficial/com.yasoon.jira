@@ -42,10 +42,9 @@ abstract class Select2AjaxField extends Select2Field {
 							}
 						})
 						.catch(error => {
-							console.log(error);
-							window["lastError"] = error;
 							this.hideSpinner();
-							//yasoon.util.log();
+							console.log('An error occured while fetching select2 data. Field ' + this.id, error, error.stack);
+							yasoon.util.log('An error occured while fetching select2 data. ' + error.message + ' || Field: ' + this.id , yasoon.util.severity.warning, getStackTrace(error));
 							success();
 						});
 				},

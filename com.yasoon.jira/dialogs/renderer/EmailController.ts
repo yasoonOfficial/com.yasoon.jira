@@ -1,5 +1,6 @@
 /// <reference path="../../definitions/bluebird.d.ts" />
 /// <reference path="../../definitions/yasoon.d.ts" />
+declare var moment;
 
 interface JiraFileHandle extends yasoonModel.EmailAttachmentFileHandle {
     selected: boolean;
@@ -46,7 +47,7 @@ class EmailController implements IEmailController, IFieldEventHandler {
     private renderSelectionMarkupPromise: Promise<string>;
     private loadSenderPromise: Promise<any>;
 
-    constructor(mail: yasoonModel.Email, type: JiraDialogType, settings: any, ownUser: JiraUser) {
+    constructor(mail: yasoonModel.Email, type: JiraDialogType, settings: JiraAppSettings, ownUser: JiraUser) {
 
         this.mail = mail;
         this.attachments = mail.attachments;
@@ -105,6 +106,7 @@ class EmailController implements IEmailController, IFieldEventHandler {
             this.senderTemplates = [];
         }
 
+        FieldController.registerEvent(EventType.AfterSave, this);
         //Load Attachment Handles
         this.getAttachmentFileHandles();
     }

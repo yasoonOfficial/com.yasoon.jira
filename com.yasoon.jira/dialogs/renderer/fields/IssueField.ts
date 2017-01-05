@@ -48,17 +48,9 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
 
     private getReturnStructure(issues?: Select2Element[], queryTerm?: string) {
         let result: Select2Element[] = [];
-        // 1. Build recent suggestion
-        if (this.recentItems && this.recentItems.recentIssues && !queryTerm) {
-            let currentIssues = this.recentItems.recentIssues.map(this.convertToSelect2);
-            result.push({
-                id: 'Suggested',
-                text: yasoon.i18n('dialog.recentIssues'),
-                children: currentIssues,
-            });
-        }
-        //2. Search Results
+        //There are search results
         if (issues) {
+            //If it has been a real search, we do not want to show any recent items
             if (queryTerm) {
                 result.push({
                     id: 'Search',
@@ -66,10 +58,32 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
                     children: issues
                 });
             } else {
+                //In case the project has been selected, only show recent Items of the same project
+                var projectIssues = this.recentItems.recentIssues.filter((issue) => {
+                    return (issue.fields['project'] && issue.fields['project'].key == this.currentProject.key);
+                });
+
+                if(projectIssues.length > 0) {
+                    result.push({
+                        id: 'Suggested',
+                        text: yasoon.i18n('dialog.recentIssues'),
+                        children: projectIssues.map(this.convertToSelect2),
+                    });
+                }
                 result.push({
                     id: 'Search',
                     text: yasoon.i18n('dialog.projectIssues'),
                     children: issues
+                });
+            }
+        } else {
+            // Only show recent suggestion
+            if (this.recentItems && this.recentItems.recentIssues && !queryTerm) {
+                let currentIssues = this.recentItems.recentIssues.map(this.convertToSelect2);
+                result.push({
+                    id: 'Suggested',
+                    text: yasoon.i18n('dialog.recentIssues'),
+                    children: currentIssues,
                 });
             }
         }

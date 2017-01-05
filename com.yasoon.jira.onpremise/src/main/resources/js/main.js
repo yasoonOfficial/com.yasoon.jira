@@ -1,6 +1,6 @@
 var authToken = '';
-//var yasoonServerUrl = 'https://store.yasoon.com';
-var yasoonServerUrl = 'http://localhost:1337';
+var yasoonServerUrl = 'https://store.yasoon.com';
+//var yasoonServerUrl = 'http://localhost:1337';
 var isInstanceRegistered = false;
 var currentPage = 1;
 var serverId = null;
@@ -58,14 +58,14 @@ $(document).ready(function () {
         loadSystemInfo()
             .then(function () {
                 //Hook up Raven error logging   
-                /*     
+                    
                 Raven.config('https://6271d99937bd403da519654c1cf47879@sentry2.yasoon.com/4', {
                     tags: {
                         serverId: serverId,
                         key: 'onpremise'
                     }
                 }).install();
-                */
+                
                 /*
                 if (systemInfo.userName && systemInfo.userEmailAddress) {
                     zE(function () {

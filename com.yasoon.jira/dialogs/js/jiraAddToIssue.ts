@@ -1,49 +1,66 @@
-var jira = {};
+/// <reference path="../../definitions/jquery.d.ts" />
+/// <reference path="../../definitions/bluebird.d.ts" />
+/// <reference path="../../definitions/jira.d.ts" />
+/// <reference path="../../definitions/common.d.ts" />
+/// <reference path="../../definitions/yasoon.d.ts" />
+/// <reference path="./../renderer/FieldController.ts" />
+/// <reference path="./../renderer/EmailController.ts" />
+/// <reference path="./../renderer/RecentItemController.ts" />
+/// <reference path="./../renderer/Field.ts" />
+/// <reference path="./../renderer/fields/AttachmentField.ts" />
+/// <reference path="./../renderer/fields/MultiLineTextField.ts" />
+/// <reference path="./../renderer/fields/IssueField.ts" />
+/// <reference path="./../renderer/fields/ProjectField.ts" />
 
-$(function() {
-    $('body').css('overflow-y', 'hidden');
-    $('form').on('submit', function(e) {
-        e.preventDefault();
-        return false;
-    });
-});
+interface commentDialogInitParams {
+    mail: yasoonModel.Email;
+    settings: JiraAppSettings;
+    text: string;
+    projects: JiraProject[];
+    issue: JiraIssue;
+    type: JiraDialogType;
+    ownUser: JiraUser;
+}
 
-$(window).resize(resizeWindow);
+var jira:any = null;
 
-yasoon.dialog.load(new function() { //jshint ignore:line
-    var a = {}; //just for correct highlighting :) Otherwise Visual Code does not work correctly
-    var self = this;
-    jira = this;
-    this.icons = new JiraIconController();
+class AddToIssueDialog implements IFieldEventHandler {
+    icons: JiraIconController = new JiraIconController();
+    emailController: EmailController;
+    recentItems: RecentItemController;
 
-    this.settings = {};
-    this.mail = {};
-    this.cacheProjects = [];
-    this.issue = {};
-    this.type = ''; //Either '' or 'wholeMail' or 'selectedText'
+    settings: JiraAppSettings = null;
+    mail: yasoonModel.Email = null;
+    selectedText: string = '';
+    cacheProjects: JiraProject[] = [];
+    issue: JiraIssue = null;
+    ownUser: JiraUser = null;
+    type: JiraDialogType = '';
 
+    currentProject: JiraProject = null;
+    currentIssue: JiraIssue = null;
 
-    this.currentProject = null;
-    this.currentIssue = null;
-
-
-    this.init = function(initParams) {
-        //Parameter taken over from Main JIRA
-        self.mail = initParams.mail;
-        self.settings = initParams.settings;
-        self.selectedText = initParams.text;
-        self.cacheProjects = initParams.projects;
-        self.issue = initParams.issue;
-        self.type = initParams.type;
+    init = ( initParams: commentDialogInitParams ) => {
+        jira = this; //Legacy
+        this.mail = initParams.mail;
+        this.settings = initParams.settings;
+        this.selectedText = initParams.text;
+        this.cacheProjects = initParams.projects;
+        this.issue = initParams.issue;
+        this.type = initParams.type;
+        this.ownUser = initParams.ownUser;
 
         //Register Close Handler
-        yasoon.dialog.onClose(self.cleanup);
+        yasoon.dialog.onClose(this.cleanup);
 
-        // Resize Window if nessecary (sized are optimized for default Window - user may have changed that)
-        resizeWindow();
+        resizeWindowComment();
+        
+        setTimeout(() => { this.initDelayed(); } , 1);
+    }
 
+    initDelayed(): void {
         //Popover for Service Desk Warning
-        $('.servicedesk-popover').popover({
+        $('.servicedesk-popover')['popover']({
             content: yasoon.i18n('dialog.serviceDeskWarningBody'),
             title: yasoon.i18n('dialog.serviceDeskWarning'),
             placement: 'top',
@@ -51,20 +68,17 @@ yasoon.dialog.load(new function() { //jshint ignore:line
             template: '<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title" style="background-color:#fcf8e3;"></h3><div class="popover-content"></div></div>',
             trigger: 'click' //'click'
         });
-        setTimeout(self.initDelayed, 1);
-    };
 
-    this.initDelayed = function() {
-        if (jira.mail) {
-            jira.emailController = new EmailController(jira.mail, jira.type, jira.settings, jira.ownUser);
+         if (this.mail) {
+            this.emailController = new EmailController(this.mail, this.type, this.settings, this.ownUser);
         }
 
-        jira.recentItems = new RecentItemController(jira.ownUser);
+        this.recentItems = new RecentItemController(this.ownUser);
 
         //Render Header fields
         var projectDefaultMeta = ProjectField.defaultMeta;
         projectDefaultMeta.required = false;
-        FieldController.loadField(projectDefaultMeta, ProjectField, { cache: jira.cacheProjects, allowClear: true });
+        FieldController.loadField(projectDefaultMeta, ProjectField, { cache: this.cacheProjects, allowClear: true });
         FieldController.render(FieldController.projectFieldId, $('#HeaderArea'));
 
         FieldController.loadField(IssueField.defaultMeta, IssueField);
@@ -75,78 +89,80 @@ yasoon.dialog.load(new function() { //jshint ignore:line
         FieldController.render(FieldController.commentFieldId, $('#ContentArea'));
 
         var attachments = [];
-        if (jira.emailController) {
-            attachments = jira.emailController.getAttachmentFileHandles();
+        if (this.emailController) {
+            attachments = this.emailController.getAttachmentFileHandles();
         }
         FieldController.loadField(AttachmentField.defaultMeta, AttachmentField, attachments);
         FieldController.render(FieldController.attachmentFieldId, $('#ContentArea'));
 
 
         //Hook up events
-        FieldController.registerEvent(EventType.FieldChange, self, FieldController.projectFieldId);
-        FieldController.registerEvent(EventType.FieldChange, self, FieldController.issueFieldId);
+        FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
+        FieldController.registerEvent(EventType.FieldChange, this, FieldController.issueFieldId);
 
 
-        if (jira.emailController) {
-            jira.emailController.setBody(FieldController.commentFieldId);
+        if (this.emailController) {
+            this.emailController.setBody(FieldController.commentFieldId);
         }
 
         // Resize Window to maximize Comment field
-        resizeWindow();
+        resizeWindowComment();
         FieldController.raiseEvent(EventType.AfterRender, {});
 
         //Submit Button - (Create & Edit)
-        $('.submit-button').off().click(self.submitForm);
-        $('#add-issue-cancel').off().click(function() {
+        $('.submit-button').off().click((e) => { this.submitForm(e); });
+        $('#add-issue-cancel').off().click(() => {
             yasoon.dialog.close({ action: 'cancel' });
         });
-    };
+    }
 
-    this.cleanup = function() {
+    cleanup():void {
         //Invalidate dialog events so the following won't throw any events => will lead to errors
         // due to pending dialog.close
         yasoon.dialog.clearEvents();
         FieldController.raiseEvent(EventType.Cleanup, null);
-    };
+    }
 
-    this.handleEvent = function(type, newValue, source) {
+    handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
         if (source === FieldController.projectFieldId) {
-            self.currentProject = newValue;
+            this.currentProject = newValue;
         } else if (source === FieldController.issueFieldId) {
-            self.currentIssue = newValue;
+            this.currentIssue = newValue;
             if (newValue) {
-                self.currentProject = newValue.fields.project;
+                this.currentProject = newValue.fields.project;
             }
-            console.log(newValue);
+
             $('.buttons').removeClass('servicedesk');
             $('.buttons').removeClass('no-requesttype');
 
-            if (self.currentIssue && self.currentIssue.fields.project && self.currentIssue.fields.project.projectTypeKey === 'service_desk') {
+            if (this.currentIssue && this.currentIssue.fields['project'] && this.currentIssue.fields['project'].projectTypeKey === 'service_desk') {
 
                 //We have a service Project... Check if it is a service request
-                jiraGet('/rest/servicedeskapi/request/' + self.currentIssue.id)
-                    .then(function(data) {
+                jiraGet('/rest/servicedeskapi/request/' + this.currentIssue.id)
+                    .then((data) => {
                         $('.buttons').addClass('servicedesk');
                         $('.buttons').removeClass('no-requesttype');
                     })
-                    .catch(function(e) {
+                    .catch((e) => {
                         $('.buttons').addClass('no-requesttype');
                         $('.buttons').removeClass('servicedesk');
                     });
             }
         }
-    };
+        return null;
+    }
 
-    this.submitForm = function(e) {
-        if (!self.currentIssue) {
+    submitForm(e): void {
+        if (!this.currentIssue) {
             yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorSelectIssue'));
             return;
         }
 
-        var comment = FieldController.getValue(FieldController.commentFieldId);
+        let comment = FieldController.getValue(FieldController.commentFieldId, false);
         console.log('Kommentar:', comment);
 
-        var attachments = FieldController.getField(FieldController.attachmentFieldId).getSelectedAttachments();
+        let attachmentField = <AttachmentField>FieldController.getField(FieldController.attachmentFieldId); 
+        let attachments = attachmentField.getSelectedAttachments();
 
         if (!comment && (!attachments || attachments.length === 0)) {
             yasoon.dialog.showMessageBox(yasoon.i18n('dialog.errorNoData'));
@@ -161,30 +177,30 @@ yasoon.dialog.load(new function() { //jshint ignore:line
         //Todo: Add Recent Issue
         //Add Recent Project
         Promise.resolve()
-            .then(function() {
+            .then(() => {
                 // Pre Save Event
-                var lifecycleData = {
+                let lifecycleData = {
                     data: {
                         comment: comment
                     }
                 };
                 return FieldController.raiseEvent(EventType.BeforeSave, lifecycleData);
             })
-            .then(function() {
+            .then(() => {
                 //Saving... (and AfterSave Event)
-                var promises = [];
+                let promises: Promise<any>[] = [];
 
-                var url = '';
-                var body = null;
-                var type = $(e.target).data('type');
+                let url:string = '';
+                let body: JiraSubmitComment = null;
+                let type: string = $(e.target).data('type'); //Type of submit button 
                 if (type == 'submit') {
-                    url = '/rest/api/2/issue/' + self.currentIssue.id + '/comment';
+                    url = '/rest/api/2/issue/' + this.currentIssue.id + '/comment';
                     body = { body: comment };
                 } else if (type == 'submitCustomer') {
-                    url = '/rest/servicedeskapi/request/' + self.currentIssue.key + '/comment';
+                    url = '/rest/servicedeskapi/request/' + this.currentIssue.key + '/comment';
                     body = { body: comment, "public": true };
                 } else if (type == 'submitInternal') {
-                    url = '/rest/servicedeskapi/request/' + self.currentIssue.key + '/comment';
+                    url = '/rest/servicedeskapi/request/' + this.currentIssue.key + '/comment';
                     body = { body: comment, "public": false };
                 }
 
@@ -192,7 +208,7 @@ yasoon.dialog.load(new function() { //jshint ignore:line
                     //Upload comment
                     promises.push(
                         jiraAjax(url, yasoon.ajaxMethod.Post, JSON.stringify(body))
-                            .catch(jiraSyncError, function(e) {
+                            .catch(jiraSyncError, (e) => {
                                 $('#MainAlert .errorText').text(yasoon.i18n('dialog.errorSubmitComment', { error: e.getUserFriendlyError() }));
                                 $('#MainAlert').show();
                                 yasoon.util.log('Error on sending a comment: ' + e.getUserFriendlyError(), yasoon.util.severity.info);
@@ -201,49 +217,39 @@ yasoon.dialog.load(new function() { //jshint ignore:line
                     );
                 }
 
-                var lifecycleData = {
-                    newData: self.currentIssue
+                let lifecycleData = {
+                    newData: this.currentIssue
                 };
 
                 //Hmm... breaks a little the concept that attachments gets uploaded with AfterSave Event as we can do both together here in AddToIssue 
-                var eventPromise = FieldController.raiseEvent(EventType.AfterSave, lifecycleData);
+                let eventPromise = FieldController.raiseEvent(EventType.AfterSave, lifecycleData);
                 if (eventPromise) {
                     promises.push(eventPromise);
                 }
-
+                
                 return Promise.all(promises);
             })
-            .then(function() {
+            .then(() => {
                 yasoon.dialog.close({ action: "success" });
             })
-            .catch(function(e) {
+            .catch((e) => {
                 console.log('Exception occured', e);
                 if (e.name === 'SyncError') {
                     yasoon.util.log(e.message + ' || ' + e.statusCode + ' || ' + e.errorText + ' || ' + e.result + ' || ' + e.data, yasoon.util.severity.warning);
                 }
-            }).finally(function() {
+            }).finally(() => {
                 $('#add-issue-submit').prop('disabled', false);
                 $('#JiraSpinner').addClass('hidden');
             });
 
         e.preventDefault();
-    };
+    }
+}
 
-    this.addRecentIssue = function(selectedIssue) {
-        var exists = $.grep(self.recentIssues, function(issue) { return issue.id === selectedIssue.id; });
-        if (exists.length === 0) {
-            //It does not exist, so we'll add it! But make sure there is a maximum of 10 recent Items.
-            if (self.recentIssues.length >= 10) {
-                self.recentIssues = self.recentIssues.slice(1);
-            }
-            self.recentIssues.unshift(selectedIssue); //Add at beginning
-            yasoon.setting.setAppParameter('recentIssues', JSON.stringify(self.recentIssues));
-        }
-    };
 
-}); //jshint ignore:line
+yasoon.dialog.load(new AddToIssueDialog());
 
-function resizeWindow() {
+function resizeWindowComment() {
     var bodyHeight = $('body').height();
     if (bodyHeight > 535) {
         $('body').css('overflow-y', 'hidden');
@@ -262,5 +268,15 @@ function resizeWindow() {
         $('#comment').height(155);
     }
 }
+
+$(function() {
+    $('body').css('overflow-y', 'hidden');
+    $('form').on('submit', function(e) {
+        e.preventDefault();
+        return false;
+    });
+});
+
+$(window).resize(resizeWindowComment);
 
 //@ sourceURL=http://Jira/Dialog/jiraAddCommentDialog.js

@@ -1,8 +1,17 @@
 /// <reference path="../../definitions/jquery.d.ts" />
 /// <reference path="../../definitions/jira.d.ts" />
 /// <reference path="../../definitions/customSelect2.d.ts" />
-/// <reference path="setter/SetValue.ts" />
+/// <reference path="getter/GetArray.ts" />
+/// <reference path="getter/GetObject.ts" />
+/// <reference path="getter/GetObjectArray.ts" />
+/// <reference path="getter/GetOption.ts" />
 /// <reference path="getter/GetTextValue.ts" />
+/// <reference path="setter/SetCheckedValues.ts" />
+/// <reference path="setter/SetDateTimeValue.ts" />
+/// <reference path="setter/SetDateValue.ts" />
+/// <reference path="setter/SetOptionValue.ts" />
+/// <reference path="setter/SetTagValue.ts" />
+/// <reference path="setter/SetValue.ts" />
 
 abstract class Field implements FieldGet, FieldSet {
 	public id: string;
@@ -94,11 +103,11 @@ abstract class Field implements FieldGet, FieldSet {
 		}
 	}
 	
-	handleError(e:Error): void {
+	handleError(e:Error):void {
 		console.log('Error during field rendering: ', e, e.message, e.stack);
 		yasoon.util.log('Error during field rendering. ' + e.message + ' Field: ' + this.id + ' Meta: ' + JSON.stringify(this.fieldMeta), yasoon.util.severity.error, getStackTrace(e));
 		if(this.isRendered()) {
-			this.ownContainer.html('<span style="color:red;"><i class="fa fa-exclamation-triangle"></i></span>');
+			this.ownContainer.html('<span class="field-error"><i class="fa fa-exclamation-triangle" title="' + yasoon.i18n('dialog.errorFieldRendering') + '"></i></span>');
 		}
 	}
 	
@@ -189,7 +198,7 @@ interface IEmailController {
 
 interface LifecycleData {
 	data: any,
-	newData: any,
+	newData?: any,
 	cancel?: boolean,
 }
 

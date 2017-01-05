@@ -15,6 +15,9 @@
 <script src="dialogs/js/jiraNewEditIssue.js"></script>
 
 <div style="padding:10px; position: fixed; width: 100%">
+	<div id="MainAlert" class="alert alert-danger hidden">
+		<span class="error-text" data-bind="localizedText: 'dialog.connectionError'">Connection Error. Loading Values from Jira not possible.</span>
+	</div>
 	<div style="display: block; width: 100%; min-width: 690px;" class="jira-dialog box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready"
 		id="create-issue-dialog">
 		<div class="jira-dialog-heading">
@@ -26,9 +29,6 @@
 				<div class="qf-unconfigurable-form">
 					<form name="jiraform" action="#" class="aui">
 						<div class="form-body" style="height: 530px;">
-							<div id="MainAlert" class="alert alert-danger hidden">
-								<span class="error-text" data-bind="localizedText: 'dialog.connectionError'">Connection Error. Loading Values from Jira not possible.</span>
-							</div>
 							<div id="HeaderArea">
 							</div>
 							<div id="IssueArea" class="hidden issue-setup-fields">

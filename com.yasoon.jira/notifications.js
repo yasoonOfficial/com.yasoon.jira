@@ -492,7 +492,7 @@ function JiraIssueNotification(issue) {
 			self.issue.renderedFields.resolutiondate = moment(new Date(self.issue.fields.resolutiondate)).format('L');
 
 		//Start rendering
-		feed.setTemplate('templates/issueNotification.js', {
+		feed.setTemplate('templates/issueNotification.handlebars', {
 			fields: self.issue.fields,
 			renderedFields: self.issue.renderedFields,
 			assignee: {

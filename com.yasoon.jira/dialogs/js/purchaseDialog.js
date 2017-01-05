@@ -1,4 +1,4 @@
-var jira = {};
+var jira = null;
 
 $(function () {
 	$('body').css('overflow-y', 'hidden');

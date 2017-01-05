@@ -14,6 +14,7 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
 
     private currentProject: JiraProject;
     private initialId: string;
+    private emailController: EmailController;
 
     constructor(id: string, field: JiraMetaField) {
         let options: Select2Options = {};
@@ -21,6 +22,7 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
         options.allowClear = false;
 
         super(id, field, options);
+        this.emailController = jira.emailController;
 
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.requestTypeFieldId);
@@ -78,15 +80,14 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                     return;
 
                 let promise: Promise<JiraProject>;
-                if (!project.issueTypes) {
+               if (!project.issueTypes) {
                     this.showSpinner();
                     promise = jiraGet('/rest/api/2/project/' + project.key)
                         .then((data: string) => {
                             this.hideSpinner();
                             let proj: JiraProject = JSON.parse(data);
                             return proj;
-                        })
-                        .catch(this.handleError);
+                        });
                 } else {
                     promise = Promise.resolve(project);
                 }
@@ -119,7 +120,9 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                         this.setValue(result[0].data);
                     }
 
-                });
+                })
+                .catch((e) => { this.handleError(e); });
+                
             } else if (source === FieldController.requestTypeFieldId) {
                 let requestType: JiraRequestType = newValue;
                 let issueType: Select2Element = this.options.data.filter((sel) => { return sel.id === requestType.issueType.toString(); })[0];
@@ -129,6 +132,27 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
             let eventData: UiActionEventData = newValue;
             if (eventData.name === IssueTypeField.uiActionServiceDesk) {
                 if (eventData.value) {
+                    //Render Fields
+                    if (!FieldController.getField(FieldController.requestTypeFieldId)) {
+                        //First time we need the requesttype field --> render
+                        let requestTypeField = <RequestTypeField>FieldController.loadField(RequestTypeField.defaultMeta, RequestTypeField);
+                        requestTypeField.setProject(this.currentProject);
+                        requestTypeField.isServiceDeskActive = true;
+                        FieldController.render(FieldController.requestTypeFieldId, $('#ServiceAreaRequestField'));
+                    }
+                    if(!FieldController.getField(FieldController.onBehalfOfFieldId)) {
+                        //Create On-Behalf of field
+                        let behalfOfField = <UserSelectField>FieldController.loadField(UserSelectField.reporterDefaultMeta, UserSelectField);
+                        FieldController.render(FieldController.onBehalfOfFieldId, $('#ServiceAreaReporterField'));
+
+                        if(this.emailController) {
+                            behalfOfField.senderUser = this.emailController.senderUser;
+                        }
+
+                        let reporterField = FieldController.getField(FieldController.reporterFieldId);
+                        behalfOfField.setValue(reporterField.getValue());
+                    }
+
                     //Enable Service mode
                     $('#' + this.id).prop("disabled", true);
                     $('#switchServiceMode').addClass('active');
@@ -145,5 +169,14 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
         }
 
         return null;
+    }
+
+    handleError(e: Error) {
+        super.handleError(e);
+        if (e instanceof jiraSyncError) {
+            $('#MainAlert').removeClass('hidden').find('.error-text').text(yasoon.i18n('dialog.errorInitConnection'));
+        } else {
+            $('#MainAlert').removeClass('hidden').find('.error-text').text(yasoon.i18n('dialog.errorInitUnknown'));
+        }
     }
 }

@@ -1,4 +1,4 @@
-var jira = {};
+var jira = null;
 yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	var self = this;
 	jira = this;

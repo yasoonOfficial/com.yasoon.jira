@@ -157,7 +157,12 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
 
             if (this.recentItems && this.recentItems.recentUsers) {
                 let recentUsers = this.recentItems.recentUsers.map((item) => { return this.convertToSelect2(item); });
-                suggestions = suggestions.concat(recentUsers);
+                //Only add recentUser if it is not senderUser;
+                recentUsers.forEach((user) => {
+                    if(user.id != this.senderUser.name) {
+                        suggestions.push(user);
+                    }
+                });
             }
 
             result.push({
@@ -166,9 +171,6 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
                 children: suggestions
             });
         }
-
-
-
         return result;
     }
 
