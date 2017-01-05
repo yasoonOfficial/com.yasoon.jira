@@ -186,18 +186,20 @@ class NewEditDialog implements IFieldEventHandler {
     close(params: any) {
         //Check if dialog should be closed or not
         if (params && params.action === 'success' && $('#qf-create-another').is(':checked')) {
-            $('#JiraSpinner').hide();
+            $('#JiraSpinner').addClass('hidden');
             $('#create-issue-submit').prop('disabled', false);
             $('.form-body').scrollTop(0);
 
-			let field = FieldController.getField('summary');
-            if(field) {
-                field.setValue('');
-            } 
-            field = FieldController.getField('description');
-            if(field) {
+            let field = FieldController.getField('summary');
+            if (field) {
                 field.setValue('');
             }
+            field = FieldController.getField('description');
+            if (field) {
+                field.setValue('');
+            }
+            //Cleanup attachments
+            FieldController.raiseEvent(EventType.AttachmentChanged, []);
         } else {
             yasoon.dialog.close(params);
         }
@@ -265,7 +267,7 @@ class NewEditDialog implements IFieldEventHandler {
                         $('#MainAlert').removeClass('hidden').find('.error-text').text(yasoon.i18n('dialog.errorInitUnknown'));
                     }
 
-                    console.log('Error during rendering', e);
+                    console.log('Error during rendering', e, e.stack);
                     yasoon.util.log('An error occured during rendering. ' + e.message, type, getStackTrace(e));
                 });
 
@@ -295,8 +297,8 @@ class NewEditDialog implements IFieldEventHandler {
                 //1. Collect data:
                 result = FieldController.getFormData(this.isEditMode);
                 //2. Remove special data
-                if(isServiceDesk) {
-                    if(!result.fields[FieldController.requestTypeFieldId]) {
+                if (isServiceDesk) {
+                    if (!result.fields[FieldController.requestTypeFieldId]) {
                         throw new Error(yasoon.i18n('dialog.errorNoRequestType'));
                     }
                     delete result.fields[FieldController.requestTypeFieldId];
@@ -328,9 +330,16 @@ class NewEditDialog implements IFieldEventHandler {
                 return jiraAjax(url, method, JSON.stringify(result));
             })
             .then((data) => {
-                var issue = JSON.parse(data);
-                this.issueCreated = true;
-                return jiraGet('/rest/api/2/issue/' + issue.id);
+                if (this.isEditMode) {
+                    yasoon.notification.showPopup({ title: yasoon.i18n('dialog.successAddPopupTitle'), text: yasoon.i18n('dialog.successAddPopupText', { key: this.currentIssue.key }) });
+                    return jiraGet('/rest/api/2/issue/' + this.currentIssue.id);
+
+                } else {
+                    let issue = JSON.parse(data);//A non-populated issue
+                    this.issueCreated = true;
+                    yasoon.notification.showPopup({ title: yasoon.i18n('dialog.successPopupTitle'), text: yasoon.i18n('dialog.successPopupText', { key: issue.key }) });
+                    return jiraGet('/rest/api/2/issue/' + issue.id);
+                }
             })
             .then((data) => {
                 let issue: JiraIssue = JSON.parse(data);
@@ -352,7 +361,7 @@ class NewEditDialog implements IFieldEventHandler {
                     text = e.message;
                 }
 
-                yasoon.util.log('Couldn\'t submit New Issue Dialog: ' + text + ' \n Error: ' + JSON.stringify(e) + ' \n Issue: ' +  JSON.stringify(result), yasoon.util.severity.warning, getStackTrace(e));
+                yasoon.util.log('Couldn\'t submit New Issue Dialog: ' + text + ' \n Error: ' + JSON.stringify(e) + ' \n Issue: ' + JSON.stringify(result), yasoon.util.severity.warning, getStackTrace(e));
                 console.log(text, e, e.stack);
                 if (this.issueCreated) {
                     $('#MainAlert').removeClass('hidden').find('.error-text').html(yasoon.i18n('dialog.errorAfterSubmitIssue', { error: text }));
@@ -470,8 +479,8 @@ class NewEditDialog implements IFieldEventHandler {
                 return this.cacheUserMeta[projectId][issueTypeId];
             })
             .catch((e) => {
-                console.log('Error during rendering', e);
-                yasoon.util.log('An error occured during rendering. ' + e.message, yasoon.util.severity.warning, getStackTrace(e));
+                console.log('An error occured while getting userPreferences for Create', e, e.stack);
+                yasoon.util.log('An error occured while getting userPreferences for Create. ' + e.message, yasoon.util.severity.warning, getStackTrace(e));
             });
     }
 
@@ -481,8 +490,8 @@ class NewEditDialog implements IFieldEventHandler {
                 return JSON.parse(data);
             })
             .catch((e) => {
-                console.log('Error during rendering', e);
-                yasoon.util.log('An error occured during rendering. ' + e.message, yasoon.util.severity.warning, getStackTrace(e));
+                console.log('An error occured while getting userPreferences for Edit', e, e.stack);
+                yasoon.util.log('An error occured while getting userPreferences for Edit. ' + e.message, yasoon.util.severity.warning, getStackTrace(e));
             });
     }
 
@@ -495,8 +504,8 @@ class NewEditDialog implements IFieldEventHandler {
     };
 
     getEditMetaData(): { [id: string]: JiraMetaField } {
-        if (this.currentIssue && this.currentIssue.editMeta) {
-            return this.currentIssue.editMeta;
+        if (this.currentIssue && this.currentIssue.editmeta) {
+            return this.currentIssue.editmeta.fields;
         }
     }
 

@@ -329,7 +329,7 @@ form.aui .text {
 
 .field-error 
 {
-	color:red;
+	color:#d04437;
 }
 
 .field-error .fa 
@@ -356,6 +356,11 @@ form.aui .text {
 {
 	margin-top: -3px;
 	margin-right: 4px;
+}
+
+.field-inline {
+	display: block;
+	padding-top: 5px
 }
 
 #markupLoader 

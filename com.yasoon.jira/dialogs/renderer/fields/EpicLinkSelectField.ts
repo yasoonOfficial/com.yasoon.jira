@@ -7,11 +7,13 @@
 
 @setter(SetterType.Option)
 class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler {
-    private emptySearch;
+
+    private currentIssueType: JiraIssueType;
 
     constructor(id: string, field: JiraMetaField) {
         super(id, field);
         FieldController.registerEvent(EventType.AfterSave, this);
+        FieldController.registerEvent(EventType.FieldChange, this, FieldController.issueTypeFieldId);
     }
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
@@ -46,6 +48,8 @@ class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler
                     this.updateEpic7(newEpicLink, eventData.newData.key);
                 }
             }
+        } else if(type === EventType.FieldChange && source === FieldController.issueTypeFieldId) {
+            this.currentIssueType = newValue;
         }
         return null;
     }
@@ -118,6 +122,14 @@ class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler
                 }
                 return results;
             });
+    }
+
+    render(container: JQuery):void {
+        if(this.currentIssueType && this.currentIssueType.subtask){
+            container.append('<span class="field-error field-inline ">' + yasoon.i18n('dialog.errorNoEpicForSubtasks') + '</span>');
+        } else {
+            super.render(container);
+        }
     }
 
     //Update Epic JIRA 6.x and 7.0

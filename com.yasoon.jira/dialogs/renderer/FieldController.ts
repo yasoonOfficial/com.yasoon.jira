@@ -206,14 +206,14 @@ namespace FieldController {
                 if (!fieldEventHandler[eventType][id]) {
                     fieldEventHandler[eventType][id] = [];
                 }
-                fieldEventHandler[eventType][id].push(handler);
+                fieldEventHandler[eventType][id].unshift(handler);
                 break;
 
             default:
                 if (!lifecycleHandler[eventType]) {
                     lifecycleHandler[eventType] = [];
                 }
-                lifecycleHandler[eventType].push(handler);
+                lifecycleHandler[eventType].unshift(handler);
                 break;
         }
     }

@@ -107,7 +107,7 @@ interface JiraIssue {
     id: string;
     key: string;
     fields: { [id: string]: any };
-    editMeta?: { [id: string]: JiraMetaField};
+    editmeta?: { fields: { [id: string]: JiraMetaField}};
 }
 
 interface JiraUser {

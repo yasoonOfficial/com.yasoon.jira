@@ -7,11 +7,13 @@
 @setter(SetterType.Option)
 class SprintSelectField extends Select2Field implements IFieldEventHandler {
 
+    private currentIssueType: JiraIssueType;
+
     constructor(id: string, field: JiraMetaField) {
         super(id, field, {});
 
         FieldController.registerEvent(EventType.BeforeSave, this);
-
+        FieldController.registerEvent(EventType.FieldChange, this, FieldController.issueTypeFieldId);
         this.getData()
             .then((data) => {
                 this.setData(data);
@@ -36,6 +38,8 @@ class SprintSelectField extends Select2Field implements IFieldEventHandler {
                     return jiraAjax('/rest/greenhopper/1.0/sprint/rank', yasoon.ajaxMethod.Put, '{"idOrKeys":["' + jira.currentIssue.key + '"],"sprintId":"","addToBacklog":true}');
                 }
             }
+        } else if (type === EventType.FieldChange && source === FieldController.issueTypeFieldId) {
+            this.currentIssueType = newValue;
         }
 
         return null;
@@ -100,6 +104,14 @@ class SprintSelectField extends Select2Field implements IFieldEventHandler {
                 }
                 return result;
             });
+    }
+
+    render(container: JQuery): void {
+        if (this.currentIssueType && this.currentIssueType.subtask) {
+            container.append('<span class="field-inline">' + yasoon.i18n('dialog.warningSprintInherited') + '</span>');
+        } else {
+            super.render(container);
+        }
     }
 
     private parseSprintId(input) {
