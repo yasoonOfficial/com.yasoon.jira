@@ -156,7 +156,8 @@ interface JiraProject {
     assigneeType?: string,
     components?: JiraComponent[],
     lead?: JiraUser,
-    versions?: JiraVersion[]
+    versions?: JiraVersion[],
+    self?: string,
 }
 
 interface JiraProjectMeta {

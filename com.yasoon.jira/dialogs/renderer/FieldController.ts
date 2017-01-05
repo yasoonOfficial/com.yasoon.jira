@@ -52,6 +52,12 @@ namespace FieldController {
         return currentMeta;
     }
 
+    export function cleanupHtml() {
+        for (let key in metaFields) {
+            metaFields[key].cleanup();
+        }
+    }
+
     export function loadMeta(fields: { [id: string]: JiraMetaField }): void {
         currentMeta = fields;
 
@@ -71,7 +77,7 @@ namespace FieldController {
         //Remove fields that are not present in current meta        
         for (let key in metaFields) {
             if (!fields[key]) {
-                console.log('Delete key', key);
+                metaFields[key].cleanup();
                 delete metaFields[key];
             }
         }

@@ -386,8 +386,11 @@ class EmailController implements IEmailController, IFieldEventHandler {
 
             let projectCopy: JiraProject = JSON.parse(JSON.stringify(project));
             delete projectCopy.issueTypes;
+            delete projectCopy.self;
+            delete projectCopy.avatarUrls;
 
-            let newValues = JSON.parse(JSON.stringify(values));
+
+            let newValues:JiraIssue = jiraMinimizeIssue(values);
 
             let template: JiraProjectTemplate = {
                 senderEmail: this.mail.senderEmail,
@@ -409,18 +412,23 @@ class EmailController implements IEmailController, IFieldEventHandler {
             }
 
             //Add or replace template
-            var templateFound = false;
-            this.senderTemplates.forEach((templ) => {
+            let templateFound = -1;
+            this.senderTemplates.forEach((templ, index) => {
                 if (templ.senderEmail == template.senderEmail && templ.project.id == template.project.id) {
-                    templateFound = true;
-                    return template;
+                    templateFound = index;
                 }
-                return templ;
             });
 
-            if (!templateFound) {
-                this.senderTemplates.push(template);
+            if(templateFound > -1) {
+                this.senderTemplates.splice(templateFound,1);
             }
+
+            if(this.senderTemplates.length > 25) {
+                this.senderTemplates.splice(0,1);
+            }
+            
+            this.senderTemplates.push(template);
+
             yasoon.setting.setAppParameter(EmailController.settingCreateTemplates, JSON.stringify(this.senderTemplates));
 
         }

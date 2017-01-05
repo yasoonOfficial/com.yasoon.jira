@@ -111,6 +111,11 @@ abstract class Field implements FieldGet, FieldSet {
 		}
 	}
 	
+	cleanup() {
+		//Cleanup HTML
+		//Default to do nothing... can be overwritten be concrete fields
+	}
+
 	isRendered(): boolean {
 		return (this.ownContainer != null);
 	}

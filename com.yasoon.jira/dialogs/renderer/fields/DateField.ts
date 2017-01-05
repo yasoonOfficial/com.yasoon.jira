@@ -18,7 +18,7 @@ class DateField extends Field {
 
 	hookEventHandler(): void {
 		$('#' + this.id).change(e => this.triggerValueChange());
-	};
+	}
 
 	render(container: JQuery) {
 		container.append($(`<input style="height: 28px;" class="text long-field" id="${this.id}" name="${this.id}" placeholder="${yasoon.i18n('dialog.datePickerFormatTitle')}" value="" type="text" >
@@ -37,7 +37,11 @@ class DateField extends Field {
 		$('#' + this.id + '-trigger').off().click(e => {
 			$('#' + this.id)["datetimepicker"]("show");
 		});
-	};
+	}
+
+	cleanup() {
+		$('#' + this.id)["datetimepicker"]('destroy');
+	}
 }
 
 

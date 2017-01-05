@@ -230,7 +230,7 @@ class AddToIssueDialog implements IFieldEventHandler {
                 return Promise.all(promises);
             })
             .then(() => {
-                yasoon.notification.showPopup({ title: yasoon.i18n('dialog.successAddPopupTitle'), text: yasoon.i18n('dialog.successAddPopupText', { key: this.currentIssue.key }) });
+                yasoon.notification.showPopup({ title: yasoon.i18n('dialog.successAddPopupTitle'), text: yasoon.i18n('dialog.successAddPopupText', { key: this.currentIssue.key }), click: function() {} });
                 yasoon.dialog.close({ action: "success" });
             })
             .catch((e) => {

@@ -331,13 +331,13 @@ class NewEditDialog implements IFieldEventHandler {
             })
             .then((data) => {
                 if (this.isEditMode) {
-                    yasoon.notification.showPopup({ title: yasoon.i18n('dialog.successAddPopupTitle'), text: yasoon.i18n('dialog.successAddPopupText', { key: this.currentIssue.key }) });
+                    yasoon.notification.showPopup({ title: yasoon.i18n('dialog.successAddPopupTitle'), text: yasoon.i18n('dialog.successAddPopupText', { key: this.currentIssue.key }), click: function() {} });
                     return jiraGet('/rest/api/2/issue/' + this.currentIssue.id);
 
                 } else {
                     let issue = JSON.parse(data);//A non-populated issue
                     this.issueCreated = true;
-                    yasoon.notification.showPopup({ title: yasoon.i18n('dialog.successPopupTitle'), text: yasoon.i18n('dialog.successPopupText', { key: issue.key }) });
+                    yasoon.notification.showPopup({ title: yasoon.i18n('dialog.successPopupTitle'), text: yasoon.i18n('dialog.successPopupText', { key: issue.key }), click: function() {} });
                     return jiraGet('/rest/api/2/issue/' + issue.id);
                 }
             })
@@ -388,6 +388,7 @@ class NewEditDialog implements IFieldEventHandler {
         return this.getUserPreferences()
             .then((renderData) => {
                 //First clean up everything
+                FieldController.cleanupHtml();
                 $('#ContainerFields').empty();
                 $('#tab-list').empty();
 

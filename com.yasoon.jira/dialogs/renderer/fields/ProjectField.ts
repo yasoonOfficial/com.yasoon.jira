@@ -22,6 +22,7 @@ class ProjectField extends Select2Field {
     returnStructure: Select2Element[];
     isMainProjectField: boolean;
     recentItems: RecentItemController;
+    emailController: EmailController;
 
     constructor(id: string, field: JiraMetaField, fieldOptions: ProjectFieldOptions = { cache: [], allowClear: false }) {
         let options: Select2Options = {};
@@ -30,7 +31,7 @@ class ProjectField extends Select2Field {
         super(id, field, options);
 
         this.isMainProjectField = (id === FieldController.projectFieldId);
-
+        this.emailController = jira.emailController;
         this.recentItems = jira.recentItems;
 
         if (fieldOptions.cache) {
@@ -55,6 +56,7 @@ class ProjectField extends Select2Field {
 
     triggerValueChange() {
         let project: JiraProject = this.getObjectValue();
+        console.log('Project selected', project);
         if ((!this.lastValue && project) || (this.lastValue && !project) || (this.lastValue && project && this.lastValue.id !== project.id)) {
             FieldController.raiseEvent(EventType.FieldChange, project, this.id);
             this.lastValue = project;
@@ -71,8 +73,8 @@ class ProjectField extends Select2Field {
             return;
         }
         // Mail may already contain a conversation. Should this also be valid for newIssue?!
-        if (jira.emailController) {
-            let convData: YasoonConversationData = jira.emailController.getConversationData();
+        if (this.emailController) {
+            let convData: YasoonConversationData = this.emailController.getConversationData();
             if (convData) {
                 //Try to find project that matches
                 //We could just lookup the first issue and directly select the projectId.
@@ -89,7 +91,7 @@ class ProjectField extends Select2Field {
             }
         }
         //If mail is provided && subject contains reference to project, pre-select that
-        if (jira.emailController && jira.emailController.mail && jira.emailController.mail.subject && this.projectCache && this.projectCache.length > 0) {
+        if (this.emailController && this.emailController.mail && this.emailController.mail.subject && this.projectCache && this.projectCache.length > 0) {
             //Sort projects by key length descending, so we will match the following correctly:
             // Subject: This is for DEMODD project
             // Keys: DEMO, DEMOD, DEMODD
@@ -99,7 +101,7 @@ class ProjectField extends Select2Field {
 
             for (let i = 0; i < projectsByKeyLength.length; i++) {
                 let curProj = projectsByKeyLength[i];
-                if (jira.emailController.mail.subject.indexOf(curProj.key) >= 0) {
+                if (this.emailController.mail.subject.indexOf(curProj.key) >= 0) {
                     this.setValue(curProj);
                     return;
                 }
@@ -128,14 +130,14 @@ class ProjectField extends Select2Field {
     private getReturnStructure(projects?: Select2Element[], queryTerm?: string): Select2Element[] {
         let result: Select2Element[] = [];
         //1. User Templates
-        if (jira.emailController && jira.emailController.senderTemplates) {
+        /* if (this.emailController && this.emailController.senderTemplates) {
             //1.1 Filter
-            let currentTemplates = jira.emailController.senderTemplates.filter(templ => {
+            let currentTemplates = this.emailController.senderTemplates.filter(templ => {
                 if (templ.senderEmail === jira.mail.senderEmail) {
                     //Double Check if Project still exists
-                    let templProj = projects.filter(p => { return p.id === templ.id; })[0];
+                    let templProj = projects.filter(p => { return p.id === templ.project.id; })[0];
                     if (templProj) {
-                        templ.name = templProj.data.name;
+                        templ.project.name = templProj.data.name;
                         templ.projectTypeKey = templProj.data.projectTypeKey;
                         return true;
                     }
@@ -144,14 +146,21 @@ class ProjectField extends Select2Field {
             });
             //1.2 Map and Add
             if (currentTemplates && currentTemplates.length > 0) {
-                let children: Select2Element[] = currentTemplates.map(this.convertToSelect2);
+                let children: Select2Element[] = [];
+                currentTemplates.forEach((templ) => {
+                    let child:Select2Element = this.convertToSelect2(templ.project);
+                    child.id = 'template-' + templ.project.id;
+
+                    children.push(child);
+                });
+
                 result.push({
                     id: 'templates',
                     text: yasoon.i18n('dialog.templateFor', { name: jira.mail.senderName }),
                     children: children
                 });
             }
-        }
+        } */
 
         //2. Recent Projects
         if (this.recentItems && this.recentItems.recentProjects) {
