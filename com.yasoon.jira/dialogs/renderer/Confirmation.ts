@@ -8,6 +8,7 @@ class Confirmation {
                 size: 'large',
                 backdrop: false,
                 message: options.message,
+                className: 'jira-modal',
                 callback: function (ok) {
                     var checkState = $('#checkboxConfirm').prop("checked");
                     resolve({

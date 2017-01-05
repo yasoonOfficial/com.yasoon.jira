@@ -184,27 +184,27 @@ body {
 	opacity: 0.5;
 }
 
-.modal-dialog {
+.jira-modal .modal-dialog {
 	margin-top: 30%;
 }
 
-.modal-footer {
+.jira-modal .modal-footer {
 	padding: 10px !important;
 	margin-top: 0px !important;
 }
 
-.modal-footer .checkbox {
+.jira-modal .modal-footer .checkbox {
 	float: left;
 	margin-bottom: 0;
 	margin-top: 6px;
 }
 
-.modal-footer .awesome.checkbox label::after {
+.jira-modal .modal-footer .awesome.checkbox label::after {
 	left: -2px !important;
 	top: 1px !important;
 }
 
-.modal-footer .awesome.checkbox label::before {
+.jira-modal .modal-footer .awesome.checkbox label::before {
 	top: 1px;
 }
 
