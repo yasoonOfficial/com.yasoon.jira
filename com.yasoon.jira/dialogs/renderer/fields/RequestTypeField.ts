@@ -150,7 +150,13 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
         }
 
         //New cloud versioning
-        if (jira.systemInfo.versionNumbers[0] >= 1000) {
+        var is73OrCloud = false;
+        if (jira.systemInfo.versionNumbers[0] >= 1000)
+            is73OrCloud = true;
+        else if ((jira.systemInfo.versionNumbers[0] === 7 && jira.systemInfo.versionNumbers[1] >= 3) || jira.systemInfo.versionNumbers[0] > 7)
+            is73OrCloud = true;
+
+        if (is73OrCloud) {
             return jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey + '/groups')
                 .then((data: string) => {
                     let groups: JiraRequestTypeGroup[] = JSON.parse(data);
