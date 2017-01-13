@@ -3,3 +3,5 @@
 *node_modules*
 /distribution
 /addon/onpremise/target/
+/addon/distribution/
+build_save_vs.bat

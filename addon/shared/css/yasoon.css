@@ -132,7 +132,20 @@
   line-height: 110%;
   margin: 1.78rem 0 1.424rem 0;
 }
+
+.materialize-wrapper .tabs.tabs--small {
+	height: 36px;
+}
+
+.materialize-wrapper .tabs .tab.tab--small {
+    height: 36px;
+    line-height: 36px;
+}
             
+a {
+	cursor: pointer;
+}
+
 .hidden {
     display:none !important;
 }
@@ -190,6 +203,7 @@
 .isCloud .tab-container {
 	overflow-y: auto;
 }
+
 
 
 /* Tiny Mce */

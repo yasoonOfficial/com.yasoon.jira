@@ -2,6 +2,7 @@ var authToken = '';
 var isCloud = false;
 var yasoonServerUrl = '';
 var isInstanceRegistered = false;
+var jiraDataId = null;
 var systemInfo = {};
 var serverId = null;
 var yasoonUser = null;
@@ -83,8 +84,9 @@ $(document).ready(function () {
                 //Check if this instance is registered
                 return getIsInstanceRegistered();
             })
-            .then(function (isRegistered) {
-                isInstanceRegistered = isRegistered;
+            .then(function (result) {
+                isInstanceRegistered = result.registered;
+                jiraDataId = result.jiraDataId;
 
                 return getOwnUser()
                     .caught(function () {
@@ -95,7 +97,6 @@ $(document).ready(function () {
                 //Initialize the UI
                 yasoonUser = resultUser;
                 loadUI();
-                // initUI(isInstanceRegistered, ownUser);
             })
             .caught(function (e) {
                 console.log(e, e.stack);
@@ -122,7 +123,7 @@ function getIsInstanceRegistered() {
         type: 'GET'
     }))
         .then(function (data) {
-            return data.registered;
+            return data;
         });
 }
 
@@ -173,7 +174,7 @@ function loadUI() {
         var webLinkKey = urlContextParam.split('__')[1];
         if (webLinkKey) {
             // Configure and postInstalls are just aliases for admin
-            if (webLinkKey === 'configure' || wenLinkKey === 'postInstall') {
+            if (webLinkKey === 'configure' || webLinkKey === 'postInstall') {
                 webLinkKey = 'admin';
             }
             //Make sure we are allowed to load this page
@@ -422,5 +423,18 @@ ko.bindingHandlers.sortable = {
     update: function (el, valueAccessor, allBindingsAccessor, viewModel) {
         var data = ko.utils.unwrapObservable(valueAccessor());
         setTimeout(function () { $(el).sortable('reload') }, 1);
+    }
+};
+
+ko.bindingHandlers.slide = {
+    init: function(element, valueAccessor) {
+        // Initially set the element to be instantly visible/hidden depending on the value
+        var value = valueAccessor();
+        $(element).toggle(ko.unwrap(value)); // Use "unwrapObservable" so we can handle values that may or may not be observable
+    },
+    update: function(element, valueAccessor) {
+        // Whenever the value subsequently changes, slowly fade the element in or out
+        var value = valueAccessor();
+        ko.unwrap(value) ? $(element).slideDown() : $(element).slideUp();
     }
 };

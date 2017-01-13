@@ -3,6 +3,7 @@
 		<div class="afterSetup z-depth-1">
 			<div class="row">
 				<div class="s12 heading-col">
+					<h5>Issue Templates</h5>
 					<p>
 						Here you can define issue templates based on selected criterias. These templates will be executed automatically during issue
 						creation process in Outlook to set default values. <br /> The templates will be distributed to the client
@@ -12,12 +13,13 @@
 			</div>
 			<div class="row">
 				<div class="s12 heading-col">
-					<ul class="collapsible popout" data-collapsible="expandable">
+					<ul id="TemplatesCollapsible" class="collapsible popout" data-collapsible="expandable">
 						<li>
 							<div class="collapsible-header"><i class="material-icons">people_outline</i>Group Hierarchy</div>
 							<div class="collapsible-body" data-bind="with:groupHierarchy" style="padding: 0px 20px;">
-								<p>Issue Templates can be defined dependend on user groups. To do so, you'll have to pick all relevant groups here
-									first. Afterwards you have to prioritize these groups via drag &amp; drop. These helps JIRA for Outlook to find
+								<p>Issue Templates can be defined dependend on user groups. It is completely optional. However if you like JIRA to Outlook to pick issue templates 
+									automatically based on the group of user, you'll have to pick all relevant groups here first. 
+									Afterwards you have to prioritize these groups via drag &amp; drop. These helps JIRA for Outlook to find
 									the right template in case the user is assigned to multiple groups.
 								</p>
 								<div style="padding: 0px 2rem; width: 100%; max-width: 500px;">
@@ -103,16 +105,18 @@
 							<div class="collapsible-header"><i class="material-icons">assignment</i> Issue Templates</div>
 							<div class="collapsible-body" data-bind="with:defaultTemplates" style="padding: 0px 20px;">
 								<p>Here you can define issue templates. The fields will be inserted as soon as the user selects criteria that matches
-									the key fields. Again these templates can be made group specific but they have to be defined in the group hierarchy.
+									the key fields. Again these templates can be made group specific if these groups are defined in the group hierarchy above. <br />
+									Optional: You can give a template a unique name, so users can select the template manually.
 
 								</p>
 								<div style="padding: 0px 2rem;">
 									<table class="responsive-table centered">
 										<thead>
 											<tr>
-												<th data-field="group" style="width: 25%;">Group</th>
-												<th data-field="project" style="width: 25%;">Project</th>
-												<th data-field="issue-type" style="width: 25%;">Issue Type</th>
+												<th data-field="group" style="width: 20%;">Group</th>
+												<th data-field="project" style="width: 20%;">Project</th>
+												<th data-field="issue-type" style="width: 20%;">Issue Type</th>
+												<th data-field="issue-type" style="width: 20%;">Name</th>
 												<th data-field="" style="width: 5%; max-width: 45px;"></th>
 												<th data-field="editButton" style="width: 15%; max-width: 100px;"></th>
 											</tr>
@@ -141,6 +145,11 @@
 														<issue-type-picker params="hasOthersOption: true, projectId: projectId, issueTypeId: issueTypeId"></issue-type-picker>
 													</div>
 												</td>
+												<td>
+													<div style="margin: 0px 15px;">
+														<input style="width: 100%;margin:0px; height:2rem;" data-bind="textInput: templateName" />
+													</div>
+												</td>
 												<td> <i class="material-icons left" style="padding-left: 15px;">forward</i> </td>
 												<td>
 													<a class="waves-effect waves-light btn" data-bind="click:$parent.edit, css: { 'disabled': !isEditEnabled()}"><i class="material-icons left">edit</i> Edit </a>
@@ -156,51 +165,67 @@
 										<h4>Select Default Values</h4>
 										<div class="row" style="padding-left: 40px; margin-bottom: 20px;">
 											Here you can define the values for each field. <br>
-											<ul>
-												<li>
-													<span style="font-weight:bold;">Technical Ids:</span> For all select list values you'll have to use the
-													technical IDs.
-												</li>
-												<li>
-													<span style="font-weight:bold;">Multiple Values:</span> should be inserted comma separated. E.g.: 10100,10200
-												</li>
-												<li>
-													<span style="font-weight:bold;">Date Values:</span>
-													<div style="margin-left: 40px;">
-														<ul>
-															<li>
-																<span style="font-weight:bold;">Date format:</span> yyyy-mm-dd (2016-12-31)
-															</li>
-															<li>
-																<span style="font-weight:bold;">Date Time:</span> YYYY-MM-DD[T]HH:mm:ss.[000]Z (2016-12-31T21:00:00.000Z)
-															</li>
-														</ul>
-													</div>
-												</li>
-												<li>
-													<span style="font-weight:bold;">Variables:</span> We currently support the following variables:
-													<div style="margin-left: 40px;">
-														<ul>
-															<li>
-																<span style="font-weight:bold;">&lt;TODAY&gt;:</span> Inserts current date
-															</li>
-															<li>
-																<span style="font-weight:bold;">&lt;TODAY&gt; + x:</span> Inserts current date + x days
-															</li>
-															<li>
-																<span style="font-weight:bold;">&lt;USER&gt;:</span> Inserts current user
-															</li>
-															<li>
-																<span style="font-weight:bold;">|FIELDID|:</span> Use technical field Id to default to the value of
-																another field
-															</li>
-														</ul>
-													</div>
-												</li>
-											</ul>
+											<a data-bind="click: $parent.toggleShowDetails, if: !$parent.detailsVisible()"> show technical help </a>
+											<div id="FieldPickerModalHelp" data-bind="slide:$parent.detailsVisible">
+												<ul>
+													<li>
+														<span style="font-weight:bold;">Technical Ids:</span> For all select list values you'll have to use the
+														technical IDs.
+													</li>
+													<li>
+														<span style="font-weight:bold;">Multiple Values:</span> should be inserted comma separated. E.g.: 10100,10200
+													</li>
+													<li>
+														<span style="font-weight:bold;">Date Values:</span>
+														<div style="margin-left: 40px;">
+															<ul>
+																<li>
+																	<span style="font-weight:bold;">Date format:</span> yyyy-mm-dd (2016-12-31)
+																</li>
+																<li>
+																	<span style="font-weight:bold;">Date Time:</span> YYYY-MM-DD[T]HH:mm:ss.[000]Z (2016-12-31T21:00:00.000Z)
+																</li>
+															</ul>
+														</div>
+													</li>
+													<li>
+														<span style="font-weight:bold;">Variables:</span> We currently support the following variables:
+														<div style="margin-left: 40px;">
+															<ul>
+																<li>
+																	<span style="font-weight:bold;">&lt;TODAY&gt;:</span> Inserts current date
+																</li>
+																<li>
+																	<span style="font-weight:bold;">&lt;TODAY&gt; + x:</span> Inserts current date + x days
+																</li>
+																<li>
+																	<span style="font-weight:bold;">&lt;USER&gt;:</span> Inserts current user
+																</li>
+																<li>
+																	<span style="font-weight:bold;">&lt;SUBJECT&gt;:</span> Inserts current mail subject
+																</li>
+																<li>
+																	<span style="font-weight:bold;">&lt;BODY&gt;:</span> Inserts current mail body
+																</li>
+																<li>
+																	<span style="font-weight:bold;">&lt;SENDER&gt;:</span> Inserts current mail email address(or user belonging to this email in case of an user field)
+																</li>
+																<li>
+																	<span style="font-weight:bold;">&lt;SENTAT&gt;:</span> Inserts current mail sent Date (if it's a text field, format will be mm/dd/yyyy hh:mm)
+																</li>
+																<li>
+																	<span style="font-weight:bold;">|FIELDID|:</span> Use technical field Id to default to the value of
+																	another field
+																</li>
+															</ul>
+														</div>
+													</li>
+												</ul>
+												<a data-bind="click: $parent.toggleShowDetails"> hide help </a>
+											</div>
 										</div>
+										<!-- ko foreach: fields -->
 										<div class="row">
-											<!-- ko foreach: fields -->
 											<div class="col s6">
 												<a style="cursor:pointer; float:left; padding-top: 2px;" data-bind="click:$parent.removeField, visible: !isEmpty()">
 													<i class="material-icons left custom-red">delete</i>
@@ -212,8 +237,8 @@
 											<div class="col s4">
 												<input style="width: 100%; height: 2rem;" type="text" data-bind="textInput: fieldValue">
 											</div>
-											<!-- /ko -->
 										</div>
+										<!-- /ko -->
 									</div>
 									<!-- /ko -->
 									<div class="modal-footer">

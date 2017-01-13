@@ -319,16 +319,44 @@
 						</div>
 						<div class="card-content">
 							<p>
-								Your personalized setup is now available. Please download it below, or share the following link:
+								Your personalized setup is now available. Please download it below, or share the link.
 							</p>
-							<div class="input-field">
-								<input spellcheck="false" id="downloadLink" type="text" class="validate ajs-dirty-warning-exempt" style="color: black" disabled="disabled">
+							
+							<div class="row" style="margin-bottom: 0">
+								<div class="col s12" style="margin-top: 10px;">
+									<ul id="installerTabs" class="tabs tabs--small">
+										<li class="tab tab--small col s6"><a class="active" href="#default">Default</a></li>
+										<li class="tab tab--small col s6"><a href="#advanced">Advanced</a></li>
+									</ul>
+								</div>
+								<div id="default" class="col s12" style="padding-top: 10px">										
+									This is the recommended installer which will be installed per-user. It supports our automatic updater.
+									<input id="downloadLink">
+								</div>
+								<div id="advanced" class="col s12" style="padding-top: 10px">
+									<p>This is the advanced installer which will be installed per-machine. Automatic updates are disabled, but it can be used for automatic deployments (like Terminal Server, Remote Desktop, etc).</p>
+									<p style="padding-top: 5px; padding-bottom: 10px;">Please choose your configuration and click "Download" or <a target="_blank" href="https://yasoon.zendesk.com/hc/en-us/articles/115000041410">Get Help</a></p>
+									<div class="input-field col s6">
+										<select id="selectBitness">
+											<option value="" disabled selected>Please choose bitness</option>
+											<option value="x86" class="circle">Outlook x86</option>
+											<option value="x64" class="circle">Outlook x64</option>
+										</select>
+										<label>Outlook Version</label>
+									</div>
+									<div class="input-field col s6">
+										<select id="selectAppData">
+											<option value="" disabled selected>Please choose target</option>
+											<option value="roaming" class="circle">Application Data</option>
+											<option value="local" class="circle">Local Application Data</option>
+										</select>
+										<label>Local Storage</label>
+									</div>
+								</div>
 							</div>
-
 						</div>
 						<div class="card-action">
-							<button id="downloadSetupButtonMain" type="button" class="btn btn-default"><i class="material-icons right">get_app</i>Download</button>
-							<!-- <button type="button" id="downloadShareButton" class="btn btn-default" style="margin-bottom: 10px;"><i class="material-icons right">send</i>Share</button> -->
+							<a target="_blank" id="downloadSetupButtonMain" type="button" class="btn btn-default"><i class="material-icons right">get_app</i>Download</a>
 						</div>
 					</div>
 

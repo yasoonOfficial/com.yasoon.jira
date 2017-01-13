@@ -106,6 +106,7 @@ function templateViewModel() {
                         group: templ.group,
                         projectId: templ.projectId,
                         issueTypeId: templ.issueTypeId,
+                        templateName: templ.templateName,
                         fields: fields,
                         priority: priority
                     });
@@ -115,11 +116,14 @@ function templateViewModel() {
             result.defaultTemplates.sort(function (a, b) { return a.priority - b.priority; });
             console.log('Save', result);
 
+            var finalObject = { overwrite: {}};
+            finalObject.overwrite[jiraDataId] = result;
+
             return Promise.resolve($.ajax({
                 url: yasoonServerUrl + '/api/companyapp/16/predeliveredConfig',
                 contentType: 'application/json',
                 headers: { userAuthToken: authToken },
-                data: JSON.stringify({ overwrite: result }),
+                data: JSON.stringify(finalObject),
                 processData: false,
                 type: 'PUT'
             }))
@@ -166,9 +170,12 @@ function templateViewModel() {
     }))
         .then(function (data) {
             console.log('Template Data', data);
-            self.groupHierarchy.load(data.overwrite.groups);
-            self.initialSelection.load(data.overwrite.initialSelection);
-            self.defaultTemplates.load(data.overwrite.defaultTemplates);
+            var ownData = data.overwrite[jiraDataId];
+            if(ownData) {
+                self.groupHierarchy.load(ownData.groups);
+                self.initialSelection.load(ownData.initialSelection);
+                self.defaultTemplates.load(ownData.defaultTemplates);
+            }
         })
         .caught(function (e) {
             console.log(e, e.stack);
@@ -297,12 +304,14 @@ function defaultTemplate(parent, initParams) {
     this.group = ko.observable();
     this.projectId = ko.observable();
     this.issueTypeId = ko.observable();
+    this.templateName = ko.observable();
     this.fields = ko.observableArray();
 
     if (initParams) {
         this.group(initParams.group);
         this.projectId(initParams.projectId);
         this.issueTypeId(initParams.issueTypeId);
+        this.templateName(initParams.templateName);
         var templates = [];
         initParams.fields.forEach(function (templ) {
             templates.push(new defaultTemplateField(self, templ));
@@ -352,6 +361,7 @@ function defaultTemplatesViewModel(groups) {
 
     this.entries = ko.observableArray();
     this.editObj = ko.observable();
+    this.detailsVisible = ko.observable(false);
     this.allGroups = groups;
     this.allGroupsSelect2 = ko.computed(function () {
         //Map Groups into Select2 Format
@@ -366,6 +376,10 @@ function defaultTemplatesViewModel(groups) {
 
         return result;
     });
+
+    this.toggleShowDetails = function() {
+        self.detailsVisible(!self.detailsVisible());
+    };
 
     this.remove = function (obj) {
         self.entries.remove(obj);
@@ -481,3 +495,12 @@ function groupHierarchyViewModel(groups) {
 function sortByText(a, b) {
     return ((a.text.toLowerCase() > b.text.toLowerCase()) ? 1 : -1);
 }
+
+(function() {
+    templatesModel = new templateViewModel();
+    ko.applyBindings(templatesModel, document.getElementById('templates'));
+
+    $('#TemplatesCollapsible').collapsible();
+})();
+
+//# sourceURL=templates.js

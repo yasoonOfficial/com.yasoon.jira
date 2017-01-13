@@ -1,4 +1,10 @@
 function loadRegisteredUIState() {
+    setTimeout(function () {
+        $('#mainMenuTabs').tabs('select_tab', 'general');
+    }, 1);
+
+    $('#selectBitness, #selectAppData').material_select();
+
     checkAppLink();
     checkDownloadLink();
     checkProduct();
@@ -11,7 +17,7 @@ function initAdminUI() {
     //Hide page loader first
     $('#pageLoading').hide();
 
-    var isAuthed = !!ownUser; //Ownuser can only be loaded if authToken is valid
+    var isAuthed = !!yasoonUser; //Ownuser can only be loaded if authToken is valid
     var cookiePage = $.cookie('currentPage');
     if (cookiePage) {
         currentPage = parseInt(cookiePage);
@@ -680,6 +686,37 @@ function getDownloadLink() {
                 $('#downloadLinkStatus').removeClass('panel-warning').addClass('panel-success');
                 $('#downloadLinkWaiting, #downloadLoading').addClass('hidden');
                 $('#downloadLinkReady, #downloadReady').removeClass('hidden');
+
+                 setTimeout(function () {
+                    $('#selectBitness, #selectAppData').on('change', function () {
+                        var bitness = $('#selectBitness').val();
+                        var target = $('#selectAppData').val();
+
+                        if (bitness && target) {
+                            $('#downloadSetupButton, #downloadSetupButtonMain').removeClass('disabled');
+                            $('#downloadSetupButton, #downloadSetupButtonMain').prop('href', calcAdvancedDownloadUrl(infos.downloadUrl, bitness, target));
+                        }
+                    });
+
+                    $('#installerTabs').tabs({
+                        onShow: function (el) {
+                            var id = el.attr('id');
+                            if (id === 'default') {
+                                $('#downloadSetupButton, #downloadSetupButtonMain').removeClass('disabled');
+                                $('#downloadSetupButton, #downloadSetupButtonMain').prop('href', infos.downloadUrl);
+                            }
+                            else {
+                                var bitness = $('#selectBitness').val();
+                                var target = $('#selectAppData').val();
+
+                                if (!bitness || !target)
+                                    $('#downloadSetupButton, #downloadSetupButtonMain').addClass('disabled');
+                                else
+                                    $('#downloadSetupButton, #downloadSetupButtonMain').prop('href', calcAdvancedDownloadUrl(infos.downloadUrl, bitness, target));
+                            }
+                        }
+                    });
+                }, 1);
             }
         })
         .fail(function (e) {
@@ -697,6 +734,13 @@ function getDownloadLink() {
         });
 }
 
+function calcAdvancedDownloadUrl(baseUrl, bitness, target) {
+    var url = baseUrl + "?bundleBuildId=7&arch=" + bitness;
+    if (target === 'roaming')
+        url += '&roaming=true';
+
+    return url;
+}
 
 function checkAppLink() {
     if (isCloud) {
@@ -940,3 +984,9 @@ function dialogSearch() {
             swal("Oops...", "Could not search for users.", "error");
         });
 }
+
+(function() {
+    initAdminUI();
+})()
+
+//# sourceURL=admin.js

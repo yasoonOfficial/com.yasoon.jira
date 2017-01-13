@@ -10,7 +10,8 @@ var pathes = [
 	'addon/shared/js/*',
 	'addon/shared/js/components/*',
 	'addon/shared/js/library/*',
-    'addon/cloud'
+    'addon/cloud/*',
+	'addon/distribution'
 ];
 copyfiles(pathes, 2, function () {
 	

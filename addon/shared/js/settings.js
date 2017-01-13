@@ -291,3 +291,5 @@ function jiraFieldMappingModel() {
 
     $('#SettingsCollapsible').collapsible();
 })();
+
+//# sourceURL=settings.js
