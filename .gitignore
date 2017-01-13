@@ -2,4 +2,4 @@
 *amps-standalone*
 *node_modules*
 /distribution
-/com.yasoon.jira.onpremise/target/
+/addon/onpremise/target/

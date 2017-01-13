@@ -1,0 +1,59 @@
+{
+     "name": "Outlook App for JIRA Cloud",
+     "description": "JIRA for Outlook 2010, 2013 and 2016. Outlook app can be downloaded on the configuration page after the initial setup.",
+     "key": "com.yasoon.jira.cloud",
+     "baseUrl": "https://store.yasoon.com/jira",
+     "vendor": {
+         "name": "yasoon",
+         "url": "http://jira.yasoon.com"
+     },
+     "authentication": {
+         "type": "jwt"
+     },
+	"lifecycle": {
+	  "installed": "/install",
+	  "uninstalled": "/install",
+	  "enabled": "/install",
+	  "disabled": "/install"
+    },
+	 "scopes": [
+        "read", "write"
+    ],
+     "modules": {
+         "webSections": [
+            {
+                "key": "yasoon_outlook_app",
+                "location": "admin_plugins_menu",
+                "name": {
+                    "value": "Outlook App"
+                }
+            }
+        ],
+         "adminPages": [
+             {
+                 "url": "/admin.html",
+                 "key": "admin",
+                 "location": "admin_plugins_menu/yasoon_outlook_app",
+                 "name": {
+                     "value": "Basic Configuration"
+                 }
+				 
+             }
+         ],
+		 "configurePage": {
+            "url": "/admin.html",
+            "key": "configure",
+            "name": {
+                "value": "Configure Outlook App"
+            }
+        },
+		"postInstallPage": {
+			"url": "/admin.html",
+            "key": "postInstall",
+            "name": {
+                "value": "Configure Outlook App"
+            }
+		}
+     },
+	  "enableLicensing": true
+ }

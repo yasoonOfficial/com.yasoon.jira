@@ -173,7 +173,10 @@ class EmailController implements IEmailController, IFieldEventHandler {
 
     setSubject() {
         if (this.fieldMapping.subject) {
-            FieldController.getField(this.fieldMapping.subject).setValue(this.mail.subject);
+            let field = FieldController.getField(this.fieldMapping.subject);
+            if(field) {
+                field.setValue(this.mail.subject);
+            }
         }
     }
 

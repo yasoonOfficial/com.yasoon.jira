@@ -43,6 +43,12 @@ class TemplateController implements IFieldEventHandler {
         //Only keep initial Selections necessary for current user
         //--> Sort by Group Hierarchy and pick the highest
         if (initialSelection.length > 0) {
+            initialSelection = initialSelection.filter((selection) => {
+                return this.ownUser.groups.items.filter((userGroup) => {
+                    return userGroup.name === selection.group;
+                }).length > 0;
+            });
+
             this.initialSelection = initialSelection.sort((a, b) => {
                 let groupA = this.getGroup(a.group);
                 let groupB = this.getGroup(b.group);

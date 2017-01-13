@@ -577,6 +577,9 @@ class NewEditDialog implements IFieldEventHandler {
 
         //Tempo
         FieldController.register('com.tempoplugin.tempo-accounts:accounts.customfield', TempoAccountField);
+
+        //Watcher Field
+        FieldController.register('com.burningcode.jira.issue.customfields.impl.jira-watcher-field:watcherfieldtype', UserSelectField, { multiple: true});
     };
 }
 

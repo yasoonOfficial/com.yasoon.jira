@@ -1,0 +1,77 @@
+{
+    "name": "Outlook App for JIRA Cloud",
+    "description": "JIRA for Outlook 2010, 2013 and 2016. Outlook app can be downloaded on the configuration page after the initial setup.",
+    "key": "com.yasoon.jira.cloud",
+    "baseUrl": "http://localhost:1337/jira",
+    "vendor": {
+        "name": "yasoon",
+        "url": "http://jira.yasoon.com"
+    },
+    "authentication": {
+        "type": "jwt"
+    },
+    "lifecycle": {
+        "installed": "/install",
+        "uninstalled": "/install",
+        "enabled": "/install",
+        "disabled": "/install"
+    },
+    "scopes": [
+        "read",
+        "write"
+    ],
+    "modules": {
+         "webSections": [
+            {
+                "key": "yasoonoutlookapp",
+                "location": "admin_plugins_menu",
+                "name": {
+                    "value": "Outlook App"
+                }
+            }
+        ],
+         "adminPages": [
+             {
+                 "url": "/wrapper.html",
+                 "key": "admin",
+                 "location": "admin_plugins_menu/yasoonoutlookapp",
+                 "name": {
+                     "value": "General Overview"
+                 }
+             },
+             {
+                 "url": "/wrapper.html",
+                 "key": "settings",
+                 "location": "admin_plugins_menu/yasoonoutlookapp",
+                 "name": {
+                     "value": "Outlook Settings"
+                 }
+				 
+             },
+             {
+                 "url": "/wrapper.html",
+                 "key": "templates",
+                 "location": "admin_plugins_menu/yasoonoutlookapp",
+                 "name": {
+                     "value": "Issue Templates"
+                 }
+				 
+             }
+         ],
+        "configurePage": {
+            "url": "/wrapper.html",
+            "key": "configure",
+            "name": {
+                "value": "Configure Outlook App"
+            }
+        },
+        "postInstallPage": {
+            "url": "/wrapper.html",
+            "key": "postInstall",
+            "name": {
+                "value": "Configure Outlook App"
+            }
+        }
+    },
+    "enableLicensing": true
+}
