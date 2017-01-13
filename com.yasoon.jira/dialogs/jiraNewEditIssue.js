@@ -1024,7 +1024,13 @@ yasoon.dialog.load(new function () { //jshint ignore:line
 		});
 
 		//New cloud versioning
-		if (jira.systemInfo.versionNumbers[0] >= 1000) {
+		var is73OrCloud = false;
+        if (jira.systemInfo.versionNumbers[0] >= 1000)
+            is73OrCloud = true;
+        else if (jiraIsVersionHigher(jira.systemInfo, '7.3'))
+            is73OrCloud = true;
+
+        if (is73OrCloud) {
 			request = request.then(function() {
 					return jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey + '/groups')
 				})
