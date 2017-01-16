@@ -60,9 +60,17 @@ var fieldBlacklist = [
 ];
 
 function filterFields(fields) {
-    return fields.filter(function (f) {
-        return (fieldBlacklist.indexOf(f.id) == -1);
-    });
+    if (fields.length) {
+        return fields.filter(function (f) {
+            return (fieldBlacklist.indexOf(f.id) == -1);
+        });
+    } else {
+        var copy = JSON.parse(JSON.stringify(fields));
+        fieldBlacklist.forEach(function (blackListField) {
+            delete copy[blackListField];
+        });
+        return copy;
+    }
 }
 
 ko.components.register('field-picker', {
@@ -70,16 +78,40 @@ ko.components.register('field-picker', {
         // Data: default value - either null or group
         var self = this;
         this.currentProjectId = params.projectId || ko.observable();
+        this.currentIssueTypeId = params.projectId || ko.observable();
         this.chosenValue = params.fieldId || ko.observable();
         this.chosenField = params.chosenField || ko.observable();
         this.data = ko.observable();
 
-        this.setDefaultData = function () {
-            getFieldValues()
-                .then(function (fields) {
-                    var ownFields = JSON.parse(JSON.stringify(fields));
-                    self.data(ownFields);
-                });
+        this.loadData = function () {
+            if (self.currentProjectId() > -1 && self.currentIssueTypeId() > -1) {
+                getFieldMeta(self.currentProjectId(), self.currentIssueTypeId())
+                    .then(function (fieldMeta) {
+                        var result = [];
+                        if (fieldMeta.projects && fieldMeta.projects.length > 0) {
+                            var project = fieldMeta.projects[0];
+                            if (project.issuetypes && project.issuetypes.length > 0) {
+                                var issueType = project.issuetypes[0];
+                                if (issueType.fields) {
+                                    var fields = filterFields(issueType.fields);
+                                    var keys = Object.keys(fields);
+                                    keys.forEach(function (key) {
+                                        var field = fields[key];
+                                        result.push({ id: key, text: field.name + ' (' + key + ')', data: field });
+                                    });
+                                }
+                            }
+                        }
+                        result = result.sort(sortByText);
+                        self.data(result);
+                    });
+            } else {
+                getFieldValues()
+                    .then(function (fields) {
+                        var ownFields = JSON.parse(JSON.stringify(fields));
+                        self.data(ownFields);
+                    });
+            }
         };
 
         this.options = {
@@ -102,7 +134,7 @@ ko.components.register('field-picker', {
             }
         });
 
-        this.setDefaultData();
+        this.loadData();
     },
     template:
     '<div data-bind="if: data"><select style="display:block; width: 100%;" data-bind="select2: options, value:chosenValue"><option></option></select></div>'

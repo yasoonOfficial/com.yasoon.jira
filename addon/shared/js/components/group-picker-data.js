@@ -4,7 +4,8 @@ ko.components.register('group-picker-data', {
         //default value - either null or groupName
         this.chosenValue = params.group;
         this.hasOthersOption = params.hasOthersOption || false;
-        this.data = params.data;
+        this.disabled = params.disabled;
+        this.data = params.data || false;
 
         this.availableOptions = ko.computed(function () {
             var result = JSON.parse(JSON.stringify(self.data())) || [];
@@ -34,5 +35,5 @@ ko.components.register('group-picker-data', {
 
     },
     template:
-    '<div><select style="display:block; width: 100%;" data-bind="select2: options, value:chosenValue"><option></option></select></div>'
+    '<div><select style="display:block; width: 100%;" data-bind="select2: options, value:chosenValue, disable: disabled"><option></option></select></div>'
 });

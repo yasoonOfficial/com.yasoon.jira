@@ -39,6 +39,7 @@ ko.components.register('issue-type-picker', {
         this.hasOthersOption = params.hasOthersOption;
         this.currentProjectId = params.projectId || ko.observable();
         this.chosenValue = params.issueTypeId || ko.observable();
+        this.disabled = params.disabled || false;
 
         this.currentProjectId.subscribe(function (newProjectId) {
             if (newProjectId && newProjectId != -1) {
@@ -108,5 +109,5 @@ ko.components.register('issue-type-picker', {
         }
     },
     template:
-    '<div data-bind="if: data"><select style="display:block; width: 100%;" data-bind="select2: options, value:chosenValue"><option></option></select></div>'
+    '<div data-bind="if: data"><select style="display:block; width: 100%;" data-bind="select2: options, value:chosenValue, disable: disabled"><option></option></select></div>'
 });

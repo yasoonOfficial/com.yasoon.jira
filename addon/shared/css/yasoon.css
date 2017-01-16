@@ -141,7 +141,24 @@
     height: 36px;
     line-height: 36px;
 }
-            
+
+.materialize-wrapper input:not([type]),
+.materialize-wrapper input[type=text],
+.materialize-wrapper input[type=password],
+.materialize-wrapper input[type=email],
+.materialize-wrapper input[type=url],
+.materialize-wrapper input[type=time],
+.materialize-wrapper input[type=date],
+.materialize-wrapper input[type=datetime],
+.materialize-wrapper input[type=datetime-local],
+.materialize-wrapper input[type=tel],
+.materialize-wrapper input[type=number],
+.materialize-wrapper input[type=search],
+.materialize-wrapper textarea.materialize-textarea {
+	height: 2rem; 
+	margin: 0px;
+}   
+
 a {
 	cursor: pointer;
 }

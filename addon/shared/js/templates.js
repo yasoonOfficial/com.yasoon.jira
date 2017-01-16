@@ -1,3 +1,20 @@
+var templatesModel = null;
+var globalDefaultTemplate = {
+    group: -1,
+    projectId: -1,
+    issueTypeId: -1,
+    fields: [{
+        fieldId: 'summary',
+        fieldValue: '<SUBJECT>'
+    }, {
+        fieldId: 'description',
+        fieldValue: '<BODY>'
+    }, {
+        fieldId: 'reporter',
+        fieldValue: '<SENDER>'
+    }]
+};
+
 function templateViewModel() {
     var self = this;
 
@@ -116,7 +133,8 @@ function templateViewModel() {
             result.defaultTemplates.sort(function (a, b) { return a.priority - b.priority; });
             console.log('Save', result);
 
-            var finalObject = { overwrite: {}};
+            //Currently we will write settings twice: general + system specific for Berenberg
+            var finalObject = { overwrite: result };
             finalObject.overwrite[jiraDataId] = result;
 
             return Promise.resolve($.ajax({
@@ -171,11 +189,12 @@ function templateViewModel() {
         .then(function (data) {
             console.log('Template Data', data);
             var ownData = data.overwrite[jiraDataId];
-            if(ownData) {
-                self.groupHierarchy.load(ownData.groups);
-                self.initialSelection.load(ownData.initialSelection);
-                self.defaultTemplates.load(ownData.defaultTemplates);
+            if (!ownData) {
+                ownData = data.overwrite;
             }
+            self.groupHierarchy.load(ownData.groups);
+            self.initialSelection.load(ownData.initialSelection);
+            self.defaultTemplates.load(ownData.defaultTemplates);
         })
         .caught(function (e) {
             console.log(e, e.stack);
@@ -275,7 +294,18 @@ function defaultTemplateField(owner, initParams) {
     var self = this;
     this.fieldId = ko.observable();
     this.fieldValue = ko.observable();
+    this.owner = owner;
     this.currentField = ko.observable();
+
+    this.fieldId.subscribe(function () {
+        if (self.fieldId() && self.owner.projectId() > -1 && self.owner.issueTypeId() > -1) {
+            getFieldMeta(self.owner.projectId(), self.owner.issueTypeId(), self.fieldId())
+                .then(function (result) {
+                    console.log('New Field', result);
+                    self.currentField(result);
+                });
+        }
+    });
 
     if (initParams) {
         this.fieldId(initParams.fieldId);
@@ -312,11 +342,12 @@ function defaultTemplate(parent, initParams) {
         this.projectId(initParams.projectId);
         this.issueTypeId(initParams.issueTypeId);
         this.templateName(initParams.templateName);
-        var templates = [];
-        initParams.fields.forEach(function (templ) {
-            templates.push(new defaultTemplateField(self, templ));
+        var fields = [];
+        initParams.fields.forEach(function (field) {
+            var fieldMeta = null;
+            fields.push(new defaultTemplateField(self, field));
         });
-        this.fields(templates);
+        this.fields(fields);
     }
 
     this.isEmpty = ko.computed(function () {
@@ -330,11 +361,11 @@ function defaultTemplate(parent, initParams) {
     });
 
     this.isEditEnabled = ko.computed(function () {
-        if (self.group() && self.projectId() && self.issueTypeId())
-            return true;
-        else {
-            return false;
-        }
+        return (self.group() && self.projectId() && self.issueTypeId());
+    });
+
+    this.isTemplateNameEnabled = ko.computed(function () {
+        return (self.projectId() && self.issueTypeId());
     });
 
     this.add = function () {
@@ -348,10 +379,18 @@ function defaultTemplate(parent, initParams) {
         }
     };
 
+    this.isRemoveVisible = function () {
+        return (!self.isEmpty() && !self.isDisabled());
+    };
+
+    this.isDisabled = function () {
+        return self.group() == -1 && self.projectId() == -1 && self.issueTypeId() == -1;
+    };
+
     this.removeField = function (field) {
         self.fields.remove(field);
         self.checkEmptyFieldLines();
-    }
+    };
 
     this.checkEmptyFieldLines();
 }
@@ -377,7 +416,7 @@ function defaultTemplatesViewModel(groups) {
         return result;
     });
 
-    this.toggleShowDetails = function() {
+    this.toggleShowDetails = function () {
         self.detailsVisible(!self.detailsVisible());
     };
 
@@ -418,14 +457,21 @@ function defaultTemplatesViewModel(groups) {
     this.load = function (data) {
         if (data && data.length > 0) {
             self.entries([]);
+            var genericTemplateExist = false;
+
             data.forEach(function (template) {
+                if (template.group === -1 && template.projectId === -1 && template.issueTypeId === -1) {
+                    genericTemplateExist = true;
+                }
                 self.entries.push(new defaultTemplate(self, template));
             });
-        }
-        self.checkEmptyLines();
-    };
+            if (!genericTemplateExist) {
+                self.entries.push(new defaultTemplate(self, globalDefaultTemplate));
+            }
+            self.checkEmptyLines();
 
-    self.checkEmptyLines();
+        }
+    };
 }
 
 function groupHierarchyViewModel(groups) {
@@ -496,7 +542,57 @@ function sortByText(a, b) {
     return ((a.text.toLowerCase() > b.text.toLowerCase()) ? 1 : -1);
 }
 
-(function() {
+
+var fieldDict = {};
+function getFieldMeta(projectId, issueTypeId, fieldId) {
+    var prom;
+    if (!projectId || !issueTypeId)
+        return Promise.resolve({});
+
+    var url = '/rest/api/2/issue/createmeta?projectIds=' + projectId + '&issuetypeIds=' + issueTypeId + '&expand=projects.issuetypes.fields';
+    if (fieldDict[projectId] && fieldDict[projectId][issueTypeId]) {
+        prom = fieldDict[projectId][issueTypeId];
+    } else {
+        if (isCloud) {
+            prom = new Promise(function (resolve, reject) {
+                AP.require('request', function (request) {
+                    request({
+                        url: url,
+                        type: 'GET',
+                        success: function (result) {
+                            var fields = JSON.parse(result);
+                            console.log('Fields loaded', fields);
+                            resolve(fields);
+                        }
+                    });
+                });
+            });
+        } else {
+            prom = Promise.resolve($.get(systemInfo.baseUrl + url));
+        }
+        if (!fieldDict[projectId]) {
+            fieldDict[projectId] = {};
+        }
+        fieldDict[projectId][issueTypeId] = prom;
+    }
+
+    if (fieldId) {
+        prom = prom.then(function (result) {
+            if (result.projects && result.projects.length > 0) {
+                var project = result.projects[0];
+                if (project.issuetypes && project.issuetypes.length > 0) {
+                    var issueType = project.issuetypes[0];
+                    if (issueType.fields) {
+                        return issueType.fields[fieldId];
+                    }
+                }
+            }
+        });
+    }
+    return prom;
+}
+
+(function () {
     templatesModel = new templateViewModel();
     ko.applyBindings(templatesModel, document.getElementById('templates'));
 

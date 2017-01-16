@@ -38,6 +38,7 @@ ko.components.register('project-picker', {
         var self = this;
         this.hasOthersOption = params.hasOthersOption;
         this.chosenValue = params.projectId || ko.observable();
+        this.disabled = params.disabled || false;
 
         this.data = ko.observable();
 
@@ -58,5 +59,5 @@ ko.components.register('project-picker', {
 
     },
     template:
-    '<div data-bind="if: data"><select style="display:block; width: 100%;" data-bind="select2: options, value:chosenValue"><option></option></select></div>'
+    '<div data-bind="if: data"><select style="display:block; width: 100%;" data-bind="select2: options, value:chosenValue, disable: disabled"><option></option></select></div>'
 });
