@@ -490,4 +490,15 @@ function isEqual(a, b) {
 	}
 
 }
+
+function notificationOpenIssue(params) {
+	var issueKey = params.issueKey || params.issueId;
+	if (issueKey) {
+		try {
+			yasoon.openBrowser(jira.settings.baseUrl + '/browse/' + issueKey);
+		} catch (e) {
+			yasoon.util.log('Error in ribbonOpenIssue' + e.message, yasoon.util.severity.warning);
+		}
+	}
+}
 //@ sourceURL=http://Jira/common.js

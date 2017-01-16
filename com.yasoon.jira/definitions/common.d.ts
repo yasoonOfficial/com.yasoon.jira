@@ -38,6 +38,8 @@ declare function handleAttachments(markup: string, mail: any): Promise<string>;
 
 declare function jiraMinimizeIssue(issue: JiraIssue): JiraIssue;
 
+declare function notificationOpenIssue(params: any): void;
+
 declare class JiraAppSettings {
     currentService: string;
     lastSync: Date;

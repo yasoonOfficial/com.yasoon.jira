@@ -107,7 +107,7 @@ interface JiraIssue {
     id: string;
     key: string;
     fields: { [id: string]: any };
-    editmeta?: { fields: { [id: string]: JiraMetaField}};
+    editmeta?: { fields: { [id: string]: JiraMetaField } };
 }
 
 interface JiraUser {
@@ -178,7 +178,7 @@ interface JiraIssueType {
 }
 
 interface JiraIssueTypeMeta extends JiraIssueType {
-    fields?: {[id: string]: JiraMetaField }
+    fields?: { [id: string]: JiraMetaField }
 }
 
 interface JiraRequestType {
@@ -200,7 +200,7 @@ interface JiraRequestType {
 }
 
 interface JiraUserConfigMeta {
-    fields?: {[id: string]: JiraUserConfigField };
+    fields?: { [id: string]: JiraUserConfigField };
     sortedTabs: JiraTab[];
     userPreferences: JiraUserPreferences;
 }
@@ -213,7 +213,7 @@ interface JiraUserConfigField {
 }
 
 interface JiraUserConfigFieldTab {
-    label : string;
+    label: string;
     position: number;
 }
 
@@ -322,3 +322,9 @@ interface YasoonConversationIssue {
 }
 
 type JiraDialogType = 'selectedText' | 'wholeMail' | '';
+
+interface YasoonDialogCloseParams {
+    action: 'success' | 'cancel';
+    issueKey?: string;
+    changeType?: 'updated' | 'created';
+}

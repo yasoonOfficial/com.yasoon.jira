@@ -487,8 +487,13 @@ function JiraRibbonController() {
 		else if (ribbonCtx.items && ribbonCtx.items.length > 0)
 			issueKey = ribbonCtx.items[0].externalId;
 
-		if (issueKey)
-			yasoon.openBrowser(jira.settings.baseUrl + '/browse/' + issueKey);
+		if (issueKey) {
+			try {
+				yasoon.openBrowser(jira.settings.baseUrl + '/browse/' + issueKey);
+			} catch (e) {
+				yasoon.util.log('Error in ribbonOpenIssue' + e.message, yasoon.util.severity.warning);
+			}
+		}
 		else
 			yasoon.dialog.showMessageBox(yasoon.i18n('general.couldNotOpenIssue'));
 	};
@@ -735,6 +740,19 @@ function JiraRibbonController() {
 	this.ribbonOnCloseNewIssue = function ribbonOnCloseNewIssue(type, data) {
 		if (data && data.action === 'success')
 			jira.sync();
+
+		if (data && data.issueKey) {
+			var text = '';
+			var title = '';
+			if (data.changeType === 'updated') {
+				text = yasoon.i18n('dialog.successAddPopupText', { key: data.issueKey });
+				title = yasoon.i18n('dialog.successAddPopupTitle');
+			} else {
+				text = yasoon.i18n('dialog.successPopupText', { key: data.issueKey });
+				title = yasoon.i18n('dialog.successPopupTitle');
+			}
+			yasoon.notification.showPopup({ title: title, text: text, click: notificationOpenIssue, eventParam: { issueKey: data.issueKey } });
+		}
 	};
 
 	this.ribbonOnCloseAddToIssue = function ribbonOnCloseAddToIssue(type, data) {

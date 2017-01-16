@@ -40,7 +40,7 @@ class NewEditDialog implements IFieldEventHandler {
     templateController: TemplateController = null;
     selectedProject: JiraProject = null;
     selectedIssueType: JiraIssueType = null;
-    issueCreated: boolean = false;
+    issueCreatedKey: string = null;
 
     //From Init
     isEditMode: boolean = false;
@@ -183,7 +183,7 @@ class NewEditDialog implements IFieldEventHandler {
         FieldController.raiseEvent(EventType.Cleanup, null);
     }
 
-    close(params: any) {
+    close(params: YasoonDialogCloseParams) {
         //Check if dialog should be closed or not
         if (params && params.action === 'success' && $('#qf-create-another').is(':checked')) {
             $('#JiraSpinner').addClass('hidden');
@@ -280,7 +280,7 @@ class NewEditDialog implements IFieldEventHandler {
         //Reset data
         let lifecycleData: LifecycleData = null;
         let result: any = {};
-        this.issueCreated = false;
+        this.issueCreatedKey = null;
 
         //Prepare UI
         $('#MainAlert').addClass('hidden');
@@ -331,13 +331,11 @@ class NewEditDialog implements IFieldEventHandler {
             })
             .then((data) => {
                 if (this.isEditMode) {
-                    yasoon.notification.showPopup({ title: yasoon.i18n('dialog.successAddPopupTitle'), text: yasoon.i18n('dialog.successAddPopupText', { key: this.currentIssue.key }), click: function() {} });
+                    this.issueCreatedKey = this.currentIssue.key;
                     return jiraGet('/rest/api/2/issue/' + this.currentIssue.id);
-
                 } else {
                     let issue = JSON.parse(data);//A non-populated issue
-                    this.issueCreated = true;
-                    yasoon.notification.showPopup({ title: yasoon.i18n('dialog.successPopupTitle'), text: yasoon.i18n('dialog.successPopupText', { key: issue.key }), click: function() {} });
+                    this.issueCreatedKey = issue.key;
                     return jiraGet('/rest/api/2/issue/' + issue.id);
                 }
             })
@@ -349,7 +347,12 @@ class NewEditDialog implements IFieldEventHandler {
                 return FieldController.raiseEvent(EventType.AfterSave, lifecycleData);
             })
             .then(() => {
-                this.close({ action: 'success' });
+                let closeParams: YasoonDialogCloseParams = {
+                    action: 'success',
+                    changeType: (this.isEditMode) ? 'updated' : 'created',
+                    issueKey: this.issueCreatedKey
+                };
+                this.close(closeParams);
             })
             .catch((e) => {
                 $('#JiraSpinner').addClass('hidden');
@@ -363,7 +366,7 @@ class NewEditDialog implements IFieldEventHandler {
 
                 yasoon.util.log('Couldn\'t submit New Issue Dialog: ' + text + ' \n Error: ' + JSON.stringify(e) + ' \n Issue: ' + JSON.stringify(result), yasoon.util.severity.warning, getStackTrace(e));
                 console.log(text, e, e.stack);
-                if (this.issueCreated) {
+                if (this.issueCreatedKey !== null) {
                     $('#MainAlert').removeClass('hidden').find('.error-text').html(yasoon.i18n('dialog.errorAfterSubmitIssue', { error: text }));
                 } else {
                     $('#create-issue-submit').prop('disabled', false);
