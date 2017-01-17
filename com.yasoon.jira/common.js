@@ -77,8 +77,16 @@ function handleAttachments(originalMarkup, mail) {
 				return;
 			}
 
-			//Replace the reference in the markup	
-			handle.selected = true;
+			//Replace the reference in the markup
+			if (jira.mode === 'jiraAddCommentDialog') {
+				var uniqueKey = getUniqueKey();
+				var oldFileName = handle.getFileName();
+				var newFileName = oldFileName.substring(0, oldFileName.lastIndexOf('.'));
+				newFileName = newFileName + '_' + uniqueKey + oldFileName.substring(oldFileName.lastIndexOf('.'));
+				handle.setFileName(newFileName);
+			}
+			
+			handle.selected = true;			
 			markup = markup.replace(regEx, '!' + handle.getFileName() + '!');
 			handle.setInUse();
 		});
