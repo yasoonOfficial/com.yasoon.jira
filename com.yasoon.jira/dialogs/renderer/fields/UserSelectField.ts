@@ -178,9 +178,15 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
 
     convertId(user: any): Promise<any> {
         if (!user.displayName) {
-            return this.getData(user.name)
+            let name: string = (typeof user === 'string') ? user : user.name;
+            return this.getData(name)
                 .then((result) => {
-                    return result[0].children[0].data;
+                    if(result[0].children[0])
+                        return result[0].children[0].data;
+                    else {
+                        yasoon.util.log('Invalid Username: ' + user, yasoon.util.severity.warning );
+                        return null;
+                    }
                 });
         }
         return Promise.resolve(user);

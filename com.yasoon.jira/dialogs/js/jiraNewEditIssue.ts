@@ -161,7 +161,7 @@ class NewEditDialog implements IFieldEventHandler {
                         yasoon.util.log('Error during init of Edit View. ' + e.message, yasoon.util.severity.warning, getStackTrace(e));
                     });
             } else {
-                this.templateController = new TemplateController(this.ownUser);
+                this.templateController = new TemplateController(this.ownUser, this.emailController);
                 this.templateController.setInitialValues();
             }
 
@@ -244,10 +244,16 @@ class NewEditDialog implements IFieldEventHandler {
                     $('#ContentArea').css('visibility', 'visible');
                 })
                 .then(() => {
-                    //Set Email Values
-                    if (this.emailController) {
-                        this.emailController.insertEmailValues();
+                    //Set reporter
+                    let reporterField = <UserSelectField>FieldController.getField(FieldController.reporterFieldId);
+                    if(reporterField) {
+                        reporterField.setValue(this.ownUser);
                     }
+                    
+                    //Set Email Values
+                    //if (this.emailController) {
+                    //    this.emailController.insertEmailValues();
+                    //}
                     //Set all Values in edit case
                     if (this.isEditMode && this.currentIssue) {
                         FieldController.setFormData(this.currentIssue);
@@ -580,6 +586,7 @@ class NewEditDialog implements IFieldEventHandler {
 
         //Tempo
         FieldController.register('com.tempoplugin.tempo-accounts:accounts.customfield', TempoAccountField);
+        //com.atlassian.plugins.atlassian-connect-plugin:io.tempo.jira__account
 
         //Watcher Field
         FieldController.register('com.burningcode.jira.issue.customfields.impl.jira-watcher-field:watcherfieldtype', UserSelectField, { multiple: true});

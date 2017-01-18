@@ -196,11 +196,6 @@ interface IFieldEventHandler {
 	handleEvent(type: EventType, newValue: any, source?: string): Promise<any>;
 }
 
-interface IEmailController {
-	getAttachmentFileHandles(): any[];
-	insertEmailValues(): void;
-}
-
 interface LifecycleData {
 	data: any,
 	newData?: any,

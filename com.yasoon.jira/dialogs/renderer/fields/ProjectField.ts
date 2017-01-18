@@ -129,40 +129,7 @@ class ProjectField extends Select2Field {
 
     private getReturnStructure(projects?: Select2Element[], queryTerm?: string): Select2Element[] {
         let result: Select2Element[] = [];
-        //1. User Templates
-        /* if (this.emailController && this.emailController.senderTemplates) {
-            //1.1 Filter
-            let currentTemplates = this.emailController.senderTemplates.filter(templ => {
-                if (templ.senderEmail === jira.mail.senderEmail) {
-                    //Double Check if Project still exists
-                    let templProj = projects.filter(p => { return p.id === templ.project.id; })[0];
-                    if (templProj) {
-                        templ.project.name = templProj.data.name;
-                        templ.projectTypeKey = templProj.data.projectTypeKey;
-                        return true;
-                    }
-                }
-                return false;
-            });
-            //1.2 Map and Add
-            if (currentTemplates && currentTemplates.length > 0) {
-                let children: Select2Element[] = [];
-                currentTemplates.forEach((templ) => {
-                    let child:Select2Element = this.convertToSelect2(templ.project);
-                    child.id = 'template-' + templ.project.id;
-
-                    children.push(child);
-                });
-
-                result.push({
-                    id: 'templates',
-                    text: yasoon.i18n('dialog.templateFor', { name: jira.mail.senderName }),
-                    children: children
-                });
-            }
-        } */
-
-        //2. Recent Projects
+        //1. Recent Projects
         if (this.recentItems && this.recentItems.recentProjects) {
             //2.1 Filter
             let currentRecent = projects.filter(p => {
@@ -179,7 +146,7 @@ class ProjectField extends Select2Field {
             }
         }
 
-        //3. All Projects
+        //2. All Projects
         let sortedProjects = projects.sort((a, b) => { return ((a.text.toLowerCase() > b.text.toLowerCase()) ? 1 : -1); })
         result.push({
             id: 'all',

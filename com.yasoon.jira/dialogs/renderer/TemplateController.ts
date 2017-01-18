@@ -1,3 +1,4 @@
+/// <reference path="../../definitions/moment.d.ts" />
 
 class TemplateController implements IFieldEventHandler {
     static settingGroupHierarchy = 'groups';
@@ -8,29 +9,54 @@ class TemplateController implements IFieldEventHandler {
     private ownUser: JiraUser;
     private groupHierachy: YasoonGroupHierarchy[] = [];
     private dependentFields: { [id: string]: string } = {};
+    private emailController: EmailController;
     initialSelection: YasoonInitialSelection;
     defaultTemplates: YasoonDefaultTemplate[] = [];
+    type: JiraDialogType;
+    emailContent: string = '';
+    senderUser: JiraUser;
 
-
-    constructor(ownUser: JiraUser) {
+    constructor(ownUser: JiraUser, emailController?: EmailController, type?: JiraDialogType) {
         this.ownUser = ownUser;
+        this.emailController = emailController;
+        this.type = type;
 
         //Load Data
-        let groupsString: string = yasoon.setting.getAppParameter(TemplateController.settingGroupHierarchy);
-        if (!groupsString)
-            groupsString = '[]';
+        let groupsString: string = '';
+        let initialDataString: string = '';
+        let defaultTemplatesString: string = '';
 
-        let initialDataString: string = yasoon.setting.getAppParameter(TemplateController.settingInitialSelection);
-        if (!initialDataString)
-            initialDataString = '[]';
+        let oauthService = yasoon.app.getOAuthService(jira.settings.currentService);
+        let instanceDataString: string = '';
+        let initialSelection: YasoonInitialSelection[] = [];
+        if (oauthService && oauthService.appParams && oauthService.appParams['jiraDataId']) {
+            instanceDataString = yasoon.setting.getAppParameter(oauthService.appParams['jiraDataId']);
+        }
+        if (instanceDataString) {
+            var data = JSON.parse(instanceDataString);
 
-        let defaultTemplatesString: string = yasoon.setting.getAppParameter(TemplateController.settingDefaultTemplates);
-        if (!defaultTemplatesString)
-            defaultTemplatesString = '[]';
+            this.groupHierachy = data[TemplateController.settingGroupHierarchy];
+            initialSelection = data[TemplateController.settingInitialSelection];
+            this.defaultTemplates = data[TemplateController.settingDefaultTemplates];
+        } else {
+            //Load non-instance settings
+            groupsString = yasoon.setting.getAppParameter(TemplateController.settingGroupHierarchy);
+            if (!groupsString)
+                groupsString = '[]';
 
-        this.groupHierachy = JSON.parse(groupsString);
-        let initialSelection: YasoonInitialSelection[] = JSON.parse(initialDataString);
-        this.defaultTemplates = JSON.parse(defaultTemplatesString);
+            initialDataString = yasoon.setting.getAppParameter(TemplateController.settingInitialSelection);
+            if (!initialDataString)
+                initialDataString = '[]';
+
+            defaultTemplatesString = yasoon.setting.getAppParameter(TemplateController.settingDefaultTemplates);
+            if (!defaultTemplatesString)
+                defaultTemplatesString = '[]';
+
+            this.groupHierachy = JSON.parse(groupsString);
+            initialSelection = JSON.parse(initialDataString);
+            this.defaultTemplates = JSON.parse(defaultTemplatesString);
+        }
+
 
         //Filter for current Data 
         //Only keep groups that are assigned to current user
@@ -66,7 +92,6 @@ class TemplateController implements IFieldEventHandler {
 
         //Sort Asc by priority
         this.defaultTemplates = this.defaultTemplates.sort((a, b) => { return a.priority - b.priority; });
-
     }
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
@@ -95,36 +120,43 @@ class TemplateController implements IFieldEventHandler {
     }
 
     setFieldValues(projectId: string, issueTypeId: string) {
-        if (this.defaultTemplates) {
-            //Default Templates are already filtered by current user groups and are sorted by priority --> defined on server
-            //Here we blindly pick the first template that matches our criteria
-            let result = this.getTemplate(projectId, issueTypeId);
-
-            if (result && result.fields) {
-                result.fields.forEach((field) => {
-                    //Check for variables
-                    let value = null;
-                    if (typeof field.fieldValue === 'string' && field.fieldValue.indexOf('<') === 0) {
-                        //Fixed variables
-                        value = this.getFixedValue(field.fieldValue);
-                    } else if (typeof field.fieldValue === 'string' && field.fieldValue.indexOf('|') === 0) {
-                        value = this.getDynamicValue(field.fieldId, field.fieldValue);
-                    } else {
-                        value = field.fieldValue
-                    }
-
-                    if (value) {
-                        FieldController.setValue(field.fieldId, value, true);
-                    }
-                });
-            }
-
-
+        let promise = Promise.resolve([]);
+        //Make sure emailData are loaded
+        if (this.emailController) {
+            promise = Promise.all([this.emailController.getCurrentMailContent(true), this.emailController.loadSenderPromise ]);
         }
 
+        promise.spread((content:string) => {
+            this.emailContent = content;
+            if (this.defaultTemplates) {
+                //Default Templates are already filtered by current user groups and are sorted by priority --> defined on server
+                //Here we blindly pick the first template that matches our criteria
+                let result = this.getTemplate(projectId, issueTypeId);
+
+                if (result && result.fields) {
+                    result.fields.forEach((field) => {
+                        //Check for variables
+                        let value = null;
+                        let renderedField = FieldController.getField(field.fieldId);
+                        if (typeof field.fieldValue === 'string' && field.fieldValue.indexOf('<') === 0) {
+                            //Fixed variables
+                            value = this.getFixedValue(field.fieldValue, renderedField.constructor['name']);
+                        } else if (typeof field.fieldValue === 'string' && field.fieldValue.indexOf('|') === 0) {
+                            value = this.getDynamicValue(field.fieldId, field.fieldValue);
+                        } else {
+                            value = field.fieldValue
+                        }
+
+                        if (value) {
+                            FieldController.setValue(field.fieldId, value, true);
+                        }
+                    });
+                }
+            }
+        });
     }
 
-    private getFixedValue(value: string): any {
+    private getFixedValue(value: string, fieldType: string): any {
         if (value === '<TODAY>') {
             return moment(new Date()).format('YYYY-MM-DD');
         } else if (value.indexOf('<TODAY>') === 0) {
@@ -138,7 +170,20 @@ class TemplateController implements IFieldEventHandler {
 
             }
         } else if (value === '<USER>') {
-            return this.ownUser;
+            return this.ownUser.name || this.ownUser.key;
+        } else if (value === '<SUBJECT>') {
+            return this.emailController.getSubject();
+        } else if (value === '<BODY>') {
+            return this.emailContent;
+        } else if (value === '<SENDER>') {
+            //Special Handling for User Picker
+            if(fieldType === 'UserSelectField') {
+                return this.emailController.getSenderUser(); 
+            } else {
+                return this.emailController.getSenderEmail();
+            }
+        } else if (value === '<SENTAT>') {
+            return moment(this.emailController.getSentAt()).format('YYYY-MM-DD hh:mm:ss');
         }
     }
 

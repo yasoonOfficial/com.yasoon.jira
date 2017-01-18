@@ -90,7 +90,7 @@ class AddToIssueDialog implements IFieldEventHandler {
 
         let attachments = [];
         if (this.emailController) {
-            attachments = this.emailController.getAttachmentFileHandles();
+            attachments = this.emailController.getAttachmentFileHandles(true);
         }
         FieldController.loadField(AttachmentField.defaultMeta, AttachmentField, attachments);
         FieldController.render(FieldController.attachmentFieldId, $('#ContentArea'));
@@ -102,7 +102,7 @@ class AddToIssueDialog implements IFieldEventHandler {
 
 
         if (this.emailController) {
-            this.emailController.setBody(FieldController.commentFieldId);
+            FieldController.setValue(FieldController.commentFieldId,this.emailController.getCurrentMailContent(true), true);
         }
 
         // Resize Window to maximize Comment field

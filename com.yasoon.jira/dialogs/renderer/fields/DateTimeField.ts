@@ -2,7 +2,7 @@
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../getter/GetTextValue.ts" />
 /// <reference path="../setter/SetDateTimeValue.ts" />
-declare var moment;
+/// <reference path="../../../definitions/moment.d.ts" />
 
 @getter(GetterType.Text)
 @setter(SetterType.DateTime)

@@ -34,11 +34,11 @@ declare function renderMailHeaderText(mail: any, useMarkup: boolean): string;
 
 declare function isEqual(a: any, b: any): boolean;
 
-declare function handleAttachments(markup: string, mail: any): Promise<string>;
-
 declare function jiraMinimizeIssue(issue: JiraIssue): JiraIssue;
 
 declare function notificationOpenIssue(params: any): void;
+
+declare function getUniqueKey(): string;
 
 declare class JiraAppSettings {
     currentService: string;

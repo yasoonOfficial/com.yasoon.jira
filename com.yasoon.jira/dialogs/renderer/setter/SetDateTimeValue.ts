@@ -1,5 +1,7 @@
 /// <reference path="../Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
+/// <reference path="../../../definitions/moment.d.ts" />
+
 class SetDateTimeValue implements FieldSetter {
     setValue(field: Field, value: any) {
         if (value) {
