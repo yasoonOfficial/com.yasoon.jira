@@ -51,6 +51,12 @@ function templateViewModel() {
             var calculateTemplatePriority = function (template) {
                 //Template Priority is calculated by group Priority + template Priority
                 var group = findGroup(template.group);
+                if(!group){
+                    group = {
+                        name: 'Others',
+                        position: 99
+                    };
+                }
                 var templatePrio = 99;
                 if (template.group != '-1' && template.projectId != '-1' && template.issueTypeId != '-1') {
                     templatePrio = 1;
@@ -115,6 +121,10 @@ function templateViewModel() {
                             }
                             delete field.currentField; //Delete outside of if to delete also as undefined
                             delete field.isEmpty;
+                            delete field.owner;
+                            delete field.showAllowedValues;
+                            delete field.selectAllowedValue;
+
                             return field;
                         });
 
@@ -135,7 +145,7 @@ function templateViewModel() {
 
             //Currently we will write settings twice: general + system specific for Berenberg
             var finalObject = { overwrite: result };
-            finalObject.overwrite[jiraDataId] = result;
+            finalObject.overwrite[jiraDataId] = JSON.parse(JSON.stringify(result));
 
             return Promise.resolve($.ajax({
                 url: yasoonServerUrl + '/api/companyapp/16/predeliveredConfig',
@@ -325,6 +335,25 @@ function defaultTemplateField(owner, initParams) {
             return false;
         }
     });
+
+    this.showAllowedValues = function () {
+        templatesModel.defaultTemplates.allowedValuesField(self);
+        $('#allowedValuesModal').modal({
+            dismissible: true, // Modal can be dismissed by clicking outside of the modal
+            opacity: .5, // Opacity of modal background
+            in_duration: 300, // Transition in duration
+            out_duration: 200, // Transition out duration
+            //starting_top: '4%', // Starting top style attribute
+            // ending_top: '10%', // Ending top style attribute
+        });
+
+        $('#allowedValuesModal').modal('open');
+    };
+
+    this.selectAllowedValue = function (allowedValue) {
+        self.fieldValue(allowedValue.id);
+        $('#allowedValuesModal').modal('close');
+    };
 }
 
 function defaultTemplate(parent, initParams) {
@@ -350,6 +379,30 @@ function defaultTemplate(parent, initParams) {
         this.fields(fields);
     }
 
+    this.isDisabled = function () {
+        return self.group() == -1 && self.projectId() == -1 && self.issueTypeId() == -1;
+    };
+
+     this.add = function () {
+        self.fields.push(new defaultTemplateField(self));
+    };
+
+    this.checkEmptyFieldLines = function () {
+        //Called on every value change
+        if (self.fields().length == 0 || self.fields().every(function (e) { return !e.isEmpty(); })) {
+            self.add();
+        }
+    };
+
+    this.isRemoveVisible = function () {
+        return (!self.isEmpty() && !self.isDisabled());
+    };
+
+    this.removeField = function (field) {
+        self.fields.remove(field);
+        self.checkEmptyFieldLines();
+    };
+
     this.isEmpty = ko.computed(function () {
         //Do this async so it will not be within this computed call
         setTimeout(owner.checkEmptyLines, 1);
@@ -365,32 +418,8 @@ function defaultTemplate(parent, initParams) {
     });
 
     this.isTemplateNameEnabled = ko.computed(function () {
-        return (self.projectId() && self.issueTypeId());
+        return (self.projectId() && self.issueTypeId() && !self.isDisabled());
     });
-
-    this.add = function () {
-        self.fields.push(new defaultTemplateField(self));
-    };
-
-    this.checkEmptyFieldLines = function () {
-        //Called on every value change
-        if (self.fields().length == 0 || self.fields().every(function (e) { return !e.isEmpty(); })) {
-            self.add();
-        }
-    };
-
-    this.isRemoveVisible = function () {
-        return (!self.isEmpty() && !self.isDisabled());
-    };
-
-    this.isDisabled = function () {
-        return self.group() == -1 && self.projectId() == -1 && self.issueTypeId() == -1;
-    };
-
-    this.removeField = function (field) {
-        self.fields.remove(field);
-        self.checkEmptyFieldLines();
-    };
 
     this.checkEmptyFieldLines();
 }
@@ -400,6 +429,7 @@ function defaultTemplatesViewModel(groups) {
 
     this.entries = ko.observableArray();
     this.editObj = ko.observable();
+    this.allowedValuesField = ko.observable();
     this.detailsVisible = ko.observable(false);
     this.allGroups = groups;
     this.allGroupsSelect2 = ko.computed(function () {
@@ -426,7 +456,15 @@ function defaultTemplatesViewModel(groups) {
     };
 
     this.add = function () {
-        self.entries.push(new defaultTemplate(self));
+        //Copy *,*,* template
+        var defaultTempl = self.entries().filter(function (templ) { return templ.isDisabled(); })[0];
+        var params = null;
+        if (defaultTempl) {
+            params = {
+                fields: ko.toJS(defaultTempl.fields)
+            };
+        }
+        self.entries.push(new defaultTemplate(self, params));
     };
 
     this.edit = function (currentObj) {

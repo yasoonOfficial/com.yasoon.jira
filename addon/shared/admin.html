@@ -8,7 +8,7 @@
 				<li class="tab col s3 disabled"><a href="#tab4" class="light-blue-text text-darken-2" data-toggle="tab">4. Share with team <i class="material-icons finish-icon hidden">done</i></a></li>
 			</ul>
 			<div class="tab-content">
-				<div class="tab-pane" id="tab1">
+				<div class="tab-pane active" id="tab1">
 					<div id="AreaPreRegister" class="col s7 hidden">
 						<div class="row bootstrap-wrapper" style="margin-top: 20px; margin-bottom: 10px">
 							This JIRA instance is not yet registered at yasoon. <br/> Please sign up below to create a new yasoon company account
@@ -86,7 +86,7 @@
 						</form>
 					</div>
 				</div>
-				<div class="tab-pane" id="tab2">
+				<div class="tab-pane" id="tab2" style="display: none;">
 					<div class="col s5 serverVisible">
 						<div class="row" style="margin-top: 30px; margin-bottom: 10px">
 							JIRA for Outlook requires an application link to access your JIRA from Outlook. Please click the button below to configure
@@ -117,7 +117,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="tab-pane" id="tab3">
+				<div class="tab-pane" id="tab3" style="display: none;">
 					<div class="col s5">
 						<div class="row" style="margin-top: 30px; margin-bottom: 10px">
 							Your JIRA system has been configured. You can now test if the connection between Outlook and JIRA is working. Please download
@@ -151,7 +151,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="tab-pane" id="tab4">
+				<div class="tab-pane" id="tab4" style="display: none;">
 					<div class="col s9">
 						<div class="row" style="margin-top: 30px; margin-bottom: 10px">
 							We recommend to share the addon with a few users of your team. Please use the form below to select some JIRA users.
@@ -188,6 +188,7 @@
 				<div class="afterSetup z-depth-1">
 					<div class="row">
 						<div class="s12 heading-col">
+							<h5>General Overview</h5>
 							<p>
 								Have a quick overview about the most important things that really affects the if JIRA for Outlook is working or not.
 							</p>
@@ -298,8 +299,7 @@
 						<div class="card-content cloudVisible">
 							<p>
 								JIRA for Outlook requires an <a class="applicationCreateLink" href="" target="_blank">application link</a> to access
-								your JIRA from Outlook.<br /> Please follow our
-								<a>configuration guide</a> carefully and make sure the application link has been created completely.
+								your JIRA from Outlook.<br /> Please follow our <a>configuration guide</a> carefully and make sure the application link has been created completely.
 							</p>
 						</div>
 						<div class="card-action">
@@ -307,7 +307,7 @@
 								<button type="button" id="addApplicationLinkButtonMain" class="btn btn-default">Create Link</button>
 							</div>
 							<div class="cloudVisible">
-								<a class="show-customcert-link btn btn-default" data-target="show-cert-dialog" style="color: white">Show Certificate</a>
+								<a class="show-customcert-link btn btn-default" href="#show-cert-dialog" style="color: white">Show Certificate</a>
 							</div>
 						</div>
 					</div>

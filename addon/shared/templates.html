@@ -241,7 +241,7 @@
 											</div>
 											<div class="col s1">
 												<span data-bind="if:currentField() && currentField().allowedValues">
-													<i class="material-icons">info outline</i>
+													<a data-bind="click:showAllowedValues" style="color:gray"><i class="material-icons">info_outline</i></a>
 												</span>	
 											</div>
 										</div>
@@ -252,6 +252,42 @@
 										<a href="#!" id="saveFields" class="waves-effect waves-light btn modal-action modal-close"><i class="material-icons left">close</i>Close</a>
 									</div>
 								</div>
+
+								<div id="allowedValuesModal" class="modal modal-fixed-footer" style="top: 15%; width: 35% !important;">
+									<!-- ko if: allowedValuesField -->
+									<div class="modal-content">
+										<h5>Allowed Values</h5>
+										<div class="row" style="padding-left: 40px; margin-bottom: 20px; max-height: 380px; overflow-y:auto;" data-bind="with: allowedValuesField">
+											<table class="striped">
+												<thead>
+													<tr>
+														<th>
+															Value 
+														</th>
+														<th>
+															Text 
+														</th>
+													</tr>
+												</thead>
+												<tbody>
+													<!-- ko foreach: currentField().allowedValues -->
+													<tr>
+														<td>
+															<a data-bind="click: $parent.selectAllowedValue"><span data-bind="text: id"></span></a>
+														</td>
+														<td>
+															<span data-bind="text: name"></span> 
+														</td>
+													</tr>
+													<!-- /ko -->
+												</tbody>
+											</table>
+										</div>
+									</div>
+									<!-- /ko -->
+								</div>
+
+								
 								<div style="padding: 2rem;">
 									<a class="waves-effect waves-light btn" data-bind="click:$root.save"><i class="material-icons left">save</i> Save </a>
 								</div>

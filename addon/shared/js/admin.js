@@ -1,8 +1,5 @@
 function loadRegisteredUIState() {
-    setTimeout(function () {
-        $('#mainMenuTabs').tabs('select_tab', 'general');
-    }, 1);
-
+    $('#mainMenuTabs').tabs();
     $('#selectBitness, #selectAppData').material_select();
 
     checkAppLink();
@@ -44,11 +41,9 @@ function initAdminUI() {
     else {
         //Unregistered
         currentPage = 1;
-        setTimeout(function () {
-            $('#unregisteredTabs').tabs('select_tab', 'tab1');
-        }, 1);
         $('#AreaPreRegister').removeClass('hidden');
         $('#AreaUnregistered').removeClass('hidden');
+        $('#unregisteredTabs').tabs();
     }
 
     $('#ButtonLogin').click(function () {
@@ -92,7 +87,10 @@ function initAdminUI() {
         $('.subscribeLink').attr('href', systemInfo.baseUrl + '/plugins/servlet/upm');
         $('.applicationCreateLink').attr('href', systemInfo.baseUrl + '/plugins/servlet/applinks/listApplicationLinks');
         $('.checkCloudApplicationLink').click(handleCheckCloudApplicationLink);
-        $('.show-customcert-link').modal();
+        $('#show-cert-dialog').modal();
+        //$('.show-customcert-link').click(function() { 
+        //    $('#show-cert-dialog').modal('open');
+        //});
     } else {
         $('.purchaseDialogLink').modal();
     }
@@ -129,8 +127,6 @@ function initAdminUI() {
     $('#next').click(handleNext);
     $('#addApplicationLinkButton, #addApplicationLinkButtonMain').click(handleAddApplicationLink);
     $('#LoginYasoonButton').click(handleLogin);
-
-
 }
 
 function handleLogin() {
@@ -352,7 +348,8 @@ function handleNext() {
         $('#AreaUnregistered').addClass('hidden');
         $('#AreaRegistered').removeClass('hidden');
         $.cookie('currentPage', "1", { expires: 365 });
-        loadRegisteredUIState();
+        isInstanceRegistered = true;
+        initAdminUI();
     }
     else {
         gotoNextPage();
@@ -369,12 +366,12 @@ function gotoPage(newPage) {
     console.log('GotoPage:', newPage);
     //Disable all previous steps
     for (var a = 1; a < newPage; a++) {
-        $('ul.tabs :nth-child(' + a + ')').addClass('disabled finished');
+        $('#unregisteredTabs :nth-child(' + a + ')').addClass('disabled finished');
     }
     //Enable current step
-    $('ul.tabs :nth-child(' + newPage + ')').removeClass('disabled');
+    $('#unregisteredTabs :nth-child(' + newPage + ')').removeClass('disabled');
     setTimeout(function () {
-        $('ul.tabs').tabs('select_tab', 'tab' + newPage);
+        $('#unregisteredTabs').tabs('select_tab', 'tab' + newPage);
     }, 1);
 
     if (newPage > 1) {
