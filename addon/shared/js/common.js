@@ -13,6 +13,20 @@ Promise.config({
     cancellation: true
 });
 
+//Polyfill .endWith (damn you IE!!)
+if (!String.prototype.endsWith) {
+  String.prototype.endsWith = function(searchString, position) {
+      var subjectString = this.toString();
+      if (typeof position !== 'number' || !isFinite(position) || Math.floor(position) !== position || position > subjectString.length) {
+        position = subjectString.length;
+      }
+      position -= searchString.length;
+      var lastIndex = subjectString.lastIndexOf(searchString, position);
+      return lastIndex !== -1 && lastIndex === position;
+  };
+}
+
+
 $(document).ready(function () {
     //Init Zendesk
     zE(function () {
@@ -169,6 +183,9 @@ function loadSystemInfo() {
 
 function loadUI() {
     $('#pageLoading').addClass('hidden');
+    var webLinkKey = '';
+    var htmlPath = '';
+    var jsPath = '';
     if (isCloud) {
         var urlContextParam = getUrlParameterByName('xdm_c');
         var webLinkKey = urlContextParam.split('__')[1];
@@ -177,23 +194,40 @@ function loadUI() {
             if (webLinkKey === 'configure' || webLinkKey === 'postInstall') {
                 webLinkKey = 'admin';
             }
-            //Make sure we are allowed to load this page
-            if (webLinkKey !== 'admin' && !isInstanceRegistered) {
-                //If it is not admin, we need to have a registered intance
-                //-->Show Error
-                $('#pageError').removeClass('hidden').text('Please register this instance first under General Overview');
 
-            } else {
-                $('#pageContent').removeClass('hidden').load(webLinkKey + '.html', function () {
-                    $.getScript('js/' + webLinkKey + '.js');
-                });
-            }
-        } else {
-            $('#pageError').removeClass('hidden').text('Could not load page due to an unknown error: Page unknown');
+            htmlPath = webLinkKey + '.html';
+            jsPath = 'js/' + webLinkKey + '.js';
         }
     } else {
-
+        if(window.location.pathname.endsWith('admin')) {
+            webLinkKey = 'admin';
+            htmlPath = adminPathHtml;
+            jsPath = adminPathJs;
+        } else if(window.location.pathname.endsWith('settings')) {
+            webLinkKey = 'settings';
+            htmlPath = settingsPathHtml;
+            jsPath = settingsPathJs;
+        } else if(window.location.pathname.endsWith('templates')) {
+            webLinkKey = 'templates';
+            htmlPath = templatesPathHtml;
+            jsPath = templatesPathJs;
+        }
     }
+
+    //Make sure we are allowed to load this page
+    if (webLinkKey !== 'admin' && !isInstanceRegistered) {
+        //If it is not admin, we need to have a registered intance
+        //-->Show Error
+        $('#pageError').removeClass('hidden').text('Please register this instance first under General Overview');
+
+    } else if (webLinkKey) {
+        $('#pageContent').removeClass('hidden').load(htmlPath, function () {
+            $.getScript(jsPath);
+        });
+    } else {
+        $('#pageError').removeClass('hidden').text('Could not load page due to an unknown error: Page unknown');
+    }
+
 }
 
 function setInstanceProperty(property, valueObj) {
@@ -427,12 +461,12 @@ ko.bindingHandlers.sortable = {
 };
 
 ko.bindingHandlers.slide = {
-    init: function(element, valueAccessor) {
+    init: function (element, valueAccessor) {
         // Initially set the element to be instantly visible/hidden depending on the value
         var value = valueAccessor();
         $(element).toggle(ko.unwrap(value)); // Use "unwrapObservable" so we can handle values that may or may not be observable
     },
-    update: function(element, valueAccessor) {
+    update: function (element, valueAccessor) {
         // Whenever the value subsequently changes, slowly fade the element in or out
         var value = valueAccessor();
         ko.unwrap(value) ? $(element).slideDown() : $(element).slideUp();

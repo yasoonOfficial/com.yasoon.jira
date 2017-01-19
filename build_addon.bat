@@ -1,7 +1,7 @@
 node build_onpremise.js
 node build_cloud.js
 
-robocopy addon\cloud ..\yasoonNodeBackend\assets\jira /S 
+robocopy addon\distribution\cloud ..\yasoonNodeBackend\assets\jira /S 
 
-cd addon\onpremise
+cd addon\distribution\onpremise
 atlas-package

@@ -5,7 +5,7 @@
 	<meta name="decorator" content="atl.admin" />
 	<title>JIRA for Outlook</title>
 
-	$webResourceManager.requireResource("com.yasoon.jira.cloud:resources")
+	$webResourceManager.requireResource("com.yasoon.jira.cloud:resources") 
 
 	<link href="//fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css" />
 	<link href="//fonts.googleapis.com/css?family=Roboto:400,500,700,300,100" rel="stylesheet" type="text/css" />
@@ -37,20 +37,27 @@
             zE(function() {
                 zE.show();
             });
+
+            var adminPathHtml = "$webResourceManager.getStaticPluginResource("com.yasoon.jira.cloud:static", "admin.html")";
+            var adminPathJs = "$webResourceManager.getStaticPluginResource("com.yasoon.jira.cloud:static", "admin.js")";
+            var settingsPathHtml = "$webResourceManager.getStaticPluginResource("com.yasoon.jira.cloud:static", "settings.html")";
+            var settingsPathJs = "$webResourceManager.getStaticPluginResource("com.yasoon.jira.cloud:static", "settings.js")";
+            var templatesPathHtml = "$webResourceManager.getStaticPluginResource("com.yasoon.jira.cloud:static", "templates.html")";
+            var templatesPathJs = "$webResourceManager.getStaticPluginResource("com.yasoon.jira.cloud:static", "templates.js")";
         </script>
 </head>
 
 
-<body style="margin: 10px 20px !important; background:white;">
-	<div id="pageLoading">
+<body style="margin: 10px 20px !important; background:white;" >
+	<div id="pageLoading" class="materialize-wrapper">
 		<img src="https://yasoon.com/store-ressources/images/loader_small.gif" /> loading
 	</div>
 
-	<div id="pageContent" class="hidden">
+	<div id="pageContent" class="hidden materialize-wrapper">
 		
 	</div>
 
-	<div id="pageError" class="hidden">
+	<div id="pageError" class="hidden materialize-wrapper">
 	</div>	
 </body>
 

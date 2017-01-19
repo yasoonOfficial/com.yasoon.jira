@@ -12,6 +12,15 @@
 
     <!-- add our i18n resource -->
     <resource type="i18n" name="i18n" location="cloud"/>
+    <web-resource key="static" name="yasoononpremise Web Resources">
+        <resource type="download" name="admin.html" location="admin.html" />
+        <resource type="download" name="admin.js" location="js/admin.js" />
+        <resource type="download" name="settings.html" location="settings.html" />
+        <resource type="download" name="settings.js" location="js/settings.js" />
+        <resource type="download" name="templates.html" location="templates.html" />
+        <resource type="download" name="templates.js" location="js/templates.js" />
+    </web-resource>
+
     <!-- add our web resources -->
     <web-resource key="resources" name="yasoononpremise Web Resources">
         <resource type="download" name="bootstrap.css" location="/css/bootstrap.css"/>

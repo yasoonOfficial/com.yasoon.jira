@@ -38,10 +38,8 @@ public class AdminUIServlet extends HttpServlet {
             return;
         }
         
-        if(request.getRequestURI().endsWith("admin")) {
-            response.setContentType("text/html;charset=utf-8");
-            renderer.render("adminui.vm", response.getWriter());
-        }
+        response.setContentType("text/html;charset=utf-8");
+        renderer.render("adminui.vm", response.getWriter());
     }
 
     private void redirectToLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
