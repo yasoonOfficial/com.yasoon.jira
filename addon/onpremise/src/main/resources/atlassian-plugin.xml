@@ -12,10 +12,8 @@
 
     <!-- add our i18n resource -->
     <resource type="i18n" name="i18n" location="cloud"/>
-    
     <!-- add our web resources -->
     <web-resource key="resources" name="yasoononpremise Web Resources">
-        <dependency>com.atlassian.auiplugin:ajs</dependency>
         <resource type="download" name="bootstrap.css" location="/css/bootstrap.css"/>
         <resource type="download" name="materialize.css" location="/css/materialize.css"/>
         <resource type="download" name="sweetalert.css" location="/css/sweetalert.css"/>
@@ -23,33 +21,28 @@
 		<resource type="download" name="jquery.notyfy.css" location="/css/jquery.notyfy.css"/>
         <resource type="download" name="notyfy.theme.default.css" location="/css/notyfy.theme.default.css"/>
         <resource type="download" name="yasoon.css" location="/css/yasoon.css"/>
-        <resource type="download" name="jquery-1.11.3.min.js" location="/js/jquery-1.11.3.min.js"/>
-        <resource type="download" name="jquery.cookie.js" location="/js/jquery.cookie.js"/>
-        <resource type="download" name="bootstrap.js" location="/js/bootstrap.js"/> 
-        <resource type="download" name="materialize.min.js" location="/js/materialize.min.js" />
-        <resource type="download" name="knockout-3.4.1.js" location="/js/knockout-3.4.1.js" />
-        <resource type="download" name="select2.full.min.js" location="/js/select2.full.min.js" />
-        <resource type="download" name="sweetalert.min.js" location="/js/sweetalert.min.js" />
-        <resource type="download" name="bluebird.min.js" location="/js/bluebird.min.js" />
-		<resource type="download" name="jquery.bootstrap.wizard.min.js" location="/js/jquery.bootstrap.wizard.min.js"/>
-        <resource type="download" name="html.sortable.js" location="/js/html.sortable.js" />
-		<resource type="download" name="jquery.notyfy.js" location="/js/jquery.notyfy.js" />
-		<resource type="download" name="jquery.tinymce.min.js" location="/js/jquery.tinymce.min.js" />
-		<resource type="download" name="tinymce-knockout-bindung.js" location="/js/tinymce-knockout-bindung.js" />
-        <resource type="download" name="settingsModel.js" location="/js/settingsModel.js" />
-		<resource type="download" name="templateModel.js" location="/js/templateModel.js" />
+        <resource type="download" name="jquery-1.11.3.min.js" location="/js/library/jquery-1.11.3.min.js"/>
+        <resource type="download" name="jquery.cookie.js" location="/js/library/jquery.cookie.js"/>
+        <resource type="download" name="bootstrap.js" location="/js/library/bootstrap.js"/> 
+        <resource type="download" name="materialize.min.js" location="/js/library/materialize.min.js" />
+        <resource type="download" name="knockout-3.4.1.js" location="/js/library/knockout-3.4.1.js" />
+        <resource type="download" name="select2.full.min.js" location="/js/library/select2.full.min.js" />
+        <resource type="download" name="sweetalert.min.js" location="/js/library/sweetalert.min.js" />
+        <resource type="download" name="bluebird.min.js" location="/js/library/bluebird.min.js" />
+		<resource type="download" name="jquery.bootstrap.wizard.min.js" location="/js/library/jquery.bootstrap.wizard.min.js"/>
+        <resource type="download" name="html.sortable.js" location="/js/library/html.sortable.js" />
+		<resource type="download" name="jquery.notyfy.js" location="/js/library/jquery.notyfy.js" />
+		<resource type="download" name="jquery.tinymce.min.js" location="/js/library/jquery.tinymce.min.js" />
+		<resource type="download" name="tinymce-knockout-bindung.js" location="/js/library/tinymce-knockout-bindung.js" />
         <resource type="download" name="field-picker.js" location="/js/components/field-picker.js" />
         <resource type="download" name="group-picker.js" location="/js/components/group-picker.js" />
         <resource type="download" name="group-picker-data.js" location="/js/components/group-picker-data.js" />
         <resource type="download" name="issue-type-picker.js" location="/js/components/issue-type-picker.js" />
         <resource type="download" name="project-picker.js" location="/js/components/project-picker.js" />
-        <resource type="download" name="main.js" location="/js/main.js"/>
-        <resource type="download" name="main.html" location="main.html"/>
+        <resource type="download" name="common.js" location="/js/common.js"/>
 		<resource type="download" name="images/logo_with_jira.png" location="images/logo_with_jira.png"/>
         <resource type="download" name="images/" location="/images"/>
 		<resource type="download" name="img/" location="/img"/>
-        
-        <context>cloud</context>
     </web-resource>
             
     <!-- import from the product container -->
@@ -68,11 +61,24 @@
        <description>Class that processes the incoming JIRA issue events.</description>
     </component>
     -->
-    
-    <web-item key="jira-menu-item" name="Outlook App" section="admin_plugins_menu/integrations_section" weight="10" application="jira">
+    <web-section key="yasoonoutlookapp" location="admin_plugins_menu" weight="25">
+        <description>Section for Jira for Outlook admin pages.</description> 
+        <label key="jiraforoutlook.section.label" /> 
+    </web-section>
+    <web-item key="yasoonAdmin" name="General Settings" section="admin_plugins_menu/yasoonoutlookapp" weight="20" application="jira">
         <description>Link to Jira for Outlook admin page.</description> 
-        <label key="jiraforoutlook.admin.label" /> 
+        <label key="jiraforoutlook.item.overview.label" /> 
         <link linkId="jiraforoutlook-admin-link">/plugins/servlet/jiraforoutlook/admin</link> 
+    </web-item>
+    <web-item key="yasoonSettings" name="Outlook Settings" section="admin_plugins_menu/yasoonoutlookapp" weight="40" application="jira">
+        <description>Link to Jira for Outlook Settings page.</description> 
+        <label key="jiraforoutlook.item.settings.label" /> 
+        <link linkId="jiraforoutlook-admin-link">/plugins/servlet/jiraforoutlook/settings</link> 
+    </web-item>
+    <web-item key="yasoonTemplates" name="Issue Templates" section="admin_plugins_menu/yasoonoutlookapp" weight="60" application="jira">
+        <description>Link to Jira for Outlook Issue Templates page.</description> 
+        <label key="jiraforoutlook.item.templates.label" /> 
+        <link linkId="jiraforoutlook-admin-link">/plugins/servlet/jiraforoutlook/templates</link> 
     </web-item>
     
     <web-item key="jira-user-menu-item" name="Outlook App" section="system.user.options/jira-help">
@@ -82,7 +88,10 @@
     </web-item>
     
     <servlet key="admin-servlet" class="com.yasoon.jira.AdminUIServlet">
-        <url-pattern>/jiraforoutlook/admin</url-pattern>        
+        <url-pattern>/jiraforoutlook/admin</url-pattern>
+        <url-pattern>/jiraforoutlook/settings</url-pattern>  
+        <url-pattern>/jiraforoutlook/templates</url-pattern>
+        <url-pattern>/jiraforoutlook/ressources/*</url-pattern>            
     </servlet>
     
     <servlet key="system-info-servlet" class="com.yasoon.jira.SystemInfoServlet">
