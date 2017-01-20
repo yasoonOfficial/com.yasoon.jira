@@ -10,6 +10,8 @@ class TemplateController implements IFieldEventHandler {
     private groupHierachy: YasoonGroupHierarchy[] = [];
     private dependentFields: { [id: string]: string } = {};
     private emailController: EmailController;
+    private loadTemplateSelectionPromise: Promise<string>;
+    private dialogSelectedTemplate: YasoonDefaultTemplate;
     initialSelection: YasoonInitialSelection;
     defaultTemplates: YasoonDefaultTemplate[] = [];
     type: JiraDialogType;
@@ -92,6 +94,8 @@ class TemplateController implements IFieldEventHandler {
 
         //Sort Asc by priority
         this.defaultTemplates = this.defaultTemplates.sort((a, b) => { return a.priority - b.priority; });
+
+        FieldController.registerEvent(EventType.AfterRender, this);
     }
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
@@ -102,58 +106,135 @@ class TemplateController implements IFieldEventHandler {
             if (!currentValue || !dependentField.initialValue || JSON.stringify(currentValue) == JSON.stringify(dependentField.initialValue)) {
                 FieldController.setValue(dependentFieldId, newValue, true);
             }
+        } else if (type === EventType.AfterRender && this.dialogSelectedTemplate) {
+            //We cannot set the fieldValues directly as fields are not rendered yet.
+            //So we save the template in showTemplateSelection and after render, we set the values.
+            this.setFieldValues(this.dialogSelectedTemplate);
+            this.dialogSelectedTemplate = null;
         }
 
         return null;
     }
 
-    setInitialValues() {
-        if (this.initialSelection) {
-            if (this.initialSelection.projectId) {
-                FieldController.setValue(FieldController.projectFieldId, this.initialSelection.projectId, true);
+    setInitialValues(initialValues?: YasoonInitialSelection): Promise<any> {
+        if (!initialValues) {
+            initialValues = this.initialSelection;
+        }
+        let projPromise = Promise.resolve();
+        let issueTypePromise = Promise.resolve();
+        if (initialValues) {
+            if (initialValues.projectId) {
+                projPromise = FieldController.setValue(FieldController.projectFieldId, initialValues.projectId, true);
             }
 
-            if (this.initialSelection.issueTypeId != '-1') {
-                FieldController.setValue(FieldController.issueTypeFieldId, this.initialSelection.issueTypeId, true);
+            if (initialValues.issueTypeId != '-1') {
+                issueTypePromise = FieldController.setValue(FieldController.issueTypeFieldId, initialValues.issueTypeId, true);
             }
         }
+
+        return Promise.all([projPromise, issueTypePromise]);
     }
 
-    setFieldValues(projectId: string, issueTypeId: string) {
+    setFieldValues(template: YasoonDefaultTemplate) {
         let promise = Promise.resolve([]);
         //Make sure emailData are loaded
         if (this.emailController) {
-            promise = Promise.all([this.emailController.getCurrentMailContent(true), this.emailController.loadSenderPromise ]);
+            promise = Promise.all([this.emailController.getCurrentMailContent(true), this.emailController.loadSenderPromise]);
         }
 
-        promise.spread((content:string) => {
+        promise.spread((content: string) => {
             this.emailContent = content;
             if (this.defaultTemplates) {
                 //Default Templates are already filtered by current user groups and are sorted by priority --> defined on server
                 //Here we blindly pick the first template that matches our criteria
-                let result = this.getTemplate(projectId, issueTypeId);
+                if (template && template.fields) {
+                    for (let fieldId in template.fields) {
+                        if (template.fields.hasOwnProperty(fieldId)) {
+                            let value = template.fields[fieldId];
+                            let renderedField = FieldController.getField(fieldId);
+                            if (renderedField) {
+                                if (typeof value === 'string' && value.indexOf('<') === 0) {
+                                    //Fixed variables
+                                    value = this.getFixedValue(value, renderedField.constructor['name']);
+                                } else if (typeof value === 'string' && value.indexOf('|') === 0) {
+                                    value = this.getDynamicValue(fieldId, value);
+                                } else {
+                                    value = value
+                                }
 
-                if (result && result.fields) {
-                    result.fields.forEach((field) => {
-                        //Check for variables
-                        let value = null;
-                        let renderedField = FieldController.getField(field.fieldId);
-                        if (typeof field.fieldValue === 'string' && field.fieldValue.indexOf('<') === 0) {
-                            //Fixed variables
-                            value = this.getFixedValue(field.fieldValue, renderedField.constructor['name']);
-                        } else if (typeof field.fieldValue === 'string' && field.fieldValue.indexOf('|') === 0) {
-                            value = this.getDynamicValue(field.fieldId, field.fieldValue);
-                        } else {
-                            value = field.fieldValue
+                                if (value) {
+                                    FieldController.setValue(fieldId, value, true);
+                                }
+                            }
                         }
-
-                        if (value) {
-                            FieldController.setValue(field.fieldId, value, true);
-                        }
-                    });
+                    }
                 }
             }
         });
+    }
+
+    getTemplate(projectId: string, issueTypeId: string): YasoonDefaultTemplate {
+        let result: YasoonDefaultTemplate = null;
+        this.defaultTemplates.some((template) => {
+            //Check if Project and issueType matches
+            if ((template.projectId === '-1' || template.projectId === projectId) &&
+                (template.issueTypeId === '-1' || template.issueTypeId === issueTypeId)) {
+                result = template;
+                return true;
+            }
+            return false;
+        });
+        return result;
+    }
+
+    showTemplateSelection() {
+        let namedTemplates = this.defaultTemplates.filter((t) => t.templateName);
+        let senderTemplates = [];
+        if (this.emailController) {
+            senderTemplates = this.emailController.senderTemplates;
+        }
+
+        if (!this.loadTemplateSelectionPromise) {
+            this.loadTemplateSelectionPromise = Promise.resolve($.getScript(yasoon.io.getLinkPath('templates/selectTemplateDialog.js')))
+                .then(() => {
+                    return jira.templates.selectTemplateDialog({
+                        senderMail: this.emailController.getSenderEmail(),
+                        senderTemplates: senderTemplates,
+                        namedTemplates: namedTemplates
+                    });
+                });
+        }
+
+        this.loadTemplateSelectionPromise.then((tmpl) => {
+            let dialog = Bootbox.showDialog('Select Template', tmpl, () => {
+                $('.trigger-named-template').click((e) => {
+                    let templateName = $(e.target).text();
+                    this.dialogSelectedTemplate = namedTemplates.filter((t) => t.templateName === templateName)[0];
+
+                    //First select Initial Values
+                    this.setInitialValues({ projectId: this.dialogSelectedTemplate.projectId, issueTypeId: this.dialogSelectedTemplate.issueTypeId })
+                        .then(() => {
+                            dialog.modal('hide');
+                        });
+
+                });
+
+                $('.trigger-sender-template').click((e) => {
+                    let projectId = $(e.target).data('projectId');
+                    this.dialogSelectedTemplate = senderTemplates.filter((t) => t.projectId == projectId)[0];
+
+                    if (this.dialogSelectedTemplate) {
+                        //First select Initial Values
+                        this.setInitialValues({ projectId: this.dialogSelectedTemplate.projectId, issueTypeId: this.dialogSelectedTemplate.issueTypeId })
+                            .then(() => {
+                                dialog.modal('hide');
+                            });
+                    }
+
+                });
+            });
+        });
+
     }
 
     private getFixedValue(value: string, fieldType: string): any {
@@ -177,8 +258,8 @@ class TemplateController implements IFieldEventHandler {
             return this.emailContent;
         } else if (value === '<SENDER>') {
             //Special Handling for User Picker
-            if(fieldType === 'UserSelectField') {
-                return this.emailController.getSenderUser(); 
+            if (fieldType === 'UserSelectField') {
+                return this.emailController.getSenderUser();
             } else {
                 return this.emailController.getSenderEmail();
             }
@@ -196,22 +277,6 @@ class TemplateController implements IFieldEventHandler {
 
             return parentField.getValue(false);
         }
-    }
-
-    private getTemplate(projectId: string, issueTypeId: string): YasoonDefaultTemplate {
-        let result: YasoonDefaultTemplate = null;
-        this.defaultTemplates.some((template) => {
-            //Check if Project and issueType matches
-            if ((template.projectId === '-1' || template.projectId === projectId) &&
-                (template.issueTypeId === '-1' || template.issueTypeId === issueTypeId)) {
-                result = template;
-                return true;
-            }
-            return false;
-        });
-
-
-        return result;
     }
 
     private getGroup(group: string) {

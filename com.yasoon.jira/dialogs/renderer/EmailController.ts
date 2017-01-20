@@ -30,7 +30,8 @@ class EmailController implements IFieldEventHandler {
     selectionPlain: string;
 
     senderUser: JiraUser;
-    senderTemplates: JiraProjectTemplate[];
+    allTemplates: { [id: string]: YasoonDefaultTemplate[] } = {};
+    senderTemplates: YasoonDefaultTemplate[] = [];
 
     mailConversationData: YasoonConversationData;
 
@@ -94,9 +95,8 @@ class EmailController implements IFieldEventHandler {
         //Get Sender templates            
         let templateString = yasoon.setting.getAppParameter(EmailController.settingCreateTemplates);
         if (templateString) {
-            this.senderTemplates = JSON.parse(templateString);
-        } else {
-            this.senderTemplates = [];
+            this.allTemplates = JSON.parse(templateString) || {};
+            this.senderTemplates = this.allTemplates[this.mail.senderEmail] || [];
         }
 
         FieldController.registerEvent(EventType.AfterSave, this);
@@ -124,8 +124,8 @@ class EmailController implements IFieldEventHandler {
             }
 
             //Save Template if created by Email
-            this.saveSenderTemplate(eventData.newData);
-
+            let issue: JiraIssue = eventData.newData;
+            this.saveSenderTemplate(eventData.data, issue.fields['project']);
         }
 
         return null;
@@ -347,64 +347,91 @@ class EmailController implements IFieldEventHandler {
         return this.mailConversationData;
     }
 
-    saveSenderTemplate(values: JiraIssue) {
+    saveSenderTemplate(values: JiraIssue, project: JiraProject) {
         if (this.mail) {
-            let project: JiraProject = null;
-            if (values.fields && values.fields['project']) {
-                project = values.fields['project'];
-            }
-
             if (!project) {
                 console.error('Trying to save a senderTemplate without project');
                 return;
             }
 
-            let projectCopy: JiraProject = JSON.parse(JSON.stringify(project));
-            delete projectCopy.issueTypes;
-            delete projectCopy.self;
-            delete projectCopy.avatarUrls;
-
-
-            let newValues: JiraIssue = jiraMinimizeIssue(values);
-
-            let template: JiraProjectTemplate = {
-                senderEmail: this.mail.senderEmail,
-                senderName: this.mail.senderName,
-                project: project,
-                values: newValues
+            //We want the templates to be the same as in the JIRA addon, so we cannot use the values.fields, as they use deep objects. e.g. reporter: { name: 'admin' }
+            //We need just report: 'admin', so we get all values again from the rendered Fields
+            let fields: any = {};
+            for (let fieldId in values.fields) {
+                if (fieldId != 'summary' && fieldId != 'description' && fieldId != 'duedate' && fieldId != 'project' && fieldId != 'issuetype') {
+                    fields[fieldId] = FieldController.getField(fieldId).getDomValue();
+                }
             }
 
-            delete template.values.fields.summary;
-            delete template.values.fields.description;
-            delete template.values.fields.duedate;
+            //Now we do not default email values anymore, so we have to merge the last template with the values of the selected template
+            let templateController: TemplateController = jira.templateController;
+            let currentTemplate = templateController.getTemplate(project.id, values.fields['issuetype'].id);
+            if (currentTemplate) {
+                for (let fieldId in currentTemplate.fields) {
+                    fields[fieldId] = currentTemplate.fields[fieldId];
+                }
+            }
 
+            let template: YasoonDefaultTemplate = {
+                group: '-1',
+                projectId: project.id,
+                issueTypeId: values.fields['issuetype'].id,
+                templateName: yasoon.i18n('dialog.project') + ': ' + project.name,
+                priority: 4,
+                fields: fields,
+                lastUpdated: new Date()
+            };
+
+            //Harmonize fields
+            /*
             //Service Desk Data
-            if (project.projectTypeKey === 'service_desk') {
+            if (projectCopy.projectTypeKey === 'service_desk') {
                 template.serviceDesk = {
                     enabled: false,
                     requestType: '100'
                 };
             }
+            */
 
             //Add or replace template
             let templateFound = -1;
             this.senderTemplates.forEach((templ, index) => {
-                if (templ.senderEmail == template.senderEmail && templ.project.id == template.project.id) {
+                if (templ.projectId == template.projectId) {
                     templateFound = index;
                 }
             });
-
             if (templateFound > -1) {
                 this.senderTemplates.splice(templateFound, 1);
             }
-
-            if (this.senderTemplates.length > 25) {
-                this.senderTemplates.splice(0, 1);
-            }
-
             this.senderTemplates.push(template);
 
-            yasoon.setting.setAppParameter(EmailController.settingCreateTemplates, JSON.stringify(this.senderTemplates));
+            //Due to the save structure, check if there are too many entries is not so easy.
+            //Stucture is: { "senderMail": [ArrayOfTemplates]}
+            let counter = 0;
+            let senderMail = '';
+            let templateIndex = 0;
+            let lastUpdated: Date = new Date(2099, 0, 1);
+            for (let mail in this.allTemplates) {
+                let currentTemplates = this.allTemplates[mail];
+                currentTemplates.forEach((t, index) => {
+                    counter++;
+                    if (lastUpdated > t.lastUpdated) {
+                        lastUpdated = t.lastUpdated;
+                        senderMail = mail;
+                    }
+                });
+            }
+
+            if (counter > 25) {
+                this.allTemplates[senderMail].splice(templateIndex, 1);
+                if (this.allTemplates[senderMail].length === 0) {
+                    delete this.allTemplates[senderMail];
+                }
+            }
+
+            this.allTemplates[this.getSenderEmail()] = this.senderTemplates;
+            let data = JSON.stringify(this.allTemplates)
+            yasoon.setting.setAppParameter(EmailController.settingCreateTemplates, data);
         }
     }
 

@@ -2,7 +2,12 @@
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../getter/GetTextValue.ts" />
 /// <reference path="../setter/SetValue.ts" />
-/// <reference path="../Confirmation.ts" />
+/// <reference path="../Bootbox.ts" />
+
+interface MultiLineTextFieldOptions {
+    isMainField?: boolean;
+    hasMentions?: boolean;
+}
 
 @getter(GetterType.Text)
 @setter(SetterType.Text)
@@ -11,7 +16,6 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
 
     private isMainField: boolean;
     private hasMentions: boolean;
-    private height: string;
     private timeoutSearchUser: any;
     private emailController: EmailController;
     private currentProject: JiraProject;
@@ -21,14 +25,12 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
     //So we get the value of the comment box after each change and save it here so we can get it afterwards synchroniously.
     private mentionText: string;
 
-    constructor(id: string, field: any, config: { isMainField: boolean, hasMentions: boolean } = { isMainField: false, hasMentions: false }) {
+    constructor(id: string, field: any, config:MultiLineTextFieldOptions = { isMainField: false, hasMentions: false }) {
         super(id, field);
 
         this.emailController = jira.emailController;
-
-        this.isMainField = ((this.emailController && this.emailController.fieldMapping.body == id)); //|| id === FieldController.descriptionFieldId
         this.hasMentions = config.hasMentions;
-        this.height = (this.isMainField) ? '200px' : '100px';
+        this.isMainField = config.isMainField;
 
         if (this.hasMentions) {
             FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
@@ -80,7 +82,7 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
                         this.removeAttachmentFromBody(eventData.value);
                     }
                     else if (!autoRemove && this.hasReference(eventData.value)) {
-                        Confirmation.show({
+                        Bootbox.confirm({
                             message: yasoon.i18n('dialog.attachmentReferenceStillActive'),
                             checkbox: yasoon.i18n('dialog.rememberDecision'),
                             primary: yasoon.i18n('dialog.yes'),
@@ -291,7 +293,8 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
     }
 
     render(container: any) {
-        container.append(`<textarea class="form-control text" id="${this.id}" name="${this.id}" style="height:${this.height};overflow: initial;"></textarea>
+        let height: string = (this.isMainField) ? '200px' : '100px';
+        container.append(`<textarea class="form-control text" id="${this.id}" name="${this.id}" style="height:${height};overflow: initial;"></textarea>
             <div class="mentions-help-text bg-warning"><span>${yasoon.i18n('dialog.mentionsAlert')}</span></div>`);
         if (this.isMainField) {
             this.addMainFieldHtml(container);

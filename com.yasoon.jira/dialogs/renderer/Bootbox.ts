@@ -1,8 +1,7 @@
 declare var bootbox;
 
-class Confirmation {
-
-    static show(options): Promise<any> {
+class Bootbox {
+    static confirm(options): Promise<any> {
         return new Promise((resolve, reject) => {
             let optionsInt: any = {
                 size: 'large',
@@ -39,4 +38,13 @@ class Confirmation {
         });
     }
 
+    static showDialog(title, message, init): any {
+        let dialog = bootbox.dialog({
+            title: title,
+            message: message
+        });
+        dialog.init(init);
+
+        return dialog;
+    }
 }

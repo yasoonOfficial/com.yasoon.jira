@@ -127,12 +127,12 @@
 											<tr>
 												<td>
 													<div style="margin: 0px 15px;">
-														<div style="cursor:pointer; float:left; padding-top: 2px;" data-bind="if: isRemoveVisible()">
+														<div style="cursor:pointer; float:left; max-height: 28px; padding-bottom: 2px;" data-bind="if: isRemoveVisible()">
 															<a data-bind="click:$parent.remove">
-																<i class="material-icons left custom-red">delete</i>
+																<i class="material-icons custom-red" style="font-size: 20px;">delete</i>
 															</a>
 														</div>
-														<div style="padding-left: 40px;">
+														<div style="padding-left: 30px;">
 															<group-picker-data params="data: $parent.allGroupsSelect2, group: group, hasOthersOption: true, disabled: isDisabled()"></group-picker-data>
 														</div>
 													</div>
@@ -285,6 +285,9 @@
 										</div>
 									</div>
 									<!-- /ko -->
+									<div class="modal-footer">
+										<a href="#!" id="saveFields" class="waves-effect waves-light btn modal-action modal-close"><i class="material-icons left">close</i>Close</a>
+									</div>
 								</div>
 
 								

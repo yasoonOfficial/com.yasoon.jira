@@ -41,7 +41,7 @@ abstract class Field implements FieldGet, FieldSet {
 		this.initialValue = value;
 	}
 
-	setValue(value: any): void {
+	setValue(value: any): Promise<any> {
 		if (!setter)
 			throw new Error("Please either redefine method setValue or add a @setter Annotation for " + this.id);
 
@@ -216,9 +216,9 @@ interface FieldGetter {
 }
 
 interface FieldSet {
-	setValue(value: any): void;
+	setValue(value: any): Promise<any>;
 }
 
 interface FieldSetter {
-	setValue(field: Field, value: any): void;
+	setValue(field: Field, value: any): Promise<any>;
 }

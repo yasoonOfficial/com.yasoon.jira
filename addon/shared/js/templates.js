@@ -3,16 +3,11 @@ var globalDefaultTemplate = {
     group: -1,
     projectId: -1,
     issueTypeId: -1,
-    fields: [{
-        fieldId: 'summary',
-        fieldValue: '<SUBJECT>'
-    }, {
-        fieldId: 'description',
-        fieldValue: '<BODY>'
-    }, {
-        fieldId: 'reporter',
-        fieldValue: '<SENDER>'
-    }]
+    fields: {
+        summary: '<SUBJECT>',
+        description: '<BODY>',
+        reporter: '<SENDER>'
+    }
 };
 
 function templateViewModel() {
@@ -51,7 +46,7 @@ function templateViewModel() {
             var calculateTemplatePriority = function (template) {
                 //Template Priority is calculated by group Priority + template Priority
                 var group = findGroup(template.group);
-                if(!group){
+                if (!group) {
                     group = {
                         name: 'Others',
                         position: 99
@@ -98,7 +93,7 @@ function templateViewModel() {
             defaultTemplates.forEach(function (templ) {
                 if (templ.group || templ.projectId || templ.issueTypeId) {
                     //Remove empty fields
-                    var fields = templ.fields.filter(
+                    var fieldsArray = templ.fields.filter(
                         function (field) { return !!field.fieldId && !!field.fieldValue; }
                     )
                         .map(function (field) {
@@ -119,14 +114,13 @@ function templateViewModel() {
                                         break;
                                 }
                             }
-                            delete field.currentField; //Delete outside of if to delete also as undefined
-                            delete field.isEmpty;
-                            delete field.owner;
-                            delete field.showAllowedValues;
-                            delete field.selectAllowedValue;
-
                             return field;
                         });
+
+                    var fields = {};
+                    fieldsArray.forEach(function (field) {
+                        fields[field.fieldId] = field.fieldValue;
+                    });
 
                     var priority = calculateTemplatePriority(templ);
                     result.defaultTemplates.push({
@@ -144,7 +138,7 @@ function templateViewModel() {
             console.log('Save', result);
 
             //Currently we will write settings twice: general + system specific for Berenberg
-            var finalObject = { overwrite: result };
+            var finalObject = { overwrite: {} };
             finalObject.overwrite[jiraDataId] = JSON.parse(JSON.stringify(result));
 
             return Promise.resolve($.ajax({
@@ -311,7 +305,6 @@ function defaultTemplateField(owner, initParams) {
         if (self.fieldId() && self.owner.projectId() > -1 && self.owner.issueTypeId() > -1) {
             getFieldMeta(self.owner.projectId(), self.owner.issueTypeId(), self.fieldId())
                 .then(function (result) {
-                    console.log('New Field', result);
                     self.currentField(result);
                 });
         }
@@ -371,11 +364,20 @@ function defaultTemplate(parent, initParams) {
         this.projectId(initParams.projectId);
         this.issueTypeId(initParams.issueTypeId);
         this.templateName(initParams.templateName);
+
         var fields = [];
-        initParams.fields.forEach(function (field) {
-            var fieldMeta = null;
-            fields.push(new defaultTemplateField(self, field));
+        var keys = Object.keys(initParams.fields);
+        keys.forEach(function (key) {
+            if (initParams.fields.hasOwnProperty(key)) {
+                var newField = {
+                    fieldId: key,
+                    fieldValue: initParams.fields[key]
+                };
+
+                fields.push(new defaultTemplateField(self, newField));
+            }
         });
+
         this.fields(fields);
     }
 
@@ -383,7 +385,7 @@ function defaultTemplate(parent, initParams) {
         return self.group() == -1 && self.projectId() == -1 && self.issueTypeId() == -1;
     };
 
-     this.add = function () {
+    this.add = function () {
         self.fields.push(new defaultTemplateField(self));
     };
 
@@ -460,8 +462,12 @@ function defaultTemplatesViewModel(groups) {
         var defaultTempl = self.entries().filter(function (templ) { return templ.isDisabled(); })[0];
         var params = null;
         if (defaultTempl) {
+            var initFields = {};
+            ko.toJS(defaultTempl.fields).forEach(function(field) {
+                initFields[field.fieldId] = field.fieldValue;
+            });
             params = {
-                fields: ko.toJS(defaultTempl.fields)
+                fields: initFields
             };
         }
         self.entries.push(new defaultTemplate(self, params));
@@ -493,22 +499,23 @@ function defaultTemplatesViewModel(groups) {
     };
 
     this.load = function (data) {
+        var genericTemplateExist = false;
         if (data && data.length > 0) {
             self.entries([]);
-            var genericTemplateExist = false;
-
             data.forEach(function (template) {
                 if (template.group === -1 && template.projectId === -1 && template.issueTypeId === -1) {
                     genericTemplateExist = true;
                 }
                 self.entries.push(new defaultTemplate(self, template));
             });
-            if (!genericTemplateExist) {
-                self.entries.push(new defaultTemplate(self, globalDefaultTemplate));
-            }
-            self.checkEmptyLines();
 
         }
+        if (!genericTemplateExist) {
+            var dataNew = (data) ? JSON.parse(JSON.stringify(data)) : '';
+            console.log('Add new Default template', dataNew);
+            self.entries.push(new defaultTemplate(self, globalDefaultTemplate));
+        }
+        self.checkEmptyLines();
     };
 }
 
@@ -544,11 +551,11 @@ function groupHierarchyViewModel(groups) {
                 console.log('Would have been deleted', isConfirmed);
                 if (isConfirmed) {
                     //First Delete all sub-entries with current group
-                    templateModel.initialSelection.entries.remove(function (e) {
+                    templatesModel.initialSelection.entries.remove(function (e) {
                         return (e.group() == obj.name);
                     });
 
-                    templateModel.defaultTemplates.entries.remove(function (e) {
+                    templatesModel.defaultTemplates.entries.remove(function (e) {
                         return (e.group() == obj.name);
                     });
 
@@ -587,9 +594,9 @@ function getFieldMeta(projectId, issueTypeId, fieldId) {
     if (!projectId || !issueTypeId)
         return Promise.resolve({});
 
-    var url = '/rest/api/2/issue/createmeta?projectIds=' + projectId + '&issuetypeIds=' + issueTypeId + '&expand=projects.issuetypes.fields';
-    if (fieldDict[projectId] && fieldDict[projectId][issueTypeId]) {
-        prom = fieldDict[projectId][issueTypeId];
+    var url = '/rest/api/2/issue/createmeta?projectIds=' + projectId + '&expand=projects.issuetypes.fields';
+    if (fieldDict[projectId]) {
+        prom = fieldDict[projectId];
     } else {
         if (isCloud) {
             prom = new Promise(function (resolve, reject) {
@@ -598,8 +605,6 @@ function getFieldMeta(projectId, issueTypeId, fieldId) {
                         url: url,
                         type: 'GET',
                         success: function (result) {
-                            var fields = JSON.parse(result);
-                            console.log('Fields loaded', fields);
                             resolve(fields);
                         }
                     });
@@ -611,19 +616,26 @@ function getFieldMeta(projectId, issueTypeId, fieldId) {
         if (!fieldDict[projectId]) {
             fieldDict[projectId] = {};
         }
-        fieldDict[projectId][issueTypeId] = prom;
+        fieldDict[projectId] = prom;
     }
 
+    prom = prom.then(function (result) {
+        console.log('Fields loaded', result);
+        if (result.projects && result.projects.length > 0) {
+            var project = result.projects[0];
+            if (project.issuetypes && project.issuetypes.length > 0) {
+                var issueType = project.issuetypes.filter(function(it) { return it.id == issueTypeId; })[0];
+                console.log('Issue Type found',issueTypeId, issueType);
+                return issueType;
+            }
+        }
+    });
+
     if (fieldId) {
-        prom = prom.then(function (result) {
-            if (result.projects && result.projects.length > 0) {
-                var project = result.projects[0];
-                if (project.issuetypes && project.issuetypes.length > 0) {
-                    var issueType = project.issuetypes[0];
-                    if (issueType.fields) {
-                        return issueType.fields[fieldId];
-                    }
-                }
+        prom = prom.then(function (issueType) {
+            console.log('Issue Type', issueType);
+            if (issueType && issueType.fields) {
+                return issueType.fields[fieldId];
             }
         });
     }

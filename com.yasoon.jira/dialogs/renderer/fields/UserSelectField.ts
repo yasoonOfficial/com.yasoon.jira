@@ -75,7 +75,7 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
             let users: JiraUser[] = value;
             let lastUsers: JiraUser[] = lastValue;
 
-            if (users.length > lastUsers.length) {
+            if (!lastUsers || users.length > lastUsers.length) {
                 //Only necessary if user was added
                 this.recentItems.addRecentUser(users[users.length - 1]);
             }

@@ -64,13 +64,13 @@ class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler
         }
     }
 
-    setValue(value: string) {
+    setValue(value: string): Promise<any> {
         //Format in JIRA < 7.0 "key: epicId" , JIRA 7+: just epic Id
         if (!jiraIsVersionHigher(jira.systemInfo, '7')) {
             value = value.replace('key:', '');
         }
 
-        this.setter.setValue(this, value);
+        return this.setter.setValue(this, value);
     }
 
     convertToSelect2(epic: JiraEpic): Select2Element {

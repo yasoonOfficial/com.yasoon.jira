@@ -51,11 +51,12 @@ class TimeTrackingField extends Field {
 		return (Object.keys(result).length > 0) ? result : undefined;
 	}
 
-	setValue(value: JiraTimetrackingValue): void {
+	setValue(value: JiraTimetrackingValue): Promise<any> {
 		if (value) {
 			this.origField.setValue(value.originalEstimate);
 			this.remainingField.setValue(value.remainingEstimate);
 		}
+		return Promise.resolve(value);
 	}
 
 	getDomValue() {

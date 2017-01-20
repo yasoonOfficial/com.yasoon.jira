@@ -1,0 +1,25 @@
+<div>
+    {{#if senderTemplates}}
+    <div>
+        <h3 style="font-weight: bold"> Templates for {{senderMail}} </h3>
+        {{#each senderTemplates }}
+        <div>
+            <a class="trigger-sender-template" data-project-id="{{projectId}}"><span>{{templateName}}</span></a>
+        </div>
+        {{/each}}
+    </div>
+    <hr>
+    {{/if}}
+    {{#if namedTemplates}}
+    <div>
+        <h3 style="font-weight: bold">Global Templates</h3>
+        <div>
+            {{#each namedTemplates }}
+            <div>
+                <a class="trigger-named-template"><span>{{templateName}}</span></a>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+    {{/if}}
+</div>

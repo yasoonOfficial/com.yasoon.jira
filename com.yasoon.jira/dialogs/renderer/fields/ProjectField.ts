@@ -10,6 +10,8 @@
 interface ProjectFieldOptions {
     cache?: JiraProject[];
     allowClear?: boolean;
+    showTemplates?: boolean;
+    isMainProjectField?: boolean;
 }
 
 @getter(GetterType.Option, "id")
@@ -21,19 +23,22 @@ class ProjectField extends Select2Field {
     projectCache: JiraProject[];
     returnStructure: Select2Element[];
     isMainProjectField: boolean;
+    showTemplates: boolean;
     recentItems: RecentItemController;
     emailController: EmailController;
+    templateController: TemplateController;
 
-    constructor(id: string, field: JiraMetaField, fieldOptions: ProjectFieldOptions = { cache: [], allowClear: false }) {
+    constructor(id: string, field: JiraMetaField, fieldOptions: ProjectFieldOptions = { cache: [], allowClear: false, showTemplates: false, isMainProjectField: false }) {
         let options: Select2Options = {};
         options.placeholder = yasoon.i18n('dialog.placeholderSelectProject');
         options.allowClear = fieldOptions.allowClear;
         super(id, field, options);
-
-        this.isMainProjectField = (id === FieldController.projectFieldId);
         this.emailController = jira.emailController;
         this.recentItems = jira.recentItems;
+        this.templateController = jira.templateController;
 
+        this.isMainProjectField = fieldOptions.isMainProjectField;
+        this.showTemplates = fieldOptions.showTemplates && !!this.templateController;
         if (fieldOptions.cache) {
             this.projectCache = fieldOptions.cache;
         }
@@ -124,6 +129,25 @@ class ProjectField extends Select2Field {
             $('#MainAlert').removeClass('hidden').find('.error-text').text(yasoon.i18n('dialog.errorInitConnection'));
         } else {
             $('#MainAlert').removeClass('hidden').find('.error-text').text(yasoon.i18n('dialog.errorInitUnknown'));
+        }
+    }
+
+    hookEventHandler() {
+        super.hookEventHandler();
+
+        if(this.showTemplates) {
+            this.ownContainer.find('.show-template-modal').click((e) => {
+                console.log('Triggered Call Dialog');
+                this.templateController.showTemplateSelection();
+            });
+        }
+    }
+
+    render(container: JQuery) {
+        super.render(container);
+
+        if(this.showTemplates) {
+            container.append('<div style="display:inline-block; margin-left: 5px;"><a class="show-template-modal"><i class="fa fa-magic"></i></a></div>');
         }
     }
 

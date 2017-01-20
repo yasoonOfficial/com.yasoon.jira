@@ -31,9 +31,11 @@ function initAdminUI() {
         }
     } else if (isInstanceRegistered && (currentPage >= 2 || currentPage <= 4)) {
         //Already registered but didn't finish the wizard yet.
+       
         if (isAuthed) {
-            gotoPage(currentPage);
             $('#AreaUnregistered').removeClass('hidden');
+            $('#unregisteredTabs').tabs();
+            gotoPage(currentPage);
         } else {
             $('#AreaLogin').removeClass('hidden');
         }
@@ -160,7 +162,7 @@ function handleLogin() {
 
                     $('#AreaRegistered').removeClass('hidden');
                     $('#AreaLogin').addClass('hidden');
-                    loadRegisteredUIState();
+                    initAdminUI();
                     success();
                 })
                 .fail(function (jxqr, e) {

@@ -117,13 +117,25 @@ class NewEditDialog implements IFieldEventHandler {
                 ];
             }
 
-            if (this.mail)
+            //Init Controller
+            if (this.mail) {
                 this.emailController = new EmailController(this.mail, this.type, this.settings, this.ownUser);
+            }
 
+            if (!this.isEditMode) {
+                this.templateController = new TemplateController(this.ownUser, this.emailController);
+            }
             this.recentItems = new RecentItemController(this.ownUser);
 
             //Render Header fields
-            FieldController.loadField(ProjectField.defaultMeta, ProjectField, { cache: this.cacheProjects, allowClear: false });
+            let projParams: ProjectFieldOptions = {
+                cache: this.cacheProjects,
+                allowClear: false,
+                isMainProjectField: true,
+                showTemplates: true
+            };
+
+            FieldController.loadField(ProjectField.defaultMeta, ProjectField, projParams);
             FieldController.render(FieldController.projectFieldId, $('#HeaderArea'));
 
             FieldController.loadField(IssueTypeField.defaultMeta, IssueTypeField);
@@ -161,7 +173,6 @@ class NewEditDialog implements IFieldEventHandler {
                         yasoon.util.log('Error during init of Edit View. ' + e.message, yasoon.util.severity.warning, getStackTrace(e));
                     });
             } else {
-                this.templateController = new TemplateController(this.ownUser, this.emailController);
                 this.templateController.setInitialValues();
             }
 
@@ -246,14 +257,10 @@ class NewEditDialog implements IFieldEventHandler {
                 .then(() => {
                     //Set reporter
                     let reporterField = <UserSelectField>FieldController.getField(FieldController.reporterFieldId);
-                    if(reporterField) {
+                    if (reporterField) {
                         reporterField.setValue(this.ownUser);
                     }
-                    
-                    //Set Email Values
-                    //if (this.emailController) {
-                    //    this.emailController.insertEmailValues();
-                    //}
+
                     //Set all Values in edit case
                     if (this.isEditMode && this.currentIssue) {
                         FieldController.setFormData(this.currentIssue);
@@ -261,7 +268,8 @@ class NewEditDialog implements IFieldEventHandler {
 
                     //Set Templates Values
                     if (this.templateController) {
-                        this.templateController.setFieldValues(this.selectedProject.id, this.selectedIssueType.id);
+                        let template = this.templateController.getTemplate(this.selectedProject.id, this.selectedIssueType.id)
+                        this.templateController.setFieldValues(template);
                     }
                 })
                 .catch((e) => {
@@ -553,7 +561,7 @@ class NewEditDialog implements IFieldEventHandler {
         FieldController.register('com.pyxis.greenhopper.jira:gh-epic-label', SingleTextField);
         FieldController.register('summary', SingleTextField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:textarea', MultiLineTextField);
-        FieldController.register('description', MultiLineTextField, { hasMentions: true });
+        FieldController.register('description', MultiLineTextField, { hasMentions: true, isMainField: true });
         FieldController.register('environment', MultiLineTextField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes', CheckboxField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:radiobuttons', RadioField);
@@ -576,6 +584,7 @@ class NewEditDialog implements IFieldEventHandler {
         FieldController.register('assignee', UserSelectField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:userpicker', UserSelectField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:multiuserpicker', UserSelectField, { multiple: true });
+        FieldController.register('com.burningcode.jira.issue.customfields.impl.jira-watcher-field:watcherfieldtype', UserSelectField, { multiple: true });
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:cascadingselect', CascadedSelectField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:project', ProjectField, { cache: jira.cacheProjects, allowClear: true });
         FieldController.register('timetracking', TimeTrackingField);
@@ -589,7 +598,7 @@ class NewEditDialog implements IFieldEventHandler {
         //com.atlassian.plugins.atlassian-connect-plugin:io.tempo.jira__account
 
         //Watcher Field
-        FieldController.register('com.burningcode.jira.issue.customfields.impl.jira-watcher-field:watcherfieldtype', UserSelectField, { multiple: true});
+        FieldController.register('com.burningcode.jira.issue.customfields.impl.jira-watcher-field:watcherfieldtype', UserSelectField, { multiple: true });
     };
 }
 

@@ -131,11 +131,12 @@ namespace FieldController {
         return result;
     }
 
-    export function setValue(id: string, value: any, isInitialValue?: boolean): void {
+    export function setValue(id: string, value: any, isInitialValue?: boolean): Promise<any> {
         let field = getField(id);
+        let prom: Promise<any>;
         if (field) {
             try {
-                field.setValue(value);
+                prom = field.setValue(value);
                 if (isInitialValue)
                     field.setInitialValue(value);
             } catch (e) {
@@ -143,6 +144,11 @@ namespace FieldController {
                 yasoon.util.log('Error: ' + e.message + '. Couldn\'t setValue for field ' + id, yasoon.util.severity.error, getStackTrace(e));
             }
         }
+
+        if(!prom) {
+            prom = Promise.resolve();
+        }
+        return prom;
     }
 
     export function setFormData(issue: any): void {

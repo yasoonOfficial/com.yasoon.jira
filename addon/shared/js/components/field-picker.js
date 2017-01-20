@@ -78,29 +78,26 @@ ko.components.register('field-picker', {
         // Data: default value - either null or group
         var self = this;
         this.currentProjectId = params.projectId || ko.observable();
-        this.currentIssueTypeId = params.projectId || ko.observable();
+        this.currentIssueTypeId = params.issueTypeId || ko.observable();
         this.chosenValue = params.fieldId || ko.observable();
         this.chosenField = params.chosenField || ko.observable();
         this.data = ko.observable();
 
         this.loadData = function () {
             if (self.currentProjectId() > -1 && self.currentIssueTypeId() > -1) {
+                console.log('Field-Picker load Data- project specific');
                 getFieldMeta(self.currentProjectId(), self.currentIssueTypeId())
-                    .then(function (fieldMeta) {
+                    .then(function (issueType) {
+                        console.log('Field-Picker load Data- project specific', issueType);
                         var result = [];
-                        if (fieldMeta.projects && fieldMeta.projects.length > 0) {
-                            var project = fieldMeta.projects[0];
-                            if (project.issuetypes && project.issuetypes.length > 0) {
-                                var issueType = project.issuetypes[0];
-                                if (issueType.fields) {
-                                    var fields = filterFields(issueType.fields);
-                                    var keys = Object.keys(fields);
-                                    keys.forEach(function (key) {
-                                        var field = fields[key];
-                                        result.push({ id: key, text: field.name + ' (' + key + ')', data: field });
-                                    });
-                                }
-                            }
+
+                        if (issueType.fields) {
+                            var fields = filterFields(issueType.fields);
+                            var keys = Object.keys(fields);
+                            keys.forEach(function (key) {
+                                var field = fields[key];
+                                result.push({ id: key, text: field.name + ' (' + key + ')', data: field });
+                            });
                         }
                         result = result.sort(sortByText);
                         self.data(result);
@@ -133,6 +130,11 @@ ko.components.register('field-picker', {
                 self.chosenField(currentField.data);
             }
         });
+
+
+        //Subscribe to Project and Issue Type changes to update Field List
+        this.currentProjectId.subscribe(this.loadData);
+        this.currentIssueTypeId.subscribe(this.loadData);
 
         this.loadData();
     },

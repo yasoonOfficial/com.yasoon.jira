@@ -56,13 +56,15 @@ class CascadedSelectField extends Field implements IFieldEventHandler {
         }
     }
 
-    setValue(value: any): void {
+    setValue(value: any): Promise<any> {
         this.parentField.setValue(value.id);
         this.parentField.initialValue = value.id;
         if (value.child) {
             this.childField.setValue(value.child.id);
             this.childField.initialValue = value.child.id;
         }
+
+        return Promise.resolve(value);
     }
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {

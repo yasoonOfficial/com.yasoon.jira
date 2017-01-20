@@ -1,7 +1,7 @@
 /// <reference path="../Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 class SetOptionValue implements FieldSetter {
-    setValue(field: Field, value: any) {
+    setValue(field: Field, value: any): Promise<any> {
         let selectField = <Select2Field>field;
         if (!field.isRendered()) {
             //Not rendered, nothing to do... will be called with field.initialValue again
@@ -10,7 +10,7 @@ class SetOptionValue implements FieldSetter {
 
         if (value && Array.isArray(value)) {
             //Multiselect       
-            Promise.all(
+            return Promise.all(
                 value.map((v) => { return selectField.convertId(v); })
             )
                 .then((arrayObj) => {

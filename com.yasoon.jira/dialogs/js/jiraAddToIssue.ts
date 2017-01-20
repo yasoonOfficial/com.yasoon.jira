@@ -22,7 +22,7 @@ interface commentDialogInitParams {
     ownUser: JiraUser;
 }
 
-var jira:any = null;
+var jira: any = null;
 
 class AddToIssueDialog implements IFieldEventHandler {
     icons: JiraIconController = new JiraIconController();
@@ -40,7 +40,7 @@ class AddToIssueDialog implements IFieldEventHandler {
     currentProject: JiraProject = null;
     currentIssue: JiraIssue = null;
 
-    init = ( initParams: commentDialogInitParams ) => {
+    init = (initParams: commentDialogInitParams) => {
         jira = this; //Legacy
         this.mail = initParams.mail;
         this.settings = initParams.settings;
@@ -54,8 +54,8 @@ class AddToIssueDialog implements IFieldEventHandler {
         yasoon.dialog.onClose(this.cleanup);
 
         resizeWindowComment();
-        
-        setTimeout(() => { this.initDelayed(); } , 1);
+
+        setTimeout(() => { this.initDelayed(); }, 1);
     }
 
     initDelayed(): void {
@@ -69,7 +69,7 @@ class AddToIssueDialog implements IFieldEventHandler {
             trigger: 'click' //'click'
         });
 
-         if (this.mail) {
+        if (this.mail) {
             this.emailController = new EmailController(this.mail, this.type, this.settings, this.ownUser);
         }
 
@@ -78,14 +78,24 @@ class AddToIssueDialog implements IFieldEventHandler {
         //Render Header fields
         let projectDefaultMeta = ProjectField.defaultMeta;
         projectDefaultMeta.required = false;
-        FieldController.loadField(projectDefaultMeta, ProjectField, { cache: this.cacheProjects, allowClear: true });
+        let projParams: ProjectFieldOptions = {
+            cache: this.cacheProjects,
+            allowClear: false,
+            isMainProjectField: true,
+            showTemplates: false
+        };
+        FieldController.loadField(projectDefaultMeta, ProjectField, projParams);
         FieldController.render(FieldController.projectFieldId, $('#HeaderArea'));
 
         FieldController.loadField(IssueField.defaultMeta, IssueField);
         FieldController.render(FieldController.issueFieldId, $('#IssueArea'));
 
         //Render Content fields
-        FieldController.loadField(MultiLineTextField.defaultCommentMeta, MultiLineTextField, { hasMentions: true });
+        let commentParams: MultiLineTextFieldOptions = {
+            hasMentions: true,
+            isMainField: true
+        };
+        FieldController.loadField(MultiLineTextField.defaultCommentMeta, MultiLineTextField, commentParams);
         FieldController.render(FieldController.commentFieldId, $('#ContentArea'));
 
         let attachments = [];
@@ -102,7 +112,7 @@ class AddToIssueDialog implements IFieldEventHandler {
 
 
         if (this.emailController) {
-            FieldController.setValue(FieldController.commentFieldId,this.emailController.getCurrentMailContent(true), true);
+            FieldController.setValue(FieldController.commentFieldId, this.emailController.getCurrentMailContent(true), true);
         }
 
         // Resize Window to maximize Comment field
@@ -116,7 +126,7 @@ class AddToIssueDialog implements IFieldEventHandler {
         });
     }
 
-    cleanup():void {
+    cleanup(): void {
         //Invalidate dialog events so the following won't throw any events => will lead to errors
         // due to pending dialog.close
         yasoon.dialog.clearEvents();
@@ -161,7 +171,7 @@ class AddToIssueDialog implements IFieldEventHandler {
         let comment = FieldController.getValue(FieldController.commentFieldId, false);
         console.log('Kommentar:', comment);
 
-        let attachmentField = <AttachmentField>FieldController.getField(FieldController.attachmentFieldId); 
+        let attachmentField = <AttachmentField>FieldController.getField(FieldController.attachmentFieldId);
         let attachments = attachmentField.getSelectedAttachments();
 
         if (!comment && (!attachments || attachments.length === 0)) {
@@ -190,7 +200,7 @@ class AddToIssueDialog implements IFieldEventHandler {
                 //Saving... (and AfterSave Event)
                 let promises: Promise<any>[] = [];
 
-                let url:string = '';
+                let url: string = '';
                 let body: JiraSubmitComment = null;
                 let type: string = $(e.target).data('type'); //Type of submit button 
                 if (type == 'submit') {
@@ -226,7 +236,7 @@ class AddToIssueDialog implements IFieldEventHandler {
                 if (eventPromise) {
                     promises.push(eventPromise);
                 }
-                
+
                 return Promise.all(promises);
             })
             .then(() => {
@@ -274,9 +284,9 @@ function resizeWindowComment() {
     }
 }
 
-$(function() {
+$(function () {
     $('body').css('overflow-y', 'hidden');
-    $('form').on('submit', function(e) {
+    $('form').on('submit', function (e) {
         e.preventDefault();
         return false;
     });

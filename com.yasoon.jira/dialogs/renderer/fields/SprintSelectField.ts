@@ -64,11 +64,12 @@ class SprintSelectField extends Select2Field implements IFieldEventHandler {
         }
     }
 
-    setValue(value) {
+    setValue(value): Promise<any> {
         if (value && value.length > 0) {
             let sprintId = this.parseSprintId(value[0]);
-            this.setter.setValue(this, sprintId);
+            return this.setter.setValue(this, sprintId);
         }
+        return Promise.resolve(value);
     }
 
     convertToSelect2(sprint: JiraSprint): Select2Element {

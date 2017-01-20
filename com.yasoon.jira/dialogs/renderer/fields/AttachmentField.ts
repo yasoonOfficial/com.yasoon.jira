@@ -3,7 +3,7 @@
 /// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/handlebars.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
-/// <reference path="../Confirmation.ts" />
+/// <reference path="../Bootbox.ts" />
 
 class AttachmentField extends Field implements IFieldEventHandler {
     static defaultMeta: JiraMetaField = { key: FieldController.attachmentFieldId, get name() { return yasoon.i18n('dialog.attachment'); }, required: false, schema: { system: 'attachment', type: '' } };
@@ -82,8 +82,9 @@ class AttachmentField extends Field implements IFieldEventHandler {
         return undefined;
     }
 
-    setValue() {
+    setValue(): Promise<any> {
         //Attachments work differently
+        return Promise.resolve();
     }
 
     getSelectedAttachments() {
@@ -192,7 +193,7 @@ class AttachmentField extends Field implements IFieldEventHandler {
                 showInfoDialog = Promise.resolve({ ok: true }); //Skip
             }
             else {
-                showInfoDialog = Confirmation.show({
+                showInfoDialog = Bootbox.confirm({
                     message: yasoon.i18n('dialog.attachmentAddToBlacklistDialog'),
                     checkbox: yasoon.i18n('dialog.dontShowAgain'),
                     primary: yasoon.i18n('dialog.ok'),

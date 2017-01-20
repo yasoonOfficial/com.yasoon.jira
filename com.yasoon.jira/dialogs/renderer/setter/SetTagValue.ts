@@ -1,7 +1,7 @@
 /// <reference path="../Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
 class SetTagValue implements FieldSetter {
-    setValue(field: Field, value: any) {
+    setValue(field: Field, value: any):Promise<any> {
         if (value) {
             let tags: string[];
             if(typeof value === 'string') {
@@ -17,5 +17,6 @@ class SetTagValue implements FieldSetter {
             $('#' + field.id).val(tags).trigger('change');
             $('#' + field.id).data('value', tags);
         }
+        return Promise.resolve(value);
     }
 }

@@ -374,6 +374,21 @@ form.aui .text {
 	margin-top: 10px;
 }
 
+.show-template-modal {
+	cursor: pointer;
+	font-size: 12pt;
+}
+
+.modal-dialog { 
+	z-index: 1050;
+}
+
+
+.trigger-named-template {
+	cursor: pointer;
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar{
 	width: 10px;
 }
@@ -392,3 +407,4 @@ form.aui .text {
 ::-webkit-scrollbar-thumb:hover{
 	background-color: #909090;
 }
+/* End Custom Scrollbar */

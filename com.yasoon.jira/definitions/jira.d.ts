@@ -251,15 +251,6 @@ interface JiraServiceDeskData {
     sendEmailNotification?: boolean
 }
 
-interface JiraProjectTemplate {
-    senderEmail: string,
-    senderName: string,
-    project: JiraProject,
-    projectTypeKey?: JiraProjectType,
-    serviceDesk?: { enabled: boolean, requestType: string },
-    values: any
-}
-
 interface JiraMetaField {
     required: boolean,
     schema: JiraSchema,
@@ -288,22 +279,19 @@ interface YasoonGroupHierarchy {
 }
 
 interface YasoonInitialSelection {
-    group: string,
+    group?: string,
     projectId: string,
     issueTypeId: string
 }
 
 interface YasoonDefaultTemplate {
-    group: string,
-    projectId: string,
-    issueTypeId: string,
-    priority: number,
-    fields: YasoonTemplateField[]
-}
-
-interface YasoonTemplateField {
-    fieldId: string,
-    fieldValue: any
+    group?: string;
+    projectId?: string;
+    issueTypeId?: string;
+    priority?: number;
+    templateName?: string;
+    fields?: {[id: string]: any };
+    lastUpdated?: Date;
 }
 
 //{ "issues":{ "17801":{ "id":"17801", "key":"YJD-12", "summary":"Verbesserungsvorschlag", "projectId":"10300" } } }
