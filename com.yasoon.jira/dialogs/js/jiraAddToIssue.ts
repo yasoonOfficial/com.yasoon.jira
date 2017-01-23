@@ -112,7 +112,10 @@ class AddToIssueDialog implements IFieldEventHandler {
 
 
         if (this.emailController) {
-            FieldController.setValue(FieldController.commentFieldId, this.emailController.getCurrentMailContent(true), true);
+            this.emailController.getCurrentMailContent(true)
+            .then((markup) => {
+                FieldController.setValue(FieldController.commentFieldId, markup, true);
+            });
         }
 
         // Resize Window to maximize Comment field
