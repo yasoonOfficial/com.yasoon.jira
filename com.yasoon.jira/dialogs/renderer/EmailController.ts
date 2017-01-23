@@ -363,12 +363,14 @@ class EmailController implements IFieldEventHandler {
                 }
             }
 
-            //Now we do not default email values anymore, so we have to merge the last template with the values of the selected template
+            //Now we would not default email values anymore, so we have to merge the last template with the variables of the selected template
             let templateController: TemplateController = jira.templateController;
             let currentTemplate = templateController.getTemplate(project.id, values.fields['issuetype'].id);
             if (currentTemplate) {
                 for (let fieldId in currentTemplate.fields) {
-                    fields[fieldId] = currentTemplate.fields[fieldId];
+                    if (templateController.containsVariable(currentTemplate.fields[fieldId])) {
+                        fields[fieldId] = currentTemplate.fields[fieldId];
+                    }
                 }
             }
 

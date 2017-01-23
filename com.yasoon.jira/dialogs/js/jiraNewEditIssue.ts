@@ -595,6 +595,8 @@ class NewEditDialog implements IFieldEventHandler {
 
         //Tempo
         FieldController.register('com.tempoplugin.tempo-accounts:accounts.customfield', TempoAccountField);
+        FieldController.register('com.tempoplugin.tempo-teams:team.customfield', TempoTeamField);
+        
         //com.atlassian.plugins.atlassian-connect-plugin:io.tempo.jira__account
 
         //Watcher Field

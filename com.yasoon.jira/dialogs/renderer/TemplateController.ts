@@ -153,7 +153,7 @@ class TemplateController implements IFieldEventHandler {
                             let value = template.fields[fieldId];
                             let renderedField = FieldController.getField(fieldId);
                             if (renderedField) {
-                                if (typeof value === 'string' && value.indexOf('<') === 0) {
+                                if (typeof value === 'string' && this.containsVariable(value)) {
                                     //Fixed variables
                                     value = this.getFixedValue(value, renderedField.constructor['name']);
                                 } else if (typeof value === 'string' && value.indexOf('|') === 0) {
@@ -220,7 +220,7 @@ class TemplateController implements IFieldEventHandler {
                 });
 
                 $('.trigger-sender-template').click((e) => {
-                    let projectId = $(e.target).data('projectId');
+                    let projectId = $(e.currentTarget).data('projectId');
                     this.dialogSelectedTemplate = senderTemplates.filter((t) => t.projectId == projectId)[0];
 
                     if (this.dialogSelectedTemplate) {
@@ -235,6 +235,10 @@ class TemplateController implements IFieldEventHandler {
             });
         });
 
+    }
+
+    containsVariable(value: string): boolean {
+        return (value.indexOf('<') === 0 && value.indexOf('>') > 0);
     }
 
     private getFixedValue(value: string, fieldType: string): any {

@@ -22,3 +22,4 @@
 /// <reference path="./../dialogs/renderer/fields/UserSelectField.ts" />
 /// <reference path="./../dialogs/renderer/fields/VersionSelectField.ts" />
 /// <reference path="./../dialogs/renderer/fields/plugins/tempo/TempoAccountField.ts" />
+/// <reference path="./../dialogs/renderer/fields/plugins/tempo/TempoTeamField.ts" />

@@ -17,15 +17,7 @@ class TempoAccountField extends Select2Field {
                 this.setData(elements);
             });
     }
-
-    getDomValue(): number {
-        let result = $('#' + this.id).val();
-        if (result)
-            return parseInt(result);
-
-        return null;
-    }
-
+    
     convertToSelect2(obj: any): Select2Element {
         return {
             id: obj.id,

@@ -4,7 +4,7 @@
         <h3 style="font-weight: bold"> Templates for {{senderMail}} </h3>
         {{#each senderTemplates }}
         <div>
-            <a class="trigger-sender-template" data-project-id="{{projectId}}"><span>{{templateName}}</span></a>
+            <a class="trigger-template trigger-sender-template" data-project-id="{{projectId}}"><span>{{templateName}}</span></a>
         </div>
         {{/each}}
     </div>
@@ -16,7 +16,7 @@
         <div>
             {{#each namedTemplates }}
             <div>
-                <a class="trigger-named-template"><span>{{templateName}}</span></a>
+                <a class="trigger-template  trigger-named-template"><span>{{templateName}}</span></a>
             </div>
             {{/each}}
         </div>
