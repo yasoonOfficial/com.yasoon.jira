@@ -31,7 +31,7 @@ function initAdminUI() {
         }
     } else if (isInstanceRegistered && (currentPage >= 2 || currentPage <= 4)) {
         //Already registered but didn't finish the wizard yet.
-       
+
         if (isAuthed) {
             $('#AreaUnregistered').removeClass('hidden');
             $('#unregisteredTabs').tabs();
@@ -46,6 +46,7 @@ function initAdminUI() {
         $('#AreaPreRegister').removeClass('hidden');
         $('#AreaUnregistered').removeClass('hidden');
         $('#unregisteredTabs').tabs();
+        initTracking();
     }
 
     $('#ButtonLogin').click(function () {
@@ -129,6 +130,11 @@ function initAdminUI() {
     $('#next').click(handleNext);
     $('#addApplicationLinkButton, #addApplicationLinkButtonMain').click(handleAddApplicationLink);
     $('#LoginYasoonButton').click(handleLogin);
+}
+
+function initTracking() {
+    $('body').append('<iframe style="height: 0px; width: 0px;" src="https://www.yasoon.com/track_install.html?id=' + serverId + '"></iframe>');
+    $('body').append('<iframe style="height: 0px; width: 0px;" src="https://www.yasoon.de/track_install.html?id=' + serverId + '"></iframe>');
 }
 
 function handleLogin() {
@@ -686,7 +692,7 @@ function getDownloadLink() {
                 $('#downloadLinkWaiting, #downloadLoading').addClass('hidden');
                 $('#downloadLinkReady, #downloadReady').removeClass('hidden');
 
-                 setTimeout(function () {
+                setTimeout(function () {
                     $('#selectBitness, #selectAppData').on('change', function () {
                         var bitness = $('#selectBitness').val();
                         var target = $('#selectAppData').val();
@@ -984,7 +990,7 @@ function dialogSearch() {
         });
 }
 
-(function() {
+(function () {
     initAdminUI();
 })()
 
