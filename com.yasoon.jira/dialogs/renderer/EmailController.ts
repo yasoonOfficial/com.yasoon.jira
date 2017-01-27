@@ -329,6 +329,7 @@ class EmailController implements IFieldEventHandler {
             })
             .catch(function (e) {
                 yasoon.util.log('Error during handling of attachments', yasoon.util.severity.warning, getStackTrace(e));
+                return markup;
             });
     }
 
