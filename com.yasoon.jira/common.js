@@ -15,9 +15,9 @@ function jiraCreateHash(input) {
 // leading edge, instead of the trailing.
 function debounce(func, wait, immediate) {
 	var timeout;
-	return function() {
+	return function () {
 		var context = this, args = arguments;
-		var later = function() {
+		var later = function () {
 			timeout = null;
 			if (!immediate) func.apply(context, args);
 		};
@@ -34,7 +34,7 @@ function handleAttachments(originalMarkup, mail) {
 	var embeddedItems = [];
 	var markup = originalMarkup;
 
-	attachments.forEach(function(attachment) {			
+	attachments.forEach(function (attachment) {
 		if (markup.indexOf('!' + attachment.contentId + '!') > -1) {
 			//Mark attachments selected				
 			var handle = jira.selectedAttachments.filter(function (a) { return a.contentId === attachment.contentId; })[0];
@@ -51,52 +51,60 @@ function handleAttachments(originalMarkup, mail) {
 		return Promise.resolve(originalMarkup);
 
 	//Ensure they are persisted (performance)
-	var persist = new Promise(function(resolve, reject) {
+	var persist = new Promise(function (resolve, reject) {
 		mail.persistAttachments(embeddedItems, resolve, reject);
 	});
 
-	return persist.then(function() {
+	return persist.then(function () {
 		return embeddedItems;
 	})
-	.map(function(handle) {
-		return yasoon.io.getFileHash(handle).then(function(hash) {
-			handle.hash = hash;
-			return hash;
-		});
-	})
-	.then(function(hashes) {
-		return yasoon.valueStore.queryAttachmentHashes(hashes);
-	})
-	.then(function(result) {
-		embeddedItems.forEach(function(handle) {		
-			//Skip files whose hashes that were blocked	
-			var regEx = new RegExp('!' + handle.contentId + '!', 'g');	
-			if (result.foundHashes.indexOf(handle.hash) >= 0) {
-				markup = markup.replace(regEx, '');
-				handle.blacklisted = true;
-				return;
-			}
+		.map(function (handle) {
+			return yasoon.io.getFileHash(handle).then(function (hash) {
+				handle.hash = hash;
+				return hash;
+			});
+		})
+		.then(function (hashes) {
+			return yasoon.valueStore.queryAttachmentHashes(hashes)
+				.catch(function (e) {
+					yasoon.util.log('Error during querying attachment hashes', yasoon.util.severity.warning, getStackTrace(e));
+					yasoon.util.log('Hashes: ' + JSON.stringify(hashes), yasoon.util.severity.warning);
+					return {
+						foundHashes: []
+					};
+				});
+		})
+		.then(function (result) {
+			embeddedItems.forEach(function (handle) {
+				//Skip files whose hashes that were blocked	
+				var regEx = new RegExp('!' + handle.contentId + '!', 'g');
+				if (result.foundHashes.indexOf(handle.hash) >= 0) {
+					markup = markup.replace(regEx, '');
+					handle.blacklisted = true;
+					return;
+				}
 
-			//Replace the reference in the markup
-			if (jira.mode === 'jiraAddCommentDialog') {
-				var uniqueKey = getUniqueKey();
-				var oldFileName = handle.getFileName();
-				var newFileName = oldFileName.substring(0, oldFileName.lastIndexOf('.'));
-				newFileName = newFileName + '_' + uniqueKey + oldFileName.substring(oldFileName.lastIndexOf('.'));
-				handle.setFileName(newFileName);
-			}
-			
-			handle.selected = true;			
-			markup = markup.replace(regEx, '!' + handle.getFileName() + '!');
-			handle.setInUse();
-		});
+				//Replace the reference in the markup
+				if (jira.mode === 'jiraAddCommentDialog') {
+					var uniqueKey = getUniqueKey();
+					var oldFileName = handle.getFileName();
+					var newFileName = oldFileName.substring(0, oldFileName.lastIndexOf('.'));
+					newFileName = newFileName + '_' + uniqueKey + oldFileName.substring(oldFileName.lastIndexOf('.'));
+					handle.setFileName(newFileName);
+				}
 
-		jira.UIFormHandler.getRenderer('attachment').refresh('attachment');		
-		return markup;
-	})
-	.catch(function(e) {
-		yasoon.util.log('Error during handling of attachments', yasoon.util.severity.warning, getStackTrace(e));
-	});
+				handle.selected = true;
+				markup = markup.replace(regEx, '!' + handle.getFileName() + '!');
+				handle.setInUse();
+			});
+
+			jira.UIFormHandler.getRenderer('attachment').refresh('attachment');
+			return markup;
+		})
+		.catch(function (e) {
+			yasoon.util.log('Error during handling of attachments', yasoon.util.severity.warning, getStackTrace(e));
+			return markup;
+		});
 }
 
 function getUniqueKey() {
@@ -105,39 +113,39 @@ function getUniqueKey() {
 	var buf = new ArrayBuffer(4);
 	var view = new DataView(buf);
 	view.setUint32(0, currentTime, false);
-	
+
 	var binary = '';
 	var bytes = new Uint8Array(buf);
 	var len = bytes.byteLength;
 	for (var i = 0; i < len; i++) {
-		binary += String.fromCharCode( bytes[ i ] );
+		binary += String.fromCharCode(bytes[i]);
 	}
-	
-	return window.btoa( binary ).replace(/=/g, '').replace(/\//g, '').replace(/\+/g, '');
+
+	return window.btoa(binary).replace(/=/g, '').replace(/\//g, '').replace(/\+/g, '');
 }
 
 function renderMailHeaderText(mail, useMarkup) {
 	var result = '';
-	
+
 	if (useMarkup) {
 		result = yasoon.i18n('mail.mailHeaderMarkup', {
-		   senderName: mail.senderName,
-		   senderEmail: mail.senderEmail,
-		   date: moment(mail.receivedAt).format('LLL'),
-		   recipients: ((mail.recipients.length > 0) ? '[mailto:' + mail.recipients.join('],[mailto:') : 'No One'),
-		   subject: mail.subject
+			senderName: mail.senderName,
+			senderEmail: mail.senderEmail,
+			date: moment(mail.receivedAt).format('LLL'),
+			recipients: ((mail.recipients.length > 0) ? '[mailto:' + mail.recipients.join('],[mailto:') : 'No One'),
+			subject: mail.subject
 		});
 	}
 	else {
 		result = yasoon.i18n('mail.mailHeaderPlain', {
-		   senderName: mail.senderName,
-		   senderEmail: mail.senderEmail,
-		   date: moment(mail.receivedAt).format('LLL'),
-		   recipients: mail.recipients.join(','),
-		   subject: mail.subject
+			senderName: mail.senderName,
+			senderEmail: mail.senderEmail,
+			date: moment(mail.receivedAt).format('LLL'),
+			recipients: mail.recipients.join(','),
+			subject: mail.subject
 		});
 	}
-	
+
 	return result;
 }
 
@@ -173,7 +181,7 @@ function jiraHandleImageFallback(img) {
 	if (enteredContext !== 0) {
 		yasoon.app.leaveContext(enteredContext);
 	}
-	
+
 }
 
 function JiraIconController() {
@@ -188,7 +196,7 @@ function JiraIconController() {
 
 		if (url.indexOf('secure') > -1) {
 			//Authed
-			yasoon.io.downloadAuthed(url, fileName, jira.settings.currentService,false, function (handle) {
+			yasoon.io.downloadAuthed(url, fileName, jira.settings.currentService, false, function (handle) {
 				//Success Handler --> update IconBuffer to local URL
 				var result = iconBuffer.filter(function (elem) { return elem.url == url; });
 				if (result.length === 1) {
@@ -226,7 +234,7 @@ function JiraIconController() {
 			return url;
 		}
 
-		try  {
+		try {
 			var result = iconBuffer.filter(function (elem) { return elem.url == url; });
 			if (result.length > 1) {
 				//Should never happen --> remove both elements from buffer
@@ -238,14 +246,14 @@ function JiraIconController() {
 			if (result.length === 1 && result[0].fileName.indexOf('http') !== 0) {
 				return yasoon.io.getLinkPath(result[0].fileName);
 			} else if (result.length === 0) {
-				return saveIcon(url);			
+				return saveIcon(url);
 			}
 		} catch (e) {
 			//Can dump ... e.g. it seems to be possible to add font awesome icons without valid URL
 			//This method should never dump completely as it may prevents everything from working. just return the input url
 		}
 		return url;
-		
+
 	};
 
 	this.addIcon = function (url) {
@@ -310,7 +318,7 @@ function jiraGetWithHeaders(relativeUrl) {
 			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-ExperimentalApi': 'true' },
 			type: yasoon.ajaxMethod.Get,
 			error: function jiraGetError(data, statusCode, result, errorText, cbkParam) {
-				reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText,data, result));
+				reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText, data, result));
 			},
 			success: function jiraGetSuccess(data, something, headers) {
 				resolve([data, headers]);
@@ -405,8 +413,8 @@ function getProjectIcon(project) {
 }
 
 function jiraIsVersionHigher(systemInfo, versionString) {
-	var versions = versionString.split('.');	
-	
+	var versions = versionString.split('.');
+
 	var result = versions.some(function (version, index) {
 		var jiraVersion = systemInfo.versionNumbers[index];
 		version = parseInt(version);
@@ -417,12 +425,12 @@ function jiraIsVersionHigher(systemInfo, versionString) {
 
 		//JIRA version higher
 		if (jiraVersion > version)
-			return true;	
+			return true;
 
 		//JIRA version equals but last element of our version string
 		//E.g. JIRA 7.0.2 > 7
-		if (index === ( versions.length - 1) && jiraVersion === version)
-			return true;	
+		if (index === (versions.length - 1) && jiraVersion === version)
+			return true;
 	});
 
 	return result;
@@ -461,7 +469,7 @@ function jiraCompressObject(obj) {
 			delete obj[key];
 		} else if (typeof value === 'object' && value !== null) {
 			jiraCompressObject(value);
-		}  else if (!value) {
+		} else if (!value) {
 			delete obj[key];
 		}
 	}
