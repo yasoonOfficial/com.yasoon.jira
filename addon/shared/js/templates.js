@@ -503,17 +503,8 @@ function defaultTemplatesViewModel(groups) {
         if (data && data.length > 0) {
             self.entries([]);
             data.forEach(function (template) {
-                if (template.group === -1 && template.projectId === -1 && template.issueTypeId === -1) {
-                    genericTemplateExist = true;
-                }
                 self.entries.push(new defaultTemplate(self, template));
             });
-
-        }
-        if (!genericTemplateExist) {
-            var dataNew = (data) ? JSON.parse(JSON.stringify(data)) : '';
-            console.log('Add new Default template', dataNew);
-            self.entries.push(new defaultTemplate(self, globalDefaultTemplate));
         }
         self.checkEmptyLines();
     };

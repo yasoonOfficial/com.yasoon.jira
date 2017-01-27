@@ -99,8 +99,8 @@
     <servlet key="admin-servlet" class="com.yasoon.jira.AdminUIServlet">
         <url-pattern>/jiraforoutlook/admin</url-pattern>
         <url-pattern>/jiraforoutlook/settings</url-pattern>  
-        <url-pattern>/jiraforoutlook/templates</url-pattern>
-        <url-pattern>/jiraforoutlook/ressources/*</url-pattern>            
+        <url-pattern>/jiraforoutlook/templates</url-pattern>  
+        <url-pattern>/jiraforoutlook/proxy</url-pattern>          
     </servlet>
     
     <servlet key="system-info-servlet" class="com.yasoon.jira.SystemInfoServlet">

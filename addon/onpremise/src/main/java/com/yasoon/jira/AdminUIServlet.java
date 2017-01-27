@@ -32,6 +32,14 @@ public class AdminUIServlet extends HttpServlet {
     
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        //Proxy Url can be opened without user credentials
+        if(request.getRequestURI().endsWith("proxy")) {
+            response.setContentType("text/html;charset=utf-8");
+            renderer.render("proxy.vm", response.getWriter());
+            return;
+        }
+
+        //Normal flow
         String username = userManager.getRemoteUsername(request);
         if (username == null || !userManager.isSystemAdmin(username)) {
             redirectToLogin(request, response);

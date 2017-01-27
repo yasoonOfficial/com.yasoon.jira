@@ -3,7 +3,7 @@
 		<div class="afterSetup z-depth-1">
 			<div class="row">
 				<div class="s12 heading-col">
-					<h5>Issue Templates</h5>
+					<h5 class="custom-red">Issue Templates</h5>
 					<p>
 						Here you can define issue templates based on selected criterias. These templates will be executed automatically during issue
 						creation process in Outlook to set default values. <br /> The templates are - in contrast to all other settings - JIRA instance specific and will be distributed to the client
@@ -15,7 +15,7 @@
 				<div class="s12 heading-col">
 					<ul id="TemplatesCollapsible" class="collapsible popout" data-collapsible="expandable">
 						<li>
-							<div class="collapsible-header"><i class="material-icons">people_outline</i>Group Hierarchy</div>
+							<div class="collapsible-header"><i class="material-icons custom-red">people_outline</i>Group Hierarchy</div>
 							<div class="collapsible-body" data-bind="with:groupHierarchy" style="padding: 0px 20px;">
 								<p>Issue Templates can be defined dependend on user groups. It is completely optional. However if you like JIRA to Outlook to pick issue templates 
 									automatically based on the group of user, you'll have to pick all relevant groups here first. 
@@ -24,7 +24,7 @@
 								</p>
 								<div style="padding: 0px 2rem; width: 100%; max-width: 500px;">
 									<div vlass="collection-header">
-										<h4>Groups</h4>
+										<h6>Groups</h6>
 									</div>
 									<!-- ko if: forceRerender -->
 									<ul class="collection" data-bind="sortable: groups" style="width: 100%; max-width: 600px;">
@@ -51,7 +51,7 @@
 							</div>
 						</li>
 						<li>
-							<div class="collapsible-header"><i class="material-icons">list</i>Initial Key Selection</div>
+							<div class="collapsible-header"><i class="material-icons custom-red">list</i>Initial Key Selection</div>
 							<div class="collapsible-body" data-bind="with:initialSelection" style="padding: 0px 20px;">
 								<p>Here you can define initial key values that are selected when user opens the "New Issue" dialog in Outlook.
 									<br /> This can either be done for all users ( Group: All Others) or groups defined in the hierarchy above.
@@ -102,12 +102,13 @@
 							</div>
 						</li>
 						<li>
-							<div class="collapsible-header"><i class="material-icons">assignment</i> Issue Templates</div>
+							<div class="collapsible-header"><i class="material-icons custom-red">assignment</i> Issue Templates</div>
 							<div class="collapsible-body" data-bind="with:defaultTemplates" style="padding: 0px 20px;">
 								<p>Here you can define issue templates. The fields will be inserted as soon as the user selects criteria that matches
 									the key fields. Again these templates can be made group specific if these groups are defined in the group hierarchy above. <br />
+									<span style="display: flex;align-items: center;"><i class="material-icons yellow-text text-darken-2" style="margin-right: 10px;">warning</i> Caution: Usually the default template is responsible to map mail data (Subject, Body, etc) into the issue.
+									 If you create a new template, make sure these data are still present.</span>
 									Optional: You can give a template a unique name, so users can select the template manually.
-
 								</p>
 								<div style="padding: 0px 2rem;">
 									<table class="responsive-table centered">

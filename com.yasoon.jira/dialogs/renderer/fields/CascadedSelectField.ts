@@ -1,6 +1,7 @@
 /// <reference path="../Field.ts" />
 /// <reference path="Select2Field.ts" />
 /// <reference path="../../../definitions/jquery.d.ts" />
+/// <reference path="../../../definitions/common.d.ts" />
 
 class CascadedSelectField extends Field implements IFieldEventHandler {
     private parentField: SingleSelectField;

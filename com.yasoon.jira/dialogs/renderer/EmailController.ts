@@ -62,7 +62,7 @@ class EmailController implements IFieldEventHandler {
                 return this.bodyAsMarkup;
             });
 
-        this.bodyPlain = jira.mail.getBody(0).replace(/\r/g, '').replace(/\n\n/g, '\n');
+        this.bodyPlain = mail.getBody(0).replace(/\r/g, '').replace(/\n\n/g, '\n');
 
         if (this.type === 'selectedText') {
             this.selectionPlain = this.mail.getSelection(0).replace(/\r/g, '').replace(/\n\n/g, '\n');

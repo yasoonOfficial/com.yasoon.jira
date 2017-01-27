@@ -56,6 +56,10 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				yasoon.setting.setAppParameter('settings', JSON.stringify(settings));
 			}
 		}
+
+		if (action === yasoon.lifecycle.Upgrade && newVersion === '1.4.0') {
+			yasoon.setting.setAppParameter('createTemplates', '{}');
+		}
 		jira.downloadScript = true;
 	};
 
@@ -130,13 +134,18 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		//Settings Check, Do not sync regularly if turned off.
 		//If sync is turned off, we still need to sync data if task sync is active
 		//+ For intial sync
-		if (!self.firstTime) {
+		if (!self.firstTime && !jira.settings.syncTasks) {
 			if (jira.settings.syncFeed == "manual" && source != 'manualRefresh')
 				return;
 
-			if (jira.settings.syncFeed == "off" && !jira.settings.syncTasks)
+			if (jira.settings.syncFeed == "off")
 				return;
 		}
+
+		if (self.firstTime && jira.settings.syncFeed == 'off' && !jira.settings.syncTasks) {
+			return self.initData();
+		}
+
 		return jira.queue.add(self.syncData, source);
 	};
 
@@ -336,8 +345,8 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 
 	this.initData = function initData() {
+		var recentProjects = [];
 		//First Get Own User Data
-		var detailedProjects = [];
 		jiraLog('Get Own Data');
 		if (jira.firstTime) {
 			return jiraGetWithHeaders('/rest/api/2/serverInfo')
@@ -367,20 +376,42 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 							var projects = JSON.parse(projectData);
 
 							//Clear detailed project data, will be filled in next step
-							jira.data.projects = [];
+							jira.data.projects = projects;
 							return projects;
 						})
-						.tap(self.cleanDeletedProjects)
+						.then(self.cleanDeletedProjects)
+						.then(function (projects) {
+							var recentString = yasoon.setting.getAppParameter('recentProjects');
+							if (recentString) {
+								recentProjects = JSON.parse(recentString);
+							}
+
+							if(projects.length > 10) {
+								return recentProjects;
+							} else {
+								return projects;
+							}
+						})
 						.each(function (project) {
 							//Get detailed information for each project
 							return jiraGet('/rest/api/2/project/' + project.key)
 								.then(function (singleProject) {
 									var proj = JSON.parse(singleProject);
-									detailedProjects.push(proj);
+									var foundIndex = -1;
+									 jira.data.projects.some(function(p, index) {
+										 if(p.id == proj.id) {
+											 foundIndex = index;
+											 return true;
+										 }
+										 return false;
+									 });
+									 if(foundIndex > -1) {
+										 jira.data.projects[foundIndex] = proj;
+									 }
 								});
 						})
 						.then(function () {
-							jira.data.projects = detailedProjects;
+							console.log(jira.data.projects);
 							jira.settings.renderSettingsContainer();
 						});
 				})
@@ -435,6 +466,8 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			if (recent.length !== newRecent.length)
 				yasoon.setting.setAppParameter('recentProjects', JSON.stringify(newRecent));
 		}
+
+		return projects;
 	};
 
 	this.loadProjectCache = function loadProjectCache() {
