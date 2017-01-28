@@ -66,7 +66,8 @@ gulp.task('build', function () {
         .pipe(ts({
             "experimentalDecorators": true,
             "allowJs": true,
-            "target": "es5"
+            "target": "es5",
+			"module": "None",
         }))
         .pipe(gulp.dest('js/'));
 });

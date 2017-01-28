@@ -1,14 +1,16 @@
 {
-  "name":"command-demo",
+  "name": "com.yasoon.jira.online",
   "version": "0.1.0",
-  "scripts": {
+  "dependencies": {
+    "oauth-1.0a": "^2.1.0"
   },
+  "scripts": {},
   "devDependencies": {
     "chalk": "^1.1.1",
     "gulp": "^3.9.0",
     "gulp-webserver": "^0.9.1",
     "minimist": "^1.2.0",
     "xmllint": "git+https://github.com/kripken/xml.js.git",
-	"typescript": "^2.1.4"
+    "typescript": "^2.1.4"
   }
 }
