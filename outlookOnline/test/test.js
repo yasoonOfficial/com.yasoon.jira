@@ -73,5 +73,5 @@ request({
     method: request_data.method,
     form: oauth.authorize(request_data)
 }, function(error, response, body) {
-    console.log('res');
+    console.log('res', body);
 });
