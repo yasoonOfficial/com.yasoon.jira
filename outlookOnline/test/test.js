@@ -1,35 +1,35 @@
-let pem = `-----BEGIN PRIVATE KEY-----
-MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDeKTteHwLVwVuy
-IvmFl9BnQYMgprY9uQZSD1g+196qftfVQLqxJnOPiaX1Q48MXGxcCY2jQlMGMVl/
-lGfJYraxoInSIoTj5jxOOW2iwnkzB3RKbVBvaawl1czjVqe7lxe3gsLqXPG9ozku
-bpk38+dFAYEm6OxRC2mmYT8TSfIPNZm1ypxUmwYVERmPOVdtAJGzppfnsc5jUaGg
-QL6h9IbLvKNhtO8+Dk+dsEE8wEha3tJbG7N3Yp1XanqUzjqervlVw4d8bePgqLaT
-2q9VAzN+IXtz5LIeCra5vqDuXiflE3YOOrDMKACAmKyc7j7ojVGVJMkCV8Ib99pG
-CH0WTSlRAgMBAAECggEAMnfbbL5OvpB2bDlVxet/BHX1e+1jaRInRW0G9v/DLagz
-D9bskmHRzsHOWbFHRd+ZHi9tZbEjezyqwDjOewlZx3BY3svItJ0RBhQ1u8vCDL2c
-xWuf4i93VAEF0n9VC2B/msixztvebt4tl0a4t+VInHyDAnvXc3HMRmfBFHiv7JQs
-NWLqD07uhA99kfc62f3/KvH7pTXl9jKgIq3s7LtNtK3ejvhEbyfDN0urBXeKbu0c
-rEYIz4pMZbBTX1KWdhcxtk/PNHWzMwFwXFPMvUpm1bZm4DtXGV8LWdieTXBvmgNJ
-3ddz14JWGQpGeU9MxKQtykqrnorgNI4BBdXUbX1HoQKBgQD2icKuStFIs3igg14X
-ewFzlwvgBu5NOR9m/3GYOdtzH3BWRf/DEzBeaA8Q13fouCp2cOIfwBSQBle68CDF
-rl/TD3c/BhrVyu/VwdvdI4etHY8M5M0GikP2Zq49xGDYBKc7vWWJ+tTJ3Zm1SWJE
-tbZCgcBDuWC3wmEuF3ecKLCw9wKBgQDmr/dunnlN5+ONhI1Ox+NysfmowpyFOKFE
-2p4vcJ9udpaHNo1b6S2vvzWTsdwdfs8fFuKwXszQpxrYr3E+UMeErxfHFPwfZ8QZ
-q9HSCXeaLxkGT8bL0qxlYbb4c1S2utGuQoDviUZS6oVe/DvzQLenPnDv356cT7cK
-e3thWkEt9wKBgAEkwnJshmv/6R9VfKo/N9KBcNypK5HQIgUoSi6alhoCm1LLIFSX
-UjId6XP6i+PYdtn1zBa5nV7NqLqFQqGoHWmtOLBiJt23A0XKkGqGL6rt6Cv3I7xU
-B9ysvUIsFwbpfp0YU9BACZymGoBsxrfq392PHIUz5u7zR+Ae278tsSQhAoGAEgou
-ukrQR6RbqiR0fHWrNrvuPyFA5jYgfmbuOd1/yj6h1N8SPN7GQNkeEne1M+VHwzGh
-9pLjR2nZ8pn9rBbbE2gx3tKoSLhvoGZMWTV+UeNe/Jxeem/2JVN34IP8WvHPFeaD
-eLfudOt8FIp7EbG86uo6ILgHCkg9kydG5b0OHc8CgYEApbGYIOwvCVvDT7JwFdcE
-Oh0QicUl/a+88GEL9f67255MC4TTZI2J1ocm2u+BcT9t2SIvbNmg87668LNt0ob+
-QLBeK4XngocMd4l0gJBfwtFjDJfyzysS3XvPSCNU0SzbWp+EOngDn73vagFbJgfH
-vRvu7Ag7Si7q5CY8PW9FOV0=
+var pem = `-----BEGIN PRIVATE KEY-----
+MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDO5xVBoQ+umzly
+p/EChGrxwDFSMBheMVyTqxUVkiDRRriUbUHh8rHhOvcasIfPXvV1+hFuqhF7dviM
+CL22hRkZFaHRCHxZsiNI1+yktWgIpvn0ltb4SnyGBcwzpPs+1dU/z8Xiy0RrWYn2
+698v5gfgtAtEn1NlguKI3NvFzm7NmheXO6IQ2J+P/pVDQ8Ke+wkgEXYMX5/VhV1k
+gq256P4PPSsNA/iuA3j46xOshgvdA0OLc3pGf3w+SXqJ/cORuerwxrh7+dntOFTA
+7ZqC2zOmE5LT7xyuGPuYDMpQqo7QhoE5RDc3ZLdvYZeAzgCR06a8RobWlYzU37sS
+3QLCi2NnAgMBAAECggEASktmMZvREsTAWzB89YdxE4AM9dM5XNFiyc+8EXPYfu1j
+KEEXUDgisZrH0nijO86AW63BBrjg8DGnTDlzTg/7FCvVYEcox9iUnPqUCgzt33V9
++dsUNDIjBskcK0tJwKVuHqzQBQEyf022ocjO6tcx6vkbtrdzbdcS20xbSms3FHJk
+OdFL2A0uop+AwLPP8oxTH/L9XwKaoZABCcYtXcbZvGbi/BOLvHuoftpICsgtvSVn
+y+LJFk6SNhsRDzQ2ZX79EmBxUUiggKJFIMvb6QlXodFaVbRt+qrGLWAqkBCwME1h
+2Eyl+RSaLtAYNjg01Cztplg9/yVujMI2nL3FT9IVsQKBgQDto+ePL2T5h/8lLMpL
+F6r0fzU1/3/Zw43C+FCwMahbAhFGAXQS9MCy6ta4XnP92OhDUzpgt60Q+bYMmdPD
+/6ilRjryIcfRA6gyLsNDISN7YPQYY36rJZaqfSCth9Onv5lLH84fTx4zkptCwZUo
+O1Lp0HogI7PJMz/j2XXsDaaKiQKBgQDe4z6ahNgaQe8xQJQReZTV0yC/ZGQA/Eee
+JTvHgsoJIYz6zWAv3sESSOxCnw6wC57vGtWVxtPOSTqSx7cmLlSleojGlXCC7o8E
+ZMq+4+gqJ1PNKxpuj/lqInUPf+L2w3/OZlKB4xdSbTxv2jToFejxiWIdtjS8kbkK
+s3biKy5CbwKBgC7CBErhGW4buzE2WetikcmfyfmA90gCuT72mvHAI48cngd3O76L
+F+tcV7lZJFt7NWAh3SewnEXtzEs4bTlwcV9rrSd9TBKtNIgDOXpY5+Fb10uBMCg+
+siGDk01xn0yvX1svu9/fMmMVYqVE77NF0O+ejJkMTVC2W8jaPeCfYvh5AoGAXpxh
+l5+qR8MTMHn0IFLWrck4DmYj2RM9p1CwxmirMCMQv+lr2gYZOJTBzSnNR0c3iNGA
+Nlq2z8rf1Sx3fvqNrcyMwJbwsnNnO/s44LzHcRVOijmwt5vfyICl5hVoF003NDrU
+7ROjc7awv94FNTsPrW+euXP9gMnunS8+2JRxx3sCgYBJjNxT8ALKZGKVHVYBR+dC
+L1e0djEho4p/b18RD7w4FlGtfmJ/1/GAlDFv+Wn0sgSLPZfxQ2qUTylqT8sPsxxr
+1qC0h1leLHcTeU8dA1EMVWi/XSwVrJ/LjlACZS7JLuycTO4s2NAsRvIZtJtICrLN
+7brd5k6eijg3W9KgKdrh5g==
 -----END PRIVATE KEY-----`;
 
-let request = require('request');
-let OAuth   = require('oauth-1.0a');
-let KJUR  = require('jsrsasign');
+var request = require('request');
+var OAuth   = require('oauth-1.0a');
+var KJUR  = require('jsrsasign');
 
 function hashFunction(baseString, key) {
     //Der key der hier reinkommt ist encoded :S Können wir nicht im sig.init verwenden...
@@ -42,15 +42,16 @@ function hashFunction(baseString, key) {
 
     sig.updateString(baseString);
     // calculate signature
-    let hex = sig.sign();
+    var hex = sig.sign();
     return hexToBase64(hex);
 }
 
 function hexToBase64(str) {
-  return Buffer.from(str, 'hex').toString('base64');
+  //return Buffer.from(str, 'hex').toString('base64');
+  return new Buffer(str, 'hex').toString('base64');
 }
 
-let oauth = OAuth({
+var oauth = OAuth({
     consumer: {
         key: 'yasoonjira',
         secret: pem
@@ -60,8 +61,8 @@ let oauth = OAuth({
     last_ampersand: false
 });
 
-let request_data = {
-    url: 'https://yasoon.atlassian.net/plugins/servlet/oauth/request-token',
+var request_data = {
+    url: 'https://yasoonbox.synology.me:8080/plugins/servlet/oauth/request-token',
     method: 'POST',
     data: {
       oauth_callback: 'oob'
