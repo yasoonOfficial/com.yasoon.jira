@@ -1,7 +1,6 @@
 /// <reference path="../Field.ts" />
 /// <reference path="../FieldController.ts" />
 /// <reference path="Select2AjaxField.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
 /// <reference path="../getter/GetOption.ts" />

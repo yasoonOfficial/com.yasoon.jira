@@ -1,4 +1,3 @@
-/// <reference path="../../definitions/jquery.d.ts" />
 /// <reference path="../../definitions/bluebird.d.ts" />
 /// <reference path="../../definitions/jira.d.ts" />
 /// <reference path="../../definitions/common.d.ts" />

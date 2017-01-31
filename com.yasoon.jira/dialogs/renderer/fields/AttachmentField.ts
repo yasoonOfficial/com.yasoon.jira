@@ -1,6 +1,5 @@
 /// <reference path="../Field.ts" />
 /// <reference path="../FieldController.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/handlebars.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
 /// <reference path="../Bootbox.ts" />

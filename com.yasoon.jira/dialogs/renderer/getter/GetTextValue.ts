@@ -1,5 +1,4 @@
 /// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
 
 class GetTextValue implements FieldGetter {

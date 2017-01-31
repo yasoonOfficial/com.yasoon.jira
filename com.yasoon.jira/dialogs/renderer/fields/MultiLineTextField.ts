@@ -1,5 +1,4 @@
 /// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../getter/GetTextValue.ts" />
 /// <reference path="../setter/SetValue.ts" />
 /// <reference path="../Bootbox.ts" />

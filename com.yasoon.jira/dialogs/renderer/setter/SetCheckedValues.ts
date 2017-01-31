@@ -1,5 +1,4 @@
 /// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
 
 class SetCheckedValues implements FieldSetter {
     setValue(field: Field, value: any):Promise<any> {

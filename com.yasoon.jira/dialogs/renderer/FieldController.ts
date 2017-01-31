@@ -1,5 +1,3 @@
-/// <reference path="../../definitions/jquery.d.ts" />
-
 declare var jira: any;
 
 namespace FieldController {

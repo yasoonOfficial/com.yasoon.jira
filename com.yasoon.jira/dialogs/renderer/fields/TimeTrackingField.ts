@@ -1,5 +1,4 @@
 /// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
 
 class TimeTrackingField extends Field {
 	private origField: SingleTextField;

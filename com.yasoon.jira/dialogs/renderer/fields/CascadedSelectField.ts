@@ -1,21 +1,20 @@
 /// <reference path="../Field.ts" />
 /// <reference path="Select2Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/common.d.ts" />
 
 class CascadedSelectField extends Field implements IFieldEventHandler {
-    private parentField: SingleSelectField;
-    private childField: SingleSelectField;
+    private parentField: JiraSelectField;
+    private childField: JiraSelectField;
 
     constructor(id: string, field: JiraMetaField) {
         super(id, field);
 
-        this.parentField = new SingleSelectField(id + '_parent', field, {}, "min-width: 150px; width: 45%;");
+        this.parentField = new JiraSelectField(id + '_parent', field, {}, 'min-width: 150px; width: 45%;');
         FieldController.registerEvent(EventType.FieldChange, this, id + '_parent');
         let childFieldMeta: JiraMetaField = JSON.parse(JSON.stringify(field));
         childFieldMeta.allowedValues = [];
 
-        this.childField = new SingleSelectField(id + '_child', childFieldMeta, {}, "min-width: 150px; width: 45%; ");
+        this.childField = new JiraSelectField(id + '_child', childFieldMeta, {}, 'min-width: 150px; width: 45%;');
         FieldController.registerEvent(EventType.FieldChange, this, id + '_child');
     }
 

@@ -1,22 +1,23 @@
 /// <reference path="../Field.ts" />
 /// <reference path="Select2Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../getter/GetOption.ts" />
 /// <reference path="../setter/SetOptionValue.ts" />
 
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
-class SingleSelectField extends Select2Field {
+class JiraSelectField extends Select2Field {
 
-    constructor(id: string, field: JiraMetaField, options: any = {}, style: string = "min-width: 350px; width: 80%;") {
+    constructor(id: string, field: JiraMetaField, options: any = { multiple: false }, style: string = 'min-width: 350px; width: 80%;') {
 
-        super(id, field, options, false, style);
+        super(id, field, options, options.multiple, style );
 
         //Default value or None?
-        let placeholder: string = (field.hasDefaultValue && !jira.isEditMode) ? yasoon.i18n('dialog.selectDefault') : yasoon.i18n('dialog.selectNone');
+        if (options.multiple) {
+            let placeholder: string = (field.hasDefaultValue && !jira.isEditMode) ? yasoon.i18n('dialog.selectDefault') : yasoon.i18n('dialog.selectNone');
+            this.options.placeholder = placeholder;
+        }
+        this.options.data = (field.allowedValues) ? field.allowedValues.map(this.convertToSelect2) : [];
 
-        this.options.data = field.allowedValues.map(this.convertToSelect2);
-        this.options.placeholder = placeholder;
     }
 
     convertToSelect2(obj: JiraValue): Select2Element {

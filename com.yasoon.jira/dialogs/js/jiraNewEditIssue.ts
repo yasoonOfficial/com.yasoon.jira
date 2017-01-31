@@ -1,4 +1,3 @@
-/// <reference path="../../definitions/jquery.d.ts" />
 /// <reference path="../../definitions/bluebird.d.ts" />
 /// <reference path="../../definitions/jira.d.ts" />
 /// <reference path="../../definitions/common.d.ts" />
@@ -8,13 +7,6 @@
 /// <reference path="./../renderer/EmailController.ts" />
 /// <reference path="./../renderer/TemplateController.ts" />
 /// <reference path="./../renderer/RecentItemController.ts" />
-/// <reference path="./../renderer/Field.ts" />
-/// <reference path="./../renderer/fields/AttachmentField.ts" />
-/// <reference path="./../renderer/fields/IssueTypeField.ts" />
-/// <reference path="./../renderer/fields/IssueField.ts" />
-/// <reference path="./../renderer/fields/RequestTypeField.ts" />
-/// <reference path="./../renderer/fields/ProjectField.ts" />
-/// <reference path="./../renderer/fields/UserSelectField.ts" />
 
 var jira: any = null; //Legacy
 
@@ -578,11 +570,11 @@ class NewEditDialog implements IFieldEventHandler {
         FieldController.register('labels', LabelSelectField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:labels', LabelSelectField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:float', NumberField);
-        FieldController.register('priority', SingleSelectField);
-        FieldController.register('security', SingleSelectField);
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:select', SingleSelectField);
-        FieldController.register('components', MultiSelectField);
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:multiselect', MultiSelectField);
+        FieldController.register('priority', JiraSelectField);
+        FieldController.register('security', JiraSelectField);
+        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:select', JiraSelectField);
+        FieldController.register('components', JiraSelectField, { multiple: true });
+        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:multiselect', JiraSelectField, { multiple: true });
         FieldController.register('fixVersions', VersionSelectField, { multiSelect: true, releasedFirst: false });
         FieldController.register('versions', VersionSelectField, { multiSelect: true, releasedFirst: true });
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:multiversion', VersionSelectField, { multiSelect: true, releasedFirst: true });
@@ -603,8 +595,15 @@ class NewEditDialog implements IFieldEventHandler {
         //Tempo
         FieldController.register('com.tempoplugin.tempo-accounts:accounts.customfield', TempoAccountField);
         FieldController.register('com.tempoplugin.tempo-teams:team.customfield', TempoTeamField);
+        //In Cloud we also have this one?!: com.atlassian.plugins.atlassian-connect-plugin:io.tempo.jira__account
 
-        //com.atlassian.plugins.atlassian-connect-plugin:io.tempo.jira__account
+        //Teamlead
+        FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:company-select-field', TeamLeadCompanyField);
+        FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:companies-select-field', TeamLeadCompanyField, { multiple: true });
+        FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contact-select-field', TeamLeadProductField);
+        FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contacts-field', TeamLeadProductField, { multiple: true });
+        FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:single-product-select-field', TeamLeadProductField);
+        FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:multi-products-select-field', TeamLeadProductField, { multiple: true });
 
         //Watcher Field
         FieldController.register('com.burningcode.jira.issue.customfields.impl.jira-watcher-field:watcherfieldtype', UserSelectField, { multiple: true });

@@ -1,6 +1,5 @@
 /// <reference path="../Field.ts" />
 /// <reference path="Select2Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../../../definitions/bluebird.d.ts" />
 abstract class Select2AjaxField extends Select2Field {
 	options: any;

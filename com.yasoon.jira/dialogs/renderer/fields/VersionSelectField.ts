@@ -1,6 +1,5 @@
 /// <reference path="../Field.ts" />
 /// <reference path="Select2Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../getter/GetOption.ts" />
 /// <reference path="../setter/SetOptionValue.ts" />
 

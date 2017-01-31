@@ -1,5 +1,5 @@
 /// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
+
 class SetOptionValue implements FieldSetter {
     setValue(field: Field, value: any): Promise<any> {
         let selectField = <Select2Field>field;

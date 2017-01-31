@@ -1,5 +1,4 @@
 /// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
 /// <reference path="../getter/GetObjectArray.ts" />
 /// <reference path="../setter/SetCheckedValues.ts" />
 

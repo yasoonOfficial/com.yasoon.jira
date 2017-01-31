@@ -1,5 +1,4 @@
 /// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
 
 abstract class Select2Field extends Field {
 	options: Select2Options;

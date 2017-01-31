@@ -1,5 +1,4 @@
 /// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/jquery.d.ts" />
 
 class GetArray implements FieldGetter {
     getValue(field: Field, onlyChangedData: boolean) {
