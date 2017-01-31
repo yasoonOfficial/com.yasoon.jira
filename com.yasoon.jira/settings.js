@@ -23,7 +23,6 @@ function JiraSettingController() {
 		syncCalendar: false,
 		syncFeed: 'auto',
 		syncTask: false,
-		taskSyncEnabled: false,
 		tasksActiveProjects: '',
 		deleteCompletedTasks: false,
 		tasksSyncAllProjects: true,
@@ -287,6 +286,22 @@ function JiraSettingController() {
 	var sysInfoString = yasoon.setting.getAppParameter('systemInfo');
 	if (sysInfoString) {
 		jira.sysInfo = JSON.parse(sysInfoString);
+	}
+
+	//Load TaskSync Settings
+	self.taskSyncEnabled = (yasoon.setting.getAppParameter('taskSyncEnabled') == 'true');
+
+	//Load Temlead CRM Settings
+	var teamleadCrmDataString = yasoon.setting.getAppParameter('teamlead');
+	if(teamleadCrmDataString) {
+		self.teamlead = JSON.parse(teamleadCrmDataString);
+	}
+	
+	//Merge company defaults
+	var defaultSettingsString = yasoon.setting.getAppParameter('defaultSettings');
+	if(defaultSettingsString) {
+		var def = JSON.parse(defaultSettingsString);
+		defaults = $.extend(defaults, def);
 	}
 
 	//Determine settings to load:

@@ -151,7 +151,7 @@ function templateViewModel() {
             }))
                 .then(function () {
                     notyfy({
-                        text: 'Save Successfull',
+                        text: 'Save Successful',
                         type: 'success',
                         dismissQueue: true,
                         timeout: 1500,
@@ -196,9 +196,15 @@ function templateViewModel() {
             if (!ownData) {
                 ownData = data.overwrite;
             }
-            self.groupHierarchy.load(ownData.groups);
-            self.initialSelection.load(ownData.initialSelection);
-            self.defaultTemplates.load(ownData.defaultTemplates);
+            if (ownData.groups) {
+                self.groupHierarchy.load(ownData.groups);
+            }
+            if (ownData.initialSelection) {
+                self.initialSelection.load(ownData.initialSelection);
+            }
+            if (ownData.defaultTemplates) {
+                self.defaultTemplates.load(ownData.defaultTemplates);
+            }
         })
         .caught(function (e) {
             console.log(e, e.stack);
@@ -463,7 +469,7 @@ function defaultTemplatesViewModel(groups) {
         var params = null;
         if (defaultTempl) {
             var initFields = {};
-            ko.toJS(defaultTempl.fields).forEach(function(field) {
+            ko.toJS(defaultTempl.fields).forEach(function (field) {
                 initFields[field.fieldId] = field.fieldValue;
             });
             params = {
@@ -615,8 +621,8 @@ function getFieldMeta(projectId, issueTypeId, fieldId) {
         if (result.projects && result.projects.length > 0) {
             var project = result.projects[0];
             if (project.issuetypes && project.issuetypes.length > 0) {
-                var issueType = project.issuetypes.filter(function(it) { return it.id == issueTypeId; })[0];
-                console.log('Issue Type found',issueTypeId, issueType);
+                var issueType = project.issuetypes.filter(function (it) { return it.id == issueTypeId; })[0];
+                console.log('Issue Type found', issueTypeId, issueType);
                 return issueType;
             }
         }

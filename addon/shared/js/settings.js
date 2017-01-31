@@ -37,7 +37,7 @@ function yasoonSettingsModel() {
     };
 
 
-    this.save = function() {
+    this.save = function () {
         var overwriteData = {
             remoteErrorLoggingEnabled: self.sendErrorLogs(),
             analyticsEnabled: self.sendAnalytics(),
@@ -51,39 +51,39 @@ function yasoonSettingsModel() {
         };
 
         return Promise.resolve($.ajax({
-                url: yasoonServerUrl + '/api/companyapp/0/predeliveredConfig',
-                contentType: 'application/json',
-                headers: { userAuthToken: authToken },
-                data: JSON.stringify({ overwrite: overwriteData, installOnly: installOnlyData }),
-                processData: false,
-                type: 'PUT'
+            url: yasoonServerUrl + '/api/companyapp/0/predeliveredConfig',
+            contentType: 'application/json',
+            headers: { userAuthToken: authToken },
+            data: JSON.stringify({ overwrite: overwriteData, installOnly: installOnlyData }),
+            processData: false,
+            type: 'PUT'
         }))
-        .then(function () {
-            notyfy({
-                text: 'Save Successfull',
-                type: 'success',
-                dismissQueue: true,
-                timeout: 3000,
-                layout: 'topCenter',
-                buttons: false
+            .then(function () {
+                notyfy({
+                    text: 'Save Successful',
+                    type: 'success',
+                    dismissQueue: true,
+                    timeout: 3000,
+                    layout: 'topCenter',
+                    buttons: false
+                });
+            })
+            .caught(function (e) {
+                swal({
+                    title: "Save was not possible",
+                    text: "Connection Error: " + e.message,
+                    type: "error",
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "Ok!",
+                    closeOnConfirm: true
+                });
             });
-        })
-        .caught(function (e) {
-            swal({
-                title: "Save was not possible",
-                text: "Connection Error: " + e.message,
-                type: "error",
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "Ok!",
-                closeOnConfirm: true
-            });
-        });
 
-    };  
+    };
 
     //Init Data
     //1 Company App
-     Promise.resolve($.ajax({
+    Promise.resolve($.ajax({
         url: yasoonServerUrl + '/api/companyapp/0/predeliveredConfig',
         contentType: 'application/json',
         headers: { userAuthToken: authToken },
@@ -91,37 +91,40 @@ function yasoonSettingsModel() {
         type: 'GET'
     }))
         .then(function (data) {
-            console.log('Yasoon Config: ',  data);
-            if(data.overwrite) {
-                if(data.overwrite.hasOwnProperty('analyticsEnabled')) {
+            console.log('Yasoon Config: ', data);
+            if (data.overwrite) {
+                if (data.overwrite.hasOwnProperty('analyticsEnabled')) {
                     self.sendAnalytics(data.overwrite.analyticsEnabled);
                 }
-                if(data.overwrite.hasOwnProperty('remoteErrorLoggingEnabled')) {
+                if (data.overwrite.hasOwnProperty('remoteErrorLoggingEnabled')) {
                     self.sendErrorLogs(data.overwrite.remoteErrorLoggingEnabled);
                 }
             }
 
-            if(data.installOnly) {
-                if(data.installOnly.hasOwnProperty('sendMails')) {
+            if (data.installOnly) {
+                if (data.installOnly.hasOwnProperty('sendMails')) {
                     self.sendMails(data.installOnly.sendMails);
                 }
-                if(data.installOnly.hasOwnProperty('noPstFile')) {
+                if (data.installOnly.hasOwnProperty('noPstFile')) {
                     self.noPstFile(data.installOnly.noPstFile);
                 }
-                if(data.installOnly.hasOwnProperty('settings.navType')) {
+                if (data.installOnly.hasOwnProperty('settings.navType')) {
                     self.yasoonNavigation(data.installOnly['settings.navType']);
                 }
-                if(data.installOnly.hasOwnProperty('welcomeMessage')) {
+                if (data.installOnly.hasOwnProperty('welcomeMessage')) {
                     self.welcomeMessage(data.installOnly['welcomeMessage']);
                 }
             }
-        });       
+        });
 }
 
 function jiraSettingsModel() {
     var self = this;
     this.defaultSettings = new jiraDefaultSettingsModel();
-    this.fieldMapping = new jiraFieldMappingModel();
+
+    this.taskSyncEnabled = ko.observable(false);
+    this.teamleadApiKey = ko.observable('');
+    this.teamleadMapping = ko.observable('');
 
     this.emailHeaderOptions = {
         data: [
@@ -168,53 +171,63 @@ function jiraSettingsModel() {
         type: 'GET'
     }))
         .then(function (data) {
-            console.log('Jira Config: ',  data);
-            if(data.overwrite && data.overwrite.defaultSettings) {
-                self.defaultSettings.load(JSON.parse(data.overwrite.defaultSettings));
-            }
-            if(data.overwrite && data.overwrite.fieldMapping) {
-                self.defaultSettings.load(JSON.parse(data.overwrite.fieldMapping));
+            console.log('Jira Config: ', data);
+            if (data.overwrite) {
+                if (data.overwrite.defaultSettings) {
+                    self.defaultSettings.load(JSON.parse(data.overwrite.defaultSettings));
+                }
+                if (data.overwrite.taskSyncEnabled) {
+                    self.taskSyncEnabled(data.overwrite.taskSyncEnabled);
+                }
+                if (data.overwrite.teamlead) {
+                    self.teamleadApiKey(data.overwrite.teamlead.apiKey);
+                    self.teamleadMapping(data.overwrite.teamlead.mapping);
+                }
             }
         });
 
-    this.save = function() {
+    this.save = function () {
         var result = {
             overwrite: {
                 defaultSettings: JSON.stringify(ko.toJS(self.defaultSettings)),
-                fieldMapping: JSON.stringify(ko.toJS(self.fieldMapping))
+                taskSyncEnabled: self.taskSyncEnabled(),
+                teamlead: {
+                    apiKey: self.teamleadApiKey(),
+                    mapping: self.teamleadMapping()
+                }
             }
         };
 
         console.log('save', result);
 
         return Promise.resolve($.ajax({
-                url: yasoonServerUrl + '/api/companyapp/16/predeliveredConfig',
-                contentType: 'application/json',
-                headers: { userAuthToken: authToken },
-                data: JSON.stringify(result),
-                processData: false,
-                type: 'PUT'
-            }))
-                .then(function () {
-                    notyfy({
-                        text: 'Save Successfull',
-                        type: 'success',
-                        dismissQueue: true,
-                        timeout: 3000,
-                        layout: 'topCenter',
-                        buttons: false
-                    });
-                })
-                .caught(function (e) {
-                    swal({
-                        title: "Save was not possible",
-                        text: "Connection Error: " + e.message,
-                        type: "error",
-                        confirmButtonColor: "#DD6B55",
-                        confirmButtonText: "Ok!",
-                        closeOnConfirm: true
-                    });
+            url: yasoonServerUrl + '/api/companyapp/16/predeliveredConfig',
+            contentType: 'application/json',
+            headers: { userAuthToken: authToken },
+            data: JSON.stringify(result),
+            processData: false,
+            type: 'PUT'
+        }))
+            .then(function () {
+                notyfy({
+                    text: 'Save Successful',
+                    type: 'success',
+                    dismissQueue: true,
+                    timeout: 3000,
+                    layout: 'topCenter',
+                    buttons: false
                 });
+            })
+            .caught(function (e) {
+                swal({
+                    title: "Save was not possible",
+                    text: "Connection Error: " + e.message,
+                    type: "error",
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "Ok!",
+                    closeOnConfirm: true
+                });
+            });
 
     };
 }
@@ -228,51 +241,29 @@ function jiraDefaultSettingsModel() {
     this.syncFeed = ko.observable('auto');
     this.hideResolvedIssues = ko.observable(false);
 
-    this.load = function(data) {
-        if(data.hasOwnProperty('showDesktopNotif')) {
+    this.load = function (data) {
+        if (data.hasOwnProperty('showDesktopNotif')) {
             self.showDesktopNotif(data['showDesktopNotif']);
         }
-        if(data.hasOwnProperty('addAttachmentsOnNewAddIssue')) {
+        if (data.hasOwnProperty('addAttachmentsOnNewAddIssue')) {
             self.addAttachmentsOnNewAddIssue(data['addAttachmentsOnNewAddIssue']);
         }
-        if(data.hasOwnProperty('addMailHeaderAutomatically')) {
+        if (data.hasOwnProperty('addMailHeaderAutomatically')) {
             self.addMailHeaderAutomatically(data['addMailHeaderAutomatically']);
         }
-        if(data.hasOwnProperty('addEmailOnNewAddIssue')) {
+        if (data.hasOwnProperty('addEmailOnNewAddIssue')) {
             self.addEmailOnNewAddIssue(data['addEmailOnNewAddIssue']);
         }
-        if(data.hasOwnProperty('syncFeed')) {
+        if (data.hasOwnProperty('syncFeed')) {
             self.syncFeed(data['syncFeed']);
         }
-        if(data.hasOwnProperty('hideResolvedIssues')) {
+        if (data.hasOwnProperty('hideResolvedIssues')) {
             self.hideResolvedIssues(data['hideResolvedIssues']);
         }
     }
 }
 
-function jiraFieldMappingModel() {
-    this.subject = ko.observable('summary');
-    this.body = ko.observable('description');
-    this.sender = ko.observable('reporter');
-    this.sentAt = ko.observable('');
-
-    this.load = function(data) {
-        if(data.hasOwnProperty('subject')) {
-            self.showDesktopNotif(data['subject']);
-        }
-        if(data.hasOwnProperty('body')) {
-            self.showDesktopNotif(data['body']);
-        }
-        if(data.hasOwnProperty('sender')) {
-            self.showDesktopNotif(data['sender']);
-        }
-        if(data.hasOwnProperty('sentAt')) {
-            self.showDesktopNotif(data['sentAt']);
-        }
-    };
-}
-
-(function() {
+(function () {
     ko.bindingHandlers['wysiwyg'].defaults = {
         height: 450,
         width: 650,
@@ -283,13 +274,14 @@ function jiraFieldMappingModel() {
             'insertdatetime media table contextmenu paste code'
         ],
         toolbar: ['undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify',
-                    'bullist numlist outdent indent | link image table code'],
+            'bullist numlist outdent indent | link image table code'],
     };
-    
+
     settingsModel = new settingsViewModel();
     ko.applyBindings(settingsModel, document.getElementById('settings'));
 
     $('#SettingsCollapsible').collapsible();
+    $('[data-toggle="popover"]').popover();
 })();
 
 //# sourceURL=settings.js

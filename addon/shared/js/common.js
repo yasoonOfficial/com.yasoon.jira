@@ -7,6 +7,7 @@ var systemInfo = {};
 var serverId = null;
 var yasoonUser = null;
 var jwtToken = '';
+var sen = '';
 
 Promise.config({
     // Enable cancellation.
@@ -15,15 +16,15 @@ Promise.config({
 
 //Polyfill .endWith (damn you IE!!)
 if (!String.prototype.endsWith) {
-  String.prototype.endsWith = function(searchString, position) {
-      var subjectString = this.toString();
-      if (typeof position !== 'number' || !isFinite(position) || Math.floor(position) !== position || position > subjectString.length) {
-        position = subjectString.length;
-      }
-      position -= searchString.length;
-      var lastIndex = subjectString.lastIndexOf(searchString, position);
-      return lastIndex !== -1 && lastIndex === position;
-  };
+    String.prototype.endsWith = function (searchString, position) {
+        var subjectString = this.toString();
+        if (typeof position !== 'number' || !isFinite(position) || Math.floor(position) !== position || position > subjectString.length) {
+            position = subjectString.length;
+        }
+        position -= searchString.length;
+        var lastIndex = subjectString.lastIndexOf(searchString, position);
+        return lastIndex !== -1 && lastIndex === position;
+    };
 }
 
 
@@ -113,9 +114,13 @@ $(document).ready(function () {
                 loadUI();
             })
             .caught(function (e) {
-                console.log(e, e.stack);
-                swal("Oops...", "Failed to load initial data, please contact us at support@yasoon.de", "error");
-                captureMessage('Error while document ready execution!', e);
+                if (e == 'MissingTrial') {
+                    swal("Oops...", "You currently do not have a valid addon license. Please start the trial first in the Manage Addon section.", "error");
+                } else {
+                    console.log(e, e.stack);
+                    swal("Oops...", "Failed to load initial data, please contact us at support@yasoon.de", "error");
+                    captureMessage('Error while document ready execution!', e);
+                }
             });
     }).caught(function (e) {
         console.log(e, e.stack);
@@ -127,6 +132,9 @@ function getStoreUrl() {
     return Promise.resolve($.get('https://routing.yasoon.de/getjiraurl?clientKey=' + serverId))
         .then(function (result) {
             return result.url;
+        })
+        .caught(function () {
+            return 'https://store.yasoon.com';
         });
 }
 
@@ -176,6 +184,9 @@ function loadSystemInfo() {
 
                 if (systemInfo.licenseInfo.addon)
                     sen = systemInfo.licenseInfo.addon.supportEntitlementNumber;
+                else {
+                    throw 'MissingTrial';
+                }
             });
     }
 }
@@ -199,15 +210,15 @@ function loadUI() {
             jsPath = 'js/' + webLinkKey + '.js';
         }
     } else {
-        if(window.location.pathname.endsWith('admin')) {
+        if (window.location.pathname.endsWith('admin')) {
             webLinkKey = 'admin';
             htmlPath = adminPathHtml;
             jsPath = adminPathJs;
-        } else if(window.location.pathname.endsWith('settings')) {
+        } else if (window.location.pathname.endsWith('settings')) {
             webLinkKey = 'settings';
             htmlPath = settingsPathHtml;
             jsPath = settingsPathJs;
-        } else if(window.location.pathname.endsWith('templates')) {
+        } else if (window.location.pathname.endsWith('templates')) {
             webLinkKey = 'templates';
             htmlPath = templatesPathHtml;
             jsPath = templatesPathJs;
