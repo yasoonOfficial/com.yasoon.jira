@@ -122,10 +122,6 @@ class EmailController implements IFieldEventHandler {
                 //Not so important
                 yasoon.util.log('Failed to set Conversation data', yasoon.util.severity.info, getStackTrace(e));
             }
-
-            //Save Template if created by Email
-            let issue: JiraIssue = eventData.newData;
-            this.saveSenderTemplate(eventData.data, issue.fields['project']);
         }
 
         return null;
@@ -415,7 +411,7 @@ class EmailController implements IFieldEventHandler {
             let templateIndex = 0;
             let lastUpdated: Date = new Date(2099, 0, 1);
             for (let mail in this.allTemplates) {
-                let currentTemplates = this.allTemplates[mail];
+                let currentTemplates = this.allTemplates[mail] || [];
                 currentTemplates.forEach((t, index) => {
                     counter++;
                     if (lastUpdated > t.lastUpdated) {

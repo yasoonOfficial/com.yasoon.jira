@@ -356,6 +356,10 @@ class NewEditDialog implements IFieldEventHandler {
                 let issue: JiraIssue = JSON.parse(data);
                 issue.fields['project'] = this.selectedProject;
                 lifecycleData.newData = issue;
+
+                //Save Template if created by Email
+                this.emailController.saveSenderTemplate(issue, issue.fields['project']);
+
                 //Wait till all AfterSave actions are done
                 return FieldController.raiseEvent(EventType.AfterSave, lifecycleData);
             })

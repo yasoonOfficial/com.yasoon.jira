@@ -37,9 +37,9 @@ class TemplateController implements IFieldEventHandler {
         if (instanceDataString) {
             var data = JSON.parse(instanceDataString);
 
-            this.groupHierachy = data[TemplateController.settingGroupHierarchy];
-            initialSelection = data[TemplateController.settingInitialSelection];
-            this.defaultTemplates = data[TemplateController.settingDefaultTemplates];
+            this.groupHierachy = data[TemplateController.settingGroupHierarchy] || [];
+            initialSelection = data[TemplateController.settingInitialSelection] || [];
+            this.defaultTemplates = data[TemplateController.settingDefaultTemplates] || [];
         } else {
             //Load non-instance settings
             groupsString = yasoon.setting.getAppParameter(TemplateController.settingGroupHierarchy);
