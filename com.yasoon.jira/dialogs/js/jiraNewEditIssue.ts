@@ -212,6 +212,13 @@ class NewEditDialog implements IFieldEventHandler {
             //Cleanup attachments
             FieldController.raiseEvent(EventType.AttachmentChanged, []);
         } else {
+            if (this.mail) {
+                params.mail = {
+                    entryId: this.mail.entryId,
+                    storeId: this.mail.storeId
+                };
+            }
+
             yasoon.dialog.close(params);
         }
     }
@@ -596,7 +603,7 @@ class NewEditDialog implements IFieldEventHandler {
         //Tempo
         FieldController.register('com.tempoplugin.tempo-accounts:accounts.customfield', TempoAccountField);
         FieldController.register('com.tempoplugin.tempo-teams:team.customfield', TempoTeamField);
-        
+
         //com.atlassian.plugins.atlassian-connect-plugin:io.tempo.jira__account
 
         //Watcher Field

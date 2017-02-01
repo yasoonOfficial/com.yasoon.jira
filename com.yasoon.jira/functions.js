@@ -753,11 +753,25 @@ function JiraRibbonController() {
 			}
 			yasoon.notification.showPopup({ title: title, text: text, click: notificationOpenIssue, eventParam: { issueKey: data.issueKey } });
 		}
+
+		if (data && data.mail) {
+			yasoon.outlook.mail.get(data.mail.entryId, data.mail.storeId)
+				.then(function (mail) {
+					jira.ribbons.updateRibbons(mail);
+				});
+		}
 	};
 
 	this.ribbonOnCloseAddToIssue = function ribbonOnCloseAddToIssue(type, data) {
 		if (data && data.action === 'success')
 			jira.sync();
+
+		if (data && data.mail) {
+			yasoon.outlook.mail.get(data.mail.entryId, data.mail.storeId)
+				.then(function (mail) {
+					jira.ribbons.updateRibbons(mail);
+				});
+		}
 	};
 }
 

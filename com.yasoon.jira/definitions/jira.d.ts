@@ -290,7 +290,7 @@ interface YasoonDefaultTemplate {
     issueTypeId?: string;
     priority?: number;
     templateName?: string;
-    fields?: {[id: string]: any };
+    fields?: { [id: string]: any };
     lastUpdated?: Date;
 }
 
@@ -315,4 +315,9 @@ interface YasoonDialogCloseParams {
     action: 'success' | 'cancel';
     issueKey?: string;
     changeType?: 'updated' | 'created';
+    mail?: {
+        entryId: string,
+        storeId: string
+    };
 }
+

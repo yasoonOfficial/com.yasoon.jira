@@ -113,9 +113,9 @@ class AddToIssueDialog implements IFieldEventHandler {
 
         if (this.emailController) {
             this.emailController.getCurrentMailContent(true)
-            .then((markup) => {
-                FieldController.setValue(FieldController.commentFieldId, markup, true);
-            });
+                .then((markup) => {
+                    FieldController.setValue(FieldController.commentFieldId, markup, true);
+                });
         }
 
         // Resize Window to maximize Comment field
@@ -248,6 +248,14 @@ class AddToIssueDialog implements IFieldEventHandler {
                     issueKey: this.currentIssue.key,
                     changeType: 'updated'
                 };
+
+                if (this.mail) {
+                    closeParams.mail = {
+                        entryId: this.mail.entryId,
+                        storeId: this.mail.storeId
+                    };
+                }
+
                 yasoon.dialog.close(closeParams);
             })
             .catch((e) => {
