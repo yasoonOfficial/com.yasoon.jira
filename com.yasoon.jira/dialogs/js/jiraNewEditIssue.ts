@@ -65,7 +65,7 @@ class NewEditDialog implements IFieldEventHandler {
         this.cacheCreateMetas = initParams.createMetas || [];
         this.cacheProjects = initParams.projects || [];
         this.systemInfo = initParams.systemInfo || { versionNumbers: [6, 4, 0] };
-        this.type = initParams.type;
+        this.type = initParams.type || '';
 
         //Register Close Handler
         yasoon.dialog.onClose(this.cleanup);
@@ -529,7 +529,7 @@ class NewEditDialog implements IFieldEventHandler {
     getCreateMetaData(projectId: string, issueTypeId: string): Promise<{ [id: string]: JiraMetaField }> {
         //Check in Cache
         //Do not check cache for Teamlead Instance to have latest data every time.
-        if (this.cacheCreateMetas && this.cacheCreateMetas.length > 0 && !this.settings.teamleadApiKey) {
+        if (this.cacheCreateMetas && this.cacheCreateMetas.length > 0 && !this.settings.teamlead.apiKey) {
             let projectMeta = this.cacheCreateMetas.filter((m) => { return m.id === projectId; })[0];
             if (projectMeta) {
                 let issueType = projectMeta.issuetypes.filter((it) => { return it.id === issueTypeId; })[0];
@@ -598,13 +598,14 @@ class NewEditDialog implements IFieldEventHandler {
         //In Cloud we also have this one?!: com.atlassian.plugins.atlassian-connect-plugin:io.tempo.jira__account
 
         //Teamlead
-        FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:company-select-field', TeamLeadCompanyField);
-        FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:companies-select-field', TeamLeadCompanyField, { multiple: true });
-        FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contact-select-field', TeamLeadProductField);
-        FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contacts-field', TeamLeadProductField, { multiple: true });
-        FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:single-product-select-field', TeamLeadProductField);
-        FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:multi-products-select-field', TeamLeadProductField, { multiple: true });
-
+        if (this.settings.teamlead && this.settings.teamlead.apiKey) {
+            FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:company-select-field', TeamLeadCompanyField);
+            FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:companies-select-field', TeamLeadCompanyField, { multiple: true });
+            FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contact-select-field', TeamLeadContactField);
+            //FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contacts-field', TeamLeadContactField, { multiple: true });
+            FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:single-product-select-field', TeamLeadProductField);
+            FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:multi-products-select-field', TeamLeadProductField, { multiple: true });
+        }
         //Watcher Field
         FieldController.register('com.burningcode.jira.issue.customfields.impl.jira-watcher-field:watcherfieldtype', UserSelectField, { multiple: true });
     };

@@ -190,8 +190,7 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
             //Private vars for event Handler
             let useMarkup: boolean = true;
             let backup: string = '';
-            let lastAction: string = this.emailController.type;
-
+            let lastAction: string = (this.emailController) ? this.emailController.type : '';
 
             //Static toggle JIRA markup in drop down menus
             this.ownContainer.find('.toggleJiraMarkup').on('click', (e) => {

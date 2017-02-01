@@ -64,6 +64,9 @@ declare class JiraAppSettings {
     tasksSyncAllProjects: boolean;
     hideResolvedIssues: boolean;
     activeFilters: string;
-    teamleadApiKey: 'string';
+    teamlead: {
+        apiKey: string,
+        mapping: string
+    };
 }
 

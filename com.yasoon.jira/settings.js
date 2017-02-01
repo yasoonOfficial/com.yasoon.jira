@@ -293,13 +293,20 @@ function JiraSettingController() {
 
 	//Load Temlead CRM Settings
 	var teamleadCrmDataString = yasoon.setting.getAppParameter('teamlead');
-	if(teamleadCrmDataString) {
+	if (teamleadCrmDataString) {
 		self.teamlead = JSON.parse(teamleadCrmDataString);
+		if (self.teamlead.mapping) {
+			try {
+				self.teamlead.mapping = JSON.parse(self.teamlead.mapping) || {};
+			} catch (e) {
+				self.teamlead.mapping = {};
+			}
+		}
 	}
-	
+
 	//Merge company defaults
 	var defaultSettingsString = yasoon.setting.getAppParameter('defaultSettings');
-	if(defaultSettingsString) {
+	if (defaultSettingsString) {
 		var def = JSON.parse(defaultSettingsString);
 		defaults = $.extend(defaults, def);
 	}

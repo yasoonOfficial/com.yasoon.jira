@@ -585,6 +585,12 @@ function JiraIssueNotification(issue) {
 				jiraGet('/rest/api/2/issue/' + key + '/transitions?transitionId=' + transitionId)
 					.then(function (data) {
 						var transObj = JSON.parse(data);
+						if(transObj.transitions && transObj.transitions.length === 0) {
+							yasoon.alert.add({ type: yasoon.alert.alertType.error, message: yasoon.i18n('notification.changeStatusNotPossible', { error: 'Transition does not exist in current context anymore! Refresh the feed.' }) });
+							yasoon.util.log('Transition not found for transition Id ' + transitionId + ' || ' + JSON.stringify(transObj), yasoon.util.severity.warning);
+							return;
+						}
+
 						if (transObj.transitions[0].hasScreen) {
 							yasoon.openBrowser(jira.settings.baseUrl + '/login.jsp?os_destination=' + encodeURIComponent('/secure/CommentAssignIssue!default.jspa?id=' + id + '&action=' + transitionId));
 						} else {
