@@ -1,6 +1,6 @@
 /// <reference path="../../JiraSelectField.ts" />
 
-interface teamleadContact {
+interface TeamleadContact {
     id: string;
     contact_company?: string;
     contact_email?: string;
@@ -15,6 +15,8 @@ class TeamLeadContactField extends JiraSelectField implements IFieldEventHandler
     private ownUserKey: string;
 
     constructor(id: string, field: JiraMetaField, options: any = { multiple: false }) {
+        
+        field.allowedValues = field.allowedValues.sort((a,b) => { return (a.value.toLowerCase() > b.value.toLowerCase()) ? 1 : -1 });
         super(id, field, options);
         this.apiKey = jira.settings.teamlead.apiKey;
         this.ownUserKey = jira.ownUser.key || jira.ownUser.name; //Depending on version >.<
@@ -26,6 +28,8 @@ class TeamLeadContactField extends JiraSelectField implements IFieldEventHandler
         if (jira.settings.teamlead.mapping[this.id]) {
             FieldController.registerEvent(EventType.FieldChange, this, jira.settings.teamlead.mapping[this.id]);
         }
+
+         
     }
 
     handleEvent(type: EventType, newValue: { id: string }, source?: string): Promise<any> {
@@ -43,12 +47,11 @@ class TeamLeadContactField extends JiraSelectField implements IFieldEventHandler
     }
 
     getContacts(companyName: string): Promise<any> {
-        let prom: Promise<any>;
         if (companyName) {
             return jiraGet('/plugins/servlet/crm/api?command=searchEntities&crm_param_1=Company&crm_param_1_value=' + companyName + '&tableName=CONTACTS&userName=' + this.ownUserKey + '&apiKey=' + this.apiKey)
                 .then((contactsString: string) => {
                     let returnValue = JSON.parse(contactsString);
-                    let contacts:teamleadContact[] = returnValue.records || [];
+                    let contacts:TeamleadContact[] = returnValue.records || [];
                     let result: JiraValue[] = [];
                     contacts.forEach(contact => {
                         let jiraContact = this.fieldMeta.allowedValues.filter((element) => element.value == contact.name)[0];

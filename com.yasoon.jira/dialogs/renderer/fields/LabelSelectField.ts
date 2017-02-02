@@ -39,6 +39,7 @@ class LabelSelectField extends Select2AjaxField {
         return jiraGet(url + searchTerm)
             .then((data) => {
                 let labels = JSON.parse(data);
+                console.log('SearchTerm ' + searchTerm, labels);
                 let labelArray: Select2Element[] = [];
 
                 if (labels.token === this.lastSearchTerm && labels.suggestions) {

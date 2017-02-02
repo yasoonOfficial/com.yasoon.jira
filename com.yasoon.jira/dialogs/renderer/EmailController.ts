@@ -356,7 +356,11 @@ class EmailController implements IFieldEventHandler {
             let fields: any = {};
             for (let fieldId in values.fields) {
                 if (fieldId != 'summary' && fieldId != 'description' && fieldId != 'duedate' && fieldId != 'project' && fieldId != 'issuetype') {
-                    fields[fieldId] = FieldController.getField(fieldId).getDomValue();
+                    try {
+                        fields[fieldId] = FieldController.getField(fieldId).getDomValue();
+                    } catch (e) {
+                        console.log('Couldnt get field ' + fieldId, e, e.stack);
+                    }
                 }
             }
 

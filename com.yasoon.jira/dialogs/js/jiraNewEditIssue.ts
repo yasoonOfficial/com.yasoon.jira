@@ -50,8 +50,21 @@ class NewEditDialog implements IFieldEventHandler {
     currentIssue: JiraIssue = null;
 
     //Order of Fields in the form if in fixed mode. Fields not part of the array will be rendered afterwards
-    //This can be customized by JIRA admin
-    fieldOrder: string[] = [];
+    fieldOrder: string[] = [
+        'summary',
+        'priority',
+        'duedate',
+        'components',
+        'versions',
+        'fixVersions',
+        'assignee',
+        'reporter',
+        'environment',
+        'description',
+        'attachment',
+        'labels',
+        'timetracking'
+    ];
 
     init = (initParams: newEditDialogInitParams) => {
         jira = this;
@@ -86,28 +99,6 @@ class NewEditDialog implements IFieldEventHandler {
         try {
             //Init Fields - do this lately so yasoon.i18n is initialized
             this.loadFields();
-
-            //Load DB settings
-            let fieldOrderString = yasoon.setting.getAppParameter('fieldOrder');
-            if (fieldOrderString) {
-                this.fieldOrder = JSON.parse(fieldOrderString);
-            } else {
-                this.fieldOrder = [
-                    'summary',
-                    'priority',
-                    'duedate',
-                    'components',
-                    'versions',
-                    'fixVersions',
-                    'assignee',
-                    'reporter',
-                    'environment',
-                    'description',
-                    'attachment',
-                    'labels',
-                    'timetracking'
-                ];
-            }
 
             //Init Controller
             if (this.mail) {
@@ -358,7 +349,9 @@ class NewEditDialog implements IFieldEventHandler {
                 lifecycleData.newData = issue;
 
                 //Save Template if created by Email
-                this.emailController.saveSenderTemplate(issue, issue.fields['project']);
+                if (this.emailController) {
+                    this.emailController.saveSenderTemplate(lifecycleData.data, issue.fields['project']);
+                }
 
                 //Wait till all AfterSave actions are done
                 return FieldController.raiseEvent(EventType.AfterSave, lifecycleData);
@@ -606,7 +599,8 @@ class NewEditDialog implements IFieldEventHandler {
             FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:company-select-field', TeamLeadCompanyField);
             FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:companies-select-field', TeamLeadCompanyField, { multiple: true });
             FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contact-select-field', TeamLeadContactField);
-            //FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contacts-field', TeamLeadContactField, { multiple: true });
+            FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contact-field', TeamLeadOldContactField);
+            FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contacts-field', TeamLeadOldContactField, { multiple: true });
             FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:single-product-select-field', TeamLeadProductField);
             FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:multi-products-select-field', TeamLeadProductField, { multiple: true });
         }
