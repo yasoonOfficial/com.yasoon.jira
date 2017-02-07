@@ -64,7 +64,8 @@
     <component-import key="typeAccessor" interface="com.atlassian.applinks.spi.util.TypeAccessor"/>
     <component-import key="storeService" interface="com.atlassian.oauth.serviceprovider.ServiceProviderConsumerStore"/>
     <component-import key="pluginLicenseManager" interface="com.atlassian.upm.api.license.PluginLicenseManager"/>
-    
+    <component-import key="pluginSettingsFactory" interface="com.atlassian.sal.api.pluginsettings.PluginSettingsFactory"/>
+        
     <!--
     <component key="eventListener" class="com.yasoon.jira.LifecycleListener">
        <description>Class that processes the incoming JIRA issue events.</description>
@@ -109,6 +110,10 @@
     
     <servlet key="app-link-servlet" class="com.yasoon.jira.ApplicationLinkServlet">
         <url-pattern>/jiraforoutlook/applink</url-pattern>
+    </servlet>
+    
+    <servlet key="plugin-settings-servlet" class="com.yasoon.jira.PluginSettingsServlet">
+        <url-pattern>/jiraforoutlook/pluginsettings</url-pattern>
     </servlet>
     
 </atlassian-plugin>
