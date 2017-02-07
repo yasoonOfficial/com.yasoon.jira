@@ -6,6 +6,7 @@ function loadRegisteredUIState() {
     checkDownloadLink();
     checkProduct();
     getCustomCert();
+    setExternalCompanyData();
 }
 
 function initAdminUI() {
@@ -14,31 +15,20 @@ function initAdminUI() {
     //Hide page loader first
     $('#pageLoading').hide();
 
-    var isAuthed = !!yasoonUser; //Ownuser can only be loaded if authToken is valid
     var cookiePage = $.cookie('currentPage');
     if (cookiePage) {
         currentPage = parseInt(cookiePage);
     }
 
     if (isInstanceRegistered && (currentPage === 1 || currentPage > 4)) {
-        if (isAuthed) {
-            $('#AreaRegistered').removeClass('hidden');
-            $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
-            loadRegisteredUIState();
-        }
-        else {
-            $('#AreaLogin').removeClass('hidden');
-        }
+        $('#AreaRegistered').removeClass('hidden');
+        $('.storeLink').attr("href", yasoonServerUrl + "/?sso=" + authToken);
+        loadRegisteredUIState();
     } else if (isInstanceRegistered && (currentPage >= 2 || currentPage <= 4)) {
         //Already registered but didn't finish the wizard yet.
-
-        if (isAuthed) {
-            $('#AreaUnregistered').removeClass('hidden');
-            $('#unregisteredTabs').tabs();
-            gotoPage(currentPage);
-        } else {
-            $('#AreaLogin').removeClass('hidden');
-        }
+        $('#AreaUnregistered').removeClass('hidden');
+        $('#unregisteredTabs').tabs();
+        gotoPage(currentPage);
     }
     else {
         //Unregistered
@@ -47,38 +37,38 @@ function initAdminUI() {
         $('#AreaUnregistered').removeClass('hidden');
         $('#unregisteredTabs').tabs();
         initTracking();
-    }
 
-    $('#ButtonLogin').click(function () {
-        $('#AreaPreRegister').addClass('hidden');
-        $('#AreaInitialLogin').removeClass('hidden');
-        $('#nextText').text('Login');
-        $('#next').data('type', 'login').removeClass('hidden');
-    });
+        $('#ButtonLogin').click(function () {
+            $('#AreaPreRegister').addClass('hidden');
+            $('#AreaInitialLogin').removeClass('hidden');
+            $('#nextText').text('Add');
+            $('#next').data('type', 'login').removeClass('hidden');
+        });
 
-    $('#ButtonRegister').click(function () {
-        $('#AreaPreRegister').addClass('hidden');
-        $('#AreaRegister').removeClass('hidden');
-        $('#nextText').text('Register');
-        $('#next').data('type', 'register').removeClass('hidden');
+        $('#ButtonRegister').click(function () {
+            $('#AreaPreRegister').addClass('hidden');
+            $('#AreaRegister').removeClass('hidden');
+            $('#nextText').text('Register');
+            $('#next').data('type', 'register').removeClass('hidden');
 
 
-        //Prefill Wizard
-        if (isCloud) {
-            $('#comment').val('Registered via JIRA Cloud');
-        } else {
-            $('#comment').val('Registered via JIRA Server');
-        }
-        if (systemInfo.userName) {
-            var userNameSplitted = systemInfo.userName.split(' ');
-            if (userNameSplitted && userNameSplitted.length > 1) {
-                $('#first_name').val(userNameSplitted[0]).trigger('change');
-                $('#last_name').val(systemInfo.userName.replace(userNameSplitted[0] + ' ', '')).trigger('change');
+            //Prefill Wizard
+            if (isCloud) {
+                $('#comment').val('Registered via JIRA Cloud');
+            } else {
+                $('#comment').val('Registered via JIRA Server');
             }
-        }
+            if (systemInfo.userName) {
+                var userNameSplitted = systemInfo.userName.split(' ');
+                if (userNameSplitted && userNameSplitted.length > 1) {
+                    $('#first_name').val(userNameSplitted[0]).trigger('change');
+                    $('#last_name').val(systemInfo.userName.replace(userNameSplitted[0] + ' ', '')).trigger('change');
+                }
+            }
 
-        $('#emailAddress').val(systemInfo.userEmailAddress).trigger('change');
-    });
+            $('#emailAddress').val(systemInfo.userEmailAddress).trigger('change');
+        });
+    }
 
     //Init Modals
     $('.modal-trigger').modal({
@@ -91,13 +81,9 @@ function initAdminUI() {
         $('.applicationCreateLink').attr('href', systemInfo.baseUrl + '/plugins/servlet/applinks/listApplicationLinks');
         $('.checkCloudApplicationLink').click(handleCheckCloudApplicationLink);
         $('#show-cert-dialog').modal();
-        //$('.show-customcert-link').click(function() { 
-        //    $('#show-cert-dialog').modal('open');
-        //});
     } else {
         $('.purchaseDialogLink').modal();
     }
-
 
     //Init Popover
     $('[data-toggle="popover"]').popover({
@@ -137,97 +123,60 @@ function initTracking() {
     $('body').append('<iframe style="height: 0px; width: 0px;" src="https://www.yasoon.de/track_install.html?id=' + serverId + '"></iframe>');
 }
 
-function handleLogin() {
+function assignToCompany(externalCompanyKey) {
+    //ToDo: Check externalCompanyKey and get authToken
+    return Promise.resolve($.ajax())
+        .then(function (auth) {
+            authToken = auth;
+            return setInstanceProperty(PROP_AUTHTOKEN, authToken);
+        })
+        .then(function () {
+            $('.storeLink').attr("href", yasoonServerUrl + '/?sso=' + authToken);
+            if (isCloud)
+                return;
 
-    //Transform data                    
-    var formArray = (isInstanceRegistered) ? $('#LoginForm').serializeArray() : $('#InitialLoginForm').serializeArray();
-    var formData = {};
-    $.each(formArray, function (i, elem) {
-        formData[elem.name] = elem.value;
-    });
-
-    //A) Login case with existing instance
-    // -----------------------------------
-    var promise = null;
-    if (isInstanceRegistered) {
-
-
-        promise = new Promise(function (success, reject) {
-            $.ajax({
-                url: yasoonServerUrl + '/api/user/auth',
+            return $.ajax({
+                url: yasoonServerUrl + '/jira/install',
                 contentType: 'application/json',
-                data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
+                data: JSON.stringify(getInstanceData()),
                 processData: false,
                 type: 'POST'
-            })
-                .done(function (auth) {
-                    authToken = auth;
-                    $.cookie('yasoonEmail', formData.emailAddress, { expires: 365 });
-                    $.cookie('yasoonAuthToken', authToken, { expires: 365 });
-                    $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
-
-                    $('#AreaRegistered').removeClass('hidden');
-                    $('#AreaLogin').addClass('hidden');
-                    initAdminUI();
-                    success();
-                })
-                .fail(function (jxqr, e) {
-                    captureMessage('Error during login: ', e);
-                    swal("Oops...", "Login failed! Please check your credentials", "error");
-                    reject();
-                });
-        });
-    }
-    //B) Login case with new instance
-    // -----------------------------------
-    else {
-        promise = Promise.resolve($.ajax({
-            url: yasoonServerUrl + '/api/user/auth',
-            contentType: 'application/json',
-            data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
-            processData: false,
-            type: 'POST'
-        }))
-            .caught(function (e) {
-                captureMessage('Error during login: ', e);
-                swal("Oops...", "Login failed! Please check your credentials.", "error");
-                promise.cancel();
-            })
-            .then(function (auth) {
-                authToken = auth;
-                $.cookie('yasoonEmail', formData.emailAddress, { expires: 365 });
-                $.cookie('yasoonAuthToken', authToken, { expires: 365 });
-                $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
-                if (isCloud)
-                    return;
-
-                return $.ajax({
-                    url: yasoonServerUrl + '/jira/install',
-                    contentType: 'application/json',
-                    data: JSON.stringify(getInstanceData()),
-                    processData: false,
-                    type: 'POST'
-                });
-            })
-            .then(function (result) {
-                return $.ajax({
-                    url: yasoonServerUrl + '/jira/assigncompany',
-                    contentType: 'application/json',
-                    data: JSON.stringify(getIdentifyingParams()),
-                    headers: { userAuthToken: authToken },
-                    processData: false,
-                    type: 'POST'
-                });
-            })
-            .caught(function (e) {
-                captureMessage('Error during assignCompany: ', e);
-                swal("Oops...", 'An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.', "error");
-
-                promise.cancel();
             });
-    }
+        })
+        .then(function () {
+            return $.ajax({
+                url: yasoonServerUrl + '/jira/assigncompany',
+                contentType: 'application/json',
+                data: JSON.stringify(getIdentifyingParams()),
+                headers: { userAuthToken: authToken },
+                processData: false,
+                type: 'POST'
+            });
+        })
+        .then(function (result) {
+            return setInstanceProperty(PROP_JIRADATAID, result.jiraDataId);
+        })
+        .caught(function (e) {
+            captureMessage('Error during assignCompany: ', e);
+            swal("Oops...", 'An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.', "error");
 
-    return promise;
+            promise.cancel();
+        });
+}
+
+function handleLogin() {
+    //Only necessary for migration path. Usually authToken is stored in instanceData
+}
+
+function handleUrlChange() {
+    $('#MigrateUrlDialog').modal('open');
+    $('#UpdateUrlAction').off().click(function (e) {
+        console.log('Update');
+    });
+
+    $('#CreateNewInstanceAction').off().click(function (e) {
+        console.log('Instance Add');
+    });
 }
 
 function handleCheckCloudApplicationLink() {
@@ -423,11 +372,12 @@ function gotoPage(newPage) {
 }
 
 function registerAccount(cbk) {
-
     //Transform data                    
     var formArray = $('#registerForm').serializeArray();
-    var formData = {};
-    $.each(formArray, function (i, elem) {
+    var formData = {
+        newFlow: true
+    };
+    formArray.forEach(function (elem) {
         formData[elem.name] = elem.value;
     });
 
@@ -454,61 +404,50 @@ function registerAccount(cbk) {
         });
     }
 
-    if (formData.password !== formData.password2) {
-        return cbk({
-            success: false,
-            error: 'password2',
-            message: 'Passwords do not match, please make sure that they are identical.'
-        });
+    //Send Data
+    var promise = Promise.resolve();
+    //Instance is already registered in Cloud (during Addon install Event)
+    if (!isCloud) {
+        promise = Promise.resolve($.ajax({
+            url: yasoonServerUrl + '/jira/install',
+            contentType: 'application/json',
+            data: JSON.stringify(getInstanceData()),
+            processData: false,
+            type: 'POST'
+        }))
+            .then(function (result) {
+                if (result && !jiraDataId) {
+                    jiraDataId = result.id;
+                    return setInstanceProperty(PROP_JIRADATAID, jiraDataId);
+                }
+            });
     }
 
-
-    //Send Data
-    var promise = Promise.resolve($.ajax({
-        url: yasoonServerUrl + '/api/company/register',
-        contentType: 'application/json',
-        data: JSON.stringify(formData),
-        processData: false,
-        type: 'POST'
-    }))
+    promise
+        .then(function () {
+            formData.jiraDataId = jiraDataId;
+            $.ajax({
+                url: yasoonServerUrl + '/api/company/register',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                processData: false,
+                type: 'POST'
+            })
+        })
         .then(function (result) {
             //Means: User is already registered
             if (!result.success) {
                 promise.cancel();
                 return cbk({
                     success: false,
-                    message: 'Account already exists. Please use login instead!'
+                    message: 'Account already exists. You may want to add this instance instead of registering a new one?'
                 });
             }
-
-            //Instance is already registered in Cloud (during Addon install Event)
-            if (isCloud)
-                return;
-
-            return $.ajax({
-                url: yasoonServerUrl + '/jira/install',
-                contentType: 'application/json',
-                data: JSON.stringify(getInstanceData()),
-                processData: false,
-                type: 'POST'
-            });
+            authToken = result.authToken
+            $('.storeLink').attr('href', yasoonServerUrl + '/?sso=' + authToken);
+            return setInstanceProperty(PROP_AUTHTOKEN, authToken);
         })
         .then(function () {
-            //User created... Get authorization token
-            return $.ajax({
-                url: yasoonServerUrl + '/api/user/auth',
-                contentType: 'application/json',
-                data: JSON.stringify({ email: formData.emailAddress, password: formData.password }),
-                processData: false,
-                type: 'POST'
-            });
-        })
-        .then(function (auth) {
-            authToken = auth;
-            $.cookie('yasoonEmail', formData.emailAddress, { expires: 365 });
-            $.cookie('yasoonAuthToken', authToken, { expires: 365 });
-            $('.storeLink').attr("href", "https://store.yasoon.com/?sso=" + authToken);
-
             return $.ajax({
                 url: yasoonServerUrl + '/jira/assigncompany',
                 contentType: 'application/json',
@@ -661,68 +600,46 @@ function refreshLicense() {
     }
 }
 
-var intervalTimer = null;
 function checkDownloadLink() {
-    if (intervalTimer)
-        return;
-
-    $('#downloadLinkWaiting, #downloadLoading').removeClass('hidden');
-    getDownloadLink();
-}
-
-function getDownloadLink() {
     $.ajax({
         url: yasoonServerUrl + '/api/company/build',
         type: 'GET',
         headers: { userAuthToken: authToken }
     })
         .done(function (infos) {
-            if (infos.state !== 5) {
-                if (!intervalTimer)
-                    intervalTimer = setInterval(getDownloadLink, 10000);
-                $('#downloadLinkReady, #downloadReady').addClass('hidden');
-                $('#DownloadLinkErrorText').text('Your JIRA for Outlook setup file is being prepared. This may take a few minutes.');
-                $('#downloadLinkWaiting, #downloadLoading').removeClass('hidden');
-            }
-            else {
-                clearInterval(intervalTimer);
-                $('#downloadSetupButton, #downloadSetupButtonMain').prop('href', infos.downloadUrl);
-                $('#downloadLink').val(infos.downloadUrl);
-                $('#downloadLinkStatus').removeClass('panel-warning').addClass('panel-success');
-                $('#downloadLinkWaiting, #downloadLoading').addClass('hidden');
-                $('#downloadLinkReady, #downloadReady').removeClass('hidden');
+            $('#downloadSetupButton, #downloadSetupButtonMain').prop('href', infos.downloadUrl);
+            $('#downloadLink').val(infos.downloadUrl);
 
-                setTimeout(function () {
-                    $('#selectBitness, #selectAppData').on('change', function () {
-                        var bitness = $('#selectBitness').val();
-                        var target = $('#selectAppData').val();
+            setTimeout(function () {
+                $('#selectBitness, #selectAppData').on('change', function () {
+                    var bitness = $('#selectBitness').val();
+                    var target = $('#selectAppData').val();
 
-                        if (bitness && target) {
+                    if (bitness && target) {
+                        $('#downloadSetupButton, #downloadSetupButtonMain').removeClass('disabled');
+                        $('#downloadSetupButton, #downloadSetupButtonMain').prop('href', calcAdvancedDownloadUrl(infos.downloadUrl, bitness, target));
+                    }
+                });
+
+                $('#installerTabs').tabs({
+                    onShow: function (el) {
+                        var id = el.attr('id');
+                        if (id === 'default') {
                             $('#downloadSetupButton, #downloadSetupButtonMain').removeClass('disabled');
-                            $('#downloadSetupButton, #downloadSetupButtonMain').prop('href', calcAdvancedDownloadUrl(infos.downloadUrl, bitness, target));
+                            $('#downloadSetupButton, #downloadSetupButtonMain').prop('href', infos.downloadUrl);
                         }
-                    });
+                        else {
+                            var bitness = $('#selectBitness').val();
+                            var target = $('#selectAppData').val();
 
-                    $('#installerTabs').tabs({
-                        onShow: function (el) {
-                            var id = el.attr('id');
-                            if (id === 'default') {
-                                $('#downloadSetupButton, #downloadSetupButtonMain').removeClass('disabled');
-                                $('#downloadSetupButton, #downloadSetupButtonMain').prop('href', infos.downloadUrl);
-                            }
-                            else {
-                                var bitness = $('#selectBitness').val();
-                                var target = $('#selectAppData').val();
-
-                                if (!bitness || !target)
-                                    $('#downloadSetupButton, #downloadSetupButtonMain').addClass('disabled');
-                                else
-                                    $('#downloadSetupButton, #downloadSetupButtonMain').prop('href', calcAdvancedDownloadUrl(infos.downloadUrl, bitness, target));
-                            }
+                            if (!bitness || !target)
+                                $('#downloadSetupButton, #downloadSetupButtonMain').addClass('disabled');
+                            else
+                                $('#downloadSetupButton, #downloadSetupButtonMain').prop('href', calcAdvancedDownloadUrl(infos.downloadUrl, bitness, target));
                         }
-                    });
-                }, 1);
-            }
+                    }
+                });
+            }, 1);
         })
         .fail(function (e) {
             if (e.statusCode === 401) {
@@ -730,12 +647,7 @@ function getDownloadLink() {
                 location.reload();
                 return;
             }
-            $('#downloadLinkReady, #downloadReady').addClass('hidden');
-            $('#downloadLinkWaiting, #downloadLoading').removeClass('hidden');
-            $('#DownloadLinkErrorText').text('Could not load JIRA for Outlook Download URL.');
-
-            if (!intervalTimer)
-                intervalTimer = setInterval(getDownloadLink, 10000);
+            $('#DownloadLinkText').text('Could not load JIRA for Outlook Download URL.');
         });
 }
 
@@ -802,31 +714,15 @@ function getCustomCert() {
     if (!isCloud)
         return Promise.resolve();
 
-    return new Promise(function (resolve, reject) {
-        $.ajax({
-            url: yasoonServerUrl + '/jira/getCustomCert',
-            data: { jwt: jwtToken },
-            headers: { userAuthToken: authToken },
-            type: 'GET'
-        }).done(function (data) {
+    return Promise.resolve($.ajax({
+        url: yasoonServerUrl + '/jira/getCustomCert',
+        data: { jwt: jwtToken },
+        headers: { userAuthToken: authToken },
+        type: 'GET'
+    }))
+        .then(function (data) {
             $('.certTextArea').val(data.customCert);
-            resolve(data);
-        }).fail(function () {
-            reject('Could not load Custom Cert');
         });
-    });
-
-}
-
-function getIdentifyingParams() {
-    if (isCloud) {
-        return { jwt: jwtToken };
-    } else {
-        return {
-            serverId: serverId,
-            baseUrl: systemInfo.baseUrl
-        };
-    }
 }
 
 function genKeyPair() {
@@ -844,24 +740,17 @@ function genKeyPair() {
 }
 
 function createOAuthService(cert) {
-    return new Promise(function (resolve, reject) {
-        var params = getIdentifyingParams();
-        params.clientCertificate = cert;
-        $.ajax({
-            url: yasoonServerUrl + '/jira/oauth',
-            contentType: 'application/json',
-            data: JSON.stringify(params),
-            headers: { userAuthToken: authToken },
-            processData: false,
-            type: 'POST'
-        })
-            .done(function () {
-                resolve();
-            })
-            .fail(function () {
-                reject('Could not create oAuth Service');
-            });
-    });
+    var params = getIdentifyingParams();
+    params.clientCertificate = cert;
+
+    return Promise.resolve($.ajax({
+        url: yasoonServerUrl + '/jira/oauth',
+        contentType: 'application/json',
+        data: JSON.stringify(params),
+        headers: { userAuthToken: authToken },
+        processData: false,
+        type: 'POST'
+    }));
 }
 
 function updateCustomJiraCert(cert) {
@@ -882,6 +771,7 @@ function updateCustomJiraCert(cert) {
             });
     });
 }
+
 function cloudUpdateCerts() {
     return genKeyPair()
         .then(function (certInfo) {
@@ -895,6 +785,18 @@ function cloudUpdateCerts() {
         .then(function (certInfo) {
             $('.certTextArea').val(certInfo.certificate);
         });
+}
+
+function setExternalCompanyData() {
+    return Promise.resolve($.ajax({
+        url: yasoonServerUrl + '/company/own',
+        headers: { userAuthToken: authToken },
+        type: 'GET'
+    }))
+        .then(function (data) {
+            $('#ExternalCompanyKey').val(data.externalCompanyKey);
+        });
+
 }
 
 // User Dialog
@@ -941,6 +843,7 @@ function selectUsers() {
 
     $('#userPicker').closeModal();
 }
+
 function searchUser(term) {
     if (isCloud) {
         return new Promise(function (resolve, reject) {
@@ -960,6 +863,7 @@ function searchUser(term) {
     }
 
 }
+
 function dialogSearch() {
     var term = $('#userNameSearch').val();
     searchUser(term)

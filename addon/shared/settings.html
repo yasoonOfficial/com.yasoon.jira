@@ -1,4 +1,3 @@
-
 <div class="row">
 	<div id="settings" class="col s12">
 		<div class="main row">
@@ -8,9 +7,11 @@
 						<h5 class="custom-red">Outlook Settings</h5>
 						<p>
 							Here you can change all technical settings in JIRA for Outlook.<br />
-							<b>Yasoon Settings</b> Control some general behaviours of JIRA for Outlook and cannot be changed by the user if not stated explicitly.<br />
+							<b>Yasoon Settings</b> Control some general behaviours of JIRA for Outlook and cannot be changed by the user if not
+							stated explicitly.<br />
 							<b>Initial Jira Settings</b> Sets the intial settings for the Jira application but the user can change them. <br />
-							<b>Jira Settings</b> Controls technical settings and general workflows. Changes here will update existing clients to the new settings <br />
+							<b>Jira Settings</b> Controls technical settings and general workflows. Changes here will update existing clients
+							to the new settings <br />
 						</p>
 					</div>
 				</div>
@@ -23,62 +24,76 @@
 									<form class="col s12 ajs-dirty-warning-exempt" style="float:none;">
 										<div class="icons-grey black-label" style="padding-top: 10px;">
 											<div class="row bootstrap-wrapper">
-												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="No software is without bugs - neither is ours. Please help us finding the issues quickly with automatic bug reports." data-title="Automatic error logs">
+												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="No software is without bugs - neither is ours. Please help us finding the issues quickly with automatic bug reports."
+													data-title="Automatic error logs">
 													<i class="material-icons">help_outline</i>
-												</a>
-												<label>
+													</a>
+													<label>
 													Send automatic error logs 
 												</label>
-												<div class="switch"><label>Off<input type="checkbox" data-bind="checked: sendErrorLogs"><span class="lever"></span>On</label></div> 
+													<div class="switch"><label>Off<input type="checkbox" data-bind="checked: sendErrorLogs"><span class="lever"></span>On</label></div>
 											</div>
 											<div class="row bootstrap-wrapper">
-												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="To improve future developments we track which parts of the software are used regularly - and which aren't. We cluster and anonymize these data, so nobody can track single users activities." data-title="Yasoon Analytics">
+												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="To improve future developments we track which parts of the software are used regularly - and which aren't. We cluster and anonymize these data, so nobody can track single users activities."
+													data-title="Yasoon Analytics">
 													<i class="material-icons">help_outline</i>
-												</a>
-												<label>
+													</a>
+													<label>
 													Send analytics
 												</label>
-												<div class="switch"><label>Off<input type="checkbox" data-bind="checked: sendAnalytics"><span class="lever"></span>On</label></div>          
+													<div class="switch"><label>Off<input type="checkbox" data-bind="checked: sendAnalytics"><span class="lever"></span>On</label></div>
 											</div>
 											<div class="row bootstrap-wrapper">
-												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="When users install the addon the first time, they will get a series of 3-4 mails so they understand JIRA for Outlook easier. If you train your users yourself, you can turn them off. <br /> This setting is only used once during the installation. Users that have already installed will receive the rest of their email series. " data-title="Introduction Mails">
+												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="When users install the addon the first time, they will get a series of 3-4 mails so they understand JIRA for Outlook easier. If you train your users yourself, you can turn them off. <br /> This setting is only used once during the installation. Users that have already installed will receive the rest of their email series. "
+													data-title="Introduction Mails">
 													<i class="material-icons">help_outline</i>
-												</a>
-												<label>
+													</a>
+													<label>
 													Send introduction emails
 												</label>
-												<div class="switch"><label>Off<input type="checkbox" data-bind="checked: sendMails"><span class="lever"></span>On</label></div>          
+													<div class="switch"><label>Off<input type="checkbox" data-bind="checked: sendMails"><span class="lever"></span>On</label></div>
 											</div>
 											<div class="row bootstrap-wrapper">
-												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="<b>Important:</b> This can break some functionalities in Outlook! We need to save data locally and if you are not using Exchange, we create a local .pst file for safety. Depending on your mail infrastructure Jira for Outlook may or may not work correctly. <br /> This setting is only used once during the installation. Existing .pst files will not get removed." data-title="Local .pst File">
+												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="We offer a little widget inside our product where users can directly contact us in case of issues or questions. If you run your own support desk and want them to contact you instead, you can turn off our Help Widget."
+													data-title="Activate Help Widget">
 													<i class="material-icons">help_outline</i>
-												</a>
-												<label>
-													Prevent local .pst file
-
+													</a>
+													<label>
+													Activate Help Widget
 												</label>
-												<div class="switch"><label>Off<input type="checkbox" data-bind="checked: noPstFile"><span class="lever"></span>On</label></div>          
+													<div class="switch"><label>Off<input type="checkbox" data-bind="checked: helpWidget"><span class="lever"></span>On</label></div>
 											</div>
 											<div class="row bootstrap-wrapper">
-												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-title="Yasoon Navigation" data-html="true" data-content="We have different ways to display the Navigation Tab. This sets the inital setting and can be overwritten by the user in Outlook: File --> Jira.  <br /> This setting is only used once during installation." >
+												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="<b>Important:</b> This can break some functionalities in Outlook! We need to save data locally and if you are not using Exchange, we create a local .pst file for safety. Depending on your mail infrastructure Jira for Outlook may or may not work correctly. <br /> This setting is only used once during the installation. Existing .pst files will not get removed."
+													data-title="Local .pst File">
+													<i class="material-icons">help_outline</i>
+													</a>
+													<label>
+													Prevent local .pst file
+												</label>
+													<div class="switch"><label>Off<input type="checkbox" data-bind="checked: noPstFile"><span class="lever"></span>On</label></div>
+											</div>
+											<div class="row bootstrap-wrapper">
+												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-title="Yasoon Navigation" data-html="true" data-content="We have different ways to display the Navigation Tab. This sets the inital setting and can be overwritten by the user in Outlook: File --> Jira.  <br /> This setting is only used once during installation.">
 													<i class="material-icons">help_outline</i>
 												</a>
 												<label>
 													Yasoon Navigation
 												</label>
-												<div class="select-wrap">	
+												<div class="select-wrap">
 													<select style="width: 400px;" data-bind="select2: yasoonNavigationOptions, value:yasoonNavigation"></select>
 												</div>
 											</div>
 											<div class="divider" style="margin-bottom: 10px;"></div>
 											<div class="row bootstrap-wrapper">
-												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="Is shown to the user at the first start. A good welcome message gives guidence about the process and tells the user how to get help. We recommend a maximum total width of 600px which is the width of the editor" data-title="Welcome Message">
+												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="Is shown to the user at the first start. A good welcome message gives guidence about the process and tells the user how to get help. We recommend a maximum total width of 600px which is the width of the editor"
+													data-title="Welcome Message">
 													<i class="material-icons">help_outline</i>
-												</a>
-												<div style="float:left">
-													<label for="welcomeMessage">Welcome Message</label>
-													<textarea id="welcomeMessage" class="materialize-textarea tiny-mce" data-bind="wysiwyg:welcomeMessage"></textarea>
-												</div>
+													</a>
+													<div style="float:left">
+														<label for="welcomeMessage">Welcome Message</label>
+														<textarea id="welcomeMessage" class="materialize-textarea tiny-mce" data-bind="wysiwyg:welcomeMessage"></textarea>
+													</div>
 											</div>
 										</div>
 										<hr />
@@ -93,64 +108,70 @@
 								<div class="collapsible-body" data-bind="with:jiraSettings" style="padding: 0px 20px;">
 									<form class="col s12 ajs-dirty-warning-exempt" style="float:none;">
 										<div class="icons-grey black-label">
-											<div class="row bootstrap-wrapper"  style="padding-top: 10px;">
-												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="User will recieve a notification on his Desktop when something important happens for him in JIRA." data-title="Desktop Notifications">
+											<div class="row bootstrap-wrapper" style="padding-top: 10px;">
+												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="User will recieve a notification on his Desktop when something important happens for him in JIRA."
+													data-title="Desktop Notifications">
 													<i class="material-icons">help_outline</i>
-												</a>
-												<label>
+													</a>
+													<label>
 													Show Desktop Notifications
 												</label>
-												<div class="switch"><label>Off<input type="checkbox" data-bind="checked: defaultSettings.showDesktopNotif"><span class="lever"></span>On</label></div> 
+													<div class="switch"><label>Off<input type="checkbox" data-bind="checked: defaultSettings.showDesktopNotif"><span class="lever"></span>On</label></div>
 											</div>
 											<div class="row bootstrap-wrapper">
-												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="Defines how the feed is synchronized. <b>Automatically</b> means every 2 minutes, <b>manually</b> only refreshes when the button is pressed by user and <b>off</b> does not sync at all." data-title="Sync Feed">
+												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="Defines how the feed is synchronized. <b>Automatically</b> means every 2 minutes, <b>manually</b> only refreshes when the button is pressed by user and <b>off</b> does not sync at all."
+													data-title="Sync Feed">
 													<i class="material-icons">help_outline</i>
-												</a>
-												<label>
+													</a>
+													<label>
 													Sync Feed
 												</label>
-												<div class="select-wrap">	
-													<select style="width: 400px;" data-bind="select2: syncFeedOptions, value:defaultSettings.syncFeed"></select>
-												</div>
+													<div class="select-wrap">
+														<select style="width: 400px;" data-bind="select2: syncFeedOptions, value:defaultSettings.syncFeed"></select>
+													</div>
 											</div>
 											<hr />
 											<div class="row bootstrap-wrapper">
-												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="Attachments of emails will be marked for upload automatically when using 'New Issue' or 'Add To Issue'" data-title="Automatically Add Attachments">
+												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="Attachments of emails will be marked for upload automatically when using 'New Issue' or 'Add To Issue'"
+													data-title="Automatically Add Attachments">
 													<i class="material-icons">help_outline</i>
-												</a>
-												<label>
+													</a>
+													<label>
 													Automatically Add Attachments
 												</label>
-												<div class="switch"><label>Off<input type="checkbox" data-bind="checked: defaultSettings.addAttachmentsOnNewAddIssue"><span class="lever"></span>On</label></div> 
+													<div class="switch"><label>Off<input type="checkbox" data-bind="checked: defaultSettings.addAttachmentsOnNewAddIssue"><span class="lever"></span>On</label></div>
 											</div>
 											<div class="row bootstrap-wrapper">
-												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="The email will be marked for upload automatically when using 'New Issue' or 'Add To Issue'" data-title="Automatically Add Email">
+												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="The email will be marked for upload automatically when using 'New Issue' or 'Add To Issue'"
+													data-title="Automatically Add Email">
 													<i class="material-icons">help_outline</i>
-												</a>
-												<label>
+													</a>
+													<label>
 													Automatically Add Email as .msg File
 												</label>
-												<div class="switch"><label>Off<input type="checkbox" data-bind="checked: defaultSettings.addEmailOnNewAddIssue"><span class="lever"></span>On</label></div> 
+													<div class="switch"><label>Off<input type="checkbox" data-bind="checked: defaultSettings.addEmailOnNewAddIssue"><span class="lever"></span>On</label></div>
 											</div>
 											<div class="row bootstrap-wrapper">
-												<a href="#" class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="The email meta data like sender, recipient, sent date and subject will be added automatically when using 'New Issue' or 'Add To Issue'" data-title="Automatically Add Email Header">
+												<a href="#" class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="The email meta data like sender, recipient, sent date and subject will be added automatically when using 'New Issue' or 'Add To Issue'"
+													data-title="Automatically Add Email Header">
 													<i class="material-icons">help_outline</i>
-												</a>
-												<label>
+													</a>
+													<label>
 													Automatically Add Email Header
 												</label>
-												<div class="select-wrap">	
-													<select style="width: 400px;" data-bind="select2: emailHeaderOptions, value:defaultSettings.addMailHeaderAutomatically"></select>
-												</div>
+													<div class="select-wrap">
+														<select style="width: 400px;" data-bind="select2: emailHeaderOptions, value:defaultSettings.addMailHeaderAutomatically"></select>
+													</div>
 											</div>
 											<div class="row bootstrap-wrapper" style="padding-top: 10px;">
-												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="Hides completed issues in all type of issue pickers in 'Create Issue' dialog as well as in 'Add to Issue' dialog." data-title="Hide completed issues">
+												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="Hides completed issues in all type of issue pickers in 'Create Issue' dialog as well as in 'Add to Issue' dialog."
+													data-title="Hide completed issues">
 													<i class="material-icons">help_outline</i>
-												</a>
-												<label>
+													</a>
+													<label>
 													Hide completed issues
 												</label>
-												<div class="switch"><label>Off<input type="checkbox" data-bind="checked: defaultSettings.hideResolvedIssues"><span class="lever"></span>On</label></div> 
+													<div class="switch"><label>Off<input type="checkbox" data-bind="checked: defaultSettings.hideResolvedIssues"><span class="lever"></span>On</label></div>
 											</div>
 										</div>
 										<hr />
@@ -168,37 +189,40 @@
 										<div class="icons-grey black-label bootstrap-wrapper">
 											<h5>TaskSync </h5>
 											<div class="row" style="padding-top: 10px;">
-												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="This setting enables the Task sync module. It allows to sync own issues as task. Note: The Task sync is not activated for the users with this setting. It just allows users to activate it." data-title="Enable Task Sync">
+												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="This setting enables the Task sync module. It allows to sync own issues as task. Note: The Task sync is not activated for the users with this setting. It just allows users to activate it."
+													data-title="Enable Task Sync">
 													<i class="material-icons">help_outline</i>
-												</a>
-												<label>
+													</a>
+													<label>
 													Enable Task Sync
 												</label>
-												<div class="switch"><label>Off<input type="checkbox" data-bind="checked: taskSyncEnabled"><span class="lever"></span>On</label></div> 
+													<div class="switch"><label>Off<input type="checkbox" data-bind="checked: taskSyncEnabled"><span class="lever"></span>On</label></div>
 											</div>
 											<hr />
 											<h5>Teamlead CRM Addon </h5>
 											<div class="row">
-												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="Enter the Teamlead CRM API key here. You can set this key in the admin area of the CRM addon" data-title="Teamlead CRM Api Key">
+												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="Enter the Teamlead CRM API key here. You can set this key in the admin area of the CRM addon"
+													data-title="Teamlead CRM Api Key">
 													<i class="material-icons">help_outline</i>
-												</a>
-												<label>
+													</a>
+													<label>
 													Teamlead CRM Api Key
 												</label>
-												<div class="select-wrap">	
-													<input type="text" style="width: 400px;" data-bind="textInput:teamleadApiKey" />
-												</div>
+													<div class="select-wrap">
+														<input type="text" style="width: 400px;" data-bind="textInput:teamleadApiKey" />
+													</div>
 											</div>
 											<div class="row">
-												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="You can configure the CRM addon to only show the contacts belonging to the same company. This must be reconfigured here as json: { 'fieldIdOfContactField': 'FieldIdOfCompanyField' }" data-title="Mapping String">
+												<a class="left" style="margin-right: 15px;" data-toggle="popover" data-html="true" data-content="You can configure the CRM addon to only show the contacts belonging to the same company. This must be reconfigured here as json: { 'fieldIdOfContactField': 'FieldIdOfCompanyField' }"
+													data-title="Mapping String">
 													<i class="material-icons">help_outline</i>
-												</a>
-												<label>
+													</a>
+													<label>
 													Teamlead CRM Company - Contact Mapping String
 												</label>
-												<div class="select-wrap">	
-													<input type="text" style="width: 400px;" data-bind="textInput:teamleadMapping" />
-												</div>
+													<div class="select-wrap">
+														<input type="text" style="width: 400px;" data-bind="textInput:teamleadMapping" />
+													</div>
 											</div>
 										</div>
 										<hr />

@@ -1,11 +1,14 @@
+var PROP_JIRADATAID = 'jiraDataId';
+var PROP_AUTHTOKEN = 'authToken';
+
 var authToken = '';
 var isCloud = false;
 var yasoonServerUrl = '';
 var isInstanceRegistered = false;
+var instanceData = null;
 var jiraDataId = null;
 var systemInfo = {};
 var serverId = null;
-var yasoonUser = null;
 var jwtToken = '';
 var sen = '';
 
@@ -68,9 +71,13 @@ $(document).ready(function () {
             AP.resize('100%', (window.screen.availHeight - 250) + 'px');
             $('.tab-container').css('max-height', (window.screen.availHeight - 330) + 'px')
         }
-
-        //Load token even if it may does not exist.
-        authToken = $.cookie('yasoonAuthToken');
+        //1. Load SystemInfo
+        //2. Get Store URL for current server ID (amazon dynamoDB)
+        //3. Get Instance Property JiraDataId
+        //4. Get isInstanceRegistered
+        //5. Get Instance Property authToken
+        //6. If authToken does not exist but instanceIsRegistered, create a new one
+        //7. load UI and subsequent pages
 
         loadSystemInfo()
             .then(function () {
@@ -96,21 +103,32 @@ $(document).ready(function () {
             })
             .then(function (url) {
                 yasoonServerUrl = url;
+                return getInstanceProperty(PROP_JIRADATAID);
+            })
+            .then(function (jiraId) {
+                jiraDataId = jiraId;
                 //Check if this instance is registered
-                return getIsInstanceRegistered();
+                return getIsInstanceRegistered(jiraDataId);
             })
             .then(function (result) {
                 isInstanceRegistered = result.registered;
-                jiraDataId = result.jiraDataId;
-
-                return getOwnUser()
-                    .caught(function () {
-                        return null;
-                    });
-
-            }).then(function (resultUser) {
-                //Initialize the UI
-                yasoonUser = resultUser;
+                instanceData = result;
+                if (!jiraDataId) {
+                    jiraDataId = result.jiraDataId;
+                    return setInstanceProperty(PROP_JIRADATAID, jiraDataId);
+                }
+            })
+            .then(function () {
+                return getInstanceProperty(PROP_AUTHTOKEN);
+            })
+            .then(function (userAuthToken) {
+                if (isInstanceRegistered && !userAuthToken) {
+                    //Migration: Create userAuthToken and save it as instance Property
+                    return createAuthToken();
+                }
+                authToken = userAuthToken;
+            })
+            .then(function () {
                 loadUI();
             })
             .caught(function (e) {
@@ -138,7 +156,8 @@ function getStoreUrl() {
         });
 }
 
-function getIsInstanceRegistered() {
+function getIsInstanceRegistered(jiraDataId) {
+
     return Promise.resolve($.ajax({
         url: yasoonServerUrl + '/jira/isInstanceRegistered',
         data: getIdentifyingParams(),
@@ -226,15 +245,19 @@ function loadUI() {
     }
 
     //Make sure we are allowed to load this page
-    if (webLinkKey !== 'admin' && !isInstanceRegistered) {
+    if (webLinkKey !== 'admin' && (!isInstanceRegistered || !authToken)) {
         //If it is not admin, we need to have a registered intance
         //-->Show Error
         $('#pageError').removeClass('hidden').text('Please register this instance first under General Overview');
 
     } else if (webLinkKey) {
-        $('#pageContent').removeClass('hidden').load(htmlPath, function () {
-            $.getScript(jsPath);
-        });
+        Promise.resolve($('#pageContent').removeClass('hidden').load(htmlPath))
+            .then(function () {
+                return $.getScript(jsPath);
+            })
+            .caught(function () {
+                $('#pageError').removeClass('hidden').text('Could not load page due to an unknown error while fetching scripts');
+            });
     } else {
         $('#pageError').removeClass('hidden').text('Could not load page due to an unknown error: Page unknown');
     }
@@ -258,7 +281,20 @@ function setInstanceProperty(property, valueObj) {
                     }
                 });
             });
-        });
+        })
+            .caught(function () {
+                return '';
+            });
+    } else {
+        return Promise.resolve($.ajax({
+            url: systemInfo.baseUrl + '/rest/api/2/application-properties/' + property,
+            type: 'PUT',
+            data: JSON.stringify(valueObj),
+            contentType: "application/json"
+        }))
+            .caught(function () {
+                return '';
+            });
     }
 }
 
@@ -279,7 +315,15 @@ function getInstanceProperty(property) {
                     }
                 });
             });
-        });
+        })
+            .caught(function () {
+                return '';
+            });
+    } else {
+        return Promise.resolve($.get(systemInfo.baseUrl + '/rest/api/2/application-properties?key=' + property))
+            .caught(function () {
+                return '';
+            });
     }
 }
 
@@ -374,6 +418,37 @@ function getSeverIdFromJwt(jwt) {
 
     var jiraData = JSON.parse(atob(jwtParts[1]));
     return jiraData.iss;
+}
+
+function getIdentifyingParams() {
+    if (isCloud) {
+        return {
+            jiraDataId: jiraDataId,
+            jwt: jwtToken
+        };
+    } else {
+        return {
+            jiraDataId: jiraDataId,
+            serverId: serverId,
+            baseUrl: systemInfo.baseUrl
+        };
+    }
+}
+
+
+function createAuthToken() {
+    return Promise.resolve($.ajax({
+        url: yasoonServerUrl + '/jira/xxx',
+        contentType: 'application/json',
+        data: JSON.stringify(getIdentifyingParams()),
+        processData: false,
+        type: 'POST'
+    }))
+        .then(function (xxx) {
+            //ToDo: Save UserAuth jwtToken
+            authToken = xxx;
+            return setInstanceProperty(PROP_AUTHTOKEN, authToken);
+        });
 }
 
 

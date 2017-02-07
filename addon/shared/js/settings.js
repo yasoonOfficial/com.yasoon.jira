@@ -16,6 +16,7 @@ function yasoonSettingsModel() {
     this.noPstFile = ko.observable(false);
     this.yasoonNavigation = ko.observable(0);
     this.welcomeMessage = ko.observable('');
+    this.helpWidget = ko.observable(true);
     this.currentCompnay = null;
 
     this.yasoonNavigationOptions = {
@@ -41,6 +42,7 @@ function yasoonSettingsModel() {
         var overwriteData = {
             remoteErrorLoggingEnabled: self.sendErrorLogs(),
             analyticsEnabled: self.sendAnalytics(),
+            helpWidget: self.helpWidget()
         };
 
         var installOnlyData = {
