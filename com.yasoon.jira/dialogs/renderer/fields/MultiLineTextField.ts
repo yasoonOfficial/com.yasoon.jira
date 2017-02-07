@@ -24,7 +24,7 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
     //So we get the value of the comment box after each change and save it here so we can get it afterwards synchroniously.
     private mentionText: string;
 
-    constructor(id: string, field: any, config:MultiLineTextFieldOptions = { isMainField: false, hasMentions: false }) {
+    constructor(id: string, field: any, config: MultiLineTextFieldOptions = { isMainField: false, hasMentions: false }) {
         super(id, field);
 
         this.emailController = jira.emailController;
@@ -186,11 +186,11 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
         $('#' + this.id).change(e => this.triggerValueChange());
 
 
-        if (this.isMainField) {
+        if (this.isMainField && this.emailController) {
             //Private vars for event Handler
             let useMarkup: boolean = true;
             let backup: string = '';
-            let lastAction: string = (this.emailController) ? this.emailController.type : '';
+            let lastAction: string = this.emailController.type;
 
             //Static toggle JIRA markup in drop down menus
             this.ownContainer.find('.toggleJiraMarkup').on('click', (e) => {
@@ -294,7 +294,7 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
         let height: string = (this.isMainField) ? '200px' : '100px';
         container.append(`<textarea class="form-control text" id="${this.id}" name="${this.id}" style="height:${height};overflow: initial;"></textarea>
             <div class="mentions-help-text bg-warning"><span>${yasoon.i18n('dialog.mentionsAlert')}</span></div>`);
-        if (this.isMainField) {
+        if (this.isMainField && this.emailController) {
             this.addMainFieldHtml(container);
         }
     }

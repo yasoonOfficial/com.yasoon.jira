@@ -585,7 +585,7 @@ function JiraIssueNotification(issue) {
 				jiraGet('/rest/api/2/issue/' + key + '/transitions?transitionId=' + transitionId)
 					.then(function (data) {
 						var transObj = JSON.parse(data);
-						if(transObj.transitions && transObj.transitions.length === 0) {
+						if (transObj.transitions && transObj.transitions.length === 0) {
 							yasoon.alert.add({ type: yasoon.alert.alertType.error, message: yasoon.i18n('notification.changeStatusNotPossible', { error: 'Transition does not exist in current context anymore! Refresh the feed.' }) });
 							yasoon.util.log('Transition not found for transition Id ' + transitionId + ' || ' + JSON.stringify(transObj), yasoon.util.severity.warning);
 							return;
@@ -678,6 +678,7 @@ function JiraIssueNotification(issue) {
 				yEvent.createdAt = new Date(self.issue.fields.updated);
 				yEvent.contactId = ((self.issue.fields.creator) ? self.issue.fields.creator.name : ((self.issue.fields.reporter) ? self.issue.fields.reporter.name : ''));
 				yEvent.externalId = self.issue.id;
+				yEvent.isRead = true;
 				self.issue.type = 'issue';
 
 				/* Clean up data to save DB space */
