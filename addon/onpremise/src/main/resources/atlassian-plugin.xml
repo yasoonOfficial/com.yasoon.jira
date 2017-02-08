@@ -19,6 +19,7 @@
         <resource type="download" name="settings.js" location="js/settings.js" />
         <resource type="download" name="templates.html" location="templates.html" />
         <resource type="download" name="templates.js" location="js/templates.js" />
+        <resource type="download" name="user.html" location="user.html" />
     </web-resource>
 
     <!-- add our web resources -->
@@ -48,10 +49,18 @@
         <resource type="download" name="group-picker-data.js" location="/js/components/group-picker-data.js" />
         <resource type="download" name="issue-type-picker.js" location="/js/components/issue-type-picker.js" />
         <resource type="download" name="project-picker.js" location="/js/components/project-picker.js" />
+        <resource type="download" name="base.js" location="/js/base.js"/>
         <resource type="download" name="common.js" location="/js/common.js"/>
 		<resource type="download" name="images/logo_with_jira.png" location="images/logo_with_jira.png"/>
         <resource type="download" name="images/" location="/images"/>
 		<resource type="download" name="img/" location="/img"/>
+    </web-resource>
+
+    <web-resource key="userResources" name="yasoononpremise User Web Resources">                
+        <resource type="download" name="jquery-1.11.3.min.js" location="/js/library/jquery-1.11.3.min.js"/>
+        <resource type="download" name="bluebird.min.js" location="/js/library/bluebird.min.js" />
+        <resource type="download" name="base.js" location="/js/base.js"/>
+        <resource type="download" name="user.js" location="/js/user.js"/>
     </web-resource>
             
     <!-- import from the product container -->
@@ -97,11 +106,12 @@
         <link linkId="jiraforoutlook-user-link">/plugins/servlet/jiraforoutlook/user</link> 
     </web-item>
     
-    <servlet key="admin-servlet" class="com.yasoon.jira.AdminUIServlet">
+    <servlet key="admin-servlet" class="com.yasoon.jira.UIServlet">
         <url-pattern>/jiraforoutlook/admin</url-pattern>
         <url-pattern>/jiraforoutlook/settings</url-pattern>  
         <url-pattern>/jiraforoutlook/templates</url-pattern>  
         <url-pattern>/jiraforoutlook/proxy</url-pattern>          
+        <url-pattern>/jiraforoutlook/user</url-pattern>
     </servlet>
     
     <servlet key="system-info-servlet" class="com.yasoon.jira.SystemInfoServlet">

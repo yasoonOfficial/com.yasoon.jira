@@ -17,25 +17,31 @@ import com.atlassian.sal.api.auth.LoginUriProvider;
 import com.atlassian.sal.api.user.UserManager;
 import com.atlassian.templaterenderer.TemplateRenderer;
 
-public class AdminUIServlet extends HttpServlet {
+public class UIServlet extends HttpServlet {
 
     private final UserManager userManager;
     private final LoginUriProvider loginUriProvider;
     private final TemplateRenderer renderer;
 
-    public AdminUIServlet(UserManager userManager, LoginUriProvider loginUriProvider, TemplateRenderer renderer,
+    public UIServlet(UserManager userManager, LoginUriProvider loginUriProvider, TemplateRenderer renderer,
             MutatingApplicationLinkService appLinks, TypeAccessor typeAccessor) {
         this.userManager = userManager;
         this.loginUriProvider = loginUriProvider;
         this.renderer = renderer;
     }
-    
+
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         //Proxy Url can be opened without user credentials
-        if(request.getRequestURI().endsWith("proxy")) {
+        if (request.getRequestURI().endsWith("proxy")) {
             response.setContentType("text/html;charset=utf-8");
             renderer.render("proxy.vm", response.getWriter());
+            return;
+        }
+
+        if (request.getRequestURI().endsWith("user")) {
+            response.setContentType("text/html;charset=utf-8");
+            renderer.render("userui.vm", response.getWriter());
             return;
         }
 
@@ -45,7 +51,7 @@ public class AdminUIServlet extends HttpServlet {
             redirectToLogin(request, response);
             return;
         }
-        
+
         response.setContentType("text/html;charset=utf-8");
         renderer.render("adminui.vm", response.getWriter());
     }
