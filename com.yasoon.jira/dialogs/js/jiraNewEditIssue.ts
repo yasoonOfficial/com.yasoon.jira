@@ -608,7 +608,7 @@ class NewEditDialog implements IFieldEventHandler {
 
         //Intenso Dynamic (currently without Dynamic - just render)
         FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-cascadingselect-customfield', CascadedSelectField);
-        FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-cascadingselect-customfield', CheckboxField);
+        FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-check-box-customfield', CheckboxField);
         FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-multiselect-customfield', JiraSelectField, { multiple: true });
         FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-radiobutton-customfield', RadioField);
         FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-select-customfield', JiraSelectField);
