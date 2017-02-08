@@ -16,6 +16,12 @@ function initAdminUI() {
     //Hide page loader first
     $('#pageLoading').hide();
 
+
+    if (instanceData.serverId != serverId || instanceData.baseUrl != systemInfo.baseUrl) {
+        handleUrlChange();
+        return;
+    }
+
     var cookiePage = $.cookie('currentPage');
     if (cookiePage) {
         currentPage = parseInt(cookiePage);
@@ -140,8 +146,13 @@ function assignToCompany(externalCompanyKeyOrData) {
                 }
             });
     }
+    if (authToken) {
+        //This may happens if you have the URL change dialog
+        promise = promise.then(function () {
+            return { authToken: authToken };
+        });
 
-    if (typeof externalCompanyKeyOrData === 'string') {
+    } else if (typeof externalCompanyKeyOrData === 'string') {
         //externalCompanyKeyOrData is externalData
         var splits = externalCompanyKeyOrData.split(':');
         var companyId = splits[0];
@@ -209,13 +220,38 @@ function assignToCompany(externalCompanyKeyOrData) {
 }
 
 function handleUrlChange() {
-    $('#MigrateUrlDialog').modal('open');
+    $('#MigrateModalServerIdOld').text(instanceData.serverId);
+    $('#MigrateModalServerIdNew').text(systemInfo.serverId);
+    $('#MigrateModalUrlOld').text(instanceData.baseUrl);
+    $('#MigrateModalUrlNew').text(systemInfo.baseUrl);
+
+    $('#MigrateUrlDialog').removeClass('hidden');
+
     $('#UpdateUrlAction').off().click(function (e) {
-        console.log('Update');
+        Promise.resolve($.ajax({
+            url: yasoonServerUrl + '/jira/update?jiraDataId=' + jiraDataId,
+            contentType: 'application/json',
+            data: JSON.stringify(getInstanceData()),
+            processData: false,
+            type: 'POST'
+        }))
+            .then(function (result) {
+                if (result.success) {
+
+                } else {
+
+                }
+            });
     });
 
     $('#CreateNewInstanceAction').off().click(function (e) {
-        console.log('Instance Add');
+        return assignToCompany()
+            .then(function () {
+                initAdminUI();
+            })
+            .caught(function () {
+
+            });
     });
 }
 

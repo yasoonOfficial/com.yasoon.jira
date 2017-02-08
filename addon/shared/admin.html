@@ -379,25 +379,34 @@
 	</div>
 </div>
 
-<div id="MigrateUrlDialog" class="modal">
+<div id="MigrateUrlDialog" class="z-depth-4 hidden">
 	<div class="modal-content">
 		<div class="row">
 			<h5 class="custom-red"> Changes Detected </h5>
-			We have detected changes in your configuration which may prevent JIRA for Outlook to run properly. <br> You may have changed
-			the URL of this system or copied it to a new instance.
-			<div class="col s6">
-				Old Data
-			</div>
-			<div class="col s6">
-				New Data
-			</div>
+			<p>
+				We have detected changes in your configuration which may prevent JIRA for Outlook to run properly. <br> You may have
+				changed the URL of this system or copied it to a new instance.
+			</p>
 		</div>
 		<div class="row">
 			<div class="col s6">
-				<a id="UpdateUrlAction"><i class="material-icons">autorenew</i> Yes this is the new URL and update it in all Outlook Clients</a>
+				<div><b>Old Data</b></div>
+				<div><span>ServerId: </span><span id="MigrateModalServerIdOld"></span></div>
+				<div><span>Url: </span><span id="MigrateModalUrlOld"></span></div>
 			</div>
 			<div class="col s6">
-				<a id="CreateNewInstanceAction"><i class="material-icons">content_copy</i> This system is a copy and create a new system entry.</a>
+				<div><b>Current Data</b></div>
+				<div><span>ServerId: </span><span id="MigrateModalServerIdNew"></span></div>
+				<div><span>Url: </span><span id="MigrateModalUrlNew"></span></div>
+			</div>
+		</div>
+		<hr>
+		<div class="row">
+			<div class="col s6">
+				<a id="UpdateUrlAction" class="waves-effect waves-light btn light-blue darken-2" style="margin: 20px;"><i class="material-icons">autorenew</i> Update</a>
+			</div>
+			<div class="col s6">
+				<a id="CreateNewInstanceAction" class="waves-effect waves-light btn light-green darken-2" style="margin: 20px;"><i class="material-icons">content_copy</i> Add new system</a>
 			</div>
 		</div>
 	</div>

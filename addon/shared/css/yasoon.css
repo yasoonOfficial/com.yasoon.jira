@@ -228,6 +228,12 @@ a {
 	overflow-y: auto;
 }
 
+#MigrateUrlDialog {
+    position: absolute;
+    top: 10%;
+    padding: 20px;
+    left: 30%;
+}
 /* Tiny Mce */
 @import url(https://fonts.googleapis.com/css?family=Lato);
 @font-face{
