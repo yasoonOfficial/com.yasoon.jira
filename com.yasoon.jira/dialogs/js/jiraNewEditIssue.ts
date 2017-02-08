@@ -580,7 +580,6 @@ class NewEditDialog implements IFieldEventHandler {
         FieldController.register('assignee', UserSelectField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:userpicker', UserSelectField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:multiuserpicker', UserSelectField, { multiple: true });
-        FieldController.register('com.burningcode.jira.issue.customfields.impl.jira-watcher-field:watcherfieldtype', UserSelectField, { multiple: true });
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:cascadingselect', CascadedSelectField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:project', ProjectField, { cache: jira.cacheProjects, allowClear: true });
         FieldController.register('timetracking', TimeTrackingField);
@@ -606,6 +605,15 @@ class NewEditDialog implements IFieldEventHandler {
         }
         //Watcher Field
         FieldController.register('com.burningcode.jira.issue.customfields.impl.jira-watcher-field:watcherfieldtype', UserSelectField, { multiple: true });
+
+        //Intenso Dynamic (currently without Dynamic - just render)
+        FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-cascadingselect-customfield', CascadedSelectField);
+        FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-cascadingselect-customfield', CheckboxField);
+        FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-multiselect-customfield', JiraSelectField, { multiple: true });
+        FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-radiobutton-customfield', RadioField);
+        FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-select-customfield', JiraSelectField);
+        FieldController.register('com.intenso.jira.plugin.dynamic-forms:secured-select', JiraSelectField);
+
     };
 }
 

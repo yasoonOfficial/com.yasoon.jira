@@ -1,4 +1,9 @@
-/* Custom */
+
+form.aui .field-group > label {
+	margin-left: -155px!important;
+	width: 145px!important;
+}
+
 .input-field {
 	width: 250px;
 }
