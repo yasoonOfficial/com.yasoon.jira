@@ -97,7 +97,6 @@
 
 
 .materialize-wrapper .afterSetup {
-	padding-bottom: 40px !important;
 	padding-top: 15px !important;
 	position: relative;
 }
@@ -142,6 +141,10 @@
     line-height: 36px;
 }
 
+.materialize-wrapper .select-wrapper+label {
+	top: -14px!important;
+}
+
 .materialize-wrapper input:not([type]),
 .materialize-wrapper input[type=text],
 .materialize-wrapper input[type=password],
@@ -158,6 +161,10 @@
 	height: 2rem; 
 	margin: 0px;
 }   
+
+.materialize-wrapper .input-field label {
+	top: 0.2rem;
+}
 
 a {
 	cursor: pointer;
@@ -202,7 +209,7 @@ a {
 }
 
 .custom-red {
-	color: #ee6e73;
+	color: #ee6e73 !important;
 }
 
 #notyfy_container_topCenter {

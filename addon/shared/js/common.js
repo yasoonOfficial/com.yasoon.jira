@@ -71,6 +71,10 @@ $(document).ready(function () {
             AP.resize('100%', (window.screen.availHeight - 250) + 'px');
             $('.tab-container').css('max-height', (window.screen.availHeight - 330) + 'px')
         }
+        //Remove legacy cookies
+        if ($.cookie('yasoonAuthToken')) {
+            $.removeCookie('yasoonAuthToken');
+        }
         //1. Load SystemInfo
         //2. Get Store URL for current server ID (amazon dynamoDB)
         //3. Get Instance Property JiraDataId
@@ -108,7 +112,7 @@ $(document).ready(function () {
             .then(function (jiraId) {
                 jiraDataId = jiraId;
                 //Check if this instance is registered
-                return getIsInstanceRegistered(jiraDataId);
+                return getIsInstanceRegistered();
             })
             .then(function (result) {
                 isInstanceRegistered = result.registered;
@@ -125,8 +129,9 @@ $(document).ready(function () {
                 if (isInstanceRegistered && !userAuthToken) {
                     //Migration: Create userAuthToken and save it as instance Property
                     return createAuthToken();
+                } else {
+                    authToken = userAuthToken;
                 }
-                authToken = userAuthToken;
             })
             .then(function () {
                 loadUI();
@@ -156,8 +161,7 @@ function getStoreUrl() {
         });
 }
 
-function getIsInstanceRegistered(jiraDataId) {
-
+function getIsInstanceRegistered() {
     return Promise.resolve($.ajax({
         url: yasoonServerUrl + '/jira/isInstanceRegistered',
         data: getIdentifyingParams(),
@@ -194,10 +198,7 @@ function loadSystemInfo() {
             type: 'get'
         }))
             .then(function (info) {
-                if (typeof (info) === 'string')
-                    systemInfo = JSON.parse(info);
-                else
-                    systemInfo = info;
+                systemInfo = info;
 
                 serverId = systemInfo.serverId || systemInfo.licenseInfo.instances[0].serverId;
 
@@ -287,9 +288,9 @@ function setInstanceProperty(property, valueObj) {
             });
     } else {
         return Promise.resolve($.ajax({
-            url: systemInfo.baseUrl + '/rest/api/2/application-properties/' + property,
-            type: 'PUT',
-            data: JSON.stringify(valueObj),
+            url: 'pluginsettings',
+            type: 'POST',
+            data: JSON.stringify({ key: property, value: valueObj }),
             contentType: "application/json"
         }))
             .caught(function () {
@@ -320,7 +321,10 @@ function getInstanceProperty(property) {
                 return '';
             });
     } else {
-        return Promise.resolve($.get(systemInfo.baseUrl + '/rest/api/2/application-properties?key=' + property))
+        return Promise.resolve($.get('pluginsettings?key=' + property))
+            .then(function (result) {
+                return result.value;
+            })
             .caught(function () {
                 return '';
             });
@@ -346,17 +350,6 @@ function getOwnUser() {
                 reject('Auth token not valid');
             });
     });
-}
-
-function getIdentifyingParams() {
-    if (isCloud) {
-        return { jwt: jwtToken };
-    } else {
-        return {
-            serverId: serverId,
-            baseUrl: systemInfo.baseUrl
-        };
-    }
 }
 
 function isIE() {
@@ -435,19 +428,25 @@ function getIdentifyingParams() {
     }
 }
 
-
 function createAuthToken() {
     return Promise.resolve($.ajax({
-        url: yasoonServerUrl + '/jira/xxx',
+        url: yasoonServerUrl + '/jira/migrateToHostAuth',
         contentType: 'application/json',
         data: JSON.stringify(getIdentifyingParams()),
         processData: false,
         type: 'POST'
     }))
-        .then(function (xxx) {
-            //ToDo: Save UserAuth jwtToken
-            authToken = xxx;
-            return setInstanceProperty(PROP_AUTHTOKEN, authToken);
+        .then(function (result) {
+            if (result.success) {
+                authToken = result.authToken;
+                return setInstanceProperty(PROP_AUTHTOKEN, authToken);
+            } else {
+                throw new Error('False');
+            }
+        })
+        .caught(function (e) {
+            captureMessage('Error while migrating to new Auth', e);
+            swal("Oops...", "Migrating to new Addon failed. Please contact us to resolve this issue! ", "error");
         });
 }
 

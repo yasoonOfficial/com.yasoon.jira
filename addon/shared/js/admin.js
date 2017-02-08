@@ -1,3 +1,4 @@
+var shareUserList = {};
 function loadRegisteredUIState() {
     $('#mainMenuTabs').tabs();
     $('#selectBitness, #selectAppData').material_select();
@@ -48,7 +49,7 @@ function initAdminUI() {
         $('#ButtonRegister').click(function () {
             $('#AreaPreRegister').addClass('hidden');
             $('#AreaRegister').removeClass('hidden');
-            $('#nextText').text('Register');
+            $('#nextText').text('Next');
             $('#next').data('type', 'register').removeClass('hidden');
 
 
@@ -71,7 +72,7 @@ function initAdminUI() {
     }
 
     //Init Modals
-    $('.modal-trigger').modal({
+    $('#userPicker').modal({
         ready: onUserDialogOpen
     });
 
@@ -115,7 +116,6 @@ function initAdminUI() {
 
     $('#next').click(handleNext);
     $('#addApplicationLinkButton, #addApplicationLinkButtonMain').click(handleAddApplicationLink);
-    $('#LoginYasoonButton').click(handleLogin);
 }
 
 function initTracking() {
@@ -123,27 +123,77 @@ function initTracking() {
     $('body').append('<iframe style="height: 0px; width: 0px;" src="https://www.yasoon.de/track_install.html?id=' + serverId + '"></iframe>');
 }
 
-function assignToCompany(externalCompanyKey) {
-    //ToDo: Check externalCompanyKey and get authToken
-    return Promise.resolve($.ajax())
-        .then(function (auth) {
-            authToken = auth;
-            return setInstanceProperty(PROP_AUTHTOKEN, authToken);
-        })
-        .then(function () {
-            $('.storeLink').attr("href", yasoonServerUrl + '/?sso=' + authToken);
-            if (isCloud)
-                return;
+function assignToCompany(externalCompanyKeyOrData) {
+    var promise = Promise.resolve();
+    if (!isCloud) {
+        promise = Promise.resolve($.ajax({
+            url: yasoonServerUrl + '/jira/install',
+            contentType: 'application/json',
+            data: JSON.stringify(getInstanceData()),
+            processData: false,
+            type: 'POST'
+        }))
+            .then(function (result) {
+                if (result && !jiraDataId) {
+                    jiraDataId = result.id;
+                    return setInstanceProperty(PROP_JIRADATAID, jiraDataId);
+                }
+            });
+    }
 
+    if (typeof externalCompanyKeyOrData === 'string') {
+        //externalCompanyKeyOrData is externalData
+        var splits = externalCompanyKeyOrData.split(':');
+        var companyId = splits[0];
+        var externalCompanyKey = splits[1];
+
+        promise = promise.then(function () {
             return $.ajax({
-                url: yasoonServerUrl + '/jira/install',
+                url: yasoonServerUrl + '/api/company/' + companyId + '/switchCompanyKeyForAuth',
                 contentType: 'application/json',
-                data: JSON.stringify(getInstanceData()),
+                data: JSON.stringify({
+                    jiraDataId: jiraDataId,
+                    key: externalCompanyKey
+                }),
                 processData: false,
                 type: 'POST'
             });
         })
-        .then(function () {
+            .then(function (result) {
+                if (!result.success) {
+                    throw new Error('Invalid Company Key');
+                }
+                return result;
+            });
+
+    } else {
+        //externalCompanyKeyOrData is formData
+        var formData = externalCompanyKeyOrData;
+        promise = promise.then(function () {
+            formData.jiraDataId = jiraDataId;
+            return $.ajax({
+                url: yasoonServerUrl + '/api/company/register',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                processData: false,
+                type: 'POST'
+            });
+        })
+            .then(function (result) {
+                //Means: User is already registered
+                if (!result.success) {
+                    throw new Error('Error during Registration');
+                }
+                return result;
+            });
+    }
+    return promise
+        .then(function (result) {
+            authToken = result.authToken
+            $('.storeLink').attr('href', yasoonServerUrl + '/?sso=' + authToken);
+            return setInstanceProperty(PROP_AUTHTOKEN, authToken);
+        })
+        .then(function (result) {
             return $.ajax({
                 url: yasoonServerUrl + '/jira/assigncompany',
                 contentType: 'application/json',
@@ -154,18 +204,8 @@ function assignToCompany(externalCompanyKey) {
             });
         })
         .then(function (result) {
-            return setInstanceProperty(PROP_JIRADATAID, result.jiraDataId);
-        })
-        .caught(function (e) {
-            captureMessage('Error during assignCompany: ', e);
-            swal("Oops...", 'An error occurred during your registration. Please contact us via the green help button, we\'ll fix this quickly.', "error");
-
-            promise.cancel();
+            //Returns result.needsOauth -->not sure if we need it
         });
-}
-
-function handleLogin() {
-    //Only necessary for migration path. Usually authToken is stored in instanceData
 }
 
 function handleUrlChange() {
@@ -258,13 +298,12 @@ function handleNext() {
                 }
             });
         } else if (type === 'login') {
-
-            return handleLogin()
+            return assignToCompany($('#companyExternalKey').val())
                 .then(function () {
                     gotoNextPage();
                 })
-                .caught(function () {
-                    swal("Oops...", "Login did not work. Please try again.", "error");
+                .caught(function (e) {
+                    swal("Oops...", e.message, "error");
                 })
                 .lastly(function () {
                     $('#next').prop("disabled", false);
@@ -404,69 +443,18 @@ function registerAccount(cbk) {
         });
     }
 
-    //Send Data
-    var promise = Promise.resolve();
-    //Instance is already registered in Cloud (during Addon install Event)
-    if (!isCloud) {
-        promise = Promise.resolve($.ajax({
-            url: yasoonServerUrl + '/jira/install',
-            contentType: 'application/json',
-            data: JSON.stringify(getInstanceData()),
-            processData: false,
-            type: 'POST'
-        }))
-            .then(function (result) {
-                if (result && !jiraDataId) {
-                    jiraDataId = result.id;
-                    return setInstanceProperty(PROP_JIRADATAID, jiraDataId);
-                }
-            });
-    }
+    $.cookie('yasoonEmail', formData.emailAddress, { expires: 365 });
 
-    promise
-        .then(function () {
-            formData.jiraDataId = jiraDataId;
-            $.ajax({
-                url: yasoonServerUrl + '/api/company/register',
-                contentType: 'application/json',
-                data: JSON.stringify(formData),
-                processData: false,
-                type: 'POST'
-            })
-        })
-        .then(function (result) {
-            //Means: User is already registered
-            if (!result.success) {
-                promise.cancel();
-                return cbk({
-                    success: false,
-                    message: 'Account already exists. You may want to add this instance instead of registering a new one?'
-                });
-            }
-            authToken = result.authToken
-            $('.storeLink').attr('href', yasoonServerUrl + '/?sso=' + authToken);
-            return setInstanceProperty(PROP_AUTHTOKEN, authToken);
-        })
-        .then(function () {
-            return $.ajax({
-                url: yasoonServerUrl + '/jira/assigncompany',
-                contentType: 'application/json',
-                data: JSON.stringify(getIdentifyingParams()),
-                headers: { userAuthToken: authToken },
-                processData: false,
-                type: 'POST'
-            });
-        })
+    return assignToCompany(formData)
         .then(function () {
             cbk({
                 success: true
             });
         })
         .caught(function (e) {
-            captureMessage('Error during registration: ', e);
             cbk({
                 success: false,
-                message: 'An error occurred during your registration. Please contact us via the help button, we\'ll fix this quickly.'
+                message: e.message
             });
         });
 }
@@ -609,6 +597,7 @@ function checkDownloadLink() {
         .done(function (infos) {
             $('#downloadSetupButton, #downloadSetupButtonMain').prop('href', infos.downloadUrl);
             $('#downloadLink').val(infos.downloadUrl);
+            $('#downloadLinkReady').removeClass('hidden');
 
             setTimeout(function () {
                 $('#selectBitness, #selectAppData').on('change', function () {
@@ -686,14 +675,8 @@ function checkAppLink() {
 
     } else {
 
-        return Promise.resolve($.ajax({
-            url: 'applink',
-            type: 'GET'
-        }))
+        return Promise.resolve($.get('applink'))
             .then(function (applink) {
-                if (typeof (applink) === 'string')
-                    applink = JSON.parse(applink);
-
                 if (applink.exists) {
                     $('#addApplicationLinkButton').prop('disabled', true).text('Application Link Active!');
                     $('#applicationLinkActive').removeClass('hidden');
@@ -789,12 +772,12 @@ function cloudUpdateCerts() {
 
 function setExternalCompanyData() {
     return Promise.resolve($.ajax({
-        url: yasoonServerUrl + '/company/own',
+        url: yasoonServerUrl + '/api/company/getOwn',
         headers: { userAuthToken: authToken },
         type: 'GET'
     }))
         .then(function (data) {
-            $('#ExternalCompanyKey').val(data.externalCompanyKey);
+            $('#externalCompanyKey').text(data.id + ':' + data.externalKey);
         });
 
 }
@@ -821,7 +804,7 @@ function onUserDialogOpen() {
 function renderUserChip(userKey, userName, profilePicUrl) {
     return '<div id="' + userKey + '" class="chip" style="margin:10px;">' +
         '<img src="' + profilePicUrl + '" />' +
-        userName + '<i class="material-icons">close</i></div>';
+        userName + '<i class="close material-icons">close</i></div>';
 }
 
 function removeUserChip(e) {
@@ -841,7 +824,7 @@ function selectUsers() {
         }
     }
 
-    $('#userPicker').closeModal();
+    $('#userPicker').modal('close');
 }
 
 function searchUser(term) {

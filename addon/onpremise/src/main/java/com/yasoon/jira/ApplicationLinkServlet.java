@@ -78,7 +78,7 @@ public class ApplicationLinkServlet extends HttpServlet {
             return;
         }
         
-        response.setContentType("text/html;charset=UTF-8");
+        response.setContentType("application/json;charset=UTF-8");
         response.setHeader("Cache-Control", "private, no-store, no-cache, must-revalidate");
         response.setHeader("Pragma", "no-cache");
 
@@ -92,6 +92,7 @@ public class ApplicationLinkServlet extends HttpServlet {
                 PostRequest post = g.fromJson(new InputStreamReader(request.getInputStream()), PostRequest.class);
                 try {                
                     createAppLink(post.getCert());
+                    out.println("{}");
                 } catch (ManifestNotFoundException ex) {
                     Logger.getLogger(ApplicationLinkServlet.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (NoSuchAlgorithmException ex) {

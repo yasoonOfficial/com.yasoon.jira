@@ -56,7 +56,7 @@ public class PluginSettingsServlet extends HttpServlet {
             return;
         }
         
-        response.setContentType("text/html;charset=UTF-8");
+        response.setContentType("application/json;charset=UTF-8");
         response.setHeader("Cache-Control", "private, no-store, no-cache, must-revalidate");
         response.setHeader("Pragma", "no-cache");
         response.setStatus(200);
@@ -70,7 +70,10 @@ public class PluginSettingsServlet extends HttpServlet {
                 String key = request.getParameter("key");
                 SettingItem item = new SettingItem();
                 item.setKey(key);
-                item.setValue(settings.get(key).toString());
+                Object val = settings.get(key);
+                if(val != null) {
+                    item.setValue(val.toString());
+                }
                 out.print(g.toJson(item));
             }
             else if(request.getMethod().equalsIgnoreCase("post")){

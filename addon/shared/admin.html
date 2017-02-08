@@ -9,24 +9,28 @@
 			</ul>
 			<div class="tab-content">
 				<div class="tab-pane active" id="tab1">
-					<div id="AreaPreRegister" class="col s7 hidden">
+					<div id="AreaPreRegister" class="col s9 hidden">
 						<div class="row bootstrap-wrapper" style="margin-top: 20px; margin-bottom: 10px">
-							This JIRA instance is not initialized yet. If you are using Outlook App for JIRA for the first time, please choose "Initial
-							Configuration" and we will guide you through the process. <br /> If you are already using the Outlook Client
-							and want to add this instance into your existing environment, please choose "Add Instance".
-						</div>
-						<div class="row">
-							<a id="ButtonRegister" class="waves-effect waves-light btn light-blue darken-2" style="margin: 50px; line-height: 50px; height: 50px; font-size: 20px;">Initial Configuration</a>
-							<a id="ButtonLogin" class="waves-effect waves-light btn light-green darken-2" style="margin: 50px; line-height: 50px; height: 50px; font-size: 20px;">Add Instance</a>
+							<h5 class="custom-red">Welcome to JIRA for Outlook</h5>
+							<p>
+								This JIRA system is not configured yet. To connect Outlook with this system, you'll have to go through a few steps - it will
+								only take a few minutes.
+							</p>
+							<p>
+								Please choose this, if you are using Outlook App for JIRA for the first time. We will guide you through the process.
+								<a id="ButtonRegister" class="waves-effect waves-light btn light-blue darken-2" style="margin: 20px;">First Setup</a>
+							</p>
+							<p>
+								Please choose this, if you are already using the Outlook Client and want to add this instance into your existing environment.
+								<a id="ButtonLogin" class="waves-effect waves-light btn light-green darken-2" style="margin: 20px;">Add System</a>
+							</p>
 						</div>
 					</div>
 					<div id="AreaRegister" class="hidden col s7">
 						<form id="registerForm">
 							<div class="row bootstrap-wrapper" style="margin-top: 20px; margin-bottom: 10px">
-								Please fill out these data so we can create a yasoon company account. <br /> The account is mandatory to get your
-								JIRA for Outlook setup file. Please note: We do not store any business data on our servers nor do we route the traffic
-								between Outlook and JIRA through our servers.<br /> The account simply helps you to manage default settings centrally
-								for all clients, rollout updates and manage your licenses.
+								<h5 class="custom-red">Basic Data</h5>
+								Please help us to provide a personalized JIRA for Outlook setup file, preconfigured to your JIRA.
 							</div>
 							<div class="row">
 								<div class="input-field col s6">
@@ -56,14 +60,17 @@
 					<div id="AreaInitialLogin" class="hidden col s7">
 						<form id="InitialLoginForm">
 							<div class="row bootstrap-wrapper" style="margin-top: 20px; margin-bottom: 10px">
-								To assign your account to your existing infrastructure, you'll need to enter the its key. Please visit the other system and
-								copy the key shown at the bottom of the addon page. <br/>
+								<h5 class="custom-red">Add System</h5>
+								<p>
+									To assign this system to your currently installed Outlook addon, you'll need to enter the identifier of the existing system.
+									Please go to the other system and copy the system identifier shown at the bottom of the addon page.
+								</p>
 								<img alt="Screenshot" title="screenshot" />
 							</div>
 							<div class="row">
 								<div class="input-field col s6">
 									<input id="companyExternalKey" name="companyExternalKey" type="text" class="validate">
-									<label for="loginEmailAddress">External Company Key</label>
+									<label for="companyExternalKey">System Identifier</label>
 								</div>
 							</div>
 						</form>
@@ -71,7 +78,8 @@
 				</div>
 				<div class="tab-pane" id="tab2" style="display: none;">
 					<div class="col s5 serverVisible">
-						<div class="row" style="margin-top: 30px; margin-bottom: 10px">
+						<h5 class="custom-red">Configure JIRA</h5>
+						<div class="row" style="margin-bottom: 10px">
 							JIRA for Outlook requires an application link to access your JIRA from Outlook. Please click the button below to configure
 							this automatically.
 						</div>
@@ -82,7 +90,8 @@
 					</div>
 
 					<div class="col s8 cloudVisible">
-						<div class="row" style="margin-top: 30px; margin-bottom: 10px">
+						<h5 class="custom-red">Configure JIRA</h5>
+						<div class="row" style="margin-bottom: 10px">
 							JIRA for Outlook requires an <a class="applicationCreateLink" href="" target="_blank">application link</a> to access
 							your JIRA from Outlook.
 							<div style="margin-top: 10px;">
@@ -102,10 +111,11 @@
 				</div>
 				<div class="tab-pane" id="tab3" style="display: none;">
 					<div class="col s5">
-						<div class="row" style="margin-top: 30px; margin-bottom: 10px">
+						<h5 class="custom-red">Test Outlook App</h5>
+						<div class="row" style="margin-bottom: 10px">
 							Your JIRA system has been configured. You can now test if the connection between Outlook and JIRA is working. Please download
 							and installing the Outlook addin. When you have tested this successfully, please continue to the next step. <br/>
-							<div id="downloadReady" class="hidden">
+							<div id="downloadReady">
 								<div class="card col s9">
 									<div class="card-content">
 										<p>
@@ -124,12 +134,13 @@
 				</div>
 				<div class="tab-pane" id="tab4" style="display: none;">
 					<div class="col s9">
-						<div class="row" style="margin-top: 30px; margin-bottom: 10px">
+						<h5 class="custom-red">Share with Team</h5>
+						<div class="row" style="margin-bottom: 10px">
 							We recommend to share the addon with a few users of your team. Please use the form below to select some JIRA users.
 						</div>
 						<div class="card col s10">
 							<div id="userChips" class="card-content" style="min-height: 115px">
-								<a data-target="userPicker" class="modal-trigger btn-floating btn-large waves-effect waves-light light-blue darken-2" style="display:block; margin-top: 10px; margin-bottom: 10px; float: left; margin-right: 20px;"><i class="material-icons">add</i></a>
+								<a href="#userPicker" class="modal-trigger btn-floating btn-large waves-effect waves-light light-blue darken-2" style="display:block; margin-top: 10px; margin-bottom: 10px; float: left; margin-right: 20px;"><i class="material-icons">add</i></a>
 							</div>
 							<div class="card-action">
 								<button type="button" id="manualInviteButton" class="btn btn-default"><i class="material-icons right">open_in_new</i>Preview E-Mail Invite</button>
@@ -328,8 +339,8 @@
 				</div>
 			</div>
 			<div class="row" style="height: 40px;">
-				<div class="col s8" style="color: rgb(112, 112, 112);">
-					External Company Key: <span id="ExternalCompanyKey"></span>
+				<div class="col s8" style="color: rgb(162, 162, 162);">
+					System Identifier: <span id="externalCompanyKey"></span>
 				</div>
 				<div class="logo-branding">
 					<img src="https://yasoon.com/store-ressources/images/logo_with_jira.png" />
