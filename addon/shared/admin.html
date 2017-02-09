@@ -27,7 +27,7 @@
 						</div>
 					</div>
 					<div id="AreaRegister" class="hidden col s7">
-						<form id="registerForm">
+						<form id="registerForm" class="ajs-dirty-warning-exempt">
 							<div class="row bootstrap-wrapper" style="margin-top: 20px; margin-bottom: 10px">
 								<h5 class="custom-red">Basic Data</h5>
 								Please help us to provide a personalized JIRA for Outlook setup file, preconfigured to your JIRA.
@@ -58,7 +58,7 @@
 						</form>
 					</div>
 					<div id="AreaInitialLogin" class="hidden col s7">
-						<form id="InitialLoginForm">
+						<form id="InitialLoginForm" class="ajs-dirty-warning-exempt">
 							<div class="row bootstrap-wrapper" style="margin-top: 20px; margin-bottom: 10px">
 								<h5 class="custom-red">Add System</h5>
 								<p>
@@ -315,19 +315,19 @@
 									used for automatic deployments (like Terminal Server, Remote Desktop, etc).</p>
 								<p style="padding-top: 5px; padding-bottom: 10px;">Please choose your configuration and click "Download" or <a target="_blank" href="https://yasoon.zendesk.com/hc/en-us/articles/115000041410">Get Help</a></p>
 								<div class="input-field col s6">
-									<select id="selectBitness">
-											<option value="" disabled selected>Please choose bitness</option>
-											<option value="x86" class="circle">Outlook x86</option>
-											<option value="x64" class="circle">Outlook x64</option>
-										</select>
+									<select id="selectBitness" class="ajs-dirty-warning-exempt">
+										<option value="" disabled selected>Please choose bitness</option>
+										<option value="x86" class="circle">Outlook x86</option>
+										<option value="x64" class="circle">Outlook x64</option>
+									</select>
 									<label>Outlook Version</label>
 								</div>
 								<div class="input-field col s6">
-									<select id="selectAppData">
-											<option value="" disabled selected>Please choose target</option>
-											<option value="roaming" class="circle">Application Data</option>
-											<option value="local" class="circle">Local Application Data</option>
-										</select>
+									<select id="selectAppData" class="ajs-dirty-warning-exempt">
+										<option value="" disabled selected>Please choose target</option>
+										<option value="roaming" class="circle">Application Data</option>
+										<option value="local" class="circle">Local Application Data</option>
+									</select>
 									<label>Local Storage</label>
 								</div>
 							</div>
@@ -403,10 +403,17 @@
 		<hr>
 		<div class="row">
 			<div class="col s6">
-				<a id="UpdateUrlAction" class="waves-effect waves-light btn light-blue darken-2" style="margin: 20px;"><i class="material-icons">autorenew</i> Update</a>
+				<a id="UpdateUrlAction" class="waves-effect waves-light btn light-blue darken-2" style="margin: 20px;"><i class="material-icons left">autorenew</i> Update</a>
+				<p style="width: 300px;">
+					Use "Update" to takeover the current configuration and remove the old one. All Outlook clients will start using the new configuration.
+				</p>
 			</div>
 			<div class="col s6">
-				<a id="CreateNewInstanceAction" class="waves-effect waves-light btn light-green darken-2" style="margin: 20px;"><i class="material-icons">content_copy</i> Add new system</a>
+				<a id="CreateNewInstanceAction" class="waves-effect waves-light btn light-green darken-2" style="margin: 20px;"><i class="material-icons left">content_copy</i> Add new system</a>
+				<p style="width: 300px;">
+					Use "Add new system" to create a new System and keep the old one. Outlook clients can then choose to connect to either this
+					system or the old system.
+				</p>
 			</div>
 		</div>
 	</div>
@@ -429,25 +436,29 @@
 </form>
 
 <div id="userPicker" class="modal modal-fixed-footer">
-	<div class="modal-content">
-		<h4>Select Users</h4>
-		<div class="row">
-			<div class="col s8">
-				<div class="input-field col s8" style="">
-					<input id="userNameSearch" type="text" class="validate">
-					<label for="userNameSearch">Search for User</label>
-				</div>
-				<div class="col s4" style="margin-top: 20px">
-					<a id="userNameSearchTrigger" href="#" class="waves-effect waves-light btn light-blue darken-2">Search</a>
+	<div class="modal-content" style="padding:0px;">
+		<div style="padding:24px;">
+			<h4>Select Users</h4>
+			<div class="row">
+				<div class="col s8">
+					<div class="input-field col s8" style="">
+						<input id="userNameSearch" type="text" class="validate">
+						<label for="userNameSearch">Search for User</label>
+					</div>
+					<div class="col s4" style="margin-top: 20px">
+						<a id="userNameSearchTrigger" href="#" class="waves-effect waves-light btn light-blue darken-2">Search</a>
+					</div>
 				</div>
 			</div>
-		</div>
-		<div class="row">
-			<ul id="userPickerList" class="collection">
-			</ul>
+			<div class="row">
+				<ul id="userPickerList" class="collection">
+				</ul>
+			</div>
 		</div>
 	</div>
-	<div class="modal-footer">
-		<a href="#!" id="selectUsers" class="modal-action modal-close waves-effect waves-green btn-flat ">Select</a>
+	<div class="modal-footer" style="padding:0px;">
+		<div style="padding: 4px 6px;">
+			<a href="#!" id="selectUsers" class="modal-action modal-close waves-effect waves-green btn-flat ">Select</a>
+		</div>
 	</div>
 </div>

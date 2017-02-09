@@ -193,18 +193,9 @@ function templateViewModel() {
         .then(function (data) {
             console.log('Template Data', data);
             var ownData = data.overwrite[jiraDataId];
-            if (!ownData) {
-                ownData = data.overwrite;
-            }
-            if (ownData.groups) {
-                self.groupHierarchy.load(ownData.groups);
-            }
-            if (ownData.initialSelection) {
-                self.initialSelection.load(ownData.initialSelection);
-            }
-            if (ownData.defaultTemplates) {
-                self.defaultTemplates.load(ownData.defaultTemplates);
-            }
+            self.groupHierarchy.load(ownData.groups);
+            self.initialSelection.load(ownData.initialSelection);
+            self.defaultTemplates.load(ownData.defaultTemplates);
         })
         .caught(function (e) {
             console.log(e, e.stack);
@@ -505,7 +496,6 @@ function defaultTemplatesViewModel(groups) {
     };
 
     this.load = function (data) {
-        var genericTemplateExist = false;
         if (data && data.length > 0) {
             self.entries([]);
             data.forEach(function (template) {

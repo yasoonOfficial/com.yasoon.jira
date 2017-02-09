@@ -231,9 +231,16 @@ a {
 #MigrateUrlDialog {
     position: absolute;
     top: 10%;
-    padding: 20px;
+    padding: 20px 40px;
     left: 30%;
+    background-color: white;
+    z-index: 500;
 }
+
+#pageContent {
+    min-height: 500px;
+}
+
 /* Tiny Mce */
 @import url(https://fonts.googleapis.com/css?family=Lato);
 @font-face{

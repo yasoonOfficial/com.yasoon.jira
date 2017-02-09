@@ -16,18 +16,17 @@ function initAdminUI() {
     //Hide page loader first
     $('#pageLoading').hide();
 
-
-    if (instanceData.serverId != serverId || instanceData.baseUrl != systemInfo.baseUrl) {
-        handleUrlChange();
-        return;
-    }
-
     var cookiePage = $.cookie('currentPage');
     if (cookiePage) {
         currentPage = parseInt(cookiePage);
     }
 
     if (isInstanceRegistered && (currentPage === 1 || currentPage > 4)) {
+        if (instanceData.serverId && (instanceData.serverId != serverId || instanceData.baseUrl != systemInfo.baseUrl)) {
+            handleUrlChange();
+            return;
+        }
+
         $('#AreaRegistered').removeClass('hidden');
         $('.storeLink').attr("href", yasoonServerUrl + "/?sso=" + authToken);
         loadRegisteredUIState();
@@ -129,10 +128,9 @@ function initTracking() {
     $('body').append('<iframe style="height: 0px; width: 0px;" src="https://www.yasoon.de/track_install.html?id=' + serverId + '"></iframe>');
 }
 
-function assignToCompany(externalCompanyKeyOrData) {
-    var promise = Promise.resolve();
+function installInstance() {
     if (!isCloud) {
-        promise = Promise.resolve($.ajax({
+        return Promise.resolve($.ajax({
             url: yasoonServerUrl + '/jira/install',
             contentType: 'application/json',
             data: JSON.stringify(getInstanceData()),
@@ -140,83 +138,70 @@ function assignToCompany(externalCompanyKeyOrData) {
             type: 'POST'
         }))
             .then(function (result) {
-                if (result && !jiraDataId) {
+                if (result && result.id) {
                     jiraDataId = result.id;
                     return setInstanceProperty(PROP_JIRADATAID, jiraDataId);
                 }
             });
-    }
-    if (authToken) {
-        //This may happens if you have the URL change dialog
-        promise = promise.then(function () {
-            return { authToken: authToken };
-        });
-
-    } else if (typeof externalCompanyKeyOrData === 'string') {
-        //externalCompanyKeyOrData is externalData
-        var splits = externalCompanyKeyOrData.split(':');
-        var companyId = splits[0];
-        var externalCompanyKey = splits[1];
-
-        promise = promise.then(function () {
-            return $.ajax({
-                url: yasoonServerUrl + '/api/company/' + companyId + '/switchCompanyKeyForAuth',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    jiraDataId: jiraDataId,
-                    key: externalCompanyKey
-                }),
-                processData: false,
-                type: 'POST'
-            });
-        })
-            .then(function (result) {
-                if (!result.success) {
-                    throw new Error('Invalid Company Key');
-                }
-                return result;
-            });
-
     } else {
-        //externalCompanyKeyOrData is formData
-        var formData = externalCompanyKeyOrData;
-        promise = promise.then(function () {
-            formData.jiraDataId = jiraDataId;
-            return $.ajax({
-                url: yasoonServerUrl + '/api/company/register',
-                contentType: 'application/json',
-                data: JSON.stringify(formData),
-                processData: false,
-                type: 'POST'
-            });
-        })
-            .then(function (result) {
-                //Means: User is already registered
-                if (!result.success) {
-                    throw new Error('Error during Registration');
-                }
-                return result;
-            });
+        Promise.resolve();
     }
-    return promise
+}
+
+function switchCompanyKeyForAuth(userInput) {
+    var splits = userInput.split(':');
+    var companyId = splits[0];
+    var externalCompanyKey = splits[1];
+
+    return Promise.resolve($.ajax({
+        url: yasoonServerUrl + '/api/company/' + companyId + '/switchCompanyKeyForAuth',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            jiraDataId: jiraDataId,
+            key: externalCompanyKey
+        }),
+        processData: false,
+        type: 'POST'
+    }))
         .then(function (result) {
-            authToken = result.authToken
-            $('.storeLink').attr('href', yasoonServerUrl + '/?sso=' + authToken);
-            return setInstanceProperty(PROP_AUTHTOKEN, authToken);
-        })
+            if (!result.success) {
+                throw new Error('Invalid Company Key');
+            }
+            return result.authToken;
+        });
+}
+
+function registerCompany(formData) {
+    formData.jiraDataId = jiraDataId;
+    return Promise.resolve($.ajax({
+        url: yasoonServerUrl + '/api/company/register',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        processData: false,
+        type: 'POST'
+    }))
         .then(function (result) {
-            return $.ajax({
-                url: yasoonServerUrl + '/jira/assigncompany',
-                contentType: 'application/json',
-                data: JSON.stringify(getIdentifyingParams()),
-                headers: { userAuthToken: authToken },
-                processData: false,
-                type: 'POST'
-            });
-        })
+            //Means: User is already registered
+            if (!result.success) {
+                throw new Error('Error during Registration');
+            }
+            return result.authToken;
+        });
+}
+
+function assignToCompany() {
+    return Promise.resolve($.ajax({
+        url: yasoonServerUrl + '/jira/assigncompany',
+        contentType: 'application/json',
+        data: JSON.stringify(getIdentifyingParams()),
+        headers: { userAuthToken: authToken },
+        processData: false,
+        type: 'POST'
+    }))
         .then(function (result) {
             //Returns result.needsOauth -->not sure if we need it
         });
+
 }
 
 function handleUrlChange() {
@@ -228,29 +213,52 @@ function handleUrlChange() {
     $('#MigrateUrlDialog').removeClass('hidden');
 
     $('#UpdateUrlAction').off().click(function (e) {
+        $('#UpdateUrlAction').prop('disabled', true).addClass('disabled');
         Promise.resolve($.ajax({
             url: yasoonServerUrl + '/jira/update?jiraDataId=' + jiraDataId,
             contentType: 'application/json',
-            data: JSON.stringify(getInstanceData()),
+            data: JSON.stringify({
+                clientKey: serverId,
+                baseUrl: systemInfo.baseUrl,
+                pluginsVersion: systemInfo.pluginVersion,
+                serverVersion: systemInfo.version,
+                licenseInfo: systemInfo.licenseInfo
+            }),
+            headers: { userAuthToken: authToken },
             processData: false,
             type: 'POST'
         }))
             .then(function (result) {
+                $('#UpdateUrlAction').prop('disabled', false).removeClass('disabled');
                 if (result.success) {
-
+                    $('#MigrateUrlDialog').addClass('hidden');
+                    window.location.reload();
                 } else {
-
+                    throw new Error('That did not work');
                 }
+            })
+            .caught(function (e) {
+                $('#UpdateUrlAction').prop('disabled', false).removeClass('disabled');
+                console.log('Error in UpdateUrlChange', e, e.stack);
+                swal("Oops...", 'An error occurred while updating your instance. Please contact us via the form below', "error");
             });
     });
 
     $('#CreateNewInstanceAction').off().click(function (e) {
-        return assignToCompany()
+        $('#CreateNewInstanceAction').prop('disabled', true).addClass('disabled');
+        return installInstance()
             .then(function () {
-                initAdminUI();
+                return assignToCompany();
+            })
+            .then(function () {
+                $('#CreateNewInstanceAction').prop('disabled', false).removeClass('disabled');
+                $('#MigrateUrlDialog').addClass('hidden');
+                window.location.reload();
             })
             .caught(function () {
-
+                $('#CreateNewInstanceAction').prop('disabled', false).removeClass('disabled');
+                console.log('Error in AddNewInstanceUrlChange', e, e.stack);
+                swal("Oops...", 'An error occurred while adding your instance. Please contact us via the form below', "error");
             });
     });
 }
@@ -334,12 +342,23 @@ function handleNext() {
                 }
             });
         } else if (type === 'login') {
-            return assignToCompany($('#companyExternalKey').val())
+            return installInstance()
+                .then(function () {
+                    return switchCompanyKeyForAuth($('#companyExternalKey').val());
+                })
+                .then(function (userAuthToken) {
+                    authToken = userAuthToken;
+                    $('.storeLink').attr('href', yasoonServerUrl + '/?sso=' + authToken);
+                    return setInstanceProperty(PROP_AUTHTOKEN, authToken);
+                })
+                .then(function () {
+                    return assignToCompany();
+                })
                 .then(function () {
                     gotoNextPage();
                 })
                 .caught(function (e) {
-                    swal("Oops...", e.message, "error");
+                    swal("Oops...", e.message || 'That did not work! Please contact our support so we can assist you.', "error");
                 })
                 .lastly(function () {
                     $('#next').prop("disabled", false);
@@ -481,7 +500,18 @@ function registerAccount(cbk) {
 
     $.cookie('yasoonEmail', formData.emailAddress, { expires: 365 });
 
-    return assignToCompany(formData)
+    return installInstance()
+        .then(function () {
+            return registerCompany(formData);
+        })
+        .then(function (userAuthToken) {
+            authToken = userAuthToken;
+            $('.storeLink').attr('href', yasoonServerUrl + '/?sso=' + authToken);
+            return setInstanceProperty(PROP_AUTHTOKEN, authToken);
+        })
+        .then(function () {
+            return assignToCompany();
+        })
         .then(function () {
             cbk({
                 success: true
@@ -747,7 +777,7 @@ function getCustomCert() {
 function genKeyPair() {
     return new Promise(function (resolve, reject) {
         $.ajax({
-            url: 'https://store.yasoon.com/api/support/genkeypair',
+            url: yasoonServerUrl + '/api/support/genkeypair',
             contentType: 'application/json',
             type: 'GET'
         }).done(function (certInfo) {
