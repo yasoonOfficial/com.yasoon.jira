@@ -48,7 +48,11 @@ function getInstanceProperty(property) {
                     type: 'GET',
                     contentType: "application/json",
                     success: function (responseText) {
-                        resolve(JSON.parse(responseText));
+                        var data = JSON.parse(responseText);
+                        if (!data.value)
+                            return resolve('');
+
+                        resolve(data.value);
                     },
                     error: function () {
                         reject('Could not get Instance Property');

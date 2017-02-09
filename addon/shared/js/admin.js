@@ -124,8 +124,8 @@ function initAdminUI() {
 }
 
 function initTracking() {
-    $('body').append('<iframe style="height: 0px; width: 0px;" src="https://www.yasoon.com/track_install.html?id=' + serverId + '"></iframe>');
-    $('body').append('<iframe style="height: 0px; width: 0px;" src="https://www.yasoon.de/track_install.html?id=' + serverId + '"></iframe>');
+    $('body').append('<iframe style="height: 0px; width: 0px; border: none;" src="https://www.yasoon.com/track_install.html?id=' + serverId + '"></iframe>');
+    $('body').append('<iframe style="height: 0px; width: 0px; border: none;" src="https://www.yasoon.de/track_install.html?id=' + serverId + '"></iframe>');
 }
 
 function installInstance() {
@@ -144,7 +144,7 @@ function installInstance() {
                 }
             });
     } else {
-        Promise.resolve();
+        return Promise.resolve();
     }
 }
 
@@ -764,6 +764,7 @@ function getCustomCert() {
     }))
         .then(function (data) {
             $('.certTextArea').val(data.customCert);
+            return data;
         });
 }
 
