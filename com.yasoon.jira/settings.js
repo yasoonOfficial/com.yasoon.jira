@@ -328,6 +328,14 @@ function JiraSettingController() {
 		self[key] = value;
 	});
 	self.lastSync = new Date(self.lastSync);
+
+	//Determine URL from service if possible
+	if (self.currentService) {
+		var service = yasoon.app.getOAuthService(self.currentService);
+		if (service && service.appParams && service.appParams.url) {
+			self.baseUrl = service.appParams.url;
+		}
+	}
 }
 
 //@ sourceURL=http://Jira/settings.js

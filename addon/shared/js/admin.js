@@ -449,11 +449,6 @@ function gotoPage(newPage) {
         } else {
             $('#next').prop('disabled', true);
             $('#nextText').text('Next');
-            checkAppLink().then(function (appLinkExists) {
-                if (appLinkExists) {
-                    $('#next').prop("disabled", false);
-                }
-            });
         }
     }
     else if (newPage === 3) {
@@ -724,7 +719,6 @@ function checkAppLink() {
         }))
             .then(function (result) {
                 if (result.oauthToken) {
-                    $('#addApplicationLinkButton').prop('disabled', true).text('Application Link Active!');
                     $('#applicationLinkActive').removeClass('hidden');
                     $('#applicationLinkInactive').addClass('hidden');
                 } else {
@@ -733,7 +727,6 @@ function checkAppLink() {
                 return true;
             })
             .caught(function () {
-                $('#addApplicationLinkButton').prop('disabled', false).text('Create Application Link');
                 $('#applicationLinkInactive').removeClass('hidden');
                 $('#applicationLinkActive').addClass('hidden');
                 return false;
@@ -749,7 +742,7 @@ function checkAppLink() {
                     $('#applicationLinkInactive').addClass('hidden');
                 }
                 else {
-                    $('#addApplicationLinkButton').prop('disabled', false).text('Create Application Link');
+                    $('#addApplicationLinkButton').prop('disabled', false).text('Configure Application Link');
                     $('#applicationLinkInactive').removeClass('hidden');
                     $('#applicationLinkActive').addClass('hidden');
                 }
