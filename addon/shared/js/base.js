@@ -9,9 +9,13 @@ function setInstanceProperty(property, valueObj) {
     if (isCloud) {
         return new Promise(function (resolve, reject) {
             AP.require(['request'], function (request) {
+                var method = 'PUT';
+                if (!valueObj)
+                    method = 'DELETE';
+
                 request({
                     url: '/rest/atlassian-connect/1/addons/com.yasoon.jira.cloud/properties/' + property,
-                    type: 'PUT',
+                    type: method,
                     data: JSON.stringify(valueObj),
                     contentType: "application/json",
                     success: function (responseText) {

@@ -115,8 +115,16 @@ $(document).ready(function () {
                 return getIsInstanceRegistered();
             })
             .then(function (result) {
+                if (isCloud && !result.jiraDataId) {
+                    return setInstanceProperty(PROP_JIRADATAID, '')
+                        .then(function () {
+                            throw 'invalidInstall';
+                        });
+                }
+
                 isInstanceRegistered = result.registered;
                 instanceData = result;
+
                 if (!jiraDataId) {
                     jiraDataId = result.jiraDataId;
                     return setInstanceProperty(PROP_JIRADATAID, jiraDataId);
@@ -139,6 +147,8 @@ $(document).ready(function () {
             .caught(function (e) {
                 if (e == 'MissingTrial') {
                     swal("Oops...", "You currently do not have a valid addon license. Please start the trial first in the Manage Addon section.", "error");
+                } else if (e === 'invalidInstall') {
+                    swal("Oops...", "Invalid Installation, please re-install addon.", "error");
                 } else {
                     console.log(e, e.stack);
                     swal("Oops...", "Failed to load initial data, please contact us at support@yasoon.de", "error");
