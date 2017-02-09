@@ -54,9 +54,9 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                         </a>`);
     }
 
-    triggerValueChange() {
+    triggerValueChange(force: boolean = false) {
         let issueType: JiraIssueType = this.getObjectValue();
-        if (!this.lastValue || this.lastValue.id !== issueType.id) {
+        if (!this.lastValue || this.lastValue.id !== issueType.id || force) {
             FieldController.raiseEvent(EventType.FieldChange, issueType, this.id);
             this.lastValue = issueType;
         }
@@ -79,7 +79,7 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                     return;
 
                 let promise: Promise<JiraProject>;
-               if (!project.issueTypes) {
+                if (!project.issueTypes) {
                     this.showSpinner();
                     promise = jiraGet('/rest/api/2/project/' + project.key)
                         .then((data: string) => {
@@ -114,14 +114,16 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                     }
 
                     if (issueType) {
-                        this.setValue(issueType);
+                        return this.setValue(issueType);
                     } else {
-                        this.setValue(result[0].data);
+                        return this.setValue(result[0].data);
                     }
-
                 })
-                .catch((e) => { this.handleError(e); });
-                
+                    .then(() => {
+                        this.triggerValueChange(true);
+                    })
+                    .catch((e) => { this.handleError(e); });
+
             } else if (source === FieldController.requestTypeFieldId) {
                 let requestType: JiraRequestType = newValue;
                 let issueType: Select2Element = this.options.data.filter((sel) => { return sel.id === requestType.issueType.toString(); })[0];
@@ -139,12 +141,12 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                         requestTypeField.isServiceDeskActive = true;
                         FieldController.render(FieldController.requestTypeFieldId, $('#ServiceAreaRequestField'));
                     }
-                    if(!FieldController.getField(FieldController.onBehalfOfFieldId)) {
+                    if (!FieldController.getField(FieldController.onBehalfOfFieldId)) {
                         //Create On-Behalf of field
                         let behalfOfField = <UserSelectField>FieldController.loadField(UserSelectField.reporterDefaultMeta, UserSelectField);
                         FieldController.render(FieldController.onBehalfOfFieldId, $('#ServiceAreaReporterField'));
 
-                        if(this.emailController) {
+                        if (this.emailController) {
                             behalfOfField.senderUser = this.emailController.senderUser;
                         }
 

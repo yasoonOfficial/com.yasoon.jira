@@ -526,7 +526,7 @@ class NewEditDialog implements IFieldEventHandler {
     getCreateMetaData(projectId: string, issueTypeId: string): Promise<{ [id: string]: JiraMetaField }> {
         //Check in Cache
         //Do not check cache for Teamlead Instance to have latest data every time.
-        if (this.cacheCreateMetas && this.cacheCreateMetas.length > 0 && !this.settings.teamlead.apiKey) {
+        if (this.cacheCreateMetas && this.cacheCreateMetas.length > 0 && !this.settings.teamlead) {
             let projectMeta = this.cacheCreateMetas.filter((m) => { return m.id === projectId; })[0];
             if (projectMeta) {
                 let issueType = projectMeta.issuetypes.filter((it) => { return it.id === issueTypeId; })[0];
