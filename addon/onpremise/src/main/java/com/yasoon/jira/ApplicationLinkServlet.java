@@ -155,12 +155,12 @@ public class ApplicationLinkServlet extends HttpServlet {
             existingLink = this.appLinkService.createApplicationLink(generic, details);
         }
         else {
-//            String conKey = (String) existingLink.getProperty("oauth.incoming.consumerkey");
-//            if(conKey != null) {
-//                Consumer conOld = this.storeService.get(conKey);
-//                if(conOld != null && conOld.getKey().equals("yasoonjira"))
-//                    this.storeService.remove(conKey);
-//            }
+            String conKey = (String) existingLink.getProperty("oauth.incoming.consumerkey");
+            if(conKey != null) {
+                Consumer conOld = this.storeService.get(conKey);
+                if(conOld != null && conOld.getKey().equals("yasoonjira"))
+                    this.storeService.remove(conKey);
+            }
         }
         
         this.storeService.put(con);
