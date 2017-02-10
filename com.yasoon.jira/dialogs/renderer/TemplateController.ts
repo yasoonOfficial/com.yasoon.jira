@@ -122,17 +122,23 @@ class TemplateController implements IFieldEventHandler {
         }
         let projPromise = Promise.resolve();
         let issueTypePromise = Promise.resolve();
+        let renderRequired = false;
         if (initialValues) {
-            if (initialValues.projectId) {
+            //Only set values if it has changed
+            let projectField = <ProjectField>FieldController.getField(FieldController.projectFieldId);
+            if (initialValues.projectId && projectField.getDomValue() != initialValues.projectId) {
                 projPromise = FieldController.setValue(FieldController.projectFieldId, initialValues.projectId, true);
+                renderRequired = true;
             }
 
-            if (initialValues.issueTypeId != '-1') {
+            let issueTypeField = <IssueTypeField>FieldController.getField(FieldController.issueTypeFieldId);
+            if (initialValues.issueTypeId != '-1' && issueTypeField.getDomValue() != initialValues.issueTypeId) {
                 issueTypePromise = FieldController.setValue(FieldController.issueTypeFieldId, initialValues.issueTypeId, true);
+                renderRequired = true;
             }
         }
 
-        return Promise.all([projPromise, issueTypePromise]);
+        return Promise.all([renderRequired, projPromise, issueTypePromise]);
     }
 
     setFieldValues(template: YasoonDefaultTemplate) {
@@ -213,7 +219,11 @@ class TemplateController implements IFieldEventHandler {
 
                     //First select Initial Values
                     this.setInitialValues({ projectId: this.dialogSelectedTemplate.projectId, issueTypeId: this.dialogSelectedTemplate.issueTypeId })
-                        .then(() => {
+                        .spread((renderRequired: boolean) => {
+                            if (!renderRequired) {
+                                this.setFieldValues(this.dialogSelectedTemplate);
+                                this.dialogSelectedTemplate = null;
+                            }
                             dialog.modal('hide');
                         });
 
@@ -226,7 +236,11 @@ class TemplateController implements IFieldEventHandler {
                     if (this.dialogSelectedTemplate) {
                         //First select Initial Values
                         this.setInitialValues({ projectId: this.dialogSelectedTemplate.projectId, issueTypeId: this.dialogSelectedTemplate.issueTypeId })
-                            .then(() => {
+                            .spread((renderRequired: boolean) => {
+                                if (!renderRequired) {
+                                    this.setFieldValues(this.dialogSelectedTemplate);
+                                    this.dialogSelectedTemplate = null;
+                                }
                                 dialog.modal('hide');
                             });
                     }

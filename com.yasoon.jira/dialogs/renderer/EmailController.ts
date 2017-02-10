@@ -15,7 +15,8 @@ interface JiraFileHandle extends yasoonModel.EmailAttachmentFileHandle {
 }
 
 class EmailController implements IFieldEventHandler {
-    static settingCreateTemplates = 'createTemplates';
+    static settingCreateTemplates = 'createTemplatesNew';
+    static settingMaxTemplates = 5;
 
     mail: yasoonModel.Email;
     settings: any;
@@ -351,9 +352,10 @@ class EmailController implements IFieldEventHandler {
                 return;
             }
 
-            //We want the templates to be the same as in the JIRA addon, so we cannot use the values.fields, as they use deep objects. e.g. reporter: { name: 'admin' }
-            //We need just report: 'admin', so we get all values again from the rendered Fields
             let fields: any = {};
+
+            //We want the templates to be the same as in the JIRA addon, so we cannot use the values.fields, as they use deep objects. e.g. reporter: { name: 'admin' }
+            //We need just reporter: 'admin', so we get all values again from the rendered Fields
             for (let fieldId in values.fields) {
                 if (fieldId != 'summary' && fieldId != 'description' && fieldId != 'duedate' && fieldId != 'project' && fieldId != 'issuetype') {
                     try {
@@ -382,9 +384,10 @@ class EmailController implements IFieldEventHandler {
                 templateName: yasoon.i18n('dialog.project') + ': ' + project.name,
                 priority: 4,
                 fields: fields,
-                lastUpdated: new Date()
+                lastUpdated: new Date().toISOString()
             };
 
+            console.log('SenderTemplate', template);
             //Harmonize fields
             /*
             //Service Desk Data
@@ -413,26 +416,27 @@ class EmailController implements IFieldEventHandler {
             let counter = 0;
             let senderMail = '';
             let templateIndex = 0;
-            let lastUpdated: Date = new Date(2099, 0, 1);
+            let lastUpdated: string = new Date(2099, 0, 1).toISOString();
             for (let mail in this.allTemplates) {
                 let currentTemplates = this.allTemplates[mail] || [];
                 currentTemplates.forEach((t, index) => {
                     counter++;
                     if (lastUpdated > t.lastUpdated) {
+                        templateIndex = index;
                         lastUpdated = t.lastUpdated;
                         senderMail = mail;
                     }
                 });
             }
 
-            if (counter > 25) {
+            if (counter > EmailController.settingMaxTemplates) {
                 this.allTemplates[senderMail].splice(templateIndex, 1);
                 if (this.allTemplates[senderMail].length === 0) {
                     delete this.allTemplates[senderMail];
                 }
             }
 
-            this.allTemplates[this.getSenderEmail()] = this.senderTemplates;
+            this.allTemplates[this.getSenderEmail().toLocaleLowerCase()] = this.senderTemplates;
             let data = JSON.stringify(this.allTemplates)
             yasoon.setting.setAppParameter(EmailController.settingCreateTemplates, data);
         }

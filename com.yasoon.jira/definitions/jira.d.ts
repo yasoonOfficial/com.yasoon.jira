@@ -291,7 +291,7 @@ interface YasoonDefaultTemplate {
     priority?: number;
     templateName?: string;
     fields?: { [id: string]: any };
-    lastUpdated?: Date;
+    lastUpdated?: string;
 }
 
 //{ "issues":{ "17801":{ "id":"17801", "key":"YJD-12", "summary":"Verbesserungsvorschlag", "projectId":"10300" } } }
