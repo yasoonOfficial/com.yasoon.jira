@@ -8,7 +8,7 @@
 	"homepage": "http://yasoon.com/jira.html",
 	"logoImage": "logo.png",
 	"notificationImage": "logo_round.png",
-	"files": ["styles.css", "common.js", "functions.js", "settings.js", "notifications.js", "jira.js"],
+	"files": ["styles.css", "common.js", "functions.js", "controller.js", "models.js", "jira.js"],
 	"main": "jira.js",
 	"oauth": [{
 		"serviceName": "jira:98903134-c504-4f23-a14d-766e65bc7aaf",

@@ -28,6 +28,32 @@ gulp.task('buildDialogs', function () {
 });
 gulp.start('buildDialogs');
 
+//1.3 Controllers
+gulp.task('buildControllers', function () {
+    return gulp.src('com.yasoon.jira/controller/*.ts')
+        .pipe(ts({
+            "experimentalDecorators": true,
+            "allowJs": true,
+            "outFile": "./controller.js",
+            "target": "es5"
+        }))
+        .pipe(gulp.dest('distribution/com.yasoon.jira'));
+});
+gulp.start('buildControllers');
+
+//1.4 Models
+gulp.task('buildControllers', function () {
+    return gulp.src('com.yasoon.jira/models/*.ts')
+        .pipe(ts({
+            "experimentalDecorators": true,
+            "allowJs": true,
+            "outFile": "./models.js",
+            "target": "es5"
+        }))
+        .pipe(gulp.dest('distribution/com.yasoon.jira'));
+});
+gulp.start('buildControllers');
+
 //2. Compile Templates
 var handlebars = require('gulp-handlebars');
 var wrap = require('gulp-wrap');
@@ -61,6 +87,7 @@ var pathes = [
     'com.yasoon.jira/locale/*',
     'distribution'
 ];
-copyfiles(pathes, null, function () {
+
+copyfiles(pathes, {}, function () {
 
 });

@@ -1,3 +1,5 @@
+/// <reference path="jira.d.ts" />
+
 declare function jiraGet(relativeUrl: string): Promise<string>;
 
 declare function jiraAjax(relativeUrl: string, method: number, data?: any, formData?: any): Promise<any>;
@@ -28,6 +30,10 @@ declare function debounce(func: any, wait: number, immediate?: boolean): any;
 
 declare function jiraHandleImageFallback(img: HTMLElement): void;
 
+declare function jiraIsTask(item: any): boolean;
+
+declare function jiraLog(msg: string, ... args);
+
 declare function getProjectIcon(project: JiraProject): string;
 
 declare function renderMailHeaderText(mail: any, useMarkup: boolean): string;
@@ -35,6 +41,8 @@ declare function renderMailHeaderText(mail: any, useMarkup: boolean): string;
 declare function isEqual(a: any, b: any): boolean;
 
 declare function jiraMinimizeIssue(issue: JiraIssue): JiraIssue;
+
+declare function jiraCheckProxyError(input);
 
 declare function notificationOpenIssue(params: any): void;
 

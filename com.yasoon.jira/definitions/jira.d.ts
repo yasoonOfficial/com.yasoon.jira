@@ -111,11 +111,11 @@ interface JiraIssue {
 }
 
 interface JiraUser {
-    key: string,
-    displayName: string,
-    emailAddress: string,
-    name: string,
-    locale: string,
+    key?: string,
+    displayName?: string,
+    emailAddress?: string,
+    name?: string,
+    locale?: string,
     timezone?: string,
     active?: boolean,
     avatarUrls?: any,
@@ -271,6 +271,11 @@ interface JiraLabel {
 interface JiraSubmitComment {
     body: string;
     public?: boolean;
+}
+
+interface JiraComment {
+    id: string;
+    body: string;
 }
 
 interface YasoonGroupHierarchy {

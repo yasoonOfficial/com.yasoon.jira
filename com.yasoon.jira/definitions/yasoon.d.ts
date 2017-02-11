@@ -58,6 +58,7 @@ interface yasoon_command {
 }
 
 interface yasoon_alert {
+  alertType: any;
   add(alert: yasoonModel.Alert): boolean;
 }
 
@@ -99,6 +100,7 @@ interface yasoon_io {
 }
 
 interface yasoon_outlook_task {
+  completionState: any;
   add(task: yasoonModel.Task, folderExternalId: string): yasoonModel.Task;
   addAsync(task: yasoonModel.Task, folderExternalId: string, cbk: any, err: any): void;
   addFolder(externalId: string, name: string, externalData: string, groupName: string): void;
@@ -156,7 +158,7 @@ interface yasoon_setup {
   execute(contact: yasoonModel.SetupContact, settings: yasoonModel.SetupSettings, callbackFunc: any): void;
   isInitialSyncComplete(): boolean;
   executeSimple(contact: yasoonModel.SetupContact, settings: yasoonModel.SetupSettings, callbackFunc: any): void;
-  updateProfile(profileData: string, callbackFunc: any): void;
+  updateProfile(profileData: string, callbackFunc?: any): void;
   notifyWizardLaunch(): void;
   isProxyRequired(cbk: any): void;
   configureProxy(): boolean;
@@ -191,7 +193,7 @@ interface yasoon_util {
   logActivity(activity: string, data: string): void;
   escapeString(data: string): string;
   unescapeString(data: string): string;
-  log(message: string, severity: yasoonModel.Severity, stack?: Array<string>): void;
+  log(message: string, severity?: yasoonModel.Severity, stack?: Array<string>): void;
   clearCookies(domain: string): boolean;
 
   severity: {
@@ -215,7 +217,7 @@ interface yasoon_app {
   reportLoadError(error: string): void;
   callFunctionName(nameSpace: string, method: string, parameters: any): void;
   callFunction(nameSpace: string, method: any): void;
-  getOAuthUrlAsync(appNamespace: string, serviceName: string, urlCallback: any, successCallback: any, errorCallback: any): void;
+  getOAuthUrlAsync(appNamespace: string, serviceName: string, urlCallback: any, successCallback?: any, errorCallback?: any): void;
   hasValidOAuthToken(appNamespace: string, serviceName: string): boolean;
   isOAuthed(serviceName: string): boolean;
   invalidateAppOAuthToken(appNamespace: string, serviceName: string): void;
@@ -255,6 +257,9 @@ interface yasoon_outlook_mail {
 }
 
 interface yasoon_feed {
+  addFilter(filter: any);
+  saveSyncDate(d: Date);
+  allowUpdate(id: string): boolean;
   get(feedId: string): yasoonModel.FeedEntry;
   all(filter: any): yasoonModel.PageEntity;
   getChildren(parentId: string, offset: number, limit: number): yasoonModel.PageEntity;
@@ -284,7 +289,7 @@ interface yasoon_notification {
 
 interface yasoon_contact {
   add(contact: yasoonModel.Contact): yasoonModel.Contact;
-  get(contactId: string, appNamespace: string): yasoonModel.Contact;
+  get(contactId: string, appNamespace?: string): yasoonModel.Contact;
   remove(contact: yasoonModel.Contact): void;
   save(contact: yasoonModel.Contact): void;
   getOwnUser(): yasoonModel.Contact;
@@ -292,6 +297,7 @@ interface yasoon_contact {
 }
 
 interface yasoon {
+  model: any;
   alert: yasoon_alert;
   app: yasoon_app;
   clipboard: yasoon_clipboard;
@@ -374,11 +380,11 @@ declare namespace yasoonModel {
     title: string;
     resizable: boolean;
     closeCallback: any;
-    closeCallbackNatives: any;
-    basePath: string;
+    closeCallbackNatives?: any;
+    basePath?: string;
     htmlFile: string;
     initParameter: any;
-    browserId: number;
+    browserId?: number;
   }
 
   interface StoreUserProduct {
@@ -494,7 +500,7 @@ declare namespace yasoonModel {
   interface Alert {
     type: yasoonModel.AlertType;
     message: string;
-    action: yasoonModel.CustomAction;
+    action?: yasoonModel.CustomAction;
   }
 
   enum AlertType {
@@ -508,60 +514,60 @@ declare namespace yasoonModel {
   }
 
   interface CalendarItem {
-    entryId: string;
-    parentEntryId: string;
-    storeId: string;
-    subject: string;
-    body: string;
-    location: string;
-    attendees: Array<string>;
-    isHtmlBody: boolean;
-    isAllDay: boolean;
-    isResponsePossible: boolean;
-    startDate: Date;
-    endDate: Date;
-    reminderMinutesBeforeStart: number;
-    importance: yasoonModel.AppointmentImportance;
-    isPrivate: boolean;
-    responseStatus: yasoonModel.AppointmentResponse;
-    attachments: Array<yasoonModel.OutlookAttachment>;
-    categories: Array<string>;
-    internalLocalId: number;
-    externalId: string;
-    externalData: string;
-    inspectorId: string;
-    parentWindowHandle: number;
-    type: yasoonModel.OutlookEntityType;
+    entryId?: string;
+    parentEntryId?: string;
+    storeId?: string;
+    subject?: string;
+    body?: string;
+    location?: string;
+    attendees?: Array<string>;
+    isHtmlBody?: boolean;
+    isAllDay?: boolean;
+    isResponsePossible?: boolean;
+    startDate?: Date;
+    endDate?: Date;
+    reminderMinutesBeforeStart?: number;
+    importance?: yasoonModel.AppointmentImportance;
+    isPrivate?: boolean;
+    responseStatus?: yasoonModel.AppointmentResponse;
+    attachments?: Array<yasoonModel.OutlookAttachment>;
+    categories?: Array<string>;
+    internalLocalId?: number;
+    externalId?: string;
+    externalData?: string;
+    inspectorId?: string;
+    parentWindowHandle?: number;
+    type?: yasoonModel.OutlookEntityType;
 
-    save(): void;
-    remove(): void;
-    show(): void;
-    attach(externalData: string): void;
-    hasPendingChanges(): boolean;
-    getParentFolder(): yasoonModel.Folder;
-    getParentFolderAsync(success: any, error: any): void;
-    showMessageBox(text: string): void;
-    getSubject(): string;
-    showLoader(providers: Array<yasoonModel.ProgressProvider>): yasoonModel.ProgressHandler;
-    completeLoader(): void;
-    onClose(handler: any): void;
-    onSend(callback: any): void;
-    unbind(): void;
-    send(): void;
-    insertWordMarkup(markup: string, loc: yasoonModel.InsertLocation): void;
-    insertHtml(html: string): void;
-    setSubject(newSubject: string): void;
-    setMessageClass(newMessageClass: string): void;
-    setImportance(newImportance: number): void;
-    setFolder(folderId: string): void;
-    setBody(body: string): void;
-    setCategories(categories: Array<string>): void;
-    removeAttachments(): void;
-    getSelectionLinks(): any;
-    getBody(format: yasoonModel.TextFormat): string;
-    getSelection(format: yasoonModel.TextFormat): string;
-    setExternalData(data: string): void;
-    getAttachments(): Array<yasoonModel.OutlookAttachment>;
+    save?(): void;
+    remove?(): void;
+    show?(): void;
+    attach?(externalData: string): void;
+    hasPendingChanges?(): boolean;
+    getParentFolder?(): yasoonModel.Folder;
+    getParentFolderAsync?(success: any, error: any): void;
+    showMessageBox?(text: string): void;
+    getSubject?(): string;
+    showLoader?(providers: Array<yasoonModel.ProgressProvider>): yasoonModel.ProgressHandler;
+    completeLoader?(): void;
+    onClose?(handler: any): void;
+    onSend?(callback: any): void;
+    unbind?(): void;
+    send?(): void;
+    insertWordMarkup?(markup: string, loc: yasoonModel.InsertLocation): void;
+    insertHtml?(html: string): void;
+    setSubject?(newSubject: string): void;
+    setMessageClass?(newMessageClass: string): void;
+    setImportance?(newImportance: number): void;
+    setFolder?(folderId: string): void;
+    setBody?(body: string): void;
+    setCategories?(categories: Array<string>): void;
+    removeAttachments?(): void;
+    getSelectionLinks?(): any;
+    getBody?(format: yasoonModel.TextFormat): string;
+    getSelection?(format: yasoonModel.TextFormat): string;
+    setExternalData?(data: string): void;
+    getAttachments?(): Array<yasoonModel.OutlookAttachment>;
   }
 
   enum AppointmentImportance {
@@ -1042,17 +1048,16 @@ declare namespace yasoonModel {
   }
 
   interface Notification {
-    notificationId: number;
-    type: yasoonModel.NotificationType;
-    externalId: string;
-    externalData: string;
-    contactId: string;
-    title: string;
-    content: string;
-    isRead: boolean;
-    createdAt: Date;
-    parentNotificationId: number;
-
+    notificationId?: number;
+    type?: yasoonModel.NotificationType;
+    externalId?: string;
+    externalData?: string;
+    contactId?: string;
+    title?: string;
+    content?: string;
+    isRead?: boolean;
+    createdAt?: Date;
+    parentNotificationId?: number;
   }
 
   enum NotificationType {
@@ -1069,25 +1074,25 @@ declare namespace yasoonModel {
   }
 
   interface Contact {
-    contactId: string;
-    contactEmail: string;
-    contactFirstName: string;
-    contactLastName: string;
-    status: yasoonModel.ContactStatus;
-    notifies: boolean;
-    follows: boolean;
-    aboutMe: string;
-    keywords: string;
-    birthday: Date;
-    externalAvatarUrl: string;
-    joinDate: Date;
-    externalData: string;
-    useAuthedDownloadService: string;
-    ImageURL: string;
-    NotificationImageURL: string;
+    contactId?: string;
+    contactEmail?: string;
+    contactFirstName?: string;
+    contactLastName?: string;
+    status?: yasoonModel.ContactStatus;
+    notifies?: boolean;
+    follows?: boolean;
+    aboutMe?: string;
+    keywords?: string;
+    birthday?: Date;
+    externalAvatarUrl?: string;
+    joinDate?: Date;
+    externalData?: string;
+    useAuthedDownloadService?: string;
+    ImageURL?: string;
+    NotificationImageURL?: string;
 
-    save(): boolean;
-    remove(): boolean;
+    save?(): boolean;
+    remove?(): boolean;
   }
 
   enum ContactStatus {
