@@ -16,6 +16,12 @@ interface JiraValue {
     children?: Array<JiraValue>
 }
 
+interface JiraRequestTypeFieldValue {
+    label: string,
+    value?: string,
+    children?: Array<JiraValue>
+}
+
 interface JiraSentObj {
     id?: string,
     name?: string,
@@ -185,6 +191,7 @@ interface JiraRequestType {
     id: number,
     cvId: number,
     portalKey: string,
+    portalId: number,
     key: string,
     icon: number,
     issueType: number,
@@ -197,6 +204,12 @@ interface JiraRequestType {
     order: number,
     usedByEmailSettings: boolean,
     groups: JiraRequestTypeGroup[]
+}
+
+interface JiraRequestTypeFieldMeta {
+    requestTypeFields?: JiraServiceDeskMetaField[];
+    canRaiseOnBehalfOf?: boolean;
+    canAddRequestParticipants?: boolean;
 }
 
 interface JiraUserConfigMeta {
@@ -249,6 +262,15 @@ interface JiraServiceDeskData {
     description?: string,
     projectId: string,
     sendEmailNotification?: boolean
+}
+
+interface JiraServiceDeskMetaField {
+    required: boolean,
+    jiraSchema: JiraSchema,
+    name: string,
+    fieldId: string,
+    description?: string,
+    validValues?: Array<JiraRequestTypeFieldValue>
 }
 
 interface JiraMetaField {

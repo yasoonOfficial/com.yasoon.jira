@@ -12,6 +12,7 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
 
     private currentProject: JiraProject;
     private serviceDeskKeys: { [id: string]: string };
+    private currentRequestTypeMeta: JiraRequestTypeFieldMeta;
     private requestTypes: { [id: string]: JiraRequestType[] };
     isServiceDeskActive: boolean;
 
@@ -25,8 +26,10 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
         this.serviceDeskKeys = {};
         this.requestTypes = {};
         this.isServiceDeskActive = false;
+        this.currentRequestTypeMeta = { requestTypeFields: [] };
 
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
+        FieldController.registerEvent(EventType.FieldChange, this, FieldController.requestTypeFieldId);
         FieldController.registerEvent(EventType.AfterSave, this);
         FieldController.registerEvent(EventType.UiAction, this);
     }
@@ -40,7 +43,8 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
         if (type === EventType.FieldChange) {
             if (source === FieldController.projectFieldId) {
                 this.setProject(newValue);
-
+            } else if (source == FieldController.requestTypeFieldId) {
+                this.loadRequestTypeMeta(newValue);
             }
         } else if (type === EventType.UiAction) {
             let eventData: UiActionEventData = newValue;
@@ -116,7 +120,21 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
 
     }
 
-
+    loadRequestTypeMeta(requestType: JiraRequestType) {
+        if (jiraIsVersionHigher(jira.systemInfo, '7.3')) {
+            this.getServiceDeskKey()
+            .then(key => {
+                return jiraGet(`/rest/servicedeskapi/servicedesk/${requestType.portalId}/requesttype/${requestType.id}/field`);
+            }) 
+            .then((data: string) => {
+                this.currentRequestTypeMeta = JSON.parse(data);
+            })
+            .catch(function (e) {
+                console.log(e);
+                yasoon.util.log(e.toString(), yasoon.util.severity.warning);
+            });
+        }
+    }
 
     getServiceDeskKey(): Promise<string> {
         let currentProject = this.currentProject;

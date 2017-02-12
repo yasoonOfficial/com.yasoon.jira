@@ -13,11 +13,13 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
     ownUser: JiraUser;
     currentProject: JiraProject;
     recentItems: RecentItemController;
+    allowNew: boolean;
     private avatarPath: string;
 
     constructor(id: string, field: JiraMetaField, options: any = {}) {
         super(id, field, options, options.multiple);
         this.ownUser = jira.ownUser;
+        this.allowNew = options.allowNew;
         this.avatarPath = yasoon.io.getLinkPath('Images/useravatar.png');
 
         this.recentItems = jira.recentItems;
@@ -214,6 +216,14 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
                 userArray.forEach((user) => {
                     result.push(this.convertToSelect2(user));
                 });
+
+                if (this.allowNew && searchTerm.indexOf('@') > 0) {
+                    result.push({
+                        id: 'new',
+                        text: searchTerm + ' (new)',
+                        data: searchTerm
+                    });
+                }
 
                 return this.getReturnStructure(result);
             });

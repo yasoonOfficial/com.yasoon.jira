@@ -141,17 +141,27 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                         requestTypeField.isServiceDeskActive = true;
                         FieldController.render(FieldController.requestTypeFieldId, $('#ServiceAreaRequestField'));
                     }
+
                     if (!FieldController.getField(FieldController.onBehalfOfFieldId)) {
                         //Create On-Behalf of field
-                        let behalfOfField = <UserSelectField>FieldController.loadField(UserSelectField.reporterDefaultMeta, UserSelectField);
+                        let behalfOfField = <UserSelectField>FieldController.loadField(UserSelectField.reporterDefaultMeta, UserSelectField, { allowNew: true });
                         FieldController.render(FieldController.onBehalfOfFieldId, $('#ServiceAreaReporterField'));
 
                         if (this.emailController) {
-                            behalfOfField.senderUser = this.emailController.senderUser;
-                        }
+                            if (this.emailController.getSenderUser())
+                                behalfOfField.senderUser = this.emailController.getSenderUser();
+                            else
+                                behalfOfField.senderUser = { 
+                                    displayName: this.emailController.getSenderEmail() + ' (new)',
+                                    emailAddress: this.emailController.getSenderEmail(),
+                                    name: '<new>'
+                                };
 
-                        let reporterField = FieldController.getField(FieldController.reporterFieldId);
-                        behalfOfField.setValue(reporterField.getValue());
+                            behalfOfField.setValue(behalfOfField.senderUser);
+                        } else {
+                            let reporterField = FieldController.getField(FieldController.reporterFieldId);
+                            behalfOfField.setValue(reporterField.getValue());
+                        }
                     }
 
                     //Enable Service mode

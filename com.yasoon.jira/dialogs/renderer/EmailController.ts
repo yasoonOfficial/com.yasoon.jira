@@ -92,7 +92,6 @@ class EmailController implements IFieldEventHandler {
                 }
             });
 
-
         //Get Sender templates            
         let templateString = yasoon.setting.getAppParameter(EmailController.settingCreateTemplates);
         if (templateString) {
