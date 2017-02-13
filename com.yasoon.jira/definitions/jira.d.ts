@@ -264,6 +264,11 @@ interface JiraServiceDeskData {
     sendEmailNotification?: boolean
 }
 
+interface JiraServiceDeskKey {
+    id: string,
+    key: string
+}
+
 interface JiraServiceDeskMetaField {
     required: boolean,
     jiraSchema: JiraSchema,

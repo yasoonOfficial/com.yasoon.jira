@@ -4,6 +4,7 @@
 /// <reference path="../../../definitions/common.d.ts" />
 /// <reference path="../getter/GetOption.ts" />
 /// <reference path="../setter/SetOptionValue.ts" />
+/// <reference path="../ServiceDeskController.ts" />
 
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
@@ -11,9 +12,8 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
     static defaultMeta: JiraMetaField = { key: FieldController.requestTypeFieldId, get name() { return yasoon.i18n('dialog.requestType'); }, required: true, schema: { system: 'requesttype', type: '' } };
 
     private currentProject: JiraProject;
-    private serviceDeskKeys: { [id: string]: string };
     private currentRequestTypeMeta: JiraRequestTypeFieldMeta;
-    private requestTypes: { [id: string]: JiraRequestType[] };
+    private serviceDeskController: ServiceDeskController;
     isServiceDeskActive: boolean;
 
     constructor(id: string, field: JiraMetaField) {
@@ -23,8 +23,7 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
 
         super(id, field, options);
 
-        this.serviceDeskKeys = {};
-        this.requestTypes = {};
+        this.serviceDeskController = jira.serviceDeskController;
         this.isServiceDeskActive = false;
         this.currentRequestTypeMeta = { requestTypeFields: [] };
 
@@ -41,10 +40,13 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
         if (type === EventType.FieldChange) {
-            if (source === FieldController.projectFieldId) {
+            if (source === FieldController.projectFieldId && (<JiraProject>newValue).projectTypeKey === 'service_desk') {
                 this.setProject(newValue);
             } else if (source == FieldController.requestTypeFieldId) {
-                this.loadRequestTypeMeta(newValue);
+                this.serviceDeskController.getRequestTypeMeta(newValue)
+                    .then(meta => {
+                        this.currentRequestTypeMeta = meta;
+                    });
             }
         } else if (type === EventType.UiAction) {
             let eventData: UiActionEventData = newValue;
@@ -55,7 +57,7 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
             //Service Request? Assignment Type have an own call
             if (this.isServiceDeskActive) {
                 try {
-                    let requestTypeOption:{id: string} = this.getValue(false);
+                    let requestTypeOption: { id: string } = this.getValue(false);
                     let requestTypeId = parseInt(requestTypeOption.id);
                     let lifecycleData: LifecycleData = newValue;
 
@@ -109,98 +111,14 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
 
     setProject(project: JiraProject) {
         this.currentProject = project;
-
-        this.getServiceDeskKey()
-            .then((serviceDeskKey: string) => {
-                return this.getRequestTypes(serviceDeskKey);
+        this.serviceDeskController.getServiceDeskKey(this.currentProject.id, this.currentProject.key)
+            .then((serviceDeskKey) => {
+                return this.serviceDeskController.getRequestTypes(serviceDeskKey);
             })
             .then((requestTypes) => {
                 this.setData(this.getReturnStructure(requestTypes));
             });
-
     }
 
-    loadRequestTypeMeta(requestType: JiraRequestType) {
-        if (jiraIsVersionHigher(jira.systemInfo, '7.3')) {
-            this.getServiceDeskKey()
-            .then(key => {
-                return jiraGet(`/rest/servicedeskapi/servicedesk/${requestType.portalId}/requesttype/${requestType.id}/field`);
-            }) 
-            .then((data: string) => {
-                this.currentRequestTypeMeta = JSON.parse(data);
-            })
-            .catch(function (e) {
-                console.log(e);
-                yasoon.util.log(e.toString(), yasoon.util.severity.warning);
-            });
-        }
-    }
 
-    getServiceDeskKey(): Promise<string> {
-        let currentProject = this.currentProject;
-        //Return buffer
-        if (this.serviceDeskKeys[currentProject.id]) {
-            return Promise.resolve(this.serviceDeskKeys[currentProject.id]);
-        }
-
-        return jiraGet('/rest/servicedesk/1/servicedesk-data')
-            .then((data: string) => {
-                let serviceData: JiraServiceDeskData[] = JSON.parse(data);
-                if (serviceData.length > 0) {
-                    let serviceDeskKey = serviceData.filter(function (s) { return s.projectId == currentProject.id; })[0].key;
-                    this.serviceDeskKeys[currentProject.id] = serviceDeskKey;
-
-                    return serviceDeskKey;
-                }
-            })
-            .catch(function (e) {
-                console.log(e);
-                yasoon.util.log(e.toString(), yasoon.util.severity.warning);
-                this.serviceDeskKeys[currentProject.id] = this.currentProject.key.toLowerCase();
-                return this.currentProject.key.toLowerCase();
-            });
-    }
-
-    getRequestTypes(serviceDeskKey: string): Promise<JiraRequestType[]> {
-        if (this.requestTypes[serviceDeskKey]) {
-            return Promise.resolve(this.requestTypes[serviceDeskKey]);
-        }
-
-        //New cloud versioning
-        if (jiraIsVersionHigher(jira.systemInfo, '7.3')) {
-            return jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey + '/groups')
-                .then((data: string) => {
-                    let groups: JiraRequestTypeGroup[] = JSON.parse(data);
-                    let promises: Promise<any>[] = [];
-                    groups.forEach((group) => {
-                        promises.push(jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey + '/groups/' + group.id + '/request-types'));
-                    });
-                    //Load in parallel
-                    return Promise.all(promises);
-                })
-                .map((typeString: string) => { return JSON.parse(typeString); })
-                .then((types: [JiraRequestType[]]) => {
-                    var allTypes = [];
-                    types.forEach(function (typesInner) {
-                        typesInner.forEach(function (type) {
-                            //Do not add twice
-                            if (allTypes.filter(function (t) { return t.id === type.id; }).length === 0) {
-                                allTypes.push(type);
-                            }
-                        });
-                    });
-
-                    this.requestTypes[serviceDeskKey] = allTypes;
-                    return allTypes;
-                });
-        } else {
-            return jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey + '/request-types')
-                .then((data: string) => {
-                    let allTypes = <JiraRequestType[]>JSON.parse(data);
-                    this.requestTypes[serviceDeskKey] = allTypes;
-
-                    return allTypes;
-                });
-        }
-    }
 }

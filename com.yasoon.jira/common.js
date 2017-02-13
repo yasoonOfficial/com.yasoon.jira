@@ -212,9 +212,9 @@ function JiraIconController() {
 
 function jiraGet(relativeUrl) {
 	return new Promise(function (resolve, reject) {
-		if(jira.testPreventJiraGet === true) {
+		if (jira.testPreventJiraGet === true) {
 			return reject(new jiraSyncError(relativeUrl + ' --> 500 || Internal Testing Error: Reason', 500, 'Reason', {}, 'Error Messages'));
-		} 
+		}
 		yasoon.oauth({
 			url: jira.settings.baseUrl + relativeUrl,
 			oauthServiceName: jira.settings.currentService,
@@ -237,6 +237,38 @@ function jiraGet(relativeUrl) {
 	});
 }
 
+function jiraGetAll(relativeUrl) {
+	var resolve;
+	var reject;
+	var result = new Promise(function (r1, r2) {
+		resolve = r1;
+		reject = r2;
+	});
+
+	var url = (relativeUrl.indexOf('?') > -1) ? relativeUrl + '&start=' : relativeUrl + '?start=';
+	var data = [];
+
+	var getData = function (offset) {
+		jiraGet(url + offset)
+			.then(function (data) {
+				var response = JSON.parse(data);
+				data.push(response.values);
+
+				if (response.isLastPage) {
+					resolve(data);
+				} else {
+					getData(response.start + response.size);
+				}
+			})
+			.catch(function (e) {
+				reject(e);
+			});
+	};
+
+	getData(0);
+	return result;
+}
+
 function jiraGetWithHeaders(relativeUrl) {
 	return new Promise(function (resolve, reject) {
 		yasoon.oauth({
@@ -256,10 +288,10 @@ function jiraGetWithHeaders(relativeUrl) {
 
 function jiraAjax(relativeUrl, method, data, formData) {
 	return new Promise(function (resolve, reject) {
-		if(jira.testPreventJiraGet === true) {
+		if (jira.testPreventJiraGet === true) {
 			return reject(new jiraSyncError(relativeUrl + ' --> 500 || Internal Testing Error: Reason', 500, 'Reason', {}, 'Error Messages'));
-		} 
-		
+		}
+
 		var request = {
 			url: jira.settings.baseUrl + relativeUrl,
 			oauthServiceName: jira.settings.currentService,
@@ -306,7 +338,7 @@ function jiraSyncError(message, statusCode, errorText, data, result) {
 				Object.keys(error.errors).forEach(function (key) {
 					result += error.errors[key] + '\n';
 				});
-			} else if(error.message) {
+			} else if (error.message) {
 				result = error.message;
 			} else {
 				result = yasoon.i18n('general.unexpectedJiraError');

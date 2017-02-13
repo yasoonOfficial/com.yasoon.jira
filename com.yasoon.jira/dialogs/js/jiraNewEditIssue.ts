@@ -7,6 +7,7 @@
 /// <reference path="./../renderer/EmailController.ts" />
 /// <reference path="./../renderer/TemplateController.ts" />
 /// <reference path="./../renderer/RecentItemController.ts" />
+/// <reference path="./../renderer/ServiceDeskController.ts" />
 
 var jira: any = null; //Legacy
 
@@ -30,6 +31,7 @@ class NewEditDialog implements IFieldEventHandler {
     recentItems: RecentItemController = null;
     emailController: EmailController = null;
     templateController: TemplateController = null;
+    serviceDeskController: ServiceDeskController = null;
     selectedProject: JiraProject = null;
     selectedIssueType: JiraIssueType = null;
     issueCreatedKey: string = null;
@@ -108,7 +110,9 @@ class NewEditDialog implements IFieldEventHandler {
             if (!this.isEditMode) {
                 this.templateController = new TemplateController(this.ownUser, this.emailController);
             }
+
             this.recentItems = new RecentItemController(this.ownUser);
+            this.serviceDeskController = new ServiceDeskController();
 
             //Render Header fields
             let projParams: ProjectFieldOptions = {

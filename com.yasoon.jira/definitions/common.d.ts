@@ -2,13 +2,15 @@
 
 declare function jiraGet(relativeUrl: string): Promise<string>;
 
+declare function jiraGetAll(relativeUrl: string): Promise<any[]>;
+
 declare function jiraAjax(relativeUrl: string, method: number, data?: any, formData?: any): Promise<any>;
 
 declare class jiraSyncError {
     message?: string;
-    statusCode?: number; 
+    statusCode?: number;
     errorText?: string;
-    data?: any; 
+    data?: any;
     result?: any;
     getUserFriendlyError(): string;
 }
@@ -32,7 +34,7 @@ declare function jiraHandleImageFallback(img: HTMLElement): void;
 
 declare function jiraIsTask(item: any): boolean;
 
-declare function jiraLog(msg: string, ... args);
+declare function jiraLog(msg: string, ...args);
 
 declare function getProjectIcon(project: JiraProject): string;
 

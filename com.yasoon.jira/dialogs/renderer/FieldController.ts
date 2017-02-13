@@ -76,7 +76,29 @@ namespace FieldController {
         for (let key in metaFields) {
             if (!fields[key]) {
                 metaFields[key].cleanup();
+
+                if (metaFields[key]['handleEvent'])
+                    unhookEventHandler(<any>metaFields[key]);
+
                 delete metaFields[key];
+            }
+        }
+    }
+
+    function unhookEventHandler(field: IFieldEventHandler) {
+        for (let type in lifecycleHandler) {
+            let handlerRegistration: IFieldEventHandler[] = lifecycleHandler[type];
+            if (handlerRegistration.indexOf(field) > -1) {
+                handlerRegistration.splice(handlerRegistration.indexOf(field), 1);
+            }
+        }
+
+        for (let type in fieldEventHandler) {
+            for (let fieldName in fieldEventHandler[type]) {
+                let handlerRegistration: IFieldEventHandler[] = fieldEventHandler[type][fieldName];
+                if (handlerRegistration.indexOf(field) > -1) {
+                    handlerRegistration.splice(handlerRegistration.indexOf(field), 1);
+                }
             }
         }
     }
@@ -143,7 +165,7 @@ namespace FieldController {
             }
         }
 
-        if(!prom) {
+        if (!prom) {
             prom = Promise.resolve();
         }
         return prom;
@@ -164,24 +186,24 @@ namespace FieldController {
         switch (eventType) {
             case EventType.FieldChange:
                 //get Field handler
-                let raiseChangeEvent = (field: IFieldEventHandler, evenType:EventType, newValue:any, id:string) => {
-                     setTimeout((eventType, newValue, id) => {
-                            try {
-                                field.handleEvent(eventType, newValue, id);
-                            } catch (e) {
-                                yasoon.util.log('Error: ' + e.message + ' in raiseEvent. EventType FieldChange|| newValue ' + newValue + ' || Id: ' + id, yasoon.util.severity.error, getStackTrace(e));
-                            }
-                        }, 1, eventType, newValue, id);
+                let raiseChangeEvent = (field: IFieldEventHandler, evenType: EventType, newValue: any, id: string) => {
+                    setTimeout((eventType, newValue, id) => {
+                        try {
+                            field.handleEvent(eventType, newValue, id);
+                        } catch (e) {
+                            yasoon.util.log('Error: ' + e.message + ' in raiseEvent. EventType FieldChange|| newValue ' + newValue + ' || Id: ' + id, yasoon.util.severity.error, getStackTrace(e));
+                        }
+                    }, 1, eventType, newValue, id);
                 };
 
                 if (fieldEventHandler[eventType] && fieldEventHandler[eventType][id]) {
                     fieldEventHandler[eventType][id].forEach(field => {
-                       raiseChangeEvent(field, eventType, newValue, id);
+                        raiseChangeEvent(field, eventType, newValue, id);
                     });
                 }
                 if (fieldEventHandler[eventType] && fieldEventHandler[eventType]['*']) {
                     fieldEventHandler[eventType]['*'].forEach(field => {
-                       raiseChangeEvent(field, eventType, newValue, id);
+                        raiseChangeEvent(field, eventType, newValue, id);
                     });
                 }
                 break;
