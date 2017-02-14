@@ -16,6 +16,7 @@
 
 <div style="padding:10px; position: fixed; width: 100%">
 	<div id="MainAlert" class="alert alert-danger hidden">
+		<button onclick="$('#MainAlert').addClass('hidden')" type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 		<span class="error-text" data-bind="localizedText: 'dialog.connectionError'">Connection Error. Loading Values from Jira not possible.</span>
 	</div>
 	<div style="display: block; width: 100%; min-width: 690px;" class="jira-dialog box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready"
@@ -67,5 +68,5 @@
 				</div>
 			</div>
 		</div>
-	</div>
+</div>
 </div>

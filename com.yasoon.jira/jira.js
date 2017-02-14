@@ -75,11 +75,11 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		jira.issues = new JiraIssueController();
 		jira.cache = {};
 
-		yasoon.addHook(yasoon.setting.HookCreateRibbon, aply(jira.ribbons, "createRibbon"));
-		yasoon.addHook(yasoon.notification.HookRenderNotificationAsync, aply(jira.notifications, "renderNotification"));
-		yasoon.addHook(yasoon.feed.HookCreateUserComment, aply(jira.notifications, "addComment"));
-		yasoon.addHook(yasoon.setting.HookRenderSettingsContainer, aply(jira.settings, "renderSettingsContainer"));
-		yasoon.addHook(yasoon.setting.HookSaveSettings, aply(jira.settings, "saveSettings"));
+		yasoon.addHook(yasoon.setting.HookCreateRibbon, jira.ribbons.createRibbon);
+		yasoon.addHook(yasoon.notification.HookRenderNotificationAsync, jira.notifications.renderNotification);
+		yasoon.addHook(yasoon.feed.HookCreateUserComment, jira.notifications.addComment);
+		yasoon.addHook(yasoon.setting.HookRenderSettingsContainer, jira.settings.renderSettingsContainer);
+		yasoon.addHook(yasoon.setting.HookSaveSettings, jira.settings.saveSettings);
 
 		yasoon.outlook.mail.registerRenderer("jiraMarkup", getJiraMarkupRenderer());
 
@@ -95,12 +95,6 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		//Download custom script
 		self.downloadCustomScript();
 	};
-
-	function aply(obj, funcName) {
-		return function() {
-			obj[funcName].apply(obj, arguments);
-		}
-	}
 
 	this.registerEvents = function () {
 		//yasoon.view.header.addTab('jiraIssues', 'Issues', self.renderIssueTab);
@@ -372,10 +366,10 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 					yasoon.setting.setAppParameter('ownUser', JSON.stringify(jira.data.ownUser));
 					jira.contacts.updateOwn(jira.data.ownUser);
 				})
-				.then(function() {
+				.then(function () {
 					return jira.filter.reIndex();
 				})
-				.then(function() {
+				.then(function () {
 					return jira.tasks.syncTasks();
 				})
 				.then(function () {
@@ -396,7 +390,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 								recentProjects = JSON.parse(recentString);
 							}
 
-							if(projects.length > 10) {
+							if (projects.length > 10) {
 								return recentProjects;
 							} else {
 								return projects;
@@ -408,16 +402,16 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 								.then(function (singleProject) {
 									var proj = JSON.parse(singleProject);
 									var foundIndex = -1;
-									 jira.data.projects.some(function(p, index) {
-										 if(p.id == proj.id) {
-											 foundIndex = index;
-											 return true;
-										 }
-										 return false;
-									 });
-									 if(foundIndex > -1) {
-										 jira.data.projects[foundIndex] = proj;
-									 }
+									jira.data.projects.some(function (p, index) {
+										if (p.id == proj.id) {
+											foundIndex = index;
+											return true;
+										}
+										return false;
+									});
+									if (foundIndex > -1) {
+										jira.data.projects[foundIndex] = proj;
+									}
 								});
 						})
 						.then(function () {

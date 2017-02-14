@@ -4,7 +4,9 @@ declare function jiraGet(relativeUrl: string): Promise<string>;
 
 declare function jiraGetAll(relativeUrl: string): Promise<any[]>;
 
-declare function jiraAjax(relativeUrl: string, method: number, data?: any, formData?: any): Promise<any>;
+declare function jiraCloneObject<T>(obj: T): T;
+
+declare function jiraAjax(relativeUrl: string, method: number, data?: any, formData?: any): Promise<string>;
 
 declare class jiraSyncError {
     message?: string;

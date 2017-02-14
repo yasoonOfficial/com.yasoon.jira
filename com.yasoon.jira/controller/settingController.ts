@@ -124,7 +124,7 @@ class JiraSettingController {
         }
     }
 
-    renderSettingsContainer(container) {
+    renderSettingsContainer = (container) => {
         if (!container) {
             container = settingsContainer;
         }
@@ -306,7 +306,7 @@ class JiraSettingController {
         container.setContent(elem.html());
     }
 
-    saveSettings(form) {
+    saveSettings = (form) => {
         //Create deep copy
         $.each(form, (i, param) => {
             //Special Case for activeFilters

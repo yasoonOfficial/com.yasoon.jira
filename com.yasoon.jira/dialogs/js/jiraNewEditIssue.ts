@@ -128,7 +128,6 @@ class NewEditDialog implements IFieldEventHandler {
             FieldController.loadField(IssueTypeField.defaultMeta, IssueTypeField);
             FieldController.render(FieldController.issueTypeFieldId, $('#IssueArea'));
 
-
             //Register Attachment Field with concrete attachments
             let attachments: JiraFileHandle[] = [];
             if (this.emailController) {
@@ -174,7 +173,7 @@ class NewEditDialog implements IFieldEventHandler {
         }
     }
 
-    cleanup() {
+    cleanup = () => {
         //Invalidate dialog events so the following won't throw any events => will lead to errors
         // due to pending dialog.close
         yasoon.dialog.clearEvents();
@@ -295,23 +294,23 @@ class NewEditDialog implements IFieldEventHandler {
         $('#create-issue-submit').prop('disabled', true);
         $('#JiraSpinner').removeClass('hidden');
 
-
         //Check if Request type is needed and add it
-        let isServiceDesk: boolean = this.selectedProject.projectTypeKey == 'service_desk' && $('#switchServiceMode').hasClass('active');
+        let isServiceDesk = this.serviceDeskController.isServiceDeskActive();
 
         return Promise.resolve()
             .then(() => {
-
                 //1. Collect data:
                 result = FieldController.getFormData(this.isEditMode);
+
                 //2. Remove special data
                 if (isServiceDesk) {
                     if (!result.fields[FieldController.requestTypeFieldId]) {
                         throw new Error(yasoon.i18n('dialog.errorNoRequestType'));
                     }
+
                     delete result.fields[FieldController.requestTypeFieldId];
-                    result.fields[FieldController.reporterFieldId] = result.fields[FieldController.onBehalfOfFieldId];
                     delete result.fields[FieldController.onBehalfOfFieldId];
+                    delete result.fields[FieldController.reporterFieldId];
                 }
 
                 //Inform Fields that save is going to start.
@@ -322,32 +321,46 @@ class NewEditDialog implements IFieldEventHandler {
 
                 //Wait till all beforeSave actions are done
                 return FieldController.raiseEvent(EventType.BeforeSave, lifecycleData);
-
             })
             .then(() => {
                 if (result.cancel) {
                     //Todo cancel this shit
                     //Not yet supported :-)
                 }
-                console.log('Send Data:', result);
+
+                if (isServiceDesk && !this.isEditMode)
+                    return this.serviceDeskController.doBeforeSave(result);
+                else
+                    return Promise.resolve<ServiceDeskSaveResult>({ issueCreated: false });
+            })
+            .then((sdData: ServiceDeskSaveResult) => {
+                let doUpdate = this.isEditMode || sdData.issueCreated;
+                let issueId = this.editIssueId ? this.editIssueId : sdData.issueId;
+
                 //Switch for edit or create
-                let url = (this.isEditMode) ? '/rest/api/2/issue/' + this.editIssueId : '/rest/api/2/issue';
-                let method = (this.isEditMode) ? yasoon.ajaxMethod.Put : yasoon.ajaxMethod.Post;
+                let url = (doUpdate) ? '/rest/api/2/issue/' + issueId : '/rest/api/2/issue';
+                let method = (doUpdate) ? yasoon.ajaxMethod.Put : yasoon.ajaxMethod.Post;
 
                 //Submit request	
-                return jiraAjax(url, method, JSON.stringify(result));
+                return [
+                    sdData,
+                    jiraAjax(url, method, JSON.stringify(result))
+                ];
             })
-            .then((data) => {
+            .spread((sdData: ServiceDeskSaveResult, data: string) => {
                 if (this.isEditMode) {
                     this.issueCreatedKey = this.currentIssue.key;
                     return jiraGet('/rest/api/2/issue/' + this.currentIssue.id);
+                } else if (sdData.issueCreated) {
+                    this.issueCreatedKey = sdData.issueKey;
+                    return jiraGet('/rest/api/2/issue/' + sdData.issueId);
                 } else {
                     let issue = JSON.parse(data);//A non-populated issue
                     this.issueCreatedKey = issue.key;
                     return jiraGet('/rest/api/2/issue/' + issue.id);
                 }
             })
-            .then((data) => {
+            .then((data: string) => {
                 let issue: JiraIssue = JSON.parse(data);
                 issue.fields['project'] = this.selectedProject;
                 lifecycleData.newData = issue;
@@ -357,6 +370,13 @@ class NewEditDialog implements IFieldEventHandler {
                     this.emailController.saveSenderTemplate(lifecycleData.data, issue.fields['project']);
                 }
 
+                //Check if SD needs to be called
+                if (isServiceDesk && !this.isEditMode)
+                    return this.serviceDeskController.doAfterSave(issue).return(lifecycleData);
+
+                return lifecycleData;
+            })
+            .then(lifecycleData => {
                 //Wait till all AfterSave actions are done
                 return FieldController.raiseEvent(EventType.AfterSave, lifecycleData);
             })

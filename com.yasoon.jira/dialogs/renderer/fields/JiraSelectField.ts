@@ -9,10 +9,10 @@ class JiraSelectField extends Select2Field {
 
     constructor(id: string, field: JiraMetaField, options: any = { multiple: false }, style: string = 'min-width: 350px; width: 80%;') {
 
-        super(id, field, options, options.multiple, style );
+        super(id, field, options, options.multiple, style);
 
         //Default value or None?
-        if (options.multiple) {
+        if (!options.multiple) {
             this.options.placeholder = (field.hasDefaultValue && !jira.isEditMode) ? yasoon.i18n('dialog.selectDefault') : yasoon.i18n('dialog.selectNone');
         }
 

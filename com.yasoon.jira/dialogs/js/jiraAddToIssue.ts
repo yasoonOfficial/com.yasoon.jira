@@ -128,7 +128,7 @@ class AddToIssueDialog implements IFieldEventHandler {
         });
     }
 
-    cleanup(): void {
+    cleanup = () => {
         //Invalidate dialog events so the following won't throw any events => will lead to errors
         // due to pending dialog.close
         yasoon.dialog.clearEvents();

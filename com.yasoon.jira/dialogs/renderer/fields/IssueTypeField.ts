@@ -138,7 +138,6 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                         //First time we need the requesttype field --> render
                         let requestTypeField = <RequestTypeField>FieldController.loadField(RequestTypeField.defaultMeta, RequestTypeField);
                         requestTypeField.setProject(this.currentProject);
-                        requestTypeField.isServiceDeskActive = true;
                         FieldController.render(FieldController.requestTypeFieldId, $('#ServiceAreaRequestField'));
                     }
 
@@ -151,7 +150,7 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                             if (this.emailController.getSenderUser())
                                 behalfOfField.senderUser = this.emailController.getSenderUser();
                             else
-                                behalfOfField.senderUser = { 
+                                behalfOfField.senderUser = {
                                     displayName: this.emailController.getSenderEmail() + ' (new)',
                                     emailAddress: this.emailController.getSenderEmail(),
                                     name: '<new>'

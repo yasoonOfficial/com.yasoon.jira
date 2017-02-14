@@ -182,10 +182,10 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
             let name: string = (typeof user === 'string') ? user : user.name;
             return this.getData(name)
                 .then((result) => {
-                    if(result[0].children[0])
+                    if (result[0].children[0])
                         return result[0].children[0].data;
                     else {
-                        yasoon.util.log('Invalid Username: ' + user, yasoon.util.severity.warning );
+                        yasoon.util.log('Invalid Username: ' + user, yasoon.util.severity.warning);
                         return null;
                     }
                 });
@@ -218,11 +218,11 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
                 });
 
                 if (this.allowNew && searchTerm.indexOf('@') > 0) {
-                    result.push({
-                        id: 'new',
-                        text: searchTerm + ' (new)',
-                        data: searchTerm
-                    });
+                    result.push(this.convertToSelect2({
+                        name: '<new>',
+                        displayName: searchTerm + ' (new)',
+                        emailAddress: searchTerm
+                    }));
                 }
 
                 return this.getReturnStructure(result);

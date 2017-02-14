@@ -11,8 +11,8 @@ class JiraIssueNotification extends JiraNotification {
 	worklogOpenInProgress = false;
 
 	constructor(private issue: any) {
-        super();
-    }
+		super();
+	}
 
 	isSyncNeeded() {
 		var found = false;
@@ -91,7 +91,7 @@ class JiraIssueNotification extends JiraNotification {
 			.then((userJson) => {
 				//console.log('Result:',users);
 				var data = [];
-			    let users = JSON.parse(userJson);
+				let users = JSON.parse(userJson);
 				users.forEach((user) => {
 					data.push({ id: user.name, name: user.displayName, type: 'user' });
 				});
@@ -196,7 +196,7 @@ class JiraIssueNotification extends JiraNotification {
 		changeStatusHtml += '' +
 			'   </ul>' +
 			'</span>';
-		feed.properties.customActions.push({ description: changeStatusHtml, eventHandler: () => {} });
+		feed.properties.customActions.push({ description: changeStatusHtml, eventHandler: () => { } });
 		feed.properties.customActions.push({ description: '<span><i class="fa fa-paperclip"></i> ' + yasoon.i18n('notification.addFileAction') + '</span>', eventHandler: this.addAttachment });
 		feed.properties.customActions.push({ description: '<span><i class="fa fa-pencil"></i> ' + yasoon.i18n('notification.editAction') + '</span>', eventHandler: this.editIssue });
 		feed.properties.customActions.push({ description: '<span data-key="' + this.issue.key + '" ><i class="fa fa-clock-o"></i> ' + yasoon.i18n('notification.logWorkAction') + '</span>', eventHandler: this.logWork, issueKey: this.issue.key });
@@ -210,7 +210,7 @@ class JiraIssueNotification extends JiraNotification {
 		}
 		feed.setIconHtml('<img src="' + icon_url + '" title="' + this.issue.fields.issuetype.name + '" ></i>');
 		feed.afterRenderScript(() => {
-			$('[data-feed-id=' + feed.feedId + ']').find('.jiraStatusChangeLink').off().click(() => {
+			$('[data-feed-id=' + feed.feedId + ']').find('.jiraStatusChangeLink').off().click(function () {
 				if (!jiraIsLicensed(true)) {
 					return;
 				}
@@ -261,12 +261,12 @@ class JiraIssueNotification extends JiraNotification {
 					});
 			});
 
-			$('[data-feed-id=' + feed.feedId + ']').find('.jiraFeedExpand').off().click(() => {
+			$('[data-feed-id=' + feed.feedId + ']').find('.jiraFeedExpand').off().click(function () {
 				$(this).parents('.body-collapsed').hide();
 				$(this).parents('.jiraContainer').find('.body-open').show();
 			});
 
-			$('[data-feed-id=' + feed.feedId + ']').find('.jiraFeedClose').off().click(() => {
+			$('[data-feed-id=' + feed.feedId + ']').find('.jiraFeedClose').off().click(function () {
 				$(this).parents('.body-open').hide();
 				$(this).parents('.jiraContainer').find('.body-collapsed').show();
 			});
@@ -362,7 +362,7 @@ class JiraIssueNotification extends JiraNotification {
 			});
 	}
 
-	addAttachment() {
+	addAttachment = () => {
 		if (!jiraIsLicensed(true)) {
 			return;
 		}
@@ -387,7 +387,7 @@ class JiraIssueNotification extends JiraNotification {
 		});
 	}
 
-	editIssue(callback) {
+	editIssue = (callback) => {
 		if (!jiraIsLicensed(true)) {
 			return;
 		}
@@ -410,7 +410,7 @@ class JiraIssueNotification extends JiraNotification {
 		});
 	}
 
-	logWork() {
+	logWork = () => {
 		if (this.worklogOpenInProgress)
 			return;
 

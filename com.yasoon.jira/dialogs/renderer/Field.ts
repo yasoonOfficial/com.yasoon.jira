@@ -14,6 +14,7 @@
 
 abstract class Field implements FieldGet, FieldSet {
 	public id: string;
+	private originalFieldMeta: JiraMetaField;
 	protected fieldMeta: JiraMetaField;
 	initialValue: any;
 	protected params: any;
@@ -26,6 +27,7 @@ abstract class Field implements FieldGet, FieldSet {
 	constructor(id: string, fieldMeta: JiraMetaField, params?: any) {
 		this.id = id;
 		this.fieldMeta = fieldMeta;
+		this.originalFieldMeta = jiraCloneObject(fieldMeta);
 		this.params = params;
 	}
 
@@ -62,6 +64,32 @@ abstract class Field implements FieldGet, FieldSet {
 	updateFieldMeta(newMeta: JiraMetaField) {
 		this.lastValue = undefined;
 		this.fieldMeta = newMeta;
+	}
+
+	setRequired(required: boolean) {
+		let el = $(`#${this.id}-field-group`).find('.field-group');
+		this.fieldMeta.required = required;
+		if (required) {
+			el.addClass('required');
+		} else {
+			el.removeClass('required');
+		}
+	}
+
+	setHidden(hidden: boolean) {
+		let el = $(`#${this.id}-field-group`).find('.field-group');
+		this.fieldMeta.isHidden = hidden;
+		if (hidden) {
+			el.addClass('hidden');
+		} else {
+			el.removeClass('hidden');
+		}
+	}
+
+	resetMeta() {
+		this.fieldMeta = jiraCloneObject(this.originalFieldMeta);
+		this.setHidden(this.fieldMeta.isHidden);
+		this.setRequired(this.fieldMeta.required);
 	}
 
 	abstract getDomValue(): any
@@ -101,15 +129,15 @@ abstract class Field implements FieldGet, FieldSet {
 			this.hookEventHandler();
 		}
 	}
-	
-	handleError(e:Error):void {
+
+	handleError(e: Error): void {
 		console.log('Error during field rendering: ', e, e.message, e.stack);
 		yasoon.util.log('Error during field rendering. ' + e.message + ' Field: ' + this.id + ' Meta: ' + JSON.stringify(this.fieldMeta), yasoon.util.severity.error, getStackTrace(e));
-		if(this.isRendered()) {
+		if (this.isRendered()) {
 			this.ownContainer.html('<span class="field-error"><i class="fa fa-exclamation-triangle" title="' + yasoon.i18n('dialog.errorFieldRendering') + '"></i></span>');
 		}
 	}
-	
+
 	cleanup() {
 		//Cleanup HTML
 		//Default to do nothing... can be overwritten be concrete fields

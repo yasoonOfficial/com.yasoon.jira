@@ -2,13 +2,13 @@
 /// <reference path="../definitions/jira.d.ts" />
 /// <reference path="../definitions/common.d.ts" />
 /// <reference path="../definitions/yasoon.d.ts" />
+/// <reference path="../models/issueTask.ts" />
 
 declare var jira: any;
 
 class JiraRibbonController {
-    self = this;
-    
-    createRibbon(ribbonFactory) {
+
+	createRibbon = (ribbonFactory) => {
 		jira.ribbonFactory = ribbonFactory;
 
 		//Add Ribbon in top toolbar Ribbon on new Item
@@ -222,7 +222,7 @@ class JiraRibbonController {
 		});
 	};
 
-    createContextRibbonItems(label, id, action) {
+	createContextRibbonItems(label, id, action) {
 		var result = [];
 		//var mailContextMenuMso = [
 		//	'ContextMenuHeading',
@@ -560,7 +560,7 @@ class JiraRibbonController {
 		}
 	}
 
-	ribbonExecuteTransition(ribbonId, ribbonCtx) {
+	ribbonExecuteTransition = (ribbonId, ribbonCtx) => {
 		if (!jiraIsLicensed(true)) {
 			return;
 		}
@@ -596,9 +596,7 @@ class JiraRibbonController {
 							}, issue.inspectorId);
 
 							this.updateRibbons(newIssue, issue.inspectorId);
-
 							new JiraIssueTask(newIssue).saveInspector(issue);
-
 							jira.sync();
 						});
 				}
@@ -634,7 +632,7 @@ class JiraRibbonController {
 			});
 	}
 
-	ribbonOnNewIssue(ribbonId, ribbonCtx) {
+	ribbonOnNewIssue = (ribbonId, ribbonCtx) => {
 		if (!jiraIsLicensed(true)) {
 			return;
 		}
@@ -691,7 +689,7 @@ class JiraRibbonController {
 		return;
 	}
 
-	ribbonOnAddToIssue(ribbonId, ribbonCtx) {
+	ribbonOnAddToIssue = (ribbonId, ribbonCtx) => {
 		if (!jiraIsLicensed(true)) {
 			return;
 		}

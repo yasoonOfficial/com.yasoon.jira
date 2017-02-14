@@ -316,6 +316,10 @@ function jiraCheckProxyError(input) {
 	}
 }
 
+function jiraCloneObject(obj) {
+	return JSON.parse(JSON.stringify(obj));
+}
+
 function jiraSyncError(message, statusCode, errorText, data, result) {
 	var self = this;
 
@@ -340,6 +344,8 @@ function jiraSyncError(message, statusCode, errorText, data, result) {
 				});
 			} else if (error.message) {
 				result = error.message;
+			} else if (error.errorMessage) {
+				result = error.errorMessage;
 			} else {
 				result = yasoon.i18n('general.unexpectedJiraError');
 			}

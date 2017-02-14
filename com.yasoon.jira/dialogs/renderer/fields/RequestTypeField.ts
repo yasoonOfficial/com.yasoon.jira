@@ -12,9 +12,7 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
     static defaultMeta: JiraMetaField = { key: FieldController.requestTypeFieldId, get name() { return yasoon.i18n('dialog.requestType'); }, required: true, schema: { system: 'requesttype', type: '' } };
 
     private currentProject: JiraProject;
-    private currentRequestTypeMeta: JiraRequestTypeFieldMeta;
     private serviceDeskController: ServiceDeskController;
-    isServiceDeskActive: boolean;
 
     constructor(id: string, field: JiraMetaField) {
         let options: Select2Options = {};
@@ -24,13 +22,7 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
         super(id, field, options);
 
         this.serviceDeskController = jira.serviceDeskController;
-        this.isServiceDeskActive = false;
-        this.currentRequestTypeMeta = { requestTypeFields: [] };
-
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
-        FieldController.registerEvent(EventType.FieldChange, this, FieldController.requestTypeFieldId);
-        FieldController.registerEvent(EventType.AfterSave, this);
-        FieldController.registerEvent(EventType.UiAction, this);
     }
 
     triggerValueChange() {
@@ -42,29 +34,6 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
         if (type === EventType.FieldChange) {
             if (source === FieldController.projectFieldId && (<JiraProject>newValue).projectTypeKey === 'service_desk') {
                 this.setProject(newValue);
-            } else if (source == FieldController.requestTypeFieldId) {
-                this.serviceDeskController.getRequestTypeMeta(newValue)
-                    .then(meta => {
-                        this.currentRequestTypeMeta = meta;
-                    });
-            }
-        } else if (type === EventType.UiAction) {
-            let eventData: UiActionEventData = newValue;
-            if (eventData.name === IssueTypeField.uiActionServiceDesk) {
-                this.isServiceDeskActive = eventData.value;
-            }
-        } else if (type === EventType.AfterSave) {
-            //Service Request? Assignment Type have an own call
-            if (this.isServiceDeskActive) {
-                try {
-                    let requestTypeOption: { id: string } = this.getValue(false);
-                    let requestTypeId = parseInt(requestTypeOption.id);
-                    let lifecycleData: LifecycleData = newValue;
-
-                    return jiraAjax('/rest/servicedesk/1/servicedesk/request/' + lifecycleData.newData.id + '/request-types', yasoon.ajaxMethod.Post, JSON.stringify({ rtId: requestTypeId }));
-                } catch (e) {
-                    return Promise.reject(new Error('Could not create ServiceDesk Data'));
-                }
             }
         }
 
@@ -111,12 +80,19 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
 
     setProject(project: JiraProject) {
         this.currentProject = project;
+        this.showSpinner();
         this.serviceDeskController.getServiceDeskKey(this.currentProject.id, this.currentProject.key)
             .then((serviceDeskKey) => {
                 return this.serviceDeskController.getRequestTypes(serviceDeskKey);
             })
             .then((requestTypes) => {
+                this.hideSpinner();
                 this.setData(this.getReturnStructure(requestTypes));
+            })
+            .catch(e => {
+                console.log('Error while loading request types', e);
+                yasoon.util.log('Error while loading request types: ' + e.message, yasoon.util.severity.warning, getStackTrace(e));
+                this.hideSpinner();
             });
     }
 

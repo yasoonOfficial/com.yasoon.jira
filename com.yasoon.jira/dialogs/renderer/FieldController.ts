@@ -9,6 +9,7 @@ namespace FieldController {
     export const onBehalfOfFieldId = 'onBehalfOf';
     export const attachmentFieldId = 'attachment';
     export const descriptionFieldId = 'description';
+    export const priorityFieldId = 'priority';
 
     // Add-to-Issue
     export const commentFieldId = 'comment';
@@ -53,6 +54,12 @@ namespace FieldController {
     export function cleanupHtml() {
         for (let key in metaFields) {
             metaFields[key].cleanup();
+        }
+    }
+
+    export function resetFields() {
+        for (let key in metaFields) {
+            metaFields[key].resetMeta();
         }
     }
 

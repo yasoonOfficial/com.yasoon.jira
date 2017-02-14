@@ -5,7 +5,7 @@
 /// <reference path="../models/issueActionNotification.ts" />
 
 interface JQuery {
-    datetimepicker(any): JQuery;
+	datetimepicker(any): JQuery;
 }
 
 class JiraNotificationController {
@@ -14,20 +14,20 @@ class JiraNotificationController {
 	notificationEvent = null;
 	queueProcessingRunning = false;
 	childQueue = [];
-    worklogTemplateLoaded = false;
-    worklogTemplate = null;
+	worklogTemplateLoaded = false;
+	worklogTemplate = null;
 
-	handleCommentError (error) {
+	handleCommentError(error) {
 		var errorMessage = (error.statusCode === 500) ? yasoon.i18n('feed.connectionToJiraNotPossible') : error.errorText;
 		yasoon.alert.add({ type: yasoon.alert.alertType.error, message: yasoon.i18n('feed.couldNotCreateComment') + ': ' + errorMessage });
 	}
 
-	handleAttachmentError (error) {
+	handleAttachmentError(error) {
 		var errorMessage = (error.statusCode === 500) ? yasoon.i18n('feed.connectionToJiraNotPossible') : error.errorText;
 		yasoon.alert.add({ type: yasoon.alert.alertType.error, message: yasoon.i18n('feed.couldNotUploadAttachments') + ': ' + errorMessage });
 	}
 
-	addComment(parent, comment, successCbk, attachments, errorCbk) {
+	addComment = (parent, comment, successCbk, attachments, errorCbk) => {
 		if (!jiraIsLicensed(true)) {
 			return errorCbk();
 		}
@@ -60,7 +60,7 @@ class JiraNotificationController {
 
 	}
 
-	createNotification (event) {
+	createNotification(event) {
 		var result = null;
 		if (event.type) {
 			if (event.type === 'issue') {
@@ -144,7 +144,7 @@ class JiraNotificationController {
 		this.notification = null;
 	};
 
-	queueChildren (issue) {
+	queueChildren(issue) {
 		var results = $.grep(this.childQueue, (i) => { return issue.key === i.key; });
 		if (results.length === 0) {
 			//console.log('Queue Child - Add to Array ' + issue.key);
@@ -152,7 +152,7 @@ class JiraNotificationController {
 		}
 	}
 
-	processChildren () {
+	processChildren() {
 		//If a new Issue is added, we need to make sure all children are loaded! This is done here via the feed.
 		jiraLog('ProcessChildren');
 		if (this.childQueue.length === 0) {
@@ -179,7 +179,7 @@ class JiraNotificationController {
 			});
 	}
 
-	processCommentEdits () {
+	processCommentEdits() {
 		/* Editing a comment does not affect the acitivity stream - JIRA BUG!
 			Issue is open since 2007, so we do not expect a quick fix and we create a workaround.
 			We check manually all changed issues and check if update date is newer than last sync
@@ -219,7 +219,7 @@ class JiraNotificationController {
 			});
 	}
 
-	renderNotification(feed) {
+	renderNotification = (feed) => {
 		var event = this.createNotification(JSON.parse(feed.externalData));
 		if (event) {
 			event.renderBody(feed);
@@ -228,7 +228,7 @@ class JiraNotificationController {
 		}
 	}
 
-	createCommentAction (comment, issue) {
+	createCommentAction(comment, issue) {
 		return {
 			category: {
 				'@attributes': {
@@ -240,7 +240,7 @@ class JiraNotificationController {
 		};
 	}
 
-	loadWorklogTemplate (issueKey, issueId, cbk) {
+	loadWorklogTemplate(issueKey, issueId, cbk) {
 		if (!this.worklogTemplateLoaded) {
 			var path = yasoon.io.getLinkPath('templates/addWorklog.js');
 			$.getScript(path, (template) => {
@@ -259,7 +259,7 @@ class JiraNotificationController {
 					]
 				});
 				//Selection changed
-				$('input[name=jiraOptionsRadios]').change(() => {
+				$('input[name=jiraOptionsRadios]').change(function () {
 					//Make inputFields read-only
 					$('#jiraRemainingEstimateSetInput').prop('disabled', true);
 					$('#jiraRemainingEstimateReduceInput').prop('disabled', true);

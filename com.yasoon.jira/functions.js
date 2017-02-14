@@ -1,5 +1,4 @@
 
-
 function jiraXmlToJson(xmlDom) {
 	var js_obj = {};
 	if (xmlDom.nodeType == 1) {
