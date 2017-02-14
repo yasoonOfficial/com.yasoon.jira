@@ -150,27 +150,23 @@ class TemplateController implements IFieldEventHandler {
 
         promise.spread((content: string) => {
             this.emailContent = content;
-            if (this.defaultTemplates) {
-                //Default Templates are already filtered by current user groups and are sorted by priority --> defined on server
-                //Here we blindly pick the first template that matches our criteria
-                if (template && template.fields) {
-                    for (let fieldId in template.fields) {
-                        if (template.fields.hasOwnProperty(fieldId)) {
-                            let value = template.fields[fieldId];
-                            let renderedField = FieldController.getField(fieldId);
-                            if (renderedField) {
-                                if (typeof value === 'string' && this.containsVariable(value)) {
-                                    //Fixed variables
-                                    value = this.getFixedValue(value, renderedField.constructor['name']);
-                                } else if (typeof value === 'string' && value.indexOf('|') === 0) {
-                                    value = this.getDynamicValue(fieldId, value);
-                                } else {
-                                    value = value
-                                }
+            if (template && template.fields) {
+                for (let fieldId in template.fields) {
+                    if (template.fields.hasOwnProperty(fieldId)) {
+                        let value = template.fields[fieldId];
+                        let renderedField = FieldController.getField(fieldId);
+                        if (renderedField) {
+                            if (typeof value === 'string' && this.containsVariable(value)) {
+                                //Fixed variables
+                                value = this.getFixedValue(value, renderedField.constructor['name']);
+                            } else if (typeof value === 'string' && value.indexOf('|') === 0) {
+                                value = this.getDynamicValue(fieldId, value);
+                            } else {
+                                value = value
+                            }
 
-                                if (value) {
-                                    FieldController.setValue(fieldId, value, true);
-                                }
+                            if (value) {
+                                FieldController.setValue(fieldId, value, true);
                             }
                         }
                     }
@@ -181,15 +177,17 @@ class TemplateController implements IFieldEventHandler {
 
     getTemplate(projectId: string, issueTypeId: string): YasoonDefaultTemplate {
         let result: YasoonDefaultTemplate = null;
-        this.defaultTemplates.some((template) => {
-            //Check if Project and issueType matches
-            if ((template.projectId === '-1' || template.projectId === projectId) &&
-                (template.issueTypeId === '-1' || template.issueTypeId === issueTypeId)) {
-                result = template;
-                return true;
-            }
-            return false;
-        });
+        if (this.defaultTemplates) {
+            this.defaultTemplates.some((template) => {
+                //Check if Project and issueType matches
+                if ((template.projectId === '-1' || template.projectId === projectId) &&
+                    (template.issueTypeId === '-1' || template.issueTypeId === issueTypeId)) {
+                    result = template;
+                    return true;
+                }
+                return false;
+            });
+        }
         return result;
     }
 
@@ -244,7 +242,6 @@ class TemplateController implements IFieldEventHandler {
                                 dialog.modal('hide');
                             });
                     }
-
                 });
             });
         });
@@ -287,7 +284,7 @@ class TemplateController implements IFieldEventHandler {
     }
 
     private getDynamicValue(fieldId: string, value: string) {
-        let parentFieldId = value.replace(/\|/g, '');
+        let parentFieldId = value.replace(/\|/g, '').toLowerCase();
         let parentField = FieldController.getField(parentFieldId);
         if (parentField) {
             this.dependentFields[parentFieldId] = fieldId;
