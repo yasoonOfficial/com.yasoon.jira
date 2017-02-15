@@ -54,8 +54,10 @@ class ProjectField extends Select2Field {
                 }
             })
             .catch((e) => { this.handleError(e); });
+    }
 
-
+    init() {
+        //Init is called automatically for each new meta --> not necessary for projects
     }
 
     triggerValueChange() {
@@ -68,7 +70,7 @@ class ProjectField extends Select2Field {
     }
 
     setDefaultProject() {
-        if(this.initialValue)
+        if (this.initialValue)
             return;
 
         //Applications like tasks may insert 
@@ -85,7 +87,7 @@ class ProjectField extends Select2Field {
                 //However, we want to support longterm enhancements where conversationData could be shared with others and then the project might not exist for this user.
                 for (let id in convData.issues) {
                     let intId = parseInt(id);
-                    let issue:YasoonConversationIssue = convData.issues[id];
+                    let issue: YasoonConversationIssue = convData.issues[id];
                     if (this.projectCache.filter((el) => { return el.id === issue.projectId; }).length > 0) //jshint ignore:line
                     {
                         this.setValue(issue.projectId);
@@ -134,7 +136,7 @@ class ProjectField extends Select2Field {
     hookEventHandler() {
         super.hookEventHandler();
 
-        if(this.showTemplates) {
+        if (this.showTemplates) {
             this.ownContainer.find('.show-template-modal').click((e) => {
                 console.log('Triggered Call Dialog');
                 this.templateController.showTemplateSelection();
@@ -145,7 +147,7 @@ class ProjectField extends Select2Field {
     render(container: JQuery) {
         super.render(container);
 
-        if(this.showTemplates) {
+        if (this.showTemplates) {
             container.append('<div style="display:inline-block; margin-left: 5px;"><a class="show-template-modal"><i class="fa fa-magic"></i></a></div>');
         }
     }

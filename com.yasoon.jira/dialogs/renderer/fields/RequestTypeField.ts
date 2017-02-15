@@ -25,6 +25,10 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
     }
 
+    init() {
+        //Not necessary--> handled in handleEvent
+    }
+
     triggerValueChange() {
         let requestType: JiraRequestType = this.getObjectValue();
         FieldController.raiseEvent(EventType.FieldChange, requestType, this.id);

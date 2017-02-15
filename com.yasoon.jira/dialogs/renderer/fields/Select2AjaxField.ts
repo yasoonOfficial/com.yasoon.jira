@@ -43,7 +43,7 @@ abstract class Select2AjaxField extends Select2Field {
 						.catch(error => {
 							this.hideSpinner();
 							console.log('An error occured while fetching select2 data. Field ' + this.id, error, error.stack);
-							yasoon.util.log('An error occured while fetching select2 data. ' + error.message + ' || Field: ' + this.id , yasoon.util.severity.warning, getStackTrace(error));
+							yasoon.util.log('An error occured while fetching select2 data. ' + error.message + ' || Field: ' + this.id, yasoon.util.severity.warning, getStackTrace(error));
 							success();
 						});
 				},
@@ -69,6 +69,10 @@ abstract class Select2AjaxField extends Select2Field {
 					this.currentReject(e);
 				});
 		}, 500, false);
+	}
+
+	init() {
+		//Not nessecary if everything is loaded on demand
 	}
 
 	private getDataDebounced(searchTerm: string): Promise<Select2Element[]> {

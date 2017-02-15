@@ -13,12 +13,15 @@ class SprintSelectField extends Select2Field implements IFieldEventHandler {
 
         FieldController.registerEvent(EventType.BeforeSave, this);
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.issueTypeFieldId);
+        this.init();
+    }
+
+    init() {
         this.getData()
             .then((data) => {
                 this.setData(data);
             });
     }
-
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
         if (type === EventType.BeforeSave && jira.isEditMode) {

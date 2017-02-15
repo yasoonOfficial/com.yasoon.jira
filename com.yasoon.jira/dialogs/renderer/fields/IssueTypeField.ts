@@ -28,6 +28,10 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
         FieldController.registerEvent(EventType.UiAction, this);
     }
 
+    init() {
+        //Handled in handleEvent when project changes
+    }
+
     hookEventHandler() {
         super.hookEventHandler();
 

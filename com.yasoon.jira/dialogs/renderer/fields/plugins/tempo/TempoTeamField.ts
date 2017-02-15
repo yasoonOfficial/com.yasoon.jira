@@ -11,6 +11,10 @@ class TempoTeamField extends Select2Field {
 
     constructor(id: string, field: JiraMetaField, options: Select2Options = {}) {
         super(id, field, options);
+        this.init();
+    }
+
+    init() {
         this.getData()
             .then((elements: Select2Element[]) => {
                 this.setData(elements);
@@ -27,7 +31,7 @@ class TempoTeamField extends Select2Field {
 
     getData() {
         return jiraGet('/rest/tempo-teams/1/team')
-            .then((teamString:string) => {
+            .then((teamString: string) => {
                 let teamData = JSON.parse(teamString);
                 let result: Select2Element[] = [];
 

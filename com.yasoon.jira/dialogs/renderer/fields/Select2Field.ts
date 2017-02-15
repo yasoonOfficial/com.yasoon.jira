@@ -18,6 +18,8 @@ abstract class Select2Field extends Field {
 		}
 	}
 
+	abstract init();
+
 	getDomValue(): any {
 		return $('#' + this.id).val();
 	}
@@ -96,6 +98,11 @@ abstract class Select2Field extends Field {
 
 	hideSpinner() {
 		$('#' + this.id + '-spinner').addClass('hidden');
+	}
+
+	updateFieldMeta(newMeta: JiraMetaField) {
+		super.updateFieldMeta(newMeta);
+		this.init();
 	}
 
 	static formatIcon(element: Select2Element): string | JQuery {

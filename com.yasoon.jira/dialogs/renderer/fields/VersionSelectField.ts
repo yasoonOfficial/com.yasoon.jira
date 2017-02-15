@@ -6,14 +6,19 @@
 @getter(GetterType.Option, "id", null)
 @setter(SetterType.Option)
 class VersionSelectField extends Select2Field {
+    private releasedFirst: boolean;
 
     constructor(id: string, field: JiraMetaField, config: { releasedFirst: boolean, multiSelect: boolean }) {
         let options = {
             data: []
         };
-
         super(id, field, options, config.multiSelect);
-        let allowedValues: JiraVersion[] = <JiraVersion[]>field.allowedValues;
+        this.releasedFirst = config.releasedFirst;
+        this.init();
+    }
+
+    init() {
+        let allowedValues: JiraVersion[] = <JiraVersion[]>this.fieldMeta.allowedValues;
 
         let releasedVersions = allowedValues
             .filter(option => { return option.released && !option.archived })
@@ -35,7 +40,7 @@ class VersionSelectField extends Select2Field {
             children: unreleasedVersions
         };
 
-        if (config.releasedFirst) {
+        if (this.releasedFirst) {
             this.options.data.push(releasedOptGroup);
             this.options.data.push(unreleasedOptGroup);
         } else {

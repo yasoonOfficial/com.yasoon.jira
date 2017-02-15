@@ -11,12 +11,16 @@ class TempoAccountField extends Select2Field {
 
     constructor(id: string, field: JiraMetaField, options: Select2Options = {}) {
         super(id, field, options);
+        this.init();
+    }
+
+    init() {
         this.getData()
             .then((elements: Select2Element[]) => {
                 this.setData(elements);
             });
     }
-    
+
     convertToSelect2(obj: any): Select2Element {
         return {
             id: obj.id,

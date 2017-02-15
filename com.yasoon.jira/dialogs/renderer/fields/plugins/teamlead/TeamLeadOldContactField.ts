@@ -28,6 +28,10 @@ class TeamLeadOldContactField extends Select2Field implements IFieldEventHandler
         }
     }
 
+    init() {
+        //Init is called automatically for each new meta --> not necessary for projects
+    }
+
     handleEvent(type: EventType, newValue: { id: string }, source?: string): Promise<any> {
         if (type === EventType.FieldChange) {
             let field = <TeamLeadCompanyField>FieldController.getField(source);

@@ -10,13 +10,16 @@ class JiraSelectField extends Select2Field {
     constructor(id: string, field: JiraMetaField, options: any = { multiple: false }, style: string = 'min-width: 350px; width: 80%;') {
 
         super(id, field, options, options.multiple, style);
+        this.init();
+    }
 
+    init() {
         //Default value or None?
-        if (!options.multiple) {
-            this.options.placeholder = (field.hasDefaultValue && !jira.isEditMode) ? yasoon.i18n('dialog.selectDefault') : yasoon.i18n('dialog.selectNone');
+        if (!this.options.multiple) {
+            this.options.placeholder = (this.fieldMeta.hasDefaultValue && !jira.isEditMode) ? yasoon.i18n('dialog.selectDefault') : yasoon.i18n('dialog.selectNone');
         }
 
-        this.options.data = (field.allowedValues) ? field.allowedValues.map(this.convertToSelect2) : [];
+        this.options.data = (this.fieldMeta.allowedValues) ? this.fieldMeta.allowedValues.map(this.convertToSelect2) : [];
     }
 
     convertToSelect2(obj: JiraValue): Select2Element {
@@ -32,5 +35,4 @@ class JiraSelectField extends Select2Field {
 
         return result;
     }
-
 }

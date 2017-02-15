@@ -47,7 +47,7 @@ class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler
                     this.updateEpic7(newEpicLink, eventData.newData.key);
                 }
             }
-        } else if(type === EventType.FieldChange && source === FieldController.issueTypeFieldId) {
+        } else if (type === EventType.FieldChange && source === FieldController.issueTypeFieldId) {
             this.currentIssueType = newValue;
         }
         return null;
@@ -123,8 +123,8 @@ class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler
             });
     }
 
-    render(container: JQuery):void {
-        if(this.currentIssueType && this.currentIssueType.subtask){
+    render(container: JQuery): void {
+        if (this.currentIssueType && this.currentIssueType.subtask) {
             container.append('<span class="field-error field-inline ">' + yasoon.i18n('dialog.errorNoEpicForSubtasks') + '</span>');
         } else {
             super.render(container);
