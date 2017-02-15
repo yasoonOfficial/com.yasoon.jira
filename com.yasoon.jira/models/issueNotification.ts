@@ -85,7 +85,7 @@ class JiraIssueNotification extends JiraNotification {
 		return false;
 	}
 
-	searchUser(mode, query, callback) {
+	searchUser = (mode, query, callback) => {
 		//console.log('Search User');
 		jiraGet('/rest/api/2/user/viewissue/search?issueKey=' + this.issue.key + '&projectKey=' + this.issue.fields.project.key + '&maxResults=10&username=' + query)
 			.then((userJson) => {

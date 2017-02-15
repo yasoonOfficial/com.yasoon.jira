@@ -12,7 +12,6 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 
 	jira.firstTime = true;
 	jira.restartRequired = false;
-	jira.firstSyncedNotifications = 0;
 	var startSync = new Date();
 	var ignoreEntriesAtSync = 0;
 	var oAuthSuccess = false;
@@ -199,14 +198,6 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				}
 
 				jiraLog('Sync done: ' + new Date().toISOString());
-
-				if (oAuthSuccess) {
-					oAuthSuccess = false;
-					yasoon.util.logActivity('oAuthSuccess', JSON.stringify({
-						app: 'com.yasoon.jira',
-						count: jira.firstSyncedNotifications
-					}));
-				}
 			})
 			.catch(jiraSyncError, function (error) {
 				jiraLog('Sync Error:', error);
@@ -226,6 +217,13 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	this.handleOAuthSuccess = function (serviceName) {
 		jira.settings.currentService = serviceName;
 		yasoon.setting.setAppParameter('settings', JSON.stringify(jira.settings));
+		try {
+			yasoon.util.logActivity('oAuthSuccess', JSON.stringify({
+				app: 'com.yasoon.jira'
+			}));
+		} catch (e) {
+
+		}
 		oAuthSuccess = true;
 		self.sync();
 		window.oAuthSuccess();
@@ -307,10 +305,6 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 
 				if (feedEntry['atlassian:application'] && feedEntry['atlassian:application']['#text'].toLowerCase().indexOf('jira') > -1) {
 					var notif = jira.notifications.createNotification(feedEntry);
-
-					if (oAuthSuccess)
-						jira.firstSyncedNotifications++;
-
 					if (notif) {
 						return notif.save()
 							.catch(function (e) {

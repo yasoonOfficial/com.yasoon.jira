@@ -4,7 +4,7 @@ class JiraFilterController {
 	filterObj = [];
 	allFilters = [];
 
-	getLabel(name, id, path) {
+	getLabel = (name, id, path) => {
 		return (this.values[path] && this.values[path][id]) ? this.values[path][id] : null;
 	}
 
@@ -151,7 +151,7 @@ class JiraFilterController {
 		return currentObj;
 	}
 
-	addNotif (obj) {
+	addNotif(obj) {
 		//Go through each filter 
 		var saveNeeded = false;
 		this.getSelectedFilters().forEach((filterKey) => {
@@ -215,7 +215,7 @@ class JiraFilterController {
 		});
 	}
 
-	reIndex () {
+	reIndex() {
 		var newValues = {};
 		return Promise.resolve()
 			.then(() => {
