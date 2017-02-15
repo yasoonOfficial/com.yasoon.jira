@@ -19,7 +19,7 @@ class CascadedSelectField extends Field implements IFieldEventHandler {
     }
 
     getDomValue() {
-
+        return this.getValue();
     }
 
     getValue(onlyChangedData: boolean = false): JiraSentObj {
@@ -97,5 +97,14 @@ class CascadedSelectField extends Field implements IFieldEventHandler {
         this.childField.render(childContainer);
         this.childField.hookEventHandler();
         this.childField.ownContainer = childContainer;
+    }
+
+    updateFieldMeta(newMeta: JiraMetaField) {
+        super.updateFieldMeta(newMeta);
+        this.parentField.updateFieldMeta(newMeta);
+
+        let childFieldMeta: JiraMetaField = JSON.parse(JSON.stringify(newMeta));
+        childFieldMeta.allowedValues = [];
+        this.childField.updateFieldMeta(childFieldMeta);
     }
 }
