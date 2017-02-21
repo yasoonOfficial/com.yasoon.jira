@@ -18,7 +18,10 @@ class GroupSelectField extends Select2AjaxField {
 
 
     convertId(id: any): Promise<JiraGroup> {
-        return Promise.resolve({ name: id });
+        if (!id['name']) {
+            id = { name: id };
+        }
+        return Promise.resolve(id);
     }
 
     getData(searchTerm: string): Promise<Select2Element[]> {

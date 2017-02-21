@@ -26,10 +26,12 @@ abstract class Select2Field extends Field {
 
 	getObjectValue(): any {
 		let elements: Select2Element[] = $('#' + this.id)['select2']('data');
-		if (this.multiple) {
-			return elements.map(p => { return p.data; });
-		} else {
-			return elements[0].data;
+		if (elements.length > 0) {
+			if (this.multiple) {
+				return elements.map(p => { return p.data; });
+			} else {
+				return elements[0].data;
+			}
 		}
 	}
 
@@ -56,7 +58,6 @@ abstract class Select2Field extends Field {
 	}
 
 	hookEventHandler(): void {
-		console.log('Hook Eventhandler called', this.id);
 		$('#' + this.id).on('change', e => this.triggerValueChange());
 	}
 

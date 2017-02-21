@@ -41,15 +41,19 @@ class TempoAccountField extends Select2Field {
         };
     }
 
-    convertId(id: number): Promise<any> {
-        return this.getAccountPromise
-            .spread((accountData: TempoAccount[], projectAccounts: TempoAccount[]) => {
-                let result = accountData.filter(acc => acc.id == id);
-                if (result.length === 0) {
-                    result = projectAccounts.filter(acc => acc.id == id);
-                }
-                return result[0];
-            });
+    convertId(id: any): Promise<any> {
+        if (id['id']) {
+            return Promise.resolve(id);
+        } else {
+            return this.getAccountPromise
+                .spread((accountData: TempoAccount[], projectAccounts: TempoAccount[]) => {
+                    let result = accountData.filter(acc => acc.id == id);
+                    if (result.length === 0) {
+                        result = projectAccounts.filter(acc => acc.id == id);
+                    }
+                    return result[0];
+                });
+        }
     }
 
     getData() {
