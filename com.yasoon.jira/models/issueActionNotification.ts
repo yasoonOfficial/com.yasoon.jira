@@ -94,6 +94,7 @@ class JiraIssueActionNotification extends JiraNotification {
 					issueKey = this.event.issue.id;
 				else
 					issueKey = (this.event['activity:target']) ? this.event['activity:target'].title['#text'] : this.event['activity:object'].title['#text'];
+
 				return jira.issues.get(issueKey);
 			})
 			.then((issue) => {

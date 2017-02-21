@@ -161,7 +161,9 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 
 		jiraLog('Sync starts: ' + new Date().toISOString() + ' Source: ' + source);
 		return self.initData()
-			.then(jira.issues.refreshBuffer)
+			.then(function () {
+				return jira.issues.refreshBuffer();
+			})
 			.then(function () {
 				if (jira.settings.syncFeed == "off" || (jira.settings.syncFeed == "manual" && source != 'manualRefresh'))
 					return;
@@ -377,7 +379,9 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 							jira.data.projects = projects;
 							return projects;
 						})
-						.then(self.cleanDeletedProjects)
+						.then(function (projects) {
+							return self.cleanDeletedProjects(projects);
+						})
 						.then(function (projects) {
 							var recentString = yasoon.setting.getAppParameter('recentProjects');
 							if (recentString) {
@@ -416,7 +420,9 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				.then(function () {
 					jira.firstTime = false;
 				})
-				.tap(self.loadProjectCache); //async but not blocking. next then will be executed
+				.tap(function () {
+					self.loadProjectCache();
+				}); //async but not blocking. next then will be executed
 			//.then(function () {
 			//	//Third get all issue types
 			//	jiraLog('Get Issuetypes');
