@@ -11,9 +11,16 @@
 				</span>
 			</div>
 			<div class="pull-left summary-entry">
-				<span title="{{fields.status.description}}">
-					<img src="{{fields.status.iconUrl}}" onerror="jiraHandleImageFallback(this)" /> {{fields.status.name}}
-				</span>
+				{{#unless fields.status.statusCategory}}
+					<span title="{{fields.status.description}}">
+						<img src="{{fields.status.iconUrl}}" onerror="jiraHandleImageFallback(this)" /> {{fields.status.name}}
+					</span>
+				{{/unless}}
+				{{#if fields.status.statusCategory}}
+					<span class="aui-lozenge jira-issue-status-lozenge jira-issue-status-lozenge-{{fields.status.statusCategory.colorName}}" title="{{fields.status.description}}">
+						{{fields.status.name}}
+					</span>
+				{{/if}}
 			</div>
 			<div class="pull-left summary-entry">
 				<span title="{{i18n 'notification.dueAt'}}">

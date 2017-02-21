@@ -428,7 +428,6 @@ function jiraCompressObject(obj) {
 		"attachment",
 		"watchers",
 		"workratio",
-		"statusCategory",
 		"votes",
 		"timeZone",
 		"atlassian:timezone-offset"
