@@ -3,3 +3,4 @@ class JiraNotification {
 
 	}
 }
+//@ sourceURL=http://Jira/controllerModels.js

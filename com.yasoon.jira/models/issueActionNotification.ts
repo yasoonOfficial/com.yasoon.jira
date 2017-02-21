@@ -193,13 +193,11 @@ class JiraIssueActionNotification extends JiraNotification {
 		if (creation) {
 			return jiraAddNotification(yEvent)
 				.then((newNotif) => {
-					yasoon.notification.incrementCounter();
 					jira.notifications.addDesktopNotification(newNotif, this.event);
 				});
 		} else {
 			return jiraSaveNotification(yEvent)
 				.then((newNotif) => {
-					yasoon.notification.incrementCounter();
 					jira.notifications.addDesktopNotification(newNotif, this.event);
 				});
 		}

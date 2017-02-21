@@ -42,7 +42,7 @@ class JiraTaskController {
 			});
 	}
 
-	syncTasks (forceSync?: boolean) {
+	syncTasks(forceSync?: boolean) {
 		if (!jira.settings.syncTask) {
 			return Promise.resolve();
 		}
@@ -106,5 +106,3 @@ class JiraTaskController {
 			});
 	}
 }
-
-//@ sourceURL=http://Jira/controller.js

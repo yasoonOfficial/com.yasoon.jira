@@ -30,11 +30,11 @@ gulp.start('buildDialogs');
 
 //1.3 Controllers
 gulp.task('buildControllers', function () {
-    return gulp.src('com.yasoon.jira/controller/*.ts')
+    return gulp.src(['com.yasoon.jira/controller/*.ts','com.yasoon.jira/models/*.ts'])
         .pipe(ts({
             "experimentalDecorators": true,
             "allowJs": true,
-            "outFile": "./controller.js",
+            "outFile": "./controllerModels.js",
             "target": "es5"
         }))
         .pipe(gulp.dest('distribution/com.yasoon.jira'));
@@ -42,18 +42,20 @@ gulp.task('buildControllers', function () {
 gulp.start('buildControllers');
 
 //1.4 Models
-gulp.task('buildControllers', function () {
+/*
+gulp.task('buildModels', function () {
     return gulp.src('com.yasoon.jira/models/*.ts')
         .pipe(ts({
             "experimentalDecorators": true,
             "allowJs": true,
             "outFile": "./models.js",
+			"noResolve": true,
             "target": "es5"
         }))
         .pipe(gulp.dest('distribution/com.yasoon.jira'));
 });
-gulp.start('buildControllers');
-
+gulp.start('buildModels');
+*/
 //2. Compile Templates
 var handlebars = require('gulp-handlebars');
 var wrap = require('gulp-wrap');
