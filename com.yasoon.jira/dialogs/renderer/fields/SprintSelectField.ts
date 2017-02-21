@@ -10,6 +10,7 @@ class SprintSelectField extends Select2Field implements IFieldEventHandler {
 
     constructor(id: string, field: JiraMetaField) {
         super(id, field, {});
+        this.options.placeholder = (field.hasDefaultValue && !jira.isEditMode) ? yasoon.i18n('dialog.selectDefault') : yasoon.i18n('dialog.selectNone');
 
         FieldController.registerEvent(EventType.BeforeSave, this);
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.issueTypeFieldId);

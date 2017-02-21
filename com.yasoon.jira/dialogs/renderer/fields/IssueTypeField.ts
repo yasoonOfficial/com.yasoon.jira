@@ -58,14 +58,6 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                         </a>`);
     }
 
-    triggerValueChange(force: boolean = false) {
-        let issueType: JiraIssueType = this.getObjectValue();
-        if (!this.lastValue || this.lastValue.id !== issueType.id || force) {
-            FieldController.raiseEvent(EventType.FieldChange, issueType, this.id);
-            this.lastValue = issueType;
-        }
-    }
-
     convertToSelect2(issueType: JiraIssueType): Select2Element {
         return {
             id: issueType.id,
@@ -81,6 +73,9 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                 let project: JiraProject = newValue;
                 if (this.currentProject && this.currentProject.id == project.id)
                     return;
+
+                //If project was changed, we always have to throw change event.
+                this.lastValue = null;
 
                 let promise: Promise<JiraProject>;
                 if (!project.issueTypes) {
@@ -124,7 +119,7 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                     }
                 })
                     .then(() => {
-                        this.triggerValueChange(true);
+                        this.triggerValueChange();
                     })
                     .catch((e) => { this.handleError(e); });
 

@@ -1,14 +1,16 @@
 /// <reference path="../Field.ts" />
 
 class SetCheckedValues implements FieldSetter {
-    setValue(field: Field, value: any):Promise<any> {
+    setValue(field: Field, value: any): Promise<any> {
         if (value) {
             if (Array.isArray(value)) {
                 value.forEach(function (item) {
-                    field.ownContainer.find('[value=' + item.id + ']').prop('checked', true).trigger('change');
+                    let id = (item && item.id) ? item.id : item;
+                    field.ownContainer.find('[value=' + id + ']').prop('checked', true).trigger('change');
                 });
             } else {
-                field.ownContainer.find('[value=' + value.id + ']').prop('checked', true).trigger('change');
+                let id = (value && value.id) ? value.id : value;
+                field.ownContainer.find('[value=' + id + ']').prop('checked', true).trigger('change');
             }
         }
         return Promise.resolve(value);

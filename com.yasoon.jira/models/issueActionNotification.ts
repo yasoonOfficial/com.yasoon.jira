@@ -3,11 +3,11 @@
 
 class JiraIssueActionNotification extends JiraNotification {
 
-    constructor(private event: any) {
-        super();
-    }
+	constructor(private event: any) {
+		super();
+	}
 
-	isSyncNeeded () {
+	isSyncNeeded() {
 		return true;
 	}
 
@@ -81,9 +81,9 @@ class JiraIssueActionNotification extends JiraNotification {
 		feed.setIconHtml(iconHtml);
 	}
 
-	renderTitle (feed) { 
+	renderTitle(feed) {
 
-    }
+	}
 
 	save() {
 		return Promise.resolve()
@@ -230,6 +230,7 @@ class JiraIssueActionNotification extends JiraNotification {
 		yEvent.contactId = (this.event.author['usr:username']) ? this.event.author['usr:username']['#text'] : '';
 		yEvent.createdAt = new Date(this.event.updated['#text']);
 		yEvent.type = 2;
+		yEvent.isRead = (yEvent.contactId == jira.data.ownUser.key);
 
 		this.event.type = 'IssueAction';
 

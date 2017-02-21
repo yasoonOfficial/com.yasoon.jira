@@ -8,7 +8,7 @@ class TemplateController implements IFieldEventHandler {
 
     private ownUser: JiraUser;
     private groupHierachy: YasoonGroupHierarchy[] = [];
-    private dependentFields: { [id: string]: string } = {};
+    private dependentFields: { [id: string]: string[] } = {};
     private emailController: EmailController;
     private loadTemplateSelectionPromise: Promise<string>;
     private dialogSelectedTemplate: YasoonDefaultTemplate;
@@ -100,20 +100,35 @@ class TemplateController implements IFieldEventHandler {
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
         if (type === EventType.FieldChange) {
-            let dependentFieldId = this.dependentFields[source];
-            let dependentField = FieldController.getField(dependentFieldId);
-            let currentValue = dependentField.getValue(false);
-            if (!currentValue || !dependentField.initialValue || JSON.stringify(currentValue) == JSON.stringify(dependentField.initialValue)) {
-                FieldController.setValue(dependentFieldId, newValue, true);
-            }
-        } else if (type === EventType.AfterRender && this.dialogSelectedTemplate) {
-            //We cannot set the fieldValues directly as fields are not rendered yet.
-            //So we save the template in showTemplateSelection and after render, we set the values.
-            this.setFieldValues(this.dialogSelectedTemplate);
-            this.dialogSelectedTemplate = null;
+            let dependentFieldIds = this.dependentFields[source] || [];
+            dependentFieldIds.forEach(dependentFieldId => {
+                let dependentField = FieldController.getField(dependentFieldId);
+                let currentValue = dependentField.getValue(false);
+                if (!currentValue && !dependentField.initialValue)
+                    return;
+
+                if (!currentValue || !dependentField.initialValue || JSON.stringify(currentValue) == JSON.stringify(dependentField.initialValue)) {
+                    FieldController.setValue(dependentField.id, newValue, true);
+                }
+            });
+        } else if (type === EventType.AfterRender) {
+            this.cleanupEvents();
         }
 
         return null;
+    }
+
+
+    applyTemplate(projectId: string, issueTypeId: string) {
+        //We first check if we have a pending template
+        if (this.dialogSelectedTemplate && this.dialogSelectedTemplate.projectId == projectId && this.dialogSelectedTemplate.issueTypeId == issueTypeId) {
+            this.setFieldValues(this.dialogSelectedTemplate);
+            this.dialogSelectedTemplate = null;
+        } else {
+            let template = this.getTemplate(projectId, issueTypeId);
+            if (template)
+                this.setFieldValues(template);
+        }
     }
 
     setInitialValues(initialValues?: YasoonInitialSelection): Promise<any> {
@@ -172,7 +187,10 @@ class TemplateController implements IFieldEventHandler {
                     }
                 }
             }
-        });
+        })
+            .catch(e => {
+                console.log('setFieldValue Error', e, e.stack);
+            });
     }
 
     getTemplate(projectId: string, issueTypeId: string): YasoonDefaultTemplate {
@@ -249,7 +267,7 @@ class TemplateController implements IFieldEventHandler {
     }
 
     containsVariable(value: string): boolean {
-        return (value.indexOf('<') === 0 && value.indexOf('>') > 0);
+        return (value.indexOf && value.indexOf('<') === 0 && value.indexOf('>') > 0);
     }
 
     private getFixedValue(value: string, fieldType: string): any {
@@ -287,8 +305,12 @@ class TemplateController implements IFieldEventHandler {
         let parentFieldId = value.replace(/\|/g, '').toLowerCase();
         let parentField = FieldController.getField(parentFieldId);
         if (parentField) {
-            this.dependentFields[parentFieldId] = fieldId;
-            FieldController.registerEvent(EventType.FieldChange, this, parentFieldId);
+            if (!this.dependentFields[parentField.id]) {
+                this.dependentFields[parentField.id] = [];
+            }
+
+            this.dependentFields[parentField.id].push(fieldId);
+            FieldController.registerEvent(EventType.FieldChange, this, parentField.id);
 
             return parentField.getValue(false);
         }
@@ -305,5 +327,11 @@ class TemplateController implements IFieldEventHandler {
                 return userGroup.name === group;
             })[0];
         }
+    }
+
+    private cleanupEvents() {
+        //FieldController Events will be unloaded automatically whenever a new meta is loaded
+        //just reinitialize dependedFields
+        this.dependentFields = {};
     }
 }

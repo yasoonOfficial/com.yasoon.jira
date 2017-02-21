@@ -60,15 +60,6 @@ class ProjectField extends Select2Field {
         //Init is called automatically for each new meta --> not necessary for projects
     }
 
-    triggerValueChange() {
-        let project: JiraProject = this.getObjectValue();
-        console.log('Project selected', project);
-        if ((!this.lastValue && project) || (this.lastValue && !project) || (this.lastValue && project && this.lastValue.id !== project.id)) {
-            FieldController.raiseEvent(EventType.FieldChange, project, this.id);
-            this.lastValue = project;
-        }
-    }
-
     setDefaultProject() {
         if (this.initialValue)
             return;

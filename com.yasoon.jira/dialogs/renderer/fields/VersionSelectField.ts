@@ -40,12 +40,17 @@ class VersionSelectField extends Select2Field {
             children: unreleasedVersions
         };
 
+        this.options.data = [];
         if (this.releasedFirst) {
-            this.options.data.push(releasedOptGroup);
-            this.options.data.push(unreleasedOptGroup);
+            if (releasedOptGroup.children.length > 0)
+                this.options.data.push(releasedOptGroup);
+            if (unreleasedOptGroup.children.length > 0)
+                this.options.data.push(unreleasedOptGroup);
         } else {
-            this.options.data.push(unreleasedOptGroup);
-            this.options.data.push(releasedOptGroup);
+            if (unreleasedOptGroup.children.length > 0)
+                this.options.data.push(unreleasedOptGroup);
+            if (releasedOptGroup.children.length > 0)
+                this.options.data.push(releasedOptGroup);
         }
     }
 

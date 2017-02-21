@@ -11,7 +11,7 @@ interface Select2Options {
 }
 
 interface Select2Element {
-    id: string,
+    id: string;
     text: string,
     icon?: string,
     iconClass?: string,

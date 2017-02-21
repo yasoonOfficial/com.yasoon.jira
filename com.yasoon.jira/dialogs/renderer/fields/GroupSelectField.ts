@@ -9,7 +9,16 @@
 @setter(SetterType.Option)
 class GroupSelectField extends Select2AjaxField {
     constructor(id: string, field: JiraMetaField, options: { multiple: boolean } = { multiple: false }) {
-        super(id, field, {}, options.multiple);
+        let select2Options: Select2Options = {};
+        if (!options.multiple) {
+            select2Options.placeholder = (field.hasDefaultValue && !jira.isEditMode) ? yasoon.i18n('dialog.selectDefault') : yasoon.i18n('dialog.selectNone');
+        }
+        super(id, field, select2Options, options.multiple);
+    }
+
+
+    convertId(id: any): Promise<JiraGroup> {
+        return Promise.resolve({ name: id });
     }
 
     getData(searchTerm: string): Promise<Select2Element[]> {

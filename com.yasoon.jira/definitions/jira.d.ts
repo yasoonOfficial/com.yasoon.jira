@@ -40,8 +40,8 @@ interface JiraGroups {
 }
 
 interface JiraGroup {
-    html: string,
-    labels: JiraGroupLabel[],
+    html?: string,
+    labels?: JiraGroupLabel[],
     name: string
 }
 

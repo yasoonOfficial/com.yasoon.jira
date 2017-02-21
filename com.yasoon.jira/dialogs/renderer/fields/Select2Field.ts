@@ -56,6 +56,7 @@ abstract class Select2Field extends Field {
 	}
 
 	hookEventHandler(): void {
+		console.log('Hook Eventhandler called', this.id);
 		$('#' + this.id).on('change', e => this.triggerValueChange());
 	}
 
@@ -70,9 +71,24 @@ abstract class Select2Field extends Field {
 
 	abstract convertToSelect2(obj: any): Select2Element;
 
+
+	triggerValueChange() {
+		setTimeout(() => {
+			let value = this.getObjectValue();
+			if (!this.lastValue && !value)
+				return;
+
+			if ((this.lastValue && !value) || (!this.lastValue && value) || (JSON.stringify(this.lastValue) != JSON.stringify(value))) {
+				FieldController.raiseEvent(EventType.FieldChange, value, this.id);
+				this.lastValue = value;
+			}
+		}, 1);
+
+	}
+
 	convertId(id: any): Promise<any> {
 		//Best Guess: Return data object with same "ID" property
-		if (typeof id === 'string' && this.options.data) {
+		if (typeof id === 'string' && this.options.data.length > 0) {
 			let result: Select2Element = null;
 			this.options.data.forEach((data) => {
 				if (data.children) {

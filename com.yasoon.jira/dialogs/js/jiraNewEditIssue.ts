@@ -261,8 +261,7 @@ class NewEditDialog implements IFieldEventHandler {
 
                     //Set Templates Values
                     if (this.templateController) {
-                        let template = this.templateController.getTemplate(this.selectedProject.id, this.selectedIssueType.id)
-                        this.templateController.setFieldValues(template);
+                        this.templateController.applyTemplate(this.selectedProject.id, this.selectedIssueType.id);
                     }
                 })
                 .catch((e) => {

@@ -11,7 +11,7 @@ class SetOptionValue implements FieldSetter {
         if (value && Array.isArray(value)) {
             //Multiselect       
             return Promise.all(
-                value.map((v) => { return selectField.convertId(v); })
+                value.map(v => selectField.convertId(v))
             )
                 .then((arrayObj) => {
                     arrayObj = arrayObj.filter((v) => !!v);
@@ -20,7 +20,7 @@ class SetOptionValue implements FieldSetter {
                         return;
 
                     // Convert value into normalized select2 format
-                    let select2Values = arrayObj.map((v) => { return selectField.convertToSelect2.call(selectField, v); });
+                    let select2Values = arrayObj.map(v => selectField.convertToSelect2(v));
 
                     //Now there are two cases:
                     //All values already exist in data --> we can just select the data

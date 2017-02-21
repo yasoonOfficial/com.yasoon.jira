@@ -317,7 +317,8 @@ function jiraCheckProxyError(input) {
 }
 
 function jiraCloneObject(obj) {
-	return JSON.parse(JSON.stringify(obj));
+	if (obj)
+		return JSON.parse(JSON.stringify(obj));
 }
 
 function jiraSyncError(message, statusCode, errorText, data, result) {

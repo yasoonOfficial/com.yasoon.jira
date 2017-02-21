@@ -31,7 +31,13 @@ namespace FieldController {
     }
 
     export function getField(id: string): Field {
-        return metaFields[id.toLowerCase()];
+        let field = metaFields[id];
+        if (!field) {
+            let fieldKey = Object.keys(metaFields).filter(fieldId => fieldId.toLowerCase() === id.toLowerCase())[0];
+            field = metaFields[fieldKey];
+        }
+
+        return field;
     }
 
     export function getAllFields(): { [id: string]: Field } {
@@ -241,11 +247,10 @@ namespace FieldController {
                 if (!fieldEventHandler[eventType]) {
                     fieldEventHandler[eventType] = {};
                 }
-                let idNormalized = id.toLowerCase();
-                if (!fieldEventHandler[eventType][idNormalized]) {
-                    fieldEventHandler[eventType][idNormalized] = [];
+                if (!fieldEventHandler[eventType][id]) {
+                    fieldEventHandler[eventType][id] = [];
                 }
-                fieldEventHandler[eventType][idNormalized].unshift(handler);
+                fieldEventHandler[eventType][id].unshift(handler);
                 break;
 
             default:

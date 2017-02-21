@@ -5,11 +5,20 @@
 /// <reference path="../../../getter/GetTextValue.ts" />
 /// <reference path="../../../setter/SetOptionValue.ts" />
 
+interface TempoTeam {
+    id: number;
+    name: string;
+    summary?: string;
+}
+
 @getter(GetterType.Text)
 @setter(SetterType.Option)
 class TempoTeamField extends Select2Field {
+    getTeamsPromise: Promise<any>;
 
     constructor(id: string, field: JiraMetaField, options: Select2Options = {}) {
+        options.placeholder = yasoon.i18n('dialog.selectNone');
+        options.allowClear = true
         super(id, field, options);
         this.init();
     }
@@ -21,18 +30,30 @@ class TempoTeamField extends Select2Field {
             });
     }
 
-    convertToSelect2(obj: any): Select2Element {
+    convertId(id: number): Promise<any> {
+        return this.getTeamsPromise
+            .then((teams: TempoTeam[]) => {
+                return teams.filter(team => team.id == id)[0]
+            });
+    }
+
+    convertToSelect2(obj: TempoTeam): Select2Element {
         return {
-            id: obj.id,
+            id: obj.id.toString(),
             text: obj.name,
             data: obj
         };
     }
 
     getData() {
-        return jiraGet('/rest/tempo-teams/1/team')
+        this.getTeamsPromise = jiraGet('/rest/tempo-teams/1/team')
             .then((teamString: string) => {
-                let teamData = JSON.parse(teamString);
+                let teamData: TempoTeam[] = JSON.parse(teamString);
+                return teamData;
+            });
+
+        return this.getTeamsPromise
+            .then((teamData: TempoTeam[]) => {
                 let result: Select2Element[] = [];
 
                 if (teamData && teamData.length > 0) {

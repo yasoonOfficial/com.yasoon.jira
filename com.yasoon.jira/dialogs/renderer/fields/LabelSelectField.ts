@@ -20,12 +20,27 @@ class LabelSelectField extends Select2AjaxField {
         return $('#' + this.id).val() || [];
     }
 
-    convertToSelect2(label: JiraLabel): Select2Element {
+    convertToSelect2(label: JiraLabel | string): Select2Element {
+        let jiraLabel: JiraLabel;
+        if (typeof label === 'string')
+            jiraLabel = { label: label };
+        else
+            jiraLabel = label;
+
         return {
-            id: label.label,
-            text: label.label,
-            data: label
+            id: jiraLabel.label,
+            text: jiraLabel.label,
+            // data: label //data attribute is not taken over for tags
         };
+    }
+    getObjectValue(): any {
+        //Overwritten as the data attribute is not taken over for tags
+        let elements: Select2Element[] = $('#' + this.id)['select2']('data');
+        if (this.multiple) {
+            return elements.map(p => { return p.id; });
+        } else {
+            return elements[0].id;
+        }
     }
 
     getData(searchTerm: string) {
