@@ -45,12 +45,19 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
     }
 
     convertToSelect2(requestType: JiraRequestType): Select2Element {
-        return {
+        var data: Select2Element = {
             id: requestType.id.toString(),
             text: requestType.name,
-            icon: jira.icons.mapIconUrl(jira.settings.baseUrl + '/servicedesk/customershim/secure/viewavatar?avatarType=SD_REQTYPE&avatarId=' + requestType.icon),
             data: requestType
         };
+
+        //Das klappt, aber bin zu blöd das Font Icon zu alignen.
+        //if (requestType.icon - 10500 > 36) {
+        data.icon = jira.icons.mapIconUrl(jira.settings.baseUrl + '/servicedesk/customershim/secure/viewavatar?avatarType=SD_REQTYPE&avatarId=' + requestType.icon)
+        // } else {
+        //     data.iconClass = 'vp-rq-icon vp-rq-icon-' + (requestType.icon - 10500);
+        // }
+        return data;
     }
 
     getReturnStructure(requestTypes: JiraRequestType[]): Select2Element[] {

@@ -1,4 +1,4 @@
-declare var jira: any;
+declare var jira: any; //Legacy
 
 namespace FieldController {
     export const projectFieldId = 'project';
@@ -80,7 +80,12 @@ namespace FieldController {
             if (type) {
                 let buffer = fieldTypes[type];
                 if (buffer) {
-                    loadField(field, buffer.field, buffer.params);
+                    try {
+                        loadField(field, buffer.field, buffer.params);
+                    } catch (e) {
+                        yasoon.util.log("Error loading Field " + key, yasoon.util.severity.error, getStackTrace(e));
+                        console.log("Error loading Field " + key, e, e.stack);
+                    }
                 }
             }
         }

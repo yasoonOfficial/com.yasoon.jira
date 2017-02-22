@@ -2,7 +2,7 @@
 
 declare function jiraGet(relativeUrl: string): Promise<string>;
 
-declare function jiraGetAll(relativeUrl: string): Promise<any[]>;
+declare function jiraGetAll(relativeUrl: string): Promise<any>;
 
 declare function jiraCloneObject<T>(obj: T): T;
 

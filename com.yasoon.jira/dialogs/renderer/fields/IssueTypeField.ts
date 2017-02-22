@@ -52,10 +52,12 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
     render(container: JQuery): void {
         super.render(container);
 
-        container.append(`<br /><a id="switchServiceMode" class="hidden" style="cursor:pointer;" title="">
+        if (!jira.isEditMode) {
+            container.append(`<br /><a id="switchServiceMode" class="hidden" style="cursor:pointer;" title="">
                             <span class="showPortal"><i class="fa fa-plus"></i><span data-bind="localizedText: 'dialog.SDAssignment'">Service Desk assignment</span> </span>
                             <span class="hidePortal"><i class="fa fa-minus"></i><span data-bind="localizedText: 'dialog.SDAssignment'">Service Desk assignment</span> </span>
                         </a>`);
+        }
     }
 
     convertToSelect2(issueType: JiraIssueType): Select2Element {

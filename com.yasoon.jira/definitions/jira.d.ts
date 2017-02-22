@@ -51,6 +51,19 @@ interface JiraGroupLabel {
     type: string
 }
 
+interface JiraOrganization {
+    id: string;
+    name: string;
+}
+
+interface JiraOrganizationResult {
+    size?: number;
+    start?: number;
+    limit?: number;
+    isLastPage?: boolean;
+    values?: JiraOrganization[];
+}
+
 interface Jira6Epics {
     epicNames: JiraEpic[],
     total: number

@@ -17,6 +17,9 @@ class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler
     }
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
+        //Ticket: https://jira.atlassian.com/browse/GHS-10333
+        //Jira till 7.1.4 cannot create / update Epics via the standard REST API
+        //There is a workaround --> update it via unofficial greenhopper API
         if (type === EventType.AfterSave) {
             let newEpicLink = this.getDomValue()
             let eventData: LifecycleData = newValue;
@@ -43,9 +46,12 @@ class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler
                     }
                 }
                 //AfterSave is only needed for JIRA 7 on creation as the setData does not work anymore.
-            } else if (!jira.isEditMode && jiraIsVersionHigher(jira.systemInfo, '7.1')) {
+            } else if (!jira.isEditMode) {
                 if (newEpicLink) {
-                    this.updateEpic7(newEpicLink, eventData.newData.key);
+                    if (jiraIsVersionHigher(jira.systemInfo, '7.1'))
+                        return this.updateEpic7(newEpicLink, eventData.newData.key);
+                    else
+                        return this.updateEpic6(newEpicLink, eventData.newData.key);
                 }
             }
         } else if (type === EventType.FieldChange && source === FieldController.issueTypeFieldId) {
@@ -55,12 +61,17 @@ class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler
     }
 
     getValue(changedDataOnly: boolean): string {
-        //Only for creation as Epic links cannot be changed via REST APi --> Status code 500
-        //Ticket: https://jira.atlassian.com/browse/GHS-10333
-        //There is a workaround --> update it via unofficial greenhopper API --> For update see handleEvent
-        let value: string = this.getDomValue();
-        if (!jiraIsVersionHigher(jira.systemInfo, '7') && !changedDataOnly && value) {
-            return 'key:' + value;
+        if (jiraIsVersionHigher(jira.systemInfo, '7.1.4')) {
+            if (changedDataOnly) {
+                let newEpicLink = this.getDomValue();
+                let oldEpicLink = this.initialValue;
+
+                if (newEpicLink != oldEpicLink) {
+                    return this.getDomValue();
+                }
+            } else {
+                return this.getDomValue();
+            }
         }
     }
 

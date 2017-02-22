@@ -238,35 +238,32 @@ function jiraGet(relativeUrl) {
 }
 
 function jiraGetAll(relativeUrl) {
-	var resolve;
-	var reject;
-	var result = new Promise(function (r1, r2) {
-		resolve = r1;
-		reject = r2;
-	});
-
-	var url = (relativeUrl.indexOf('?') > -1) ? relativeUrl + '&start=' : relativeUrl + '?start=';
+	var url = relativeUrl + ((relativeUrl.indexOf('?') > -1) ? '&start=' : '?start=');
 	var data = [];
 
-	var getData = function (offset) {
+	var getData = function (offset, resolve, reject) {
 		jiraGet(url + offset)
-			.then(function (data) {
-				var response = JSON.parse(data);
+			.then(function (result) {
+				var response = JSON.parse(result);
 				data.push(response.values);
 
 				if (response.isLastPage) {
-					resolve(data);
+					response.start = 0;
+					response.limit = response.start + response.size;
+					response.size = response.start + response.size;
+					response.data = data;
+					resolve(response);
 				} else {
-					getData(response.start + response.size);
+					getData(response.start + response.size, resolve, reject);
 				}
 			})
 			.catch(function (e) {
 				reject(e);
 			});
 	};
-
-	getData(0);
-	return result;
+	return new Promise(function (resolve, reject) {
+		getData(0, resolve, reject);
+	});
 }
 
 function jiraGetWithHeaders(relativeUrl) {

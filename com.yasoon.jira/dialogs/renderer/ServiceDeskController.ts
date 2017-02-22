@@ -10,6 +10,7 @@ interface ServiceDeskSaveResult {
 class ServiceDeskController implements IFieldEventHandler {
 
     private serviceDeskVersion: string;
+    private currentProject: JiraProject;
     private requestTypes: { [id: string]: JiraRequestType[] } = {};
     private serviceDeskKeys: { [id: string]: JiraServiceDeskKey } = {};
     private _isServiceDeskActive: boolean = false;
@@ -17,6 +18,7 @@ class ServiceDeskController implements IFieldEventHandler {
 
     constructor() {
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.requestTypeFieldId);
+        FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
         FieldController.registerEvent(EventType.UiAction, this);
     }
 
@@ -30,17 +32,21 @@ class ServiceDeskController implements IFieldEventHandler {
             if (eventData.name === IssueTypeField.uiActionServiceDesk) {
                 this._isServiceDeskActive = eventData.value;
             }
-        } else if (type === EventType.FieldChange && source == FieldController.requestTypeFieldId) {
-            this.getRequestTypeMeta(newValue)
-                .then(meta => {
-                    this.currentRequestTypeMeta = meta;
+        } else if (type === EventType.FieldChange) {
+            if (source == FieldController.requestTypeFieldId) {
+                this.getRequestTypeMeta(newValue)
+                    .then(meta => {
+                        this.currentRequestTypeMeta = meta;
 
-                    //We need to put the fields back into original state, without the modifications from the previous request type
-                    FieldController.resetFields();
+                        //We need to put the fields back into original state, without the modifications from the previous request type
+                        FieldController.resetFields();
 
-                    //Now process the request type field meta (add possible required flags)
-                    this.updateFieldMeta();
-                });
+                        //Now process the request type field meta (add possible required flags)
+                        this.updateFieldMeta();
+                    });
+            } else if (source === FieldController.projectFieldId) {
+                this.currentProject = newValue;
+            }
         }
 
         return null;
@@ -211,5 +217,12 @@ class ServiceDeskController implements IFieldEventHandler {
         }
 
         return this.serviceDeskKeys[projectId];
+    }
+
+    async getCurrentServiceDeskKey(): Promise<JiraServiceDeskKey> {
+        if (this.currentProject.projectTypeKey === 'service_desk')
+            return this.getServiceDeskKey(this.currentProject.id);
+
+        return Promise.resolve(null);
     }
 }

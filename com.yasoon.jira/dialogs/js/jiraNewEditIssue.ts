@@ -303,9 +303,9 @@ class NewEditDialog implements IFieldEventHandler {
 
                 //2. Remove special data
                 if (isServiceDesk) {
-                    if (!result.fields[FieldController.requestTypeFieldId]) {
-                        throw new Error(yasoon.i18n('dialog.errorNoRequestType'));
-                    }
+                    /* if (!result.fields[FieldController.requestTypeFieldId]) {
+                         throw new Error(yasoon.i18n('dialog.errorNoRequestType'));
+                     } */
 
                     delete result.fields[FieldController.requestTypeFieldId];
                     delete result.fields[FieldController.onBehalfOfFieldId];
@@ -577,7 +577,6 @@ class NewEditDialog implements IFieldEventHandler {
     loadFields() {
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:textfield', SingleTextField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:url', SingleTextField);
-        FieldController.register('com.pyxis.greenhopper.jira:gh-epic-label', SingleTextField);
         FieldController.register('summary', SingleTextField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:textarea', MultiLineTextField);
         FieldController.register('description', MultiLineTextField, { hasMentions: true, isMainField: true });
@@ -608,8 +607,17 @@ class NewEditDialog implements IFieldEventHandler {
         FieldController.register('timetracking', TimeTrackingField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:grouppicker', GroupSelectField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:multigrouppicker', GroupSelectField, { multiple: true });
+
+        //Software
         FieldController.register('com.pyxis.greenhopper.jira:gh-epic-link', EpicLinkSelectField);
         FieldController.register('com.pyxis.greenhopper.jira:gh-sprint', SprintSelectField);
+        FieldController.register('com.pyxis.greenhopper.jira:gh-epic-label', SingleTextField);
+
+        //Service Desk
+        FieldController.register('com.atlassian.servicedesk:sd-request-participants', UserSelectField, { multiple: true });
+        //https://jira.atlassian.com/browse/JSD-4353
+        //https://jira.atlassian.com/browse/JSD-4723
+        //FieldController.register('com.atlassian.servicedesk:sd-customer-organizations', OrganizationField);
 
         //Tempo
         FieldController.register('com.tempoplugin.tempo-accounts:accounts.customfield', TempoAccountField);

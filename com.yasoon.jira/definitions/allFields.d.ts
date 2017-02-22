@@ -15,6 +15,7 @@
 /// <reference path="./../dialogs/renderer/fields/ProjectField.ts" />
 /// <reference path="./../dialogs/renderer/fields/RadioField.ts" />
 /// <reference path="./../dialogs/renderer/fields/RequestTypeField.ts" />
+/// <reference path="./../dialogs/renderer/fields/OrganizationField.ts" />
 /// <reference path="./../dialogs/renderer/fields/SingleTextField.ts" />
 /// <reference path="./../dialogs/renderer/fields/SprintSelectField.ts" />
 /// <reference path="./../dialogs/renderer/fields/TimeTrackingField.ts" />
