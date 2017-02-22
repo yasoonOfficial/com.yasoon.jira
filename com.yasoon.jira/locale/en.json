@@ -32,7 +32,8 @@
                 "unexpectedJiraError": "This did not work due to an unexpected JIRA error.",
                 "connectionToJiraNotPossible": "Connection to JIRA not possible",
                 "taskSyncSuccess": "All tasks are in sync!",
-                "taskSyncFailed": "Something did not work correctly. Please make sure you are connected or contact the yasoon support."
+                "taskSyncFailed": "Something did not work correctly. Please make sure you are connected or contact the yasoon support.",
+                "and": "and"
             },
             "feed": {
                 "couldNotCreateComment": "Could not create comment",

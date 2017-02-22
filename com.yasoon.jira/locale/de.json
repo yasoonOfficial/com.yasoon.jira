@@ -32,7 +32,8 @@
 				"unexpectedJiraError": "Es gab einen unbekannten JIRA Fehler. Bitte prüfe nochmal den Guide, ob du alle Schritte bei der Einrichtung beachtet hast.",
 				"connectionToJiraNotPossible": "Die Verbindung zu JIRA konnte nicht hergestellt werden. (fehlen Proxy oder VPN?)",
 				"taskSyncSuccess": "Alle Aufgaben sind synchronisiert.",
-				"taskSyncFailed": "Es ist ein unerwarteter Fehler aufgetreten. Stelle bitte sicher, dass du verbunden bist oder kontaktiere den yasoon Support"
+				"taskSyncFailed": "Es ist ein unerwarteter Fehler aufgetreten. Stelle bitte sicher, dass du verbunden bist oder kontaktiere den yasoon Support",
+				"and": "und"
 			},
 			"feed": {
 				"couldNotCreateComment": "Der Kommentar konnte nicht angelegt werden",

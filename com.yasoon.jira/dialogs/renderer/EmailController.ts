@@ -133,11 +133,17 @@ class EmailController implements IFieldEventHandler {
         if (this.mail && !this.attachmentHandles) {
             this.attachmentHandles = [];
             //Add current mail to clipboard
-            let handle = <JiraFileHandle>this.mail.getFileHandle();
+            let mailHandle = <JiraFileHandle>this.mail.getFileHandle();
             if (this.settings.addEmailOnNewAddIssue) {
-                handle.selected = true;
+                mailHandle.selected = true;
             }
-            this.attachmentHandles.push(handle);
+
+            //Replace some invalid JIRA chars
+            let mailFileName = mailHandle.getFileName();
+            mailFileName = mailFileName.replace('&', yasoon.i18n('general.and'));
+            mailFileName = mailFileName.replace('+', yasoon.i18n('general.and'));
+            mailHandle.setFileName(mailFileName);
+            this.attachmentHandles.push(mailHandle);
 
             if (this.mail.attachments && this.mail.attachments.length > 0) {
                 this.mail.attachments.forEach((attachment) => {
