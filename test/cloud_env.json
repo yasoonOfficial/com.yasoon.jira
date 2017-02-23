@@ -1,0 +1,46 @@
+{
+  "id": "06149b98-70b3-9113-54c7-72c7c068b8df",
+  "name": "JIRARest",
+  "values": [
+    {
+      "enabled": true,
+      "key": "issueId",
+      "value": "",
+      "type": "text"
+    },
+    {
+      "enabled": true,
+      "key": "issueKey",
+      "value": "",
+      "type": "text"
+    },
+    {
+      "enabled": true,
+      "key": "basicAuth",
+      "value": "",
+      "type": "text"
+    },
+    {
+      "enabled": true,
+      "key": "serverUrl",
+      "value": "",
+      "type": "text"
+    },
+    {
+      "enabled": true,
+      "key": "requestTypeGroup",
+      "value": "",
+      "type": "text"
+    },
+    {
+      "enabled": true,
+      "key": "serviceDeskKey",
+      "value": "",
+      "type": "text"
+    }
+  ],
+  "timestamp": 1487849553770,
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2017-02-23T12:22:27.726Z",
+  "_postman_exported_using": "Postman/4.10.2"
+}

@@ -1,0 +1,474 @@
+{
+	"variables": [],
+	"info": {
+		"name": "JIRA Private API",
+		"_postman_id": "a4ab13a0-f5b1-de5e-5844-ee93118f7c1b",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Test if Create Meta is returned",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var tests;",
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"Fields array exists\"] = !!jsonData.fields;",
+							"tests[\"At least one field is returned\"] = jsonData.fields.length > 0;",
+							"tests[\"Sorted Tabs array exists\"] = !!jsonData.sortedTabs;",
+							"tests[\"User Preferences object exists\"] = !!jsonData.userPreferences;"
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var prScript"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{serverUrl}}/secure/QuickCreateIssue!default.jspa?decorator=none&pid=10000&issuetype=1",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "{{basicAuth}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"branch\": \"master\",\n  \"comment\": \"2.3 possible release build\",\n  \"type\": 2\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Create Issue",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var tests;",
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"Id exists\"] = !!jsonData.id;",
+							"tests[\"Key exists\"] = !!jsonData.key;",
+							"",
+							"postman.setEnvironmentVariable(\"issueId\", jsonData.id);",
+							"postman.setEnvironmentVariable(\"issueKey\", jsonData.key);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{serverUrl}}/rest/api/2/issue",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{basicAuth}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"fields\": {\r\n        \"project\": {\r\n            \"id\": \"10000\"\r\n        },\r\n        \"summary\": \"Just testing :) - the job\",\r\n        \"issuetype\": {\r\n            \"id\": \"1\"\r\n        },\r\n        \"labels\": [\r\n            \"unittest\",\r\n            \"teamcity\"\r\n        ],\r\n        \"environment\": \"environment\",\r\n        \"description\": \"description\"\r\n    }\r\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Test if Edit Meta is returned",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var tests;",
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"Fields array exists\"] = !!jsonData.fields;",
+							"tests[\"At least one field is returned\"] = jsonData.fields.length > 0;",
+							"tests[\"Sorted Tabs array exists\"] = !!jsonData.sortedTabs;",
+							"tests[\"User Preferences object exists\"] = !!jsonData.userPreferences;"
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var prScript"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{serverUrl}}/secure/QuickEditIssue!default.jspa?issueId={{issueId}}&decorator=none",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "{{basicAuth}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"branch\": \"master\",\n  \"comment\": \"2.3 possible release build\",\n  \"type\": 2\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Search for Epic Link",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var tests;",
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"epicLists array exists\"] = !!jsonData.epicLists;",
+							"tests[\"total value exists\"] = jsonData.total > 0;",
+							"tests[\"Epic Names exist\"] = !!jsonData.epicLists[0].epicNames;",
+							"tests[\"Epic count is correct\"] = jsonData.epicLists[0].epicNames.length === jsonData.total;",
+							"tests[\"Epic structure is correct\"] = jsonData.epicLists[0].epicNames[0].key && jsonData.epicLists[0].epicNames[0].name;"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{serverUrl}}/rest/greenhopper/1.0/epics?maxResults=10&projectKey=DEMO&searchQuery=",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{basicAuth}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Search for Epic Link - Check search",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var tests;",
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"epicLists array exists\"] = !!jsonData.epicLists;",
+							"tests[\"total value exists and is 0\"] = jsonData.total === 0;"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{serverUrl}}/rest/greenhopper/1.0/epics?maxResults=10&projectKey=DEMO&searchQuery=ersdfdsfdsfsdfsdfsdf",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{basicAuth}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Test Label Search",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var tests;",
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"token exists\"] = jsonData.token === 'teamcity';",
+							"tests[\"suggestion exists\"] = !!jsonData.suggestions;",
+							"tests[\"suggestion has at least one entry\"] = jsonData.suggestions.length > 0;"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{serverUrl}}/rest/api/1.0/labels/suggest?maxResults=50&query=teamcity",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "{{basicAuth}}",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Test Label Search - Check Search",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var tests;",
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"token exists\"] = jsonData.token === 'sdfsdfdsfdsfdf';",
+							"tests[\"suggestion exists\"] = !!jsonData.suggestions;",
+							"tests[\"suggestion has no entry\"] = jsonData.suggestions.length === 0;"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{serverUrl}}/rest/api/1.0/labels/suggest?maxResults=50&query=sdfsdfdsfdsfdf",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "{{basicAuth}}",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Get Sprints",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var tests;",
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"suggestions array exists\"] = !!jsonData.suggestions;",
+							"tests[\"allMatches array exists\"] = !!jsonData.allMatches;",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{serverUrl}}/rest/greenhopper/1.0/sprint/picker",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{basicAuth}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Get Service Desks",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var tests;",
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"response has values\"] = jsonData.length > 0;",
+							"tests[\"response has values we need\"] = !!jsonData[0].id && !!jsonData[0].name && !!jsonData[0].key & !!jsonData[0].projectId;",
+							"",
+							"postman.setEnvironmentVariable(\"serviceDeskKey\", jsonData[0].key);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{serverUrl}}/rest/servicedesk/1/servicedesk-data",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{basicAuth}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Get Request Type Groups",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var tests;",
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"response has values\"] = jsonData.length > 0;",
+							"tests[\"response has values we need\"] = jsonData[0].id && jsonData[0].name;",
+							"",
+							"postman.setEnvironmentVariable(\"requestTypeGroup\", jsonData[0].id);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{serverUrl}}/rest/servicedesk/1/servicedesk/{{serviceDeskKey}}/groups",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{basicAuth}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Get Request Types by Group",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var tests;",
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"response has values\"] = jsonData.length > 0;",
+							"tests[\"response has values we need\"] = !!jsonData[0].id && !!jsonData[0].name;",
+							"tests[\"response has issue type\"] = !!jsonData[0].issueType;"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{serverUrl}}/rest/servicedesk/1/servicedesk/{{serviceDeskKey}}/groups/{{requestTypeGroup}}/request-types",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{basicAuth}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}
