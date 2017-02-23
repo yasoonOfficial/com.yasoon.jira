@@ -285,7 +285,7 @@ class AttachmentField extends Field implements IFieldEventHandler {
             .then((template) => {
                 this.attachments.forEach((attachment) => {
                     //Rename FileName if it contains unsupported characters
-                    let oldFileName = attachment.getFileName();
+                    let oldFileName = attachment.getFileName() || 'unknown.file';
                     let newFileName = oldFileName.replace(/\[/g, '(').replace(/\]/g, ')').replace(/\^/g, '_');
                     if (oldFileName != newFileName)
                         attachment.setFileName(newFileName);

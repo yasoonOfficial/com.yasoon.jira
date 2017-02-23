@@ -139,7 +139,7 @@ class EmailController implements IFieldEventHandler {
             }
 
             //Replace some invalid JIRA chars
-            let mailFileName = mailHandle.getFileName();
+            let mailFileName = mailHandle.getFileName() || 'no subject.msg';
             mailFileName = mailFileName.replace('&', yasoon.i18n('general.and'));
             mailFileName = mailFileName.replace('+', yasoon.i18n('general.and'));
             mailHandle.setFileName(mailFileName);
@@ -157,7 +157,7 @@ class EmailController implements IFieldEventHandler {
                     //Provide unique names for attachments
                     if (uniqueNames) {
                         let uniqueKey = getUniqueKey();
-                        let oldFileName = handle.getFileName();
+                        let oldFileName = handle.getFileName() || 'unknown.file';
                         let newFileName = oldFileName.substring(0, oldFileName.lastIndexOf('.'));
                         newFileName = newFileName + '_' + uniqueKey + oldFileName.substring(oldFileName.lastIndexOf('.'));
                         handle.setFileName(newFileName);
