@@ -70,7 +70,7 @@
 							"var tests;",
 							"var jsonData = JSON.parse(responseBody);",
 							"",
-							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"Status code is 201\"] = responseCode.code === 201;",
 							"tests[\"Id exists\"] = !!jsonData.id;",
 							"tests[\"Key exists\"] = !!jsonData.key;",
 							"",
