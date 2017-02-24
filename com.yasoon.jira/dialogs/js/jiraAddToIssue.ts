@@ -102,13 +102,11 @@ class AddToIssueDialog implements IFieldEventHandler {
             attachments = this.emailController.getAttachmentFileHandles(true);
         }
         FieldController.loadField(AttachmentField.defaultMeta, AttachmentField, attachments);
-        FieldController.render(FieldController.attachmentFieldId, $('#ContentArea'));
-
+        FieldController.render(FieldController.attachmentFieldId, $('#ContentArea')).then(() => resizeWindowComment());
 
         //Hook up events
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.issueFieldId);
-
 
         if (this.emailController) {
             this.emailController.getCurrentMailContent(true)
@@ -118,7 +116,6 @@ class AddToIssueDialog implements IFieldEventHandler {
         }
 
         // Resize Window to maximize Comment field
-        resizeWindowComment();
         FieldController.raiseEvent(EventType.AfterRender, {});
 
         //Submit Button - (Create & Edit)
@@ -284,22 +281,22 @@ class AddToIssueDialog implements IFieldEventHandler {
 yasoon.dialog.load(new AddToIssueDialog());
 
 function resizeWindowComment() {
-    var bodyHeight = $('body').height();
-    if (bodyHeight > 535) {
-        $('body').css('overflow-y', 'hidden');
-        $('.form-body').height(bodyHeight - 185);
-        //185 => Difference between Body und form-body
-        //270 => Space for project, issue and attachment field (in maximum)
-        //155 => Min height of comment field
+    var bodyHeight = $('body').height();    
+    if (bodyHeight > 584) {
+        console.log('setting form body height', bodyHeight - 162);
+        $('.form-body').height(bodyHeight - 162);
+        //164 => Difference between Body und form-body
+        //Space for project, issue and attachment field (in maximum)
+        var restHeight = $('#formContent').height() - $('#comment').height() + 2;
+        //200 => Min height of comment field
 
         //If the rest has 270 pixel, only increase the comment field
-        if ((bodyHeight - 185 - 270 - 155) > 0)
-            $('#comment').height((bodyHeight - 185 - 270));
-
+        if($('.form-body').height() - restHeight >= 200) {
+            $('#comment').height($('.form-body').height() - restHeight);
+        }
     } else {
-        $('body').css('overflow-y', 'scroll');
-        $('.form-body').height(350);
-        $('#comment').height(155);
+        $('.form-body').height(414);
+        $('#comment').height(200);
     }
 }
 

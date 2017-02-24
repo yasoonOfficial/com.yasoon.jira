@@ -135,15 +135,15 @@ namespace FieldController {
         }
     }
 
-    export function render(id: string, container: JQuery): void {
+    export function render(id: string, container: JQuery): Promise<any> {
         let field = getField(id);
         if (field) {
             try {
-                field.renderField(container);
+                return field.renderField(container);
             } catch (e) {
                 field.handleError(e);
+                return Promise.reject(e);
             }
-
         }
     }
 

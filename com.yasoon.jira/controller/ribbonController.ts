@@ -708,7 +708,7 @@ class JiraRibbonController {
 
 		var dialogOptions = {
 			width: 610,
-			height: 575,
+			height: 625,
 			title: yasoon.i18n('dialog.addToIssueDialogTitle'),
 			resizable: true,
 			htmlFile: 'Dialogs/jiraAddToIssue.html',

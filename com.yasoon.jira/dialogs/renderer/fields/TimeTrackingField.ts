@@ -66,12 +66,14 @@ class TimeTrackingField extends Field {
 		$('#' + this.id).change(e => this.triggerValueChange());
 	};
 
-	renderField(container: JQuery): void {
-		this.origField.renderField(container);
-		this.remainingField.renderField(container);
+	renderField(container: JQuery): Promise<any> {
+		return Promise.all([
+			this.origField.renderField(container),
+			this.remainingField.renderField(container)
+		]);
 	}
 
-	render(container: JQuery): void {
+	render(container: JQuery) {
 		//Not nessecary as we redefine renderField
 	};
 }

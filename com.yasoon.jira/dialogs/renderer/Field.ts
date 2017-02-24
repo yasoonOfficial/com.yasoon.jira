@@ -92,13 +92,13 @@ abstract class Field implements FieldGet, FieldSet {
 		this.setRequired(this.fieldMeta.required);
 	}
 
-	abstract getDomValue(): any
+	abstract getDomValue(): any;
 
-	abstract hookEventHandler(): void
+	abstract hookEventHandler(): void;
 
-	abstract render(container: JQuery)
+	abstract render(container: JQuery);
 
-	renderField(container: JQuery): void {
+	renderField(container: JQuery): Promise<any> {
 		let fieldGroup: JQuery = container.find('#' + this.id + '-field-group');
 
 		//First render the field-group container for this field if it does not exist yet
@@ -122,11 +122,12 @@ abstract class Field implements FieldGet, FieldSet {
 
 		//If it returns a promise, waitbefore adding event handler
 		if (result && result.then) {
-			result.then(() => {
+			return result.then(() => {
 				this.hookEventHandler();
 			});
 		} else {
 			this.hookEventHandler();
+			return Promise.resolve();
 		}
 	}
 

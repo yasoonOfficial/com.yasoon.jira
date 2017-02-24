@@ -654,7 +654,7 @@ function resizeWindowNew() {
     var bodyHeight = $('body').height();
     if (bodyHeight > 460) {
         $('body').css('overflow-y', 'hidden');
-        $(".form-body").height(bodyHeight - 170);
+        $(".form-body").height(bodyHeight - 162);
     } else {
         $('body').css('overflow-y', 'scroll');
         $(".form-body").height(290);
