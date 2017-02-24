@@ -11,6 +11,7 @@ var systemInfo = {};
 var serverId = null;
 var jwtToken = '';
 var sen = '';
+var currentPage = 1;
 
 Promise.config({
     // Enable cancellation.

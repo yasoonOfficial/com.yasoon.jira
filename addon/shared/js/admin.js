@@ -38,7 +38,6 @@ function initAdminUI() {
     }
     else {
         //Unregistered
-        currentPage = 1;
         $('#AreaPreRegister').removeClass('hidden');
         $('#AreaUnregistered').removeClass('hidden');
         $('#unregisteredTabs').tabs();
