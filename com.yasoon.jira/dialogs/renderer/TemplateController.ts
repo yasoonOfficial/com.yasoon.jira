@@ -157,32 +157,36 @@ class TemplateController implements IFieldEventHandler {
     }
 
     setFieldValues(template: YasoonDefaultTemplate) {
-        let promise = Promise.resolve([]);
+        let promise = Promise.resolve(null);
         //Make sure emailData are loaded
         if (this.emailController) {
-            promise = Promise.all([this.emailController.getCurrentMailContent(true), this.emailController.loadSenderPromise]);
+            promise = this.emailController.loadSenderPromise;
         }
 
-        promise.spread((content: string) => {
-            this.emailContent = content;
+        promise.then(() => {
             if (template && template.fields) {
                 for (let fieldId in template.fields) {
                     if (template.fields.hasOwnProperty(fieldId)) {
                         let value = template.fields[fieldId];
                         let renderedField = FieldController.getField(fieldId);
                         if (renderedField) {
+                            let prom: Promise<any>;
                             if (typeof value === 'string' && this.containsVariable(value)) {
                                 //Fixed variables
-                                value = this.getFixedValue(value, renderedField.constructor['name']);
+                                prom = this.getFixedValue(value, renderedField);
                             } else if (typeof value === 'string' && value.indexOf('|') === 0) {
-                                value = this.getDynamicValue(fieldId, value);
+                                prom = Promise.resolve(this.getDynamicValue(fieldId, value));
                             } else {
-                                value = value
+                                prom = Promise.resolve(value);
                             }
 
-                            if (value) {
-                                FieldController.setValue(fieldId, value, true);
-                            }
+                            prom.
+                                then((value) => {
+                                    if (renderedField instanceof MultiLineTextField) {
+                                        (<MultiLineTextField>renderedField).hideSpinner();
+                                    }
+                                    FieldController.setValue(fieldId, value, true);
+                                });
                         }
                     }
                 }
@@ -270,35 +274,44 @@ class TemplateController implements IFieldEventHandler {
         return (value.indexOf && value.indexOf('<') === 0 && value.indexOf('>') > 0);
     }
 
-    private getFixedValue(value: string, fieldType: string): any {
+    private getFixedValue(value: string, field: Field): Promise<any> {
+        let result = null;
         if (value === '<TODAY>') {
-            return moment(new Date()).format('YYYY-MM-DD');
+            result = moment(new Date()).format('YYYY-MM-DD');
         } else if (value.indexOf('<TODAY>') === 0) {
             try {
                 //Replace all non numeric chars
                 let numOfDays = parseInt(value.replace(/\D/g, ''));
                 let currentDate = new Date();
                 currentDate.setDate(currentDate.getDate() + numOfDays);
-                return moment(currentDate).format('YYYY-MM-DD');
+                result = moment(currentDate).format('YYYY-MM-DD');
             } catch (e) {
 
             }
         } else if (value === '<USER>') {
-            return this.ownUser.name || this.ownUser.key;
-        } else if (value === '<SUBJECT>') {
-            return this.emailController.getSubject();
-        } else if (value === '<BODY>') {
-            return this.emailContent;
-        } else if (value === '<SENDER>') {
-            //Special Handling for User Picker
-            if (fieldType === 'UserSelectField') {
-                return this.emailController.getSenderUser();
-            } else {
-                return this.emailController.getSenderEmail();
+            result = this.ownUser.name || this.ownUser.key;
+        } else if (value === '<SUBJECT>' && this.emailController) {
+            result = this.emailController.getSubject();
+        } else if (value === '<BODY>' && this.emailController) {
+            if (!this.emailContent) {
+                if (field instanceof MultiLineTextField) {
+                    (<MultiLineTextField>field).showSpinner();
+                }
+                return this.emailController.getCurrentMailContent(true);
             }
-        } else if (value === '<SENTAT>') {
-            return moment(this.emailController.getSentAt()).format('YYYY-MM-DD hh:mm:ss');
+            result = this.emailContent;
+        } else if (value === '<SENDER>' && this.emailController) {
+            //Special Handling for User Picker
+            if (field instanceof UserSelectField) {
+                result = this.emailController.getSenderUser();
+            } else {
+                result = this.emailController.getSenderEmail();
+            }
+        } else if (value === '<SENTAT>' && this.emailController) {
+            result = moment(this.emailController.getSentAt()).format('YYYY-MM-DD hh:mm:ss');
         }
+
+        return Promise.resolve(result);
     }
 
     private getDynamicValue(fieldId: string, value: string) {

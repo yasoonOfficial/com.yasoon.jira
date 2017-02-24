@@ -67,10 +67,11 @@ class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler
                 let oldEpicLink = this.initialValue;
 
                 if (newEpicLink != oldEpicLink) {
-                    return this.getDomValue();
+                    return (newEpicLink) ? newEpicLink : null;
                 }
             } else {
-                return this.getDomValue();
+                let result = this.getDomValue();
+                return (result) ? result : undefined;
             }
         }
     }

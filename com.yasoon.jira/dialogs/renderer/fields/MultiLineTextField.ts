@@ -292,8 +292,11 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
 
     render(container: any) {
         let height: string = (this.isMainField) ? '200px' : '100px';
-        container.append(`<textarea class="form-control text" id="${this.id}" name="${this.id}" style="height:${height};overflow: initial;"></textarea>
+        container.append(`<div style="position:relative;"><textarea class="form-control text" id="${this.id}" name="${this.id}" style="height:${height};overflow: initial;"></textarea>
+            <img src="images/ajax-loader.gif" class="hidden" id="${this.id}-spinner" style="position: absolute;top: 20px;left: 20px;" /></div>
             <div class="mentions-help-text bg-warning"><span>${yasoon.i18n('dialog.mentionsAlert')}</span></div>`);
+
+
         if (this.isMainField && this.emailController) {
             this.addMainFieldHtml(container);
         }
@@ -323,4 +326,13 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
             callback([]);
         }
     }
+
+    showSpinner() {
+        $('#' + this.id + '-spinner').removeClass('hidden');
+    }
+
+    hideSpinner() {
+        $('#' + this.id + '-spinner').addClass('hidden');
+    }
+
 }

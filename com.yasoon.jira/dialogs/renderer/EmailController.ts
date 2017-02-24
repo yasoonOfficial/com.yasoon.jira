@@ -101,8 +101,6 @@ class EmailController implements IFieldEventHandler {
         }
 
         FieldController.registerEvent(EventType.AfterSave, this);
-        //Load Attachment Handles
-        this.getAttachmentFileHandles();
     }
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {

@@ -94,7 +94,7 @@ class AddToIssueDialog implements IFieldEventHandler {
             hasMentions: true,
             isMainField: true
         };
-        FieldController.loadField(MultiLineTextField.defaultCommentMeta, MultiLineTextField, commentParams);
+        let commentField = <MultiLineTextField>FieldController.loadField(MultiLineTextField.defaultCommentMeta, MultiLineTextField, commentParams);
         FieldController.render(FieldController.commentFieldId, $('#ContentArea'));
 
         let attachments = [];
@@ -108,9 +108,11 @@ class AddToIssueDialog implements IFieldEventHandler {
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.issueFieldId);
 
-        if (this.emailController) {
+        if (this.emailController && commentField instanceof MultiLineTextField) {
+            commentField.showSpinner();
             this.emailController.getCurrentMailContent(true)
                 .then((markup) => {
+                    commentField.hideSpinner();
                     FieldController.setValue(FieldController.commentFieldId, markup, true);
                 });
         }
@@ -281,7 +283,7 @@ class AddToIssueDialog implements IFieldEventHandler {
 yasoon.dialog.load(new AddToIssueDialog());
 
 function resizeWindowComment() {
-    var bodyHeight = $('body').height();    
+    var bodyHeight = $('body').height();
     if (bodyHeight > 584) {
         console.log('setting form body height', bodyHeight - 162);
         $('.form-body').height(bodyHeight - 162);
@@ -291,7 +293,7 @@ function resizeWindowComment() {
         //200 => Min height of comment field
 
         //If the rest has 270 pixel, only increase the comment field
-        if($('.form-body').height() - restHeight >= 200) {
+        if ($('.form-body').height() - restHeight >= 200) {
             $('#comment').height($('.form-body').height() - restHeight);
         }
     } else {
