@@ -109,6 +109,10 @@ abstract class Select2Field extends Field {
 		return Promise.resolve(id);
 	}
 
+	clear() {
+		$('#' + this.id).val('').trigger('change');
+	}
+
 	showSpinner() {
 		$('#' + this.id + '-spinner').removeClass('hidden');
 	}

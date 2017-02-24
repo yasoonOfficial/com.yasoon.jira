@@ -138,28 +138,37 @@ class AddToIssueDialog implements IFieldEventHandler {
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
         if (source === FieldController.projectFieldId) {
             this.currentProject = newValue;
+            let issueField = <IssueField>FieldController.getField(FieldController.issueFieldId);
+            issueField.clear();
         } else if (source === FieldController.issueFieldId) {
             this.currentIssue = newValue;
-            if (newValue) {
-                this.currentProject = newValue.fields.project;
-            }
-
+            //Reset Buttons
             $('.buttons').removeClass('servicedesk');
             $('.buttons').removeClass('no-requesttype');
 
-            if (this.currentIssue && this.currentIssue.fields['project'] && this.currentIssue.fields['project'].projectTypeKey === 'service_desk') {
+            if (!newValue)
+                return;
 
-                //We have a service Project... Check if it is a service request
-                jiraGet('/rest/servicedeskapi/request/' + this.currentIssue.id)
-                    .then((data) => {
-                        $('.buttons').addClass('servicedesk');
-                        $('.buttons').removeClass('no-requesttype');
-                    })
-                    .catch((e) => {
-                        $('.buttons').addClass('no-requesttype');
-                        $('.buttons').removeClass('servicedesk');
-                    });
-            }
+            //Map project to real (=expanded) project
+            let projectField = <ProjectField>FieldController.getField(FieldController.projectFieldId);
+            projectField.convertId(this.currentIssue.fields['project'].id)
+                .then((project) => {
+                    this.currentProject = project;
+
+                    if (this.currentIssue && this.currentProject && this.currentProject.projectTypeKey === 'service_desk') {
+
+                        //We have a service Project... Check if it is a service request
+                        jiraGet('/rest/servicedeskapi/request/' + this.currentIssue.id)
+                            .then((data) => {
+                                $('.buttons').addClass('servicedesk');
+                                $('.buttons').removeClass('no-requesttype');
+                            })
+                            .catch((e) => {
+                                $('.buttons').addClass('no-requesttype');
+                                $('.buttons').removeClass('servicedesk');
+                            });
+                    }
+                });
         }
         return null;
     }
