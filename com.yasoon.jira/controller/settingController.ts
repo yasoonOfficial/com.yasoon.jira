@@ -37,7 +37,7 @@ let defaults = {
 class JiraSettingController {
 
     baseUrl: string;
-    taskSyncEnabled: boolean;
+    taskSyncEnabled: boolean = false;
     teamlead: any;
     lastSync: Date;
     currentService: string;
@@ -73,9 +73,6 @@ class JiraSettingController {
         if (sysInfoString) {
             jira.sysInfo = JSON.parse(sysInfoString);
         }
-
-        //Load TaskSync Settings
-        this.taskSyncEnabled = (yasoon.setting.getAppParameter('taskSyncEnabled') == 'true');
 
         //Load Temlead CRM Settings
         var teamleadCrmDataString = yasoon.setting.getAppParameter('teamlead');
@@ -114,6 +111,12 @@ class JiraSettingController {
             this[key] = value;
         });
         this.lastSync = new Date(this.lastSync);
+
+        //Load TaskSync Settings
+        let taskSyncString: string = yasoon.setting.getAppParameter('taskSyncEnabled');
+        if (taskSyncString) {
+            this.taskSyncEnabled = (taskSyncString.toLowerCase() == 'true');
+        }
 
         //Determine URL from service if possible
         if (this.currentService) {
@@ -165,7 +168,7 @@ class JiraSettingController {
             taskSyncEnabled: jira.settings.taskSyncEnabled,
             tasksSyncAllProjects: jira.settings.tasksSyncAllProjects,
             projects: projects,
-            loaderPath: yasoon.io.getLinkPath('Dialogs/ajax-loader.gif')
+            loaderPath: yasoon.io.getLinkPath('images/ajax-loader.gif')
 
         };
 
