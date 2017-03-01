@@ -592,7 +592,7 @@ function getFieldMeta(projectId, issueTypeId, fieldId) {
                         url: url,
                         type: 'GET',
                         success: function (result) {
-                            resolve(fields);
+                            resolve(JSON.parse(result));
                         }
                     });
                 });
@@ -633,7 +633,10 @@ function getFieldMeta(projectId, issueTypeId, fieldId) {
     templatesModel = new templateViewModel();
     ko.applyBindings(templatesModel, document.getElementById('templates'));
 
-    $('#TemplatesCollapsible').collapsible();
+    setTimeout(function () {
+        $('#TemplatesCollapsible').collapsible();
+    }, 1);
+
 })();
 
 //# sourceURL=templates.js

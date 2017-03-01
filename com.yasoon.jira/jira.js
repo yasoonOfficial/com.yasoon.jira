@@ -56,8 +56,9 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			}
 		}
 
-		if (action === yasoon.lifecycle.Upgrade && newVersion === '1.4.0') {
+		if (action === yasoon.lifecycle.Upgrade && newVersion === '1.5.6') {
 			yasoon.setting.setAppParameter('createTemplates', '{}');
+			yasoon.setting.setAppParameter('recentIssues', '[]');
 		}
 		jira.downloadScript = true;
 	};

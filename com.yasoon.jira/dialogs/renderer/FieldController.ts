@@ -153,7 +153,7 @@ namespace FieldController {
             try {
                 return renderer.getValue(changedDataOnly);
             } catch (e) {
-                yasoon.util.log('Error: ' + e.message + '. Couldn\'t getValue for field ' + id, yasoon.util.severity.error);
+                yasoon.util.log('Error: ' + e.message + '. Couldn\'t getValue for field ' + id + ' of type ' + renderer.getType(), yasoon.util.severity.error);
             }
         }
     }

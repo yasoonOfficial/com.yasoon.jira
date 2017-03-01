@@ -40,35 +40,35 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
 
     setDefaultIssue() {
         if (jira.issue) {
-			this.setValue(jira.issue.id);
+            this.setValue(jira.issue.id);
             return;
         }
 
-		//If mail is provided && subject contains reference to issue, pre-select that
-		if (this.emailController) {
-			let convData = this.emailController.getConversationData();
-			
-			if (convData) {
-				//Try to find issue key that is in selected project
-				for (let id in convData.issues) {
-					if (convData.issues[id].projectId === this.currentProject.id) {
-						this.setValue(convData.issues[id].key);
-                        return;
-					}
-				}
-			}
-            let subject = this.emailController.mail.subject;
-			if (subject) {
-				//Try to extract issue key from subject
-				var regEx = new RegExp(this.currentProject.key + '.[0-9]+', 'g');
-				var match = regEx.exec(subject);
+        //If mail is provided && subject contains reference to issue, pre-select that
+        if (this.emailController) {
+            let convData = this.emailController.getConversationData();
 
-				if (match && match.length > 0) {
+            if (convData) {
+                //Try to find issue key that is in selected project
+                for (let id in convData.issues) {
+                    if (convData.issues[id].projectId === this.currentProject.id) {
+                        this.setValue(convData.issues[id].key);
+                        return;
+                    }
+                }
+            }
+            let subject = this.emailController.mail.subject;
+            if (subject) {
+                //Try to extract issue key from subject
+                var regEx = new RegExp(this.currentProject.key + '.[0-9]+', 'g');
+                var match = regEx.exec(subject);
+
+                if (match && match.length > 0) {
                     this.setValue(match[0]);
                     return;
-				}
-			}
-		}
+                }
+            }
+        }
     }
 
     convertId(issueIdOrKey: string): Promise<any> {
@@ -95,10 +95,10 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
             } else {
                 //In case the project has been selected, only show recent Items of the same project
                 var projectIssues = this.recentItems.recentIssues.filter((issue) => {
-                    return (issue.fields['project'] && issue.fields['project'].key == this.currentProject.key);
+                    return (issue.fields && issue.fields['project'] && issue.fields['project'].key == this.currentProject.key);
                 });
 
-                if(projectIssues.length > 0) {
+                if (projectIssues.length > 0) {
                     result.push({
                         id: 'Suggested',
                         text: yasoon.i18n('dialog.recentIssues'),

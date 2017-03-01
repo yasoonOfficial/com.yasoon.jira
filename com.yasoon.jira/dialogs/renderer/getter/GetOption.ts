@@ -15,7 +15,7 @@ class GetOption implements FieldGetter {
         let selectField = <Select2Field>field;
         let newValue = selectField.getDomValue();
 
-        if (selectField.multiple) {
+        if (selectField.multiple && newValue) {
             let convertedValues = [];
             newValue.forEach((id) => {
                 let obj = {};
