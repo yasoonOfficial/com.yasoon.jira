@@ -79,7 +79,7 @@ function getInstanceProperty(property) {
 }
 
 function getStoreUrl() {
-    return Promise.resolve($.get('https://routing.yasoon.de/getjiraurl?clientKey=' + serverId))
+    return Promise.resolve($.get('https://routing.yasoon.de/geturl?key=' + serverId + '&type=store'))
         .then(function (result) {
             return result.url;
         })
