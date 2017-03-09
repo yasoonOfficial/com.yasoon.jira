@@ -156,6 +156,9 @@ class JiraFilterController {
 		var saveNeeded = false;
 		this.getSelectedFilters().forEach((filterKey) => {
 			var filter = this.filterObj.filter((f) => { return f.key === filterKey; })[0];
+			if (!filter)
+				return;
+
 			//Get Key Value for current filter
 			var currentKeyObj = this.getJsonPathElement(obj, filter.key);
 			if (currentKeyObj) {
