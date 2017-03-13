@@ -224,7 +224,7 @@ class TemplateController implements IFieldEventHandler {
             this.loadTemplateSelectionPromise = Promise.resolve($.getScript(yasoon.io.getLinkPath('templates/selectTemplateDialog.js')))
                 .then(() => {
                     return jira.templates.selectTemplateDialog({
-                        senderMail: this.emailController.getSenderEmail(),
+                        senderMail: (this.emailController) ? this.emailController.getSenderEmail() : '',
                         senderTemplates: senderTemplates,
                         namedTemplates: namedTemplates
                     });

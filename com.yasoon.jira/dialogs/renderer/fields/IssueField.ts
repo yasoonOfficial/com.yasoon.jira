@@ -173,9 +173,14 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
     }
 
     convertToSelect2(issue: JiraIssue): Select2Element {
+        let text = issue.key;
+        if (issue.fields && issue.fields['summary']) {
+            text = issue.fields['summary'] + ' (' + issue.key + ')';
+        }
+
         return {
             id: issue.id,
-            text: issue.fields['summary'] + ' (' + issue.key + ')',
+            text: text,
             data: issue
         };
     }

@@ -219,7 +219,7 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
 
                 if (this.allowNew && searchTerm.indexOf('@') > 0) {
                     result.push(this.convertToSelect2({
-                        name: '<new>',
+                        name: '<new>_' + searchTerm,
                         displayName: searchTerm + ' (new)',
                         emailAddress: searchTerm
                     }));

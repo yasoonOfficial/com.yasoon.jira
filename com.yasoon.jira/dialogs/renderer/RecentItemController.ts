@@ -87,7 +87,7 @@ class RecentItemController implements IFieldEventHandler {
     }
 
     addRecentUser(user: JiraUser): void {
-        if (!user || user.name === '<new>' || user.name === this.ownUser.name)
+        if (!user || user.name.indexOf('<new>') === 0 || user.name === this.ownUser.name)
             return;
 
         setTimeout(() => {

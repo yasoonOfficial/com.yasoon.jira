@@ -92,6 +92,9 @@ namespace FieldController {
 
         //Remove fields that are not present in current meta        
         for (let key in metaFields) {
+            if (key == FieldController.requestTypeFieldId || key == FieldController.onBehalfOfFieldId)
+                continue;
+
             if (!fields[key]) {
                 metaFields[key].cleanup();
 

@@ -357,7 +357,7 @@ class EmailController implements IFieldEventHandler {
                 return;
             }
 
-            if (this.getSenderEmail()) {
+            if (!this.getSenderEmail()) {
                 console.log('No sender email address.'); //Can happen e.g. on drafts
                 return;
             }

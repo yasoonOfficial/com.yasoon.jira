@@ -75,7 +75,7 @@ class ServiceDeskController implements IFieldEventHandler {
             let meta = this.currentRequestTypeMeta;
             if (meta.canRaiseOnBehalfOf) {
                 let user = onBehalfOfField.getObjectValue();
-                postData.raiseOnBehalfOf = (user.name === '<new>') ? user.emailAddress : user.name;
+                postData.raiseOnBehalfOf = (user.name.indexOf('<new>') === 0) ? user.emailAddress : user.name;
             }
 
             meta.requestTypeFields.forEach(field => {
