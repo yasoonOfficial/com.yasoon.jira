@@ -316,6 +316,7 @@ class EmailController implements IFieldEventHandler {
                     if (result.foundHashes.indexOf(handle.hash) >= 0) {
                         markup = markup.replace(regEx, '');
                         handle.blacklisted = true;
+                        handle.selected = false;
                         return;
                     }
 
