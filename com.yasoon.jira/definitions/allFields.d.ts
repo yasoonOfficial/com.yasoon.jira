@@ -28,3 +28,4 @@
 /// <reference path="./../dialogs/renderer/fields/plugins/tempo/TempoAccountField.ts" />
 /// <reference path="./../dialogs/renderer/fields/plugins/tempo/TempoTeamField.ts" />
 /// <reference path="./../dialogs/renderer/fields/plugins/insight/InsightObjectField.ts" />
+/// <reference path="./../dialogs/renderer/fields/plugins/insight/InsightReferenceField.ts" />

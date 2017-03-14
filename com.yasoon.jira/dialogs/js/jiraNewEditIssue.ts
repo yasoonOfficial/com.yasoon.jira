@@ -536,7 +536,7 @@ class NewEditDialog implements IFieldEventHandler {
     getUserPreferencesEdit(editIssueId: string): Promise<JiraUserConfigMeta> {
         return jiraGet('/secure/QuickEditIssue!default.jspa?issueId=' + editIssueId + '&decorator=none')
             .then((data: string) => {
-                return JSON.parse(data);
+                return parseUserMeta(data);
             })
             .catch((e) => {
                 console.log('An error occured while getting userPreferences for Edit', e, e.stack);
@@ -656,6 +656,12 @@ class NewEditDialog implements IFieldEventHandler {
         FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-radiobutton-customfield', RadioField);
         FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-select-customfield', JiraSelectField);
         FieldController.register('com.intenso.jira.plugin.dynamic-forms:secured-select', JiraSelectField);
+
+        //Insight
+        FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-multi', InsightObjectField, { multiple: true });
+        FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object', InsightObjectField);
+        FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-reference-multi', InsightReferenceField, { multiple: true });
+        FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-reference', InsightReferenceField);
 
     };
 }
