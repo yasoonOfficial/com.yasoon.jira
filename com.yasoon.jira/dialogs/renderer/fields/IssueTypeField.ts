@@ -14,6 +14,7 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
     private currentProject: JiraProject;
     private initialId: string;
     private emailController: EmailController;
+    private serviceDeskController: ServiceDeskController;
 
     constructor(id: string, field: JiraMetaField) {
         let options: Select2Options = {};
@@ -22,9 +23,11 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
 
         super(id, field, options);
         this.emailController = jira.emailController;
+        this.serviceDeskController = jira.serviceDeskController;
 
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.requestTypeFieldId);
+        FieldController.registerEvent(EventType.AfterRender, this);
         FieldController.registerEvent(EventType.UiAction, this);
     }
 
@@ -133,53 +136,64 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
         } else if (type === EventType.UiAction) {
             let eventData: UiActionEventData = newValue;
             if (eventData.name === IssueTypeField.uiActionServiceDesk) {
-                if (eventData.value) {
-                    //Render Fields
-                    if (!FieldController.getField(FieldController.requestTypeFieldId)) {
-                        //First time we need the requesttype field --> render
-                        let requestTypeField = <RequestTypeField>FieldController.loadField(RequestTypeField.defaultMeta, RequestTypeField);
-                        requestTypeField.setProject(this.currentProject);
-                        FieldController.render(FieldController.requestTypeFieldId, $('#ServiceAreaRequestField'));
-                    }
-
-                    if (!FieldController.getField(FieldController.onBehalfOfFieldId)) {
-                        //Create On-Behalf of field
-                        let behalfOfField = <UserSelectField>FieldController.loadField(UserSelectField.reporterDefaultMeta, UserSelectField, { allowNew: true });
-                        FieldController.render(FieldController.onBehalfOfFieldId, $('#ServiceAreaReporterField'));
-
-                        if (this.emailController) {
-                            if (this.emailController.getSenderUser())
-                                behalfOfField.senderUser = this.emailController.getSenderUser();
-                            else
-                                behalfOfField.senderUser = {
-                                    displayName: this.emailController.getSenderEmail() + ' (new)',
-                                    emailAddress: this.emailController.getSenderEmail(),
-                                    name: '<new>'
-                                };
-
-                            behalfOfField.setValue(behalfOfField.senderUser);
-                        } else {
-                            let reporterField = FieldController.getField(FieldController.reporterFieldId);
-                            behalfOfField.setValue(reporterField.getValue());
-                        }
-                    }
-
-                    //Enable Service mode
-                    $('#' + this.id).prop("disabled", true);
-                    $('#switchServiceMode').addClass('active');
-                    $('#ServiceArea').removeClass('hidden');
-                    $('#' + FieldController.reporterFieldId + '-field-group').addClass('hidden');
-                } else {
-                    //Disable Service mode
-                    $('#' + this.id).prop("disabled", false);
-                    $('#switchServiceMode').removeClass('active');
-                    $('#ServiceArea').addClass('hidden');
-                    $('#' + FieldController.reporterFieldId + '-field-group').removeClass('hidden');
-                }
+                this.toggleServiceDesk(eventData.value);
             }
+        } else if (type === EventType.AfterRender) {
+            this.toggleServiceDesk($('#switchServiceMode').hasClass('active'));
         }
 
         return null;
+    }
+
+    toggleServiceDesk(active: boolean) {
+        if (active) {
+            //Render Fields
+            if (!FieldController.getField(FieldController.requestTypeFieldId)) {
+                //First time we need the requesttype field --> render
+                let requestTypeField = <RequestTypeField>FieldController.loadField(RequestTypeField.defaultMeta, RequestTypeField);
+                requestTypeField.setProject(this.currentProject);
+                FieldController.render(FieldController.requestTypeFieldId, $('#ServiceAreaRequestField'));
+            }
+
+            if (!FieldController.getField(FieldController.onBehalfOfFieldId)) {
+                //Create On-Behalf of field
+                this.serviceDeskController.isVersionAtLeast('3.3.0')
+                    .then(isNewServiceDesk => {
+                        let behalfOfField = <UserSelectField>FieldController.loadField(UserSelectField.reporterDefaultMeta, UserSelectField, { allowNew: isNewServiceDesk });
+                        FieldController.render(FieldController.onBehalfOfFieldId, $('#ServiceAreaReporterField'));
+
+                        if (this.emailController && this.emailController.getSenderUser()) {
+                            behalfOfField.senderUser = this.emailController.getSenderUser();
+                            behalfOfField.setValue(behalfOfField.senderUser);
+                        }
+                        else if (this.emailController && isNewServiceDesk) {
+                            behalfOfField.senderUser = {
+                                displayName: this.emailController.getSenderEmail() + ' (new)',
+                                emailAddress: this.emailController.getSenderEmail(),
+                                name: '<new>'
+                            };
+
+                            behalfOfField.setValue(behalfOfField.senderUser);
+                        }
+                        else {
+                            let reporterField = FieldController.getField(FieldController.reporterFieldId);
+                            behalfOfField.setValue(reporterField.getValue());
+                        }
+                    });
+            }
+
+            //Enable Service mode
+            $('#' + this.id).prop("disabled", true);
+            $('#switchServiceMode').addClass('active');
+            $('#ServiceArea').removeClass('hidden');
+            $('#' + FieldController.reporterFieldId + '-field-group').addClass('hidden');
+        } else {
+            //Disable Service mode
+            $('#' + this.id).prop("disabled", false);
+            $('#switchServiceMode').removeClass('active');
+            $('#ServiceArea').addClass('hidden');
+            $('#' + FieldController.reporterFieldId + '-field-group').removeClass('hidden');
+        }
     }
 
     handleError(e: Error) {
