@@ -16,7 +16,7 @@ class JiraSelectField extends Select2Field {
     init() {
         //Default value or None?
         if (!this.options.multiple) {
-            this.options.placeholder = (this.fieldMeta.hasDefaultValue && !jira.isEditMode) ? yasoon.i18n('dialog.selectDefault') : yasoon.i18n('dialog.selectNone');
+            this.options.placeholder = yasoon.i18n('dialog.selectNone');
         }
 
         this.options.data = (this.fieldMeta.allowedValues) ? this.fieldMeta.allowedValues.map(this.convertToSelect2) : [];

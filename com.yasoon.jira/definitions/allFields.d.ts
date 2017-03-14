@@ -27,3 +27,4 @@
 /// <reference path="./../dialogs/renderer/fields/plugins/teamlead/TeamLeadProductField.ts" />
 /// <reference path="./../dialogs/renderer/fields/plugins/tempo/TempoAccountField.ts" />
 /// <reference path="./../dialogs/renderer/fields/plugins/tempo/TempoTeamField.ts" />
+/// <reference path="./../dialogs/renderer/fields/plugins/insight/InsightObjectField.ts" />

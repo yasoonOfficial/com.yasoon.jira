@@ -473,4 +473,16 @@ function notificationOpenIssue(params) {
 		}
 	}
 }
+
+function parseUserMeta(metaString) {
+	var userMeta = JSON.parse(metaString);
+	userMeta.fields.forEach(function (field) {
+		var el = $('<div>' + field.editHtml + '</div>');
+		field.defaultValue = el.find('select, input, textarea').val();
+		field.data = el.find('select, input, textarea').data();
+		delete field.editHtml;
+	});
+
+	return userMeta;
+}
 //@ sourceURL=http://Jira/common.js

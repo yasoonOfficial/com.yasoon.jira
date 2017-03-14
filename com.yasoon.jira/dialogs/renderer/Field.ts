@@ -86,6 +86,21 @@ abstract class Field implements FieldGet, FieldSet {
 		}
 	}
 
+	setDefaultValue(): Promise<any> {
+		if (this.fieldMeta.defaultValue) {
+			return this.setValue(this.fieldMeta.defaultValue);
+		}
+		return Promise.resolve();
+	}
+
+	afterRender(): Promise<any> {
+		this.hookEventHandler();
+		if (this.fieldMeta.hasDefaultValue) {
+			return this.setDefaultValue();
+		}
+		return Promise.resolve();
+	}
+
 	resetMeta() {
 		this.fieldMeta = jiraCloneObject(this.originalFieldMeta);
 		this.setHidden(this.fieldMeta.isHidden);
@@ -123,11 +138,10 @@ abstract class Field implements FieldGet, FieldSet {
 		//If it returns a promise, waitbefore adding event handler
 		if (result && result.then) {
 			return result.then(() => {
-				this.hookEventHandler();
+				this.afterRender();
 			});
 		} else {
-			this.hookEventHandler();
-			return Promise.resolve();
+			return this.afterRender();
 		}
 	}
 

@@ -237,8 +237,20 @@ class NewEditDialog implements IFieldEventHandler {
             //Get latest meta and start new Rendering
             $('#LoaderArea').removeClass('hidden');
             $('#ContentArea').css('visibility', 'hidden');
-            this.getMetaData()
-                .then((meta) => {
+            Promise.all([
+                this.getMetaData(),
+                this.getUserPreferences()
+            ])
+                .spread((meta: { [id: string]: JiraMetaField }, userMeta: JiraUserConfigMeta) => {
+                    //Merge "custom" attributes from usermeta.
+                    //DefaultValue and data are parsed from editHtml
+                    for (let fieldId in meta) {
+                        var currentUserMeta = userMeta.fields.filter(f => f.id === fieldId)[0];
+                        if (currentUserMeta) {
+                            meta[fieldId].data = currentUserMeta.data;
+                            meta[fieldId].defaultValue = currentUserMeta.defaultValue;
+                        }
+                    }
                     //Set this as current meta
                     FieldController.loadMeta(meta);
                     return this.renderIssue(meta);
@@ -508,11 +520,11 @@ class NewEditDialog implements IFieldEventHandler {
         }
 
         return jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + projectId + '&issuetype=' + issueTypeId)
-            .then((data) => {
+            .then((data: string) => {
                 if (!this.cacheUserMeta[projectId]) {
                     this.cacheUserMeta[projectId] = {};
                 }
-                this.cacheUserMeta[projectId][issueTypeId] = JSON.parse(data);
+                this.cacheUserMeta[projectId][issueTypeId] = parseUserMeta(data);
                 return this.cacheUserMeta[projectId][issueTypeId];
             })
             .catch((e) => {
@@ -523,7 +535,7 @@ class NewEditDialog implements IFieldEventHandler {
 
     getUserPreferencesEdit(editIssueId: string): Promise<JiraUserConfigMeta> {
         return jiraGet('/secure/QuickEditIssue!default.jspa?issueId=' + editIssueId + '&decorator=none')
-            .then((data) => {
+            .then((data: string) => {
                 return JSON.parse(data);
             })
             .catch((e) => {
@@ -560,7 +572,7 @@ class NewEditDialog implements IFieldEventHandler {
         }
 
         return jiraGet('/rest/api/2/issue/createmeta?projectIds=' + projectId + '&expand=projects.issuetypes.fields')
-            .then((data) => {
+            .then((data: string) => {
                 let meta = JSON.parse(data);
                 //Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
                 let projectMeta: JiraProjectMeta = meta.projects.filter((p) => { return p.id === projectId; })[0];
