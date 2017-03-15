@@ -31,16 +31,12 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
         //Init project
         var projectField = <ProjectField>FieldController.getField(FieldController.projectFieldId);
         this.currentProject = projectField.getObjectValue();
-        
+
         //Init sender user
         this.emailController.loadSenderPromise
             .then((senderUser) => {
                 this.senderUser = senderUser;
             });
-
-        //Init project
-        var projectField = <ProjectField>FieldController.getField(FieldController.projectFieldId);
-        this.currentProject = projectField.getObjectValue();
     }
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {

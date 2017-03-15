@@ -224,7 +224,7 @@ class NewEditDialog implements IFieldEventHandler {
             if (this.selectedIssueType.subtask) {
                 if (!FieldController.getField(FieldController.issueFieldId)) {
                     //First time we need the issue field
-                    let issueField = <IssueField>FieldController.loadField(IssueField.defaultMeta, IssueField);
+                    let issueField = <IssueField>FieldController.loadField(IssueField.defaultMeta, IssueField, { excludeSubtasks: true, multiple: false });
                     issueField.setProject(this.selectedProject);
                     FieldController.render(FieldController.issueFieldId, $('#SubtaskArea'));
                 }
@@ -618,6 +618,7 @@ class NewEditDialog implements IFieldEventHandler {
         FieldController.register('timetracking', TimeTrackingField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:grouppicker', GroupSelectField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:multigrouppicker', GroupSelectField, { multiple: true });
+        FieldController.register('issuelinks', LinkedIssueField);
 
         //Software
         FieldController.register('com.pyxis.greenhopper.jira:gh-epic-link', EpicLinkSelectField);
@@ -628,7 +629,7 @@ class NewEditDialog implements IFieldEventHandler {
         FieldController.register('com.atlassian.servicedesk:sd-request-participants', UserSelectField, { multiple: true });
         //https://jira.atlassian.com/browse/JSD-4353
         //https://jira.atlassian.com/browse/JSD-4723
-        //FieldController.register('com.atlassian.servicedesk:sd-customer-organizations', OrganizationField);
+        FieldController.register('com.atlassian.servicedesk:sd-customer-organizations', OrganizationField);
 
         //Tempo
         FieldController.register('com.tempoplugin.tempo-accounts:accounts.customfield', TempoAccountField);

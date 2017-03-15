@@ -45,8 +45,8 @@ class OrganizationField extends Select2Field {
     }
 
     async getData() {
-        var serviceDeskKeys = await this.serviceDeskController.getCurrentServiceDeskKey();
-        this.getOrganizationsPromise = jiraGetAll('/rest/servicedeskapi/servicedesk/' + serviceDeskKeys.id + '/organization')
+        let serviceDeskKey = await this.serviceDeskController.getCurrentServiceDeskKey();
+        this.getOrganizationsPromise = jiraGetAll('/rest/servicedeskapi/servicedesk/' + serviceDeskKey.id + '/organization')
             .then((organizations: JiraOrganizationResult) => {
                 return organizations.values.sort((a, b) => { return (a.name.toLowerCase() > b.name.toLowerCase()) ? 1 : -1 });
             });

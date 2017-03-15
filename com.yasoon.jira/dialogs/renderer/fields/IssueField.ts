@@ -15,17 +15,22 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
     private recentItems: RecentItemController;
     private getProjectIssues: Promise<Select2Element[]>;
     private emailController: EmailController;
+    private iconController: JiraIconController;
 
-    constructor(id: string, field: JiraMetaField, excludeSubtasks: boolean) {
+    constructor(id: string, field: JiraMetaField, params: any = { excludeSubtasks: false, multiple: false }) {
         let options: Select2Options = {};
         options.placeholder = yasoon.i18n('dialog.placeholderSelectIssue');
 
-        super(id, field, options);
+        //We want an own SelectionRenderer if multiple issues can be selected... Else the whole title is displayed, which just sucks
+        if (params.multiple) {
+            options.templateSelection = IssueField.formatIssue;
+        }
+        super(id, field, options, params.multiple);
 
-        this.excludeSubtasks = excludeSubtasks;
+        this.excludeSubtasks = params.excludeSubtasks;
         this.recentItems = jira.recentItems;
         this.emailController = jira.emailController;
-
+        this.iconController = jira.icons;
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
     }
 
@@ -153,7 +158,7 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
 
         console.log('JQL' + jql);
 
-        return jiraGet('/rest/api/2/search?jql=' + encodeURIComponent(jql) + '&maxResults=20&fields=summary,project&validateQuery=false')
+        return jiraGet('/rest/api/2/search?jql=' + encodeURIComponent(jql) + '&maxResults=20&fields=summary,project,issuetype&validateQuery=false')
             .then((data: string) => {
                 let jqlResult: JiraJqlResult = JSON.parse(data);
                 let result: Select2Element[] = [];
@@ -172,15 +177,21 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
         }
     }
 
-    convertToSelect2(issue: JiraIssue): Select2Element {
+    convertToSelect2(this: null, issue: JiraIssue): Select2Element {
         let text = issue.key;
+        let icon = null;
         if (issue.fields && issue.fields['summary']) {
             text = issue.fields['summary'] + ' (' + issue.key + ')';
+        }
+        if (issue.fields && issue.fields['issuetype']) {
+            var issuetype: JiraIssueType = issue.fields['issuetype'];
+            icon = jira.icons.mapIconUrl(issuetype.iconUrl);
         }
 
         return {
             id: issue.id,
             text: text,
+            icon: icon,
             data: issue
         };
     }
@@ -208,5 +219,17 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
                     return this.getReturnStructure(issues);
                 });
         }
+    }
+
+
+    static formatIssue(element: Select2Element): string | JQuery {
+        if (!element.id) return element.text; // optgroup
+
+        if (element.icon) {
+            return $('<span><img class="select2-icon-size select2-icon-margin" src="' + element.icon + '"  onerror="jiraHandleImageFallback(this)"/>' + element.data.key + '</span>');
+        } else {
+            return element.data.key;
+        }
+
     }
 }

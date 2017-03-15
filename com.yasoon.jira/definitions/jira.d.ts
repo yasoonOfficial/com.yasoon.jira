@@ -322,6 +322,45 @@ interface JiraComment {
     body: string;
 }
 
+interface JiraIssueLinkTypes {
+    issueLinkTypes: JiraIssueLinkType[];
+}
+
+interface JiraIssueLinkType {
+    id: string;
+    name: string;
+    inward?: string;
+    outward?: string;
+    self?: string;
+}
+
+interface JiraIssueLinkCreate {
+    type: {
+        name?: string;
+        id?: string;
+    };
+
+    inwardIssue: {
+        key?: string;
+        id?: string;
+    };
+
+    outwardIssue: {
+        key?: string;
+        id?: string;
+    };
+
+    comment?: {
+        body: string;
+        visibility?: JiraCommentVisibility
+    };
+}
+
+interface JiraCommentVisibility {
+    type: 'group' | 'role',
+    value: string;
+}
+
 interface YasoonGroupHierarchy {
     name: string,
     position: number

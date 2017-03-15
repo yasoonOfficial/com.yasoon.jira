@@ -10,6 +10,7 @@
 /// <reference path="./../dialogs/renderer/fields/IssueTypeField.ts" />
 /// <reference path="./../dialogs/renderer/fields/JiraSelectField.ts" />
 /// <reference path="./../dialogs/renderer/fields/LabelSelectField.ts" />
+/// <reference path="./../dialogs/renderer/fields/LinkedIssueField.ts" />
 /// <reference path="./../dialogs/renderer/fields/MultiLineTextField.ts" />
 /// <reference path="./../dialogs/renderer/fields/NumberField.ts" />
 /// <reference path="./../dialogs/renderer/fields/ProjectField.ts" />
