@@ -301,14 +301,13 @@ class NewEditDialog implements IFieldEventHandler {
                 //1. Collect data:
                 result = FieldController.getFormData(this.isEditMode);
 
-                //2. Remove special data
-                if (isServiceDesk) {
-                    /* if (!result.fields[FieldController.requestTypeFieldId]) {
-                         throw new Error(yasoon.i18n('dialog.errorNoRequestType'));
-                     } */
+                //2.1 Remove special data
+                delete result.fields[FieldController.requestTypeFieldId];
+                delete result.fields[FieldController.onBehalfOfFieldId];
 
-                    delete result.fields[FieldController.requestTypeFieldId];
-                    delete result.fields[FieldController.onBehalfOfFieldId];
+                //2.2
+                if (isServiceDesk) {
+                    //This will be overwritten by ServiceDeskController - it's may added in afterSave
                     delete result.fields[FieldController.reporterFieldId];
                 }
 
