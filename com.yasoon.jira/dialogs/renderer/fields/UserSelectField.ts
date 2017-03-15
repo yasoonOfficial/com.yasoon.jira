@@ -14,6 +14,7 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
     currentProject: JiraProject;
     recentItems: RecentItemController;
     allowNew: boolean;
+    emailController: EmailController;
     private avatarPath: string;
 
     constructor(id: string, field: JiraMetaField, options: any = {}) {
@@ -23,8 +24,19 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
         this.avatarPath = yasoon.io.getLinkPath('Images/useravatar.png');
 
         this.recentItems = jira.recentItems;
-        FieldController.registerEvent(EventType.SenderLoaded, this);
+        this.emailController = jira.emailController;
+
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
+
+        //Init project
+        var projectField = <ProjectField>FieldController.getField(FieldController.projectFieldId);
+        this.currentProject = projectField.getObjectValue();
+        
+        //Init sender user
+        this.emailController.loadSenderPromise
+            .then((senderUser) => {
+                this.senderUser = senderUser;
+            });
 
         //Init project
         var projectField = <ProjectField>FieldController.getField(FieldController.projectFieldId);
@@ -32,11 +44,7 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
     }
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
-        if (type == EventType.SenderLoaded) {
-            if (newValue) {
-                this.senderUser = newValue;
-            }
-        } else if (type === EventType.FieldChange && source === FieldController.projectFieldId) {
+        if (type === EventType.FieldChange && source === FieldController.projectFieldId) {
             this.currentProject = newValue;
         }
 

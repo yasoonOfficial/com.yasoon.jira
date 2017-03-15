@@ -26,7 +26,7 @@ class ServiceDeskController implements IFieldEventHandler {
         return this._isServiceDeskActive;
     }
 
-    handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
+    async handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
         if (type === EventType.UiAction) {
             let eventData: UiActionEventData = newValue;
             if (eventData.name === IssueTypeField.uiActionServiceDesk) {
@@ -34,16 +34,15 @@ class ServiceDeskController implements IFieldEventHandler {
             }
         } else if (type === EventType.FieldChange) {
             if (source == FieldController.requestTypeFieldId) {
-                this.getRequestTypeMeta(newValue)
-                    .then(meta => {
-                        this.currentRequestTypeMeta = meta;
+                if (await this.isVersionAtLeast('3.3.0')) {
+                    this.currentRequestTypeMeta = await this.getRequestTypeMeta(newValue);
 
-                        //We need to put the fields back into original state, without the modifications from the previous request type
-                        FieldController.resetFields();
+                    //We need to put the fields back into original state, without the modifications from the previous request type
+                    FieldController.resetFields();
 
-                        //Now process the request type field meta (add possible required flags)
-                        this.updateFieldMeta();
-                    });
+                    //Now process the request type field meta (add possible required flags)
+                    this.updateFieldMeta();
+                }
             } else if (source === FieldController.projectFieldId) {
                 this.currentProject = newValue;
             }
@@ -94,7 +93,9 @@ class ServiceDeskController implements IFieldEventHandler {
                 issueKey: responseData.issueKey
             };
         } else {
-            data.fields[FieldController.reporterFieldId] = data.fields[FieldController.onBehalfOfFieldId];
+            let onBehalfOfField = <UserSelectField>FieldController.getField(FieldController.onBehalfOfFieldId);
+            let user = onBehalfOfField.getValue();
+            data.fields[FieldController.reporterFieldId] = user;
         }
 
         return { issueCreated: false };
