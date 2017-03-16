@@ -629,7 +629,9 @@ class NewEditDialog implements IFieldEventHandler {
         FieldController.register('com.atlassian.servicedesk:sd-request-participants', UserSelectField, { multiple: true });
         //https://jira.atlassian.com/browse/JSD-4353
         //https://jira.atlassian.com/browse/JSD-4723
-        FieldController.register('com.atlassian.servicedesk:sd-customer-organizations', OrganizationField);
+        /*if (this.editIssueId) {
+            FieldController.register('com.atlassian.servicedesk:sd-customer-organizations', OrganizationField);
+        }*/
 
         //Tempo
         FieldController.register('com.tempoplugin.tempo-accounts:accounts.customfield', TempoAccountField);

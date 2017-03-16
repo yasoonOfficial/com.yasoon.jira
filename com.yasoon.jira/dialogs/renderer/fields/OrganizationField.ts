@@ -5,7 +5,7 @@
 /// <reference path="../getter/GetTextValue.ts" />
 /// <reference path="../setter/SetOptionValue.ts" />
 
-@getter(GetterType.Option, "id")
+@getter(GetterType.Text)
 @setter(SetterType.Option)
 class OrganizationField extends Select2Field {
     getOrganizationsPromise: Promise<JiraOrganization[]>;
@@ -23,6 +23,11 @@ class OrganizationField extends Select2Field {
             .then((elements: Select2Element[]) => {
                 this.setData(elements);
             });
+    }
+
+    getDomValue(): any {
+        let values = $('#' + this.id).val() || [];
+        return values.map(v => parseInt(v));
     }
 
     convertToSelect2(obj: JiraOrganization): Select2Element {
