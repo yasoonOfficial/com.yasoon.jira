@@ -1,6 +1,7 @@
-/// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/common.d.ts" />
-class GetOption implements FieldGetter {
+import { Field, FieldGetter } from '../Field';
+import { Select2Field } from '../fields/Select2Field';
+
+export class GetOption implements FieldGetter {
     keyName: string;
     nullValue: any = '-1';
 

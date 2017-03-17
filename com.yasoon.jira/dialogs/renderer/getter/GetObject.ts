@@ -1,7 +1,6 @@
-/// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/common.d.ts" />
+import { Field, FieldGetter } from '../Field';
 
-class GetObject implements FieldGetter {
+export class GetObject implements FieldGetter {
     keyName: string;
 
     constructor(keyName: string) {
@@ -13,8 +12,6 @@ class GetObject implements FieldGetter {
         let result = {};
         if (onlyChangedData) {
             //In edit case: Only send if changed	
-
-
             //Normalize
             let value = null;
             if (field.initialValue) {

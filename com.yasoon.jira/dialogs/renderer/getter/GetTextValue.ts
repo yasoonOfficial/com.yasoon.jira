@@ -1,7 +1,6 @@
-/// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/common.d.ts" />
+import { Field, FieldGetter } from '../Field';
 
-class GetTextValue implements FieldGetter {
+export class GetTextValue implements FieldGetter {
 
     getValue(field: Field, onlyChangedData: boolean) {
         let newValue = field.getDomValue();

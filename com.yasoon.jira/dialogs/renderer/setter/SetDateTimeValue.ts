@@ -1,7 +1,6 @@
-/// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/moment.d.ts" />
+import { Field, FieldSetter } from '../Field';
 
-class SetDateTimeValue implements FieldSetter {
+export class SetDateTimeValue implements FieldSetter {
     setValue(field: Field, value: any): Promise<any> {
         if (value) {
             var momentDate = moment(new Date(value));

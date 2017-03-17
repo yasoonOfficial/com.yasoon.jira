@@ -1,20 +1,26 @@
-/// <reference path="../Field.ts" />
-/// <reference path="Select2AjaxField.ts" />
-/// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../../../definitions/common.d.ts" />
-/// <reference path="../getter/GetOption.ts" />
-/// <reference path="../setter/SetOptionValue.ts" />
+declare var jira;
+import { FieldController } from '../FieldController';
+import { IFieldEventHandler, UiActionEventData } from '../Field';
+import { getter, setter } from '../Annotations';
+import { GetterType, SetterType, EventType } from '../Enumerations';
+import { RecentItemController } from '../RecentItemController';
+import { EmailController } from '../EmailController';
+import { Select2Field, Select2Element, Select2Options } from './Select2Field';
+import { ServiceDeskUtil } from '../ServiceDeskUtil';
+import { UserSelectField } from './UserSelectField';
+import { RequestTypeField } from './RequestTypeField';
+import { JiraIconController } from '../../Util';
 
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
-class IssueTypeField extends Select2Field implements IFieldEventHandler {
+export class IssueTypeField extends Select2Field implements IFieldEventHandler {
     static defaultMeta: JiraMetaField = { key: FieldController.issueTypeFieldId, get name() { return yasoon.i18n('dialog.issueType'); }, required: true, schema: { system: 'issue', type: '' } };
     static uiActionServiceDesk = 'ServiceDeskActivated';
 
     private currentProject: JiraProject;
     private initialId: string;
     private emailController: EmailController;
-    private serviceDeskController: ServiceDeskController;
+    private iconController: JiraIconController;
 
     constructor(id: string, field: JiraMetaField) {
         let options: Select2Options = {};
@@ -23,7 +29,7 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
 
         super(id, field, options);
         this.emailController = jira.emailController;
-        this.serviceDeskController = jira.serviceDeskController;
+        this.iconController = jira.icons;
 
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.requestTypeFieldId);
@@ -157,7 +163,7 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
 
             if (!FieldController.getField(FieldController.onBehalfOfFieldId)) {
                 //Create On-Behalf of field
-                this.serviceDeskController.isVersionAtLeast('3.3.0')
+                ServiceDeskUtil.isVersionAtLeast('3.3.0')
                     .then(isNewServiceDesk => {
                         let behalfOfField = <UserSelectField>FieldController.loadField(UserSelectField.reporterDefaultMeta, UserSelectField, { allowNew: isNewServiceDesk });
                         FieldController.render(FieldController.onBehalfOfFieldId, $('#ServiceAreaReporterField'));

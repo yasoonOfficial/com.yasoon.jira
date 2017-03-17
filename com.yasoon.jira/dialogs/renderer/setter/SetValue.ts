@@ -1,6 +1,6 @@
-/// <reference path="../Field.ts" />
+import { Field, FieldSetter } from '../Field';
 
-class SetValue implements FieldSetter {
+export class SetValue implements FieldSetter {
     setValue(field: Field, value: any): Promise<any> {
         $('#' + field.id).val(value).trigger('change');
         return Promise.resolve(value);

@@ -1,15 +1,20 @@
-/// <reference path="../../definitions/bluebird.d.ts" />
-/// <reference path="../../definitions/jira.d.ts" />
-/// <reference path="../../definitions/common.d.ts" />
 /// <reference path="../../definitions/yasoon.d.ts" />
-/// <reference path="../../definitions/allFields.d.ts" />
-/// <reference path="./../renderer/FieldController.ts" />
-/// <reference path="./../renderer/EmailController.ts" />
-/// <reference path="./../renderer/TemplateController.ts" />
-/// <reference path="./../renderer/RecentItemController.ts" />
-/// <reference path="./../renderer/ServiceDeskController.ts" />
-
 var jira: any = null; //Legacy
+
+import { Field, IFieldEventHandler, UiActionEventData, LifecycleData } from '../renderer/Field';
+import { EventType } from '../renderer/Enumerations';
+import { FieldController } from '../renderer/FieldController';
+import { ServiceDeskController, ServiceDeskSaveResult } from '../renderer/ServiceDeskController';
+import { RecentItemController } from '../renderer/RecentItemController';
+import { EmailController, JiraFileHandle } from '../renderer/EmailController';
+import { TemplateController } from '../renderer/TemplateController';
+import { ProjectField, ProjectFieldOptions } from '../renderer/fields/ProjectField';
+import { IssueTypeField } from '../renderer/fields/IssueTypeField';
+import { IssueField } from '../renderer/fields/IssueField';
+import { AttachmentField } from '../renderer/fields/AttachmentField';
+import { UserSelectField } from '../renderer/fields/UserSelectField';
+import { JiraIconController } from '../util';
+import { JiraProject, JiraIssue, JiraDialogType, JiraUser, JiraUserConfigMeta, JiraProjectMeta, JiraSystemInfo, JiraIssueType, JiraMetaField, YasoonDialogCloseParams } from '../renderer/JiraModels';
 
 interface newEditDialogInitParams {
     mail: yasoonModel.Email;
@@ -376,8 +381,8 @@ class NewEditDialog implements IFieldEventHandler {
                 lifecycleData.newData = issue;
 
                 //Save Template if created by Email
-                if (this.emailController) {
-                    this.emailController.saveSenderTemplate(lifecycleData.data, issue.fields['project']);
+                if (this.templateController) {
+                    this.templateController.saveSenderTemplate(lifecycleData.data, issue.fields['project']);
                 }
 
                 //Check if SD needs to be called

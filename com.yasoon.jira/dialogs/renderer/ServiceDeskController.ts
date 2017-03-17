@@ -1,13 +1,18 @@
-/// <reference path="../../definitions/bluebird.d.ts" />
-/// <reference path="../../definitions/common.d.ts" />
+import { Field, IFieldEventHandler, UiActionEventData } from './Field';
+import { EventType } from './Enumerations';
+import { FieldController } from './FieldController';
+import { UserSelectField } from './fields/UserSelectField';
+import { RequestTypeField } from './fields/RequestTypeField';
+import { IssueTypeField } from './fields/IssueTypeField';
+import { ServiceDeskUtil } from './ServiceDeskUtil';
 
-interface ServiceDeskSaveResult {
+export interface ServiceDeskSaveResult {
     issueCreated: boolean;
     issueId?: string;
     issueKey?: string;
 }
 
-class ServiceDeskController implements IFieldEventHandler {
+export class ServiceDeskController implements IFieldEventHandler {
 
     private serviceDeskVersion: string;
     private currentProject: JiraProject;
@@ -34,8 +39,8 @@ class ServiceDeskController implements IFieldEventHandler {
             }
         } else if (type === EventType.FieldChange) {
             if (source == FieldController.requestTypeFieldId) {
-                if (await this.isVersionAtLeast('3.3.0')) {
-                    this.currentRequestTypeMeta = await this.getRequestTypeMeta(newValue);
+                if (await ServiceDeskUtil.isVersionAtLeast('3.3.0')) {
+                    this.currentRequestTypeMeta = await ServiceDeskUtil.getRequestTypeMeta(newValue);
 
                     //We need to put the fields back into original state, without the modifications from the previous request type
                     FieldController.resetFields();
@@ -60,13 +65,13 @@ class ServiceDeskController implements IFieldEventHandler {
     }
 
     async doBeforeSave(data: any): Promise<ServiceDeskSaveResult> {
-        if (await this.isVersionAtLeast('3.3.0')) {
+        if (await ServiceDeskUtil.isVersionAtLeast('3.3.0')) {
             let projectId = data.fields[FieldController.projectFieldId].id;
             let requestTypeField = <RequestTypeField>FieldController.getField(FieldController.requestTypeFieldId);
             let onBehalfOfField = <UserSelectField>FieldController.getField(FieldController.onBehalfOfFieldId);
 
             let postData: any = {
-                serviceDeskId: (await this.getServiceDeskKey(projectId)).id,
+                serviceDeskId: (await ServiceDeskUtil.getServiceDeskKey(projectId)).id,
                 requestTypeId: requestTypeField.getDomValue(),
                 requestFieldValues: {}
             };
@@ -102,7 +107,7 @@ class ServiceDeskController implements IFieldEventHandler {
     }
 
     async doAfterSave(issue: JiraIssue): Promise<any> {
-        if (!(await this.isVersionAtLeast('3.3.0'))) {
+        if (!(await ServiceDeskUtil.isVersionAtLeast('3.3.0'))) {
             try {
                 let requestTypeOption: { id: string } = FieldController.getField(FieldController.requestTypeFieldId).getValue(false);
                 let requestTypeId = parseInt(requestTypeOption.id);
@@ -112,118 +117,5 @@ class ServiceDeskController implements IFieldEventHandler {
                 return Promise.reject(new Error('Could not create ServiceDesk Data'));
             }
         }
-    }
-
-    async getServiceDeskVersion(): Promise<string> {
-        if (this.serviceDeskVersion)
-            return this.serviceDeskVersion;
-
-        try {
-            let data = await jiraGet('/rest/servicedeskapi/info');
-            this.serviceDeskVersion = JSON.parse(data).version;
-        }
-        catch (e) {
-            this.serviceDeskVersion = '3.0.0';
-        }
-
-        return this.serviceDeskVersion;
-    }
-
-    async isVersionAtLeast(as: string): Promise<boolean> {
-        let version = await this.getServiceDeskVersion();
-        let baseVersion = version.split('-')[0];
-        let baseNumbers = baseVersion.split('.').map(n => parseInt(n));
-        let asNumbers = as.split('.').map(n => parseInt(n));
-        let result = true;
-
-        for (let i = 0; i < baseNumbers.length; i++) {
-            if (asNumbers[i] > baseNumbers[i])
-                result = false;
-            else if (asNumbers[i] < baseNumbers[i])
-                break; //we have at least one number which is lower expected => quit now
-        }
-
-        return result;
-    }
-
-    async getRequestTypes(serviceDeskKey: JiraServiceDeskKey): Promise<JiraRequestType[]> {
-        if (this.requestTypes[serviceDeskKey.key]) {
-            return this.requestTypes[serviceDeskKey.key];
-        }
-
-        //New API is available starting Service Desk 3.3.0 (Server) and 1000.268.0 (Cloud). We only check for server as Cloud is always fresh
-        if (await this.isVersionAtLeast('3.3.0')) {
-            let data = await jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey.key + '/groups');
-            let groups: JiraRequestTypeGroup[] = JSON.parse(data);
-            let promises: Promise<any>[] = [];
-            groups.forEach((group) => {
-                promises.push(jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey.key + '/groups/' + group.id + '/request-types'));
-            });
-
-            //Load in parallel
-            let types = <[JiraRequestType[]]>await Promise.all(promises).map((typeString: string) => { return JSON.parse(typeString); });
-            let allTypes = [];
-            types.forEach((typesInner) => {
-                typesInner.forEach((type) => {
-                    //Do not add twice
-                    if (allTypes.filter(function (t) { return t.id === type.id; }).length === 0) {
-                        allTypes.push(type);
-                    }
-                });
-            });
-
-            this.requestTypes[serviceDeskKey.key] = allTypes;
-            return allTypes;
-        }
-        else {
-            let data = await jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey.key + '/request-types');
-            let allTypes = <JiraRequestType[]>JSON.parse(data);
-            this.requestTypes[serviceDeskKey.key] = allTypes;
-            return allTypes;
-        }
-    }
-
-    async getRequestTypeMeta(requestType: JiraRequestType): Promise<JiraRequestTypeFieldMeta> {
-        if (await this.isVersionAtLeast('3.3.0')) {
-            try {
-                let data = await jiraGet(`/rest/servicedeskapi/servicedesk/${requestType.portalId}/requesttype/${requestType.id}/field`);
-                return <JiraRequestTypeFieldMeta>JSON.parse(data);
-            } catch (e) {
-                console.log(e);
-                yasoon.util.log(e.toString(), yasoon.util.severity.warning);
-                return { requestTypeFields: [] };
-            }
-        }
-    }
-
-    async getServiceDeskKey(projectId: string, projectKey?: string): Promise<JiraServiceDeskKey> {
-        //Return buffer
-        if (this.serviceDeskKeys[projectId]) {
-            return Promise.resolve(this.serviceDeskKeys[projectId]);
-        }
-
-        try {
-            let data = await jiraGet('/rest/servicedesk/1/servicedesk-data');
-            let serviceData: JiraServiceDeskData[] = JSON.parse(data);
-            if (serviceData.length > 0) {
-                let serviceDeskKey = serviceData.filter(function (s) { return s.projectId == projectId; })[0];
-                this.serviceDeskKeys[projectId] = { id: serviceDeskKey.id, key: serviceDeskKey.key };
-            } else {
-                this.serviceDeskKeys[projectId] = { id: projectId, key: projectKey.toLowerCase() };
-            }
-        } catch (e) {
-            console.log(e);
-            yasoon.util.log(e.toString(), yasoon.util.severity.warning);
-            this.serviceDeskKeys[projectId] = { id: projectId, key: projectKey.toLowerCase() };
-        }
-
-        return this.serviceDeskKeys[projectId];
-    }
-
-    async getCurrentServiceDeskKey(): Promise<JiraServiceDeskKey> {
-        if (this.currentProject.projectTypeKey === 'service_desk')
-            return this.getServiceDeskKey(this.currentProject.id);
-
-        return Promise.resolve(null);
     }
 }

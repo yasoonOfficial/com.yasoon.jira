@@ -1,12 +1,15 @@
-/// <reference path="../Field.ts" />
-/// <reference path="../FieldController.ts" />
-/// <reference path="Select2AjaxField.ts" />
-/// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../../../definitions/common.d.ts" />
-/// <reference path="../getter/GetOption.ts" />
-/// <reference path="../setter/SetOptionValue.ts" />
+declare var jira;
 
-interface ProjectFieldOptions {
+import { FieldController } from '../FieldController';
+import { IFieldEventHandler } from '../Field';
+import { getter, setter } from '../Annotations';
+import { GetterType, SetterType, EventType } from '../Enumerations';
+import { RecentItemController } from '../RecentItemController';
+import { Select2Field, Select2Element, Select2Options } from './Select2Field';
+import { EmailController } from '../EmailController';
+import { TemplateController } from '../TemplateController';
+
+export interface ProjectFieldOptions {
     cache?: JiraProject[];
     allowClear?: boolean;
     showTemplates?: boolean;
@@ -15,7 +18,7 @@ interface ProjectFieldOptions {
 
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
-class ProjectField extends Select2Field {
+export class ProjectField extends Select2Field {
 
     static defaultMeta: JiraMetaField = { key: FieldController.projectFieldId, get name() { return yasoon.i18n('dialog.project'); }, required: true, schema: { system: 'project', type: '' } };
 

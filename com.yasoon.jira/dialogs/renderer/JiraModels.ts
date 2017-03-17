@@ -1,13 +1,11 @@
-
-
-interface JiraSchema {
+export interface JiraSchema {
     type: string,
     custom?: string,
     customId?: string,
     system?: string
 }
 
-interface JiraValue {
+export interface JiraValue {
     id: string,
     name?: string,
     key?: string,
@@ -16,47 +14,47 @@ interface JiraValue {
     children?: Array<JiraValue>
 }
 
-interface JiraRequestTypeFieldValue {
+export interface JiraRequestTypeFieldValue {
     label: string,
     value?: string,
     children?: Array<JiraValue>
 }
 
-interface JiraSentObj {
+export interface JiraSentObj {
     id?: string,
     name?: string,
     child?: JiraSentObj
 }
 
-interface JiraTimetrackingValue {
+export interface JiraTimetrackingValue {
     originalEstimate?: string,
     remainingEstimate?: string
 }
 
-interface JiraGroups {
+export interface JiraGroups {
     total: number,
     header: string,
     groups: JiraGroup[]
 }
 
-interface JiraGroup {
+export interface JiraGroup {
     html?: string,
     labels?: JiraGroupLabel[],
     name: string
 }
 
-interface JiraGroupLabel {
+export interface JiraGroupLabel {
     text: string,
     title: string,
     type: string
 }
 
-interface JiraOrganization {
+export interface JiraOrganization {
     id: string;
     name: string;
 }
 
-interface JiraOrganizationResult {
+export interface JiraOrganizationResult {
     size?: number;
     start?: number;
     limit?: number;
@@ -64,51 +62,51 @@ interface JiraOrganizationResult {
     values?: JiraOrganization[];
 }
 
-interface Jira6Epics {
+export interface Jira6Epics {
     epicNames: JiraEpic[],
     total: number
 }
 
-interface Jira7Epics {
+export interface Jira7Epics {
     epicLists: JiraEpicList[],
     total: number
 }
 
-interface JiraEpicList {
+export interface JiraEpicList {
     listDescriptor: string,
     epicNames: JiraEpic[],
 }
 
 
-interface JiraEpic {
+export interface JiraEpic {
     key: string,
     name: string,
     isDone?: boolean
 }
 
-interface JiraSprints {
+export interface JiraSprints {
     suggestions: JiraSprint[],
     allMatches: JiraSprint[]
 }
 
-interface JiraSprint {
+export interface JiraSprint {
     name: string,
     id: number,
     statusKey: string
 }
 
-interface JiraJqlResult {
+export interface JiraJqlResult {
     issues: JiraIssue[]
 }
 
-interface JiraComponent {
+export interface JiraComponent {
     id: string,
     name: string,
     description: string,
     isAssigneeTypeValid: boolean
 }
 
-interface JiraVersion {
+export interface JiraVersion {
     id: string,
     name: string,
     description?: string,
@@ -122,14 +120,14 @@ interface JiraVersion {
 
 }
 
-interface JiraIssue {
+export interface JiraIssue {
     id: string;
     key: string;
     fields: { [id: string]: any };
     editmeta?: { fields: { [id: string]: JiraMetaField } };
 }
 
-interface JiraUser {
+export interface JiraUser {
     key?: string,
     displayName?: string,
     emailAddress?: string,
@@ -142,29 +140,29 @@ interface JiraUser {
     applicationRoles?: JiraUserApplicationRoles
 }
 
-interface JiraUserGroups {
+export interface JiraUserGroups {
     size: number,
     items: JiraUserGroup[]
 }
 
-interface JiraUserGroup {
+export interface JiraUserGroup {
     name: string,
     self: string
 }
 
-interface JiraUserApplicationRoles {
+export interface JiraUserApplicationRoles {
     size: number,
     items: JiraUserApplicationRole[]
 }
 
-interface JiraUserApplicationRole {
+export interface JiraUserApplicationRole {
     key: string,
     name: string
 }
 
-type JiraProjectType = 'business' | 'service_desk' | 'software';
+export type JiraProjectType = 'business' | 'service_desk' | 'software';
 
-interface JiraProject {
+export interface JiraProject {
     id: string,
     name: string,
     key: string,
@@ -179,7 +177,7 @@ interface JiraProject {
     self?: string,
 }
 
-interface JiraProjectMeta {
+export interface JiraProjectMeta {
     id: string,
     name: string,
     key: string,
@@ -187,7 +185,7 @@ interface JiraProjectMeta {
     avatarUrls: { [id: string]: string }
 }
 
-interface JiraIssueType {
+export interface JiraIssueType {
     avatarId: number;
     description: string;
     iconUrl: string;
@@ -196,11 +194,11 @@ interface JiraIssueType {
     subtask: boolean;
 }
 
-interface JiraIssueTypeMeta extends JiraIssueType {
+export interface JiraIssueTypeMeta extends JiraIssueType {
     fields?: { [id: string]: JiraMetaField }
 }
 
-interface JiraRequestType {
+export interface JiraRequestType {
     id: number,
     cvId: number,
     portalKey: string,
@@ -219,19 +217,19 @@ interface JiraRequestType {
     groups: JiraRequestTypeGroup[]
 }
 
-interface JiraRequestTypeFieldMeta {
+export interface JiraRequestTypeFieldMeta {
     requestTypeFields?: JiraServiceDeskMetaField[];
     canRaiseOnBehalfOf?: boolean;
     canAddRequestParticipants?: boolean;
 }
 
-interface JiraUserConfigMeta {
+export interface JiraUserConfigMeta {
     fields?: JiraUserConfigField[];
     sortedTabs: JiraTab[];
     userPreferences: JiraUserPreferences;
 }
 
-interface JiraUserConfigField {
+export interface JiraUserConfigField {
     id: string;
     label: string;
     required: boolean;
@@ -240,37 +238,37 @@ interface JiraUserConfigField {
     defaultValue?: any;
 }
 
-interface JiraUserConfigFieldTab {
+export interface JiraUserConfigFieldTab {
     label: string;
     position: number;
 }
 
-interface JiraTab {
+export interface JiraTab {
     label: string;
     fields: JiraTabField[];
 }
 
-interface JiraTabField {
+export interface JiraTabField {
     id: string;
     label: string;
 }
 
-interface JiraSystemInfo {
+export interface JiraSystemInfo {
     versionNumbers: number[];
 }
 
-interface JiraUserPreferences {
+export interface JiraUserPreferences {
     fields: string[];
     showWelcomeScreen: boolean;
     useQuickForm: boolean;
 }
 
-interface JiraRequestTypeGroup {
+export interface JiraRequestTypeGroup {
     id: number,
     name: string
 }
 
-interface JiraServiceDeskData {
+export interface JiraServiceDeskData {
     id: string,
     key: string,
     name: string,
@@ -279,12 +277,12 @@ interface JiraServiceDeskData {
     sendEmailNotification?: boolean
 }
 
-interface JiraServiceDeskKey {
+export interface JiraServiceDeskKey {
     id: string,
     key: string
 }
 
-interface JiraServiceDeskMetaField {
+export interface JiraServiceDeskMetaField {
     required: boolean,
     jiraSchema: JiraSchema,
     name: string,
@@ -293,7 +291,7 @@ interface JiraServiceDeskMetaField {
     validValues?: Array<JiraRequestTypeFieldValue>
 }
 
-interface JiraMetaField {
+export interface JiraMetaField {
     required: boolean;
     schema: JiraSchema;
     name: string;
@@ -308,25 +306,25 @@ interface JiraMetaField {
     data?: any[];
 }
 
-interface JiraLabel {
+export interface JiraLabel {
     label: string
 }
 
-interface JiraSubmitComment {
+export interface JiraSubmitComment {
     body: string;
     public?: boolean;
 }
 
-interface JiraComment {
+export interface JiraComment {
     id: string;
     body: string;
 }
 
-interface JiraIssueLinkTypes {
+export interface JiraIssueLinkTypes {
     issueLinkTypes: JiraIssueLinkType[];
 }
 
-interface JiraIssueLinkType {
+export interface JiraIssueLinkType {
     id: string;
     name: string;
     inward?: string;
@@ -334,7 +332,7 @@ interface JiraIssueLinkType {
     self?: string;
 }
 
-interface JiraIssueLinkCreate {
+export interface JiraIssueLinkCreate {
     type: {
         name?: string;
         id?: string;
@@ -356,23 +354,23 @@ interface JiraIssueLinkCreate {
     };
 }
 
-interface JiraCommentVisibility {
+export interface JiraCommentVisibility {
     type: 'group' | 'role',
     value: string;
 }
 
-interface YasoonGroupHierarchy {
+export interface YasoonGroupHierarchy {
     name: string,
     position: number
 }
 
-interface YasoonInitialSelection {
+export interface YasoonInitialSelection {
     group?: string,
     projectId: string,
     issueTypeId: string
 }
 
-interface YasoonDefaultTemplate {
+export interface YasoonDefaultTemplate {
     group?: string;
     projectId?: string;
     issueTypeId?: string;
@@ -383,23 +381,23 @@ interface YasoonDefaultTemplate {
 }
 
 //{ "issues":{ "17801":{ "id":"17801", "key":"YJD-12", "summary":"Verbesserungsvorschlag", "projectId":"10300" } } }
-interface YasoonConversationData {
+export interface YasoonConversationData {
     issues: YasoonConversationIssueDict;
 }
 
-type YasoonConversationIssueDict = { [id: string]: YasoonConversationIssue };
+export type YasoonConversationIssueDict = { [id: string]: YasoonConversationIssue };
 
 
-interface YasoonConversationIssue {
+export interface YasoonConversationIssue {
     id: string,
     key: string,
     summary: string,
     projectId: string
 }
 
-type JiraDialogType = 'selectedText' | 'wholeMail' | '';
+export type JiraDialogType = 'selectedText' | 'wholeMail' | '';
 
-interface YasoonDialogCloseParams {
+export interface YasoonDialogCloseParams {
     action: 'success' | 'cancel';
     issueKey?: string;
     changeType?: 'updated' | 'created';

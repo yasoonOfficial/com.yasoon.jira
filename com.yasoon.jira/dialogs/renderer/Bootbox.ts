@@ -1,6 +1,6 @@
 declare var bootbox;
 
-class Bootbox {
+export class Bootbox {
     static confirm(options): Promise<any> {
         return new Promise((resolve, reject) => {
             let optionsInt: any = {

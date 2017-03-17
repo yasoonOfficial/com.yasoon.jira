@@ -1,6 +1,7 @@
-/// <reference path="../Field.ts" />
+import { Field, FieldSetter } from '../Field';
+import { Select2Field } from '../fields/Select2Field';
 
-class SetOptionValue implements FieldSetter {
+export class SetOptionValue implements FieldSetter {
     setValue(field: Field, value: any): Promise<any> {
         let selectField = <Select2Field>field;
         if (!field.isRendered()) {

@@ -1,6 +1,9 @@
 declare var jira: any; //Legacy
 
-namespace FieldController {
+import { Field, IFieldEventHandler } from './Field';
+import { EventType } from './Enumerations';
+
+export namespace FieldController {
     export const projectFieldId = 'project';
     export const issueTypeFieldId = 'issuetype';
     export const issueFieldId = 'parent';
@@ -269,29 +272,4 @@ namespace FieldController {
                 break;
         }
     }
-}
-
-//Util Stuff --> New File
-function findWithAttr(array, attr, value) {
-    for (var i = 0; i < array.length; i += 1) {
-        if (array[i][attr] === value) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-function insertAtCursor(myField, myValue) {
-    var startPos = myField.selectionStart;
-    var endPos = myField.selectionEnd;
-    if (startPos > 0)
-        myValue = '\n' + myValue;
-
-    myField.value = myField.value.substring(0, startPos) +
-        myValue +
-        myField.value.substring(endPos, myField.value.length);
-}
-
-function sortByText(a, b) {
-    return ((a.text.toLowerCase() > b.text.toLowerCase()) ? 1 : -1);
 }

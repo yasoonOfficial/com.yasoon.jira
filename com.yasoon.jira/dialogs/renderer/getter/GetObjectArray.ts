@@ -1,7 +1,6 @@
-/// <reference path="../Field.ts" />
-/// <reference path="../../../definitions/common.d.ts" />
+import { Field, FieldGetter } from '../Field';
 
-class GetObjectArray implements FieldGetter {
+export class GetObjectArray implements FieldGetter {
     keyName: string;
 
     constructor(keyName: string) {

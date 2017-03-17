@@ -1,13 +1,18 @@
-/// <reference path="../Field.ts" />
-/// <reference path="Select2AjaxField.ts" />
-/// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../../../definitions/common.d.ts" />
-/// <reference path="../getter/GetOption.ts" />
-/// <reference path="../setter/SetOptionValue.ts" />
+declare var jira;
+import { FieldController } from '../FieldController';
+import { IFieldEventHandler, UiActionEventData } from '../Field';
+import { getter, setter } from '../Annotations';
+import { GetterType, SetterType, EventType } from '../Enumerations';
+import { Select2AjaxField } from './Select2AjaxField';
+import { RecentItemController } from '../RecentItemController';
+import { EmailController } from '../EmailController';
+import { Select2Element, Select2Options } from './Select2Field';
+import { JiraIconController } from '../../Util';
+import { JiraMetaField, JiraProject, JiraJqlResult, JiraIssue } from '../JiraModels';
 
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
-class IssueField extends Select2AjaxField implements IFieldEventHandler {
+export class IssueField extends Select2AjaxField implements IFieldEventHandler {
     static defaultMeta: JiraMetaField = { key: FieldController.issueFieldId, get name() { return yasoon.i18n('dialog.issue'); }, required: true, schema: { system: 'issue', type: '' } };
 
     private currentProject: JiraProject;

@@ -1,4 +1,8 @@
-class RecentItemController implements IFieldEventHandler {
+import { Field, IFieldEventHandler } from './Field';
+import { EventType } from './Enumerations';
+import { FieldController } from './FieldController';
+
+export class RecentItemController implements IFieldEventHandler {
     static recentIssuesSetting: string = 'recentIssues';
     static recentProjectsSetting: string = 'recentProjects';
     static recentUserSetting: string = 'recentUsers';

@@ -1,12 +1,12 @@
 {
     "compilerOptions": {
         "experimentalDecorators": true,
-        "outFile": "./com.yasoon.jira/dialogs/js/all.js",
+        //"outFile": "./com.yasoon.jira/dialogs/js/all.js",
         "allowJs": true,
         "target": "es5"
     },
     "filesGlob": [
-        "com.yasoon.jira/dialogs/renderer/fields/*"
+        // "com.yasoon.jira/dialogs/renderer/fields/*"
     ],
     "include": [
         "com.yasoon.jira/dialogs/renderer/fields/plugins/insight/*",

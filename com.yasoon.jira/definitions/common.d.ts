@@ -17,17 +17,6 @@ declare class jiraSyncError {
     getUserFriendlyError(): string;
 }
 
-declare interface IconBufferEntry {
-    url: string;
-    fileName: string;
-}
-
-declare class JiraIconController {
-    mapIconUrl: (url: string) => string;
-    addIcon: (url: string) => string;
-    getFullBuffer: () => IconBufferEntry[]
-}
-
 declare function jiraIsVersionHigher(systemInfo, versionString: string): boolean;
 
 declare function debounce(func: any, wait: number, immediate?: boolean): any;

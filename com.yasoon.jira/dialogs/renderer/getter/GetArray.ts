@@ -1,6 +1,6 @@
-/// <reference path="../Field.ts" />
+import { Field, FieldGetter } from '../Field';
 
-class GetArray implements FieldGetter {
+export class GetArray implements FieldGetter {
     getValue(field: Field, onlyChangedData: boolean) {
         let newValue = field.getDomValue();
         if (!Array.isArray(newValue)) {

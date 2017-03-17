@@ -1,6 +1,6 @@
-/// <reference path="../Field.ts" />
+import { Field, FieldSetter } from '../Field';
 
-class SetCheckedValues implements FieldSetter {
+export class SetCheckedValues implements FieldSetter {
     setValue(field: Field, value: any): Promise<any> {
         if (value) {
             if (Array.isArray(value)) {

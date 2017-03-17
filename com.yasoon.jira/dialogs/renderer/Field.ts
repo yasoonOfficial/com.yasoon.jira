@@ -1,18 +1,6 @@
-/// <reference path="../../definitions/jira.d.ts" />
-/// <reference path="../../definitions/customSelect2.d.ts" />
-/// <reference path="getter/GetArray.ts" />
-/// <reference path="getter/GetObject.ts" />
-/// <reference path="getter/GetObjectArray.ts" />
-/// <reference path="getter/GetOption.ts" />
-/// <reference path="getter/GetTextValue.ts" />
-/// <reference path="setter/SetCheckedValues.ts" />
-/// <reference path="setter/SetDateTimeValue.ts" />
-/// <reference path="setter/SetDateValue.ts" />
-/// <reference path="setter/SetOptionValue.ts" />
-/// <reference path="setter/SetTagValue.ts" />
-/// <reference path="setter/SetValue.ts" />
+import { EventType } from './Enumerations';
 
-abstract class Field implements FieldGet, FieldSet {
+export abstract class Field implements FieldGet, FieldSet {
 	public id: string;
 	private originalFieldMeta: JiraMetaField;
 	protected fieldMeta: JiraMetaField;
@@ -32,7 +20,7 @@ abstract class Field implements FieldGet, FieldSet {
 	}
 
 	getValue(onlyChangedData: boolean = false): any {
-		if (!getter)
+		if (!this.getter)
 			throw new Error("Please either redefine method getValue or add a @getter Annotation for " + this.id);
 
 		return this.getter.getValue(this, onlyChangedData);
@@ -43,7 +31,7 @@ abstract class Field implements FieldGet, FieldSet {
 	}
 
 	setValue(value: any): Promise<any> {
-		if (!setter)
+		if (!this.setter)
 			throw new Error("Please either redefine method setValue or add a @setter Annotation for " + this.id);
 
 		return this.setter.setValue(this, value);
@@ -163,88 +151,17 @@ abstract class Field implements FieldGet, FieldSet {
 	}
 }
 
-enum GetterType {
-	Text, Object, ObjectArray, Array, Option
-}
-
-enum SetterType {
-	Text, CheckedValues, Date, DateTime, Option, Tag
-}
-
-enum EventType {
-	FieldChange, AfterRender, AfterSave, BeforeSave, SenderLoaded, UiAction, Cleanup, AttachmentChanged
-}
-
-//@getter Annotation
-function getter(getterType: GetterType, ...params: any[]) {
-	return function (target) {
-		let proto: Field = target.prototype;
-		switch (getterType) {
-			case GetterType.Text:
-				proto.getter = new GetTextValue();
-				break;
-
-			case GetterType.Object:
-				proto.getter = new GetObject(params[0]);
-				break;
-
-			case GetterType.ObjectArray:
-				proto.getter = new GetObjectArray(params[0]);
-				break;
-
-			case GetterType.Array:
-				proto.getter = new GetArray();
-				break;
-
-			case GetterType.Option:
-				proto.getter = new GetOption(params[0], params[1]);
-				break;
-		}
-	}
-}
-
-//@setter Annotation
-function setter(setterType: SetterType) {
-	return function (target) {
-		let proto: Field = target.prototype;
-		switch (setterType) {
-			case SetterType.Text:
-				proto.setter = new SetValue();
-				break;
-
-			case SetterType.CheckedValues:
-				proto.setter = new SetCheckedValues();
-				break;
-
-			case SetterType.Date:
-				proto.setter = new SetDateValue();
-				break;
-
-			case SetterType.DateTime:
-				proto.setter = new SetDateTimeValue();
-				break;
-
-			case SetterType.Option:
-				proto.setter = new SetOptionValue();
-				break;
-			case SetterType.Tag:
-				proto.setter = new SetTagValue();
-				break;
-		}
-	}
-}
-
-interface IFieldEventHandler {
+export interface IFieldEventHandler {
 	handleEvent(type: EventType, newValue: any, source?: string): Promise<any>;
 }
 
-interface LifecycleData {
+export interface LifecycleData {
 	data: any,
 	newData?: any,
 	cancel?: boolean,
 }
 
-interface UiActionEventData {
+export interface UiActionEventData {
 	name: string,
 	value: any
 }
@@ -253,7 +170,7 @@ interface FieldGet {
 	getValue(onlyChangedData: boolean): any;
 }
 
-interface FieldGetter {
+export interface FieldGetter {
 	getValue(field: Field, onlyChangedData: boolean): any;
 }
 
@@ -261,6 +178,6 @@ interface FieldSet {
 	setValue(value: any): Promise<any>;
 }
 
-interface FieldSetter {
+export interface FieldSetter {
 	setValue(field: Field, value: any): Promise<any>;
 }

@@ -1,10 +1,13 @@
-/// <reference path="../Field.ts" />
-/// <reference path="../FieldController.ts" />
-/// <reference path="../../../definitions/handlebars.d.ts" />
-/// <reference path="../../../definitions/common.d.ts" />
-/// <reference path="../Bootbox.ts" />
+declare var jira, Handlebars;
 
-class AttachmentField extends Field implements IFieldEventHandler {
+import { FieldController } from '../FieldController';
+import { JiraFileHandle } from '../EmailController';
+import { Field, IFieldEventHandler, LifecycleData, UiActionEventData } from '../Field';
+import { getter, setter } from '../Annotations';
+import { GetterType, SetterType, EventType } from '../Enumerations';
+import { Bootbox } from '../Bootbox';
+
+export class AttachmentField extends Field implements IFieldEventHandler {
     static defaultMeta: JiraMetaField = { key: FieldController.attachmentFieldId, get name() { return yasoon.i18n('dialog.attachment'); }, required: false, schema: { system: 'attachment', type: '' } };
 
     static uiActionRename = 'renameAttachment';

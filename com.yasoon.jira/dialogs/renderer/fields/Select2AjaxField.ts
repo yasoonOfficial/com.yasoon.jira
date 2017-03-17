@@ -1,7 +1,6 @@
-/// <reference path="../Field.ts" />
-/// <reference path="Select2Field.ts" />
-/// <reference path="../../../definitions/bluebird.d.ts" />
-abstract class Select2AjaxField extends Select2Field {
+import { Select2Field, Select2Element, Select2Options } from './Select2Field';
+
+export abstract class Select2AjaxField extends Select2Field {
 	options: any;
 	styleCss: string;
 	multiple: boolean;

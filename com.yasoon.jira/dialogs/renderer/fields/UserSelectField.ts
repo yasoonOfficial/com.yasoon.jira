@@ -1,13 +1,16 @@
-/// <reference path="../Field.ts" />
-/// <reference path="Select2AjaxField.ts" />
-/// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../../../definitions/common.d.ts" />
-/// <reference path="../getter/GetOption.ts" />
-/// <reference path="../setter/SetOptionValue.ts" />
+declare var jira;
+import { FieldController } from '../FieldController';
+import { IFieldEventHandler } from '../Field';
+import { getter, setter } from '../Annotations';
+import { GetterType, SetterType, EventType } from '../Enumerations';
+import { RecentItemController } from '../RecentItemController';
+import { Select2AjaxField } from './Select2AjaxField';
+import { Select2Element } from './Select2Field';
+import { ProjectField } from './ProjectField';
 
 @getter(GetterType.Option, "name", null)
 @setter(SetterType.Option)
-class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
+export class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
     static reporterDefaultMeta: JiraMetaField = { key: FieldController.onBehalfOfFieldId, get name() { return yasoon.i18n('dialog.behalfOf'); }, required: true, schema: { system: 'user', type: '' } };
     senderUser: JiraUser;
     ownUser: JiraUser;
@@ -29,8 +32,12 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
 
         //Init project
-        var projectField = <ProjectField>FieldController.getField(FieldController.projectFieldId);
-        this.currentProject = projectField.getObjectValue();
+        try {
+            var projectField = <ProjectField>FieldController.getField(FieldController.projectFieldId);
+            this.currentProject = projectField.getObjectValue();
+        } catch (e) {
+            yasoon.util.log("Init Project in UserPicker failed", yasoon.util.severity.error, getStackTrace(e));
+        }
 
         //Init sender user
         this.emailController.loadSenderPromise

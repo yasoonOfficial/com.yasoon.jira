@@ -1,18 +1,20 @@
-/// <reference path="../Field.ts" />
-/// <reference path="Select2AjaxField.ts" />
-/// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../../../definitions/common.d.ts" />
-/// <reference path="../getter/GetOption.ts" />
-/// <reference path="../setter/SetOptionValue.ts" />
-/// <reference path="../ServiceDeskController.ts" />
+declare var jira;
+import { FieldController } from '../FieldController';
+import { IFieldEventHandler } from '../Field';
+import { getter, setter } from '../Annotations';
+import { GetterType, SetterType, EventType } from '../Enumerations';
+import { RecentItemController } from '../RecentItemController';
+import { Select2Field, Select2Element, Select2Options } from './Select2Field';
+import { ServiceDeskUtil } from '../ServiceDeskUtil';
+import { Utilities, JiraIconController } from '../../Util';
 
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
-class RequestTypeField extends Select2Field implements IFieldEventHandler {
+export class RequestTypeField extends Select2Field implements IFieldEventHandler {
     static defaultMeta: JiraMetaField = { key: FieldController.requestTypeFieldId, get name() { return yasoon.i18n('dialog.requestType'); }, required: true, schema: { system: 'requesttype', type: '' } };
 
     private currentProject: JiraProject;
-    private serviceDeskController: ServiceDeskController;
+    private iconController: JiraIconController;
 
     constructor(id: string, field: JiraMetaField) {
         let options: Select2Options = {};
@@ -20,8 +22,7 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
         options.allowClear = false;
 
         super(id, field, options);
-
-        this.serviceDeskController = jira.serviceDeskController;
+        this.iconController = jira.icons;
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
     }
 
@@ -53,7 +54,7 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
 
         //Das klappt, aber bin zu blöd das Font Icon zu alignen.
         //if (requestType.icon - 10500 > 36) {
-        data.icon = jira.icons.mapIconUrl(jira.settings.baseUrl + '/servicedesk/customershim/secure/viewavatar?avatarType=SD_REQTYPE&avatarId=' + requestType.icon)
+        data.icon = this.iconController.mapIconUrl(jira.settings.baseUrl + '/servicedesk/customershim/secure/viewavatar?avatarType=SD_REQTYPE&avatarId=' + requestType.icon)
         // } else {
         //     data.iconClass = 'vp-rq-icon vp-rq-icon-' + (requestType.icon - 10500);
         // }
@@ -85,16 +86,16 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
             });
         });
 
-        result.sort(sortByText);
+        result.sort(Utilities.sortByText);
         return result;
     }
 
     setProject(project: JiraProject) {
         this.currentProject = project;
         this.showSpinner();
-        this.serviceDeskController.getServiceDeskKey(this.currentProject.id, this.currentProject.key)
+        ServiceDeskUtil.getServiceDeskKey(this.currentProject.id, this.currentProject.key)
             .then((serviceDeskKey) => {
-                return this.serviceDeskController.getRequestTypes(serviceDeskKey);
+                return ServiceDeskUtil.getRequestTypes(serviceDeskKey);
             })
             .then((requestTypes) => {
                 this.hideSpinner();
@@ -106,6 +107,4 @@ class RequestTypeField extends Select2Field implements IFieldEventHandler {
                 this.hideSpinner();
             });
     }
-
-
 }

@@ -1,10 +1,16 @@
-/// <reference path="../../definitions/moment.d.ts" />
+declare var jira;
+import { Field, IFieldEventHandler, UiActionEventData } from './Field';
+import { EventType } from './Enumerations';
+import { FieldController } from './FieldController';
+import { EmailController } from './EmailController';
+import { ProjectField } from './fields/ProjectField';
+import { UserSelectField } from './fields/UserSelectField';
+import { IssueTypeField } from './fields/IssueTypeField';
 
-class TemplateController implements IFieldEventHandler {
+export class TemplateController implements IFieldEventHandler {
     static settingGroupHierarchy = 'groups';
     static settingInitialSelection = 'initialSelection';
     static settingDefaultTemplates = 'defaultTemplates';
-
 
     private ownUser: JiraUser;
     private groupHierachy: YasoonGroupHierarchy[] = [];
@@ -17,6 +23,8 @@ class TemplateController implements IFieldEventHandler {
     type: JiraDialogType;
     emailContent: string = '';
     senderUser: JiraUser;
+    allTemplates: { [id: string]: YasoonDefaultTemplate[] } = {};
+    senderTemplates: YasoonDefaultTemplate[] = [];
 
     constructor(ownUser: JiraUser, emailController?: EmailController, type?: JiraDialogType) {
         this.ownUser = ownUser;
@@ -96,6 +104,16 @@ class TemplateController implements IFieldEventHandler {
         this.defaultTemplates = this.defaultTemplates.sort((a, b) => { return a.priority - b.priority; });
 
         FieldController.registerEvent(EventType.AfterRender, this);
+
+
+        //Load Email templates for sender             
+        let templateString = yasoon.setting.getAppParameter(EmailController.settingCreateTemplates);
+        if (templateString) {
+            this.allTemplates = JSON.parse(templateString) || {};
+            if (this.emailController.getSenderEmail())
+                this.senderTemplates = this.allTemplates[this.emailController.getSenderEmail()] || [];
+        }
+
     }
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
@@ -217,7 +235,7 @@ class TemplateController implements IFieldEventHandler {
         let namedTemplates = this.defaultTemplates.filter((t) => t.templateName);
         let senderTemplates = [];
         if (this.emailController) {
-            senderTemplates = this.emailController.senderTemplates;
+            senderTemplates = this.senderTemplates;
         }
 
         if (!this.loadTemplateSelectionPromise) {
@@ -272,6 +290,114 @@ class TemplateController implements IFieldEventHandler {
 
     containsVariable(value: string): boolean {
         return (value.indexOf && value.indexOf('<') === 0 && value.indexOf('>') > 0);
+    }
+
+
+    saveSenderTemplate(values: JiraIssue, project: JiraProject) {
+        if (this.emailController && this.emailController.mail) {
+            if (!project) {
+                console.error('Trying to save a senderTemplate without project');
+                return;
+            }
+
+            if (!this.emailController.getSenderEmail()) {
+                console.log('No sender email address.'); //Can happen e.g. on drafts
+                return;
+            }
+
+            let fields: any = {};
+            try {
+                //We want the templates to be the same as in the JIRA addon, so we cannot use the values.fields, as they use deep objects. e.g. reporter: { name: 'admin' }
+                //We need just reporter: 'admin', so we get all values again from the rendered Fields
+                for (let fieldId in values.fields) {
+                    if (fieldId != 'summary' && fieldId != 'description' && fieldId != 'duedate' && fieldId != 'project' && fieldId != 'issuetype') {
+                        try {
+                            fields[fieldId] = FieldController.getField(fieldId).getDomValue();
+                        } catch (e) {
+                            console.log('Couldnt get field ' + fieldId, e, e.stack);
+                        }
+                    }
+                }
+
+                //Now we would not default email values anymore, so we have to merge the last template with the variables of the selected template
+                let templateController: TemplateController = jira.templateController;
+                let currentTemplate = templateController.getTemplate(project.id, values.fields['issuetype'].id);
+                if (currentTemplate) {
+                    for (let fieldId in currentTemplate.fields) {
+                        if (templateController.containsVariable(currentTemplate.fields[fieldId])) {
+                            fields[fieldId] = currentTemplate.fields[fieldId];
+                        }
+                    }
+                }
+
+                let template: YasoonDefaultTemplate = {
+                    group: '-1',
+                    projectId: project.id,
+                    issueTypeId: values.fields['issuetype'].id,
+                    templateName: yasoon.i18n('dialog.project') + ': ' + project.name,
+                    priority: 4,
+                    fields: fields,
+                    lastUpdated: new Date().toISOString()
+                };
+
+                console.log('SenderTemplate', template);
+                //Harmonize fields
+                /*
+                //Service Desk Data
+                if (projectCopy.projectTypeKey === 'service_desk') {
+                    template.serviceDesk = {
+                        enabled: false,
+                        requestType: '100'
+                    };
+                }
+                */
+
+                //Add or replace template
+                let templateFound = -1;
+                this.senderTemplates.forEach((templ, index) => {
+                    if (templ.projectId == template.projectId) {
+                        templateFound = index;
+                    }
+                });
+                if (templateFound > -1) {
+                    this.senderTemplates.splice(templateFound, 1);
+                }
+                this.senderTemplates.push(template);
+
+                //Due to the save structure, check if there are too many entries is not so easy.
+                //Stucture is: { "senderMail": [ArrayOfTemplates]}
+                let counter = 0;
+                let senderMail = '';
+                let templateIndex = 0;
+                let lastUpdated: string = new Date(2099, 0, 1).toISOString();
+                for (let mail in this.allTemplates) {
+                    let currentTemplates = this.allTemplates[mail] || [];
+                    currentTemplates.forEach((t, index) => {
+                        counter++;
+                        if (lastUpdated > t.lastUpdated) {
+                            templateIndex = index;
+                            lastUpdated = t.lastUpdated;
+                            senderMail = mail;
+                        }
+                    });
+                }
+
+                if (counter > EmailController.settingMaxTemplates) {
+                    this.allTemplates[senderMail].splice(templateIndex, 1);
+                    if (this.allTemplates[senderMail].length === 0) {
+                        delete this.allTemplates[senderMail];
+                    }
+                }
+
+                this.allTemplates[this.emailController.getSenderEmail().toLowerCase()] = this.senderTemplates;
+                let data = JSON.stringify(this.allTemplates)
+                yasoon.setting.setAppParameter(EmailController.settingCreateTemplates, data);
+            } catch (e) {
+                //Saving the template should never interrupt saving...
+                yasoon.util.log('Error while saving sender template', yasoon.util.severity.warning, getStackTrace(e));
+                console.log('Error while saving sender template', e, e.stack);
+            }
+        }
     }
 
     private getFixedValue(value: string, field: Field): Promise<any> {
