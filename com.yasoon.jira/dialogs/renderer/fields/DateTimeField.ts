@@ -1,11 +1,13 @@
-/// <reference path="../Field.ts" />
-/// <reference path="../getter/GetTextValue.ts" />
-/// <reference path="../setter/SetDateTimeValue.ts" />
-/// <reference path="../../../definitions/moment.d.ts" />
+declare var moment;
+
+import { FieldController } from '../FieldController';
+import { Field, IFieldEventHandler } from '../Field';
+import { getter, setter } from '../Annotations';
+import { GetterType, SetterType, EventType } from '../Enumerations';
 
 @getter(GetterType.Text)
 @setter(SetterType.DateTime)
-class DateTimeField extends Field {
+export class DateTimeField extends Field {
 
 	getDomValue(): string {
 		let date = $('#' + this.id)["datetimepicker"]("getValue");

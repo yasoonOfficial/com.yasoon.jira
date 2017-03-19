@@ -1,12 +1,13 @@
-/// <reference path="../Field.ts" />
-/// <reference path="Select2AjaxField.ts" />
-/// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../../../definitions/common.d.ts" />
-/// <reference path="../getter/GetOption.ts" />
-/// <reference path="../setter/SetOptionValue.ts" />
-/// <reference path="IssueField.ts" />
+import { FieldController } from '../FieldController';
+import { Field, IFieldEventHandler, LifecycleData } from '../Field';
+import { getter, setter } from '../Annotations';
+import { EventType } from '../Enumerations';
+import { JiraSelectField } from './JiraSelectField';
+import { IssueField } from './IssueField';
+import { ProjectField } from './ProjectField';
+import { JiraMetaField, JiraProject, JiraValue, JiraIssueLinkTypes, JiraIssue, JiraIssueLinkCreate, JiraSentObj } from '../JiraModels';
 
-class LinkedIssueField extends Field implements IFieldEventHandler {
+export class LinkedIssueField extends Field implements IFieldEventHandler {
 
     blocksMeta: JiraMetaField = {
         required: false,
@@ -18,7 +19,7 @@ class LinkedIssueField extends Field implements IFieldEventHandler {
     };
 
     currentProject: JiraProject;
-    blocksField: Select2Field;
+    blocksField: JiraSelectField;
     issueField: IssueField;
     constructor(id: string, field: JiraMetaField, options: any = {}) {
         super(id, field, options);

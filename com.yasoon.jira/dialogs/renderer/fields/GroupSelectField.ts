@@ -1,13 +1,15 @@
-/// <reference path="../Field.ts" />
-/// <reference path="Select2AjaxField.ts" />
-/// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../../../definitions/common.d.ts" />
-/// <reference path="../getter/GetOption.ts" />
-/// <reference path="../setter/SetOptionValue.ts" />
+declare var jira;
+import { FieldController } from '../FieldController';
+import { Field } from '../Field';
+import { getter, setter } from '../Annotations';
+import { GetterType, SetterType, EventType } from '../Enumerations';
+import { Select2AjaxField } from './Select2AjaxField';
+import { Select2Element, Select2Options } from './Select2Field';
+import { JiraMetaField, JiraGroup, JiraGroups } from '../JiraModels';
 
 @getter(GetterType.Option, "name", null)
 @setter(SetterType.Option)
-class GroupSelectField extends Select2AjaxField {
+export class GroupSelectField extends Select2AjaxField {
     constructor(id: string, field: JiraMetaField, options: { multiple: boolean } = { multiple: false }) {
         let select2Options: Select2Options = {};
         if (!options.multiple) {

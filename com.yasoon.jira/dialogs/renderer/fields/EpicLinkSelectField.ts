@@ -1,11 +1,14 @@
-/// <reference path="../Field.ts" />
-/// <reference path="Select2AjaxField.ts" />
-/// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../../../definitions/common.d.ts" />
-/// <reference path="../setter/SetOptionValue.ts" />
+declare var jira;
+import { FieldController } from '../FieldController';
+import { IFieldEventHandler, LifecycleData } from '../Field';
+import { setter } from '../Annotations';
+import { SetterType, EventType } from '../Enumerations';
+import { Select2AjaxField } from './Select2AjaxField';
+import { Select2Element } from './Select2Field';
+import { JiraIssueType, JiraMetaField, Jira6Epics, Jira7Epics, JiraEpic } from '../JiraModels';
 
 @setter(SetterType.Option)
-class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler {
+export class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler {
 
     private currentIssueType: JiraIssueType;
 

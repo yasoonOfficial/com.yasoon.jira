@@ -1,10 +1,11 @@
-/// <reference path="../Field.ts" />
-/// <reference path="../getter/GetTextValue.ts" />
-/// <reference path="../setter/SetValue.ts" />
+import { FieldController } from '../FieldController';
+import { Field } from '../Field';
+import { getter, setter } from '../Annotations';
+import { GetterType, SetterType, EventType } from '../Enumerations';
 
 @getter(GetterType.Text)
 @setter(SetterType.Text)
-class SingleTextField extends Field {
+export class SingleTextField extends Field {
 
 	getDomValue(): string {
 		return $('#' + this.id).val();

@@ -1,11 +1,11 @@
 import { Field, FieldSetter } from '../Field';
-import { Select2Field } from '../fields/Select2Field';
+import { Select2Field, Select2Element } from '../fields/Select2Field';
 
 export class SetOptionValue implements FieldSetter {
     setValue(field: Field, value: any): Promise<any> {
         let selectField = <Select2Field>field;
         if (!field.isRendered()) {
-            //Not rendered, nothing to do... will be called with field.initialValue again
+            //Not rendered, nothing to do... will be, called with field.initialValue again
             return;
         }
 

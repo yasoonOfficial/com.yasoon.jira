@@ -1,13 +1,14 @@
-/// <reference path="../Field.ts" />
-/// <reference path="Select2AjaxField.ts" />
-/// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../getter/GetArray.ts" />
-/// <reference path="../setter/SetTagValue.ts" />
-/// <reference path="../../../definitions/common.d.ts" />
+import { FieldController } from '../FieldController';
+import { IFieldEventHandler } from '../Field';
+import { Select2AjaxField } from './Select2AjaxField';
+import { Select2Element } from './Select2Field';
+import { getter, setter } from '../Annotations';
+import { GetterType, SetterType, EventType } from '../Enumerations';
+import { JiraMetaField, JiraLabel } from '../JiraModels';
 
 @getter(GetterType.Array)
 @setter(SetterType.Tag)
-class LabelSelectField extends Select2AjaxField {
+export class LabelSelectField extends Select2AjaxField {
 
     private lastSearchTerm: string;
     private emptyData: Promise<Select2Element[]>;

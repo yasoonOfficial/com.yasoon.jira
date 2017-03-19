@@ -7,8 +7,8 @@ import { Select2AjaxField } from './Select2AjaxField';
 import { RecentItemController } from '../RecentItemController';
 import { EmailController } from '../EmailController';
 import { Select2Element, Select2Options } from './Select2Field';
-import { JiraIconController } from '../../Util';
-import { JiraMetaField, JiraProject, JiraJqlResult, JiraIssue } from '../JiraModels';
+import { JiraIconController } from '../IconController';
+import { JiraMetaField, JiraProject, JiraJqlResult, JiraIssue, JiraIssueType } from '../JiraModels';
 
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
@@ -20,7 +20,6 @@ export class IssueField extends Select2AjaxField implements IFieldEventHandler {
     private recentItems: RecentItemController;
     private getProjectIssues: Promise<Select2Element[]>;
     private emailController: EmailController;
-    private iconController: JiraIconController;
 
     constructor(id: string, field: JiraMetaField, params: any = { excludeSubtasks: false, multiple: false }) {
         let options: Select2Options = {};
@@ -35,7 +34,6 @@ export class IssueField extends Select2AjaxField implements IFieldEventHandler {
         this.excludeSubtasks = params.excludeSubtasks;
         this.recentItems = jira.recentItems;
         this.emailController = jira.emailController;
-        this.iconController = jira.icons;
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
     }
 
@@ -190,7 +188,7 @@ export class IssueField extends Select2AjaxField implements IFieldEventHandler {
         }
         if (issue.fields && issue.fields['issuetype']) {
             var issuetype: JiraIssueType = issue.fields['issuetype'];
-            icon = jira.icons.mapIconUrl(issuetype.iconUrl);
+            icon = JiraIconController.mapIconUrl(issuetype.iconUrl);
         }
 
         return {

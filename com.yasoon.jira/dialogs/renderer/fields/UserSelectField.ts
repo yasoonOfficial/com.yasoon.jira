@@ -7,6 +7,8 @@ import { RecentItemController } from '../RecentItemController';
 import { Select2AjaxField } from './Select2AjaxField';
 import { Select2Element } from './Select2Field';
 import { ProjectField } from './ProjectField';
+import { EmailController } from '../EmailController';
+import { JiraMetaField, JiraUser, JiraProject, } from '../JiraModels';
 
 @getter(GetterType.Option, "name", null)
 @setter(SetterType.Option)

@@ -1,5 +1,6 @@
 import { Field, FieldGetter } from '../Field';
 import { Select2Field } from '../fields/Select2Field';
+import { Utilities } from '../../Util';
 
 export class GetOption implements FieldGetter {
     keyName: string;
@@ -33,7 +34,7 @@ export class GetOption implements FieldGetter {
                 //If length the same and all values match, we do not need to send anything            
                 if (field.initialValue && field.initialValue.length === convertedValues.length) {
                     let isSame: boolean = field.initialValue.every((c) => {
-                        return findWithAttr(convertedValues, this.keyName, c[this.keyName]) > -1;
+                        return Utilities.findWithAttr(convertedValues, this.keyName, c[this.keyName]) > -1;
                     });
 
                     if (isSame)

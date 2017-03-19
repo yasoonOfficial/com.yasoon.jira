@@ -1,10 +1,13 @@
-/// <reference path="../Field.ts" />
-/// <reference path="Select2Field.ts" />
-/// <reference path="../../../definitions/bluebird.d.ts" />
-/// <reference path="../setter/SetOptionValue.ts" />
+declare var jira;
+import { FieldController } from '../FieldController';
+import { IFieldEventHandler, LifecycleData } from '../Field';
+import { setter } from '../Annotations';
+import { GetterType, SetterType, EventType } from '../Enumerations';
+import { Select2Field, Select2Element } from './Select2Field';
+import { JiraIssueType, JiraMetaField, JiraSprint, JiraSprints } from '../JiraModels';
 
 @setter(SetterType.Option)
-class SprintSelectField extends Select2Field implements IFieldEventHandler {
+export class SprintSelectField extends Select2Field implements IFieldEventHandler {
 
     private currentIssueType: JiraIssueType;
 

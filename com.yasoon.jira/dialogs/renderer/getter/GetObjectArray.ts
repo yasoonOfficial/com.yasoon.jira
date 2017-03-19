@@ -1,4 +1,5 @@
 import { Field, FieldGetter } from '../Field';
+import { Utilities } from '../../Util';
 
 export class GetObjectArray implements FieldGetter {
     keyName: string;
@@ -18,7 +19,7 @@ export class GetObjectArray implements FieldGetter {
             //If length the same and all values match, we do not need to send anything            
             if (field.initialValue && field.initialValue.length === newValue.length) {
                 let isSame = field.initialValue.every((c) => {
-                    return findWithAttr(newValue, this.keyName, c[this.keyName]) > -1;
+                    return Utilities.findWithAttr(newValue, this.keyName, c[this.keyName]) > -1;
                 });
 
                 if (isSame)

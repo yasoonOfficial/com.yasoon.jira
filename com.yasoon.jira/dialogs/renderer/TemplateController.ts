@@ -6,6 +6,8 @@ import { EmailController } from './EmailController';
 import { ProjectField } from './fields/ProjectField';
 import { UserSelectField } from './fields/UserSelectField';
 import { IssueTypeField } from './fields/IssueTypeField';
+import { Bootbox } from './Bootbox';
+import { JiraUser, YasoonGroupHierarchy, YasoonDefaultTemplate, YasoonInitialSelection, JiraDialogType, JiraIssue, JiraProject } from './JiraModels';
 
 export class TemplateController implements IFieldEventHandler {
     static settingGroupHierarchy = 'groups';

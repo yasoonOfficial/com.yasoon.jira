@@ -6,7 +6,9 @@ import { GetterType, SetterType, EventType } from '../Enumerations';
 import { RecentItemController } from '../RecentItemController';
 import { Select2Field, Select2Element, Select2Options } from './Select2Field';
 import { ServiceDeskUtil } from '../ServiceDeskUtil';
-import { Utilities, JiraIconController } from '../../Util';
+import { Utilities } from '../../Util';
+import { JiraIconController } from '../IconController';
+import { JiraMetaField, JiraProject, JiraRequestType } from '../JiraModels';
 
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
@@ -14,7 +16,6 @@ export class RequestTypeField extends Select2Field implements IFieldEventHandler
     static defaultMeta: JiraMetaField = { key: FieldController.requestTypeFieldId, get name() { return yasoon.i18n('dialog.requestType'); }, required: true, schema: { system: 'requesttype', type: '' } };
 
     private currentProject: JiraProject;
-    private iconController: JiraIconController;
 
     constructor(id: string, field: JiraMetaField) {
         let options: Select2Options = {};
@@ -22,7 +23,6 @@ export class RequestTypeField extends Select2Field implements IFieldEventHandler
         options.allowClear = false;
 
         super(id, field, options);
-        this.iconController = jira.icons;
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
     }
 
@@ -54,7 +54,7 @@ export class RequestTypeField extends Select2Field implements IFieldEventHandler
 
         //Das klappt, aber bin zu blöd das Font Icon zu alignen.
         //if (requestType.icon - 10500 > 36) {
-        data.icon = this.iconController.mapIconUrl(jira.settings.baseUrl + '/servicedesk/customershim/secure/viewavatar?avatarType=SD_REQTYPE&avatarId=' + requestType.icon)
+        data.icon = JiraIconController.mapIconUrl(jira.settings.baseUrl + '/servicedesk/customershim/secure/viewavatar?avatarType=SD_REQTYPE&avatarId=' + requestType.icon)
         // } else {
         //     data.iconClass = 'vp-rq-icon vp-rq-icon-' + (requestType.icon - 10500);
         // }

@@ -1,4 +1,7 @@
-/// <reference path="../Field.ts" />
+import { FieldController } from '../FieldController';
+import { Field } from '../Field';
+import { SingleTextField } from './SingleTextField';
+import { JiraMetaField, JiraTimetrackingValue } from '../JiraModels';
 
 class TimeTrackingField extends Field {
 	private origField: SingleTextField;

@@ -1,10 +1,11 @@
-/// <reference path="../Field.ts" />
-/// <reference path="../getter/GetObjectArray.ts" />
-/// <reference path="../setter/SetCheckedValues.ts" />
+import { FieldController } from '../FieldController';
+import { Field, IFieldEventHandler } from '../Field';
+import { getter, setter } from '../Annotations';
+import { GetterType, SetterType, EventType } from '../Enumerations';
 
 @getter(GetterType.ObjectArray, "id")
 @setter(SetterType.CheckedValues)
-class CheckboxField extends Field {
+export class CheckboxField extends Field {
 
     getDomValue(): any {
         let checkedValues = [];

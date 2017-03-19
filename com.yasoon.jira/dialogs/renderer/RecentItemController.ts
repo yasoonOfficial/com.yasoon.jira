@@ -1,4 +1,5 @@
 import { Field, IFieldEventHandler } from './Field';
+import { JiraUser, JiraIssue, JiraProject } from './JiraModels';
 import { EventType } from './Enumerations';
 import { FieldController } from './FieldController';
 

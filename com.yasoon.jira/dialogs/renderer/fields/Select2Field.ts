@@ -1,6 +1,7 @@
 import { Field } from '../Field';
 import { EventType } from '../Enumerations';
 import { FieldController } from '../FieldController';
+import { JiraMetaField } from '../JiraModels';
 
 export abstract class Select2Field extends Field {
 	options: Select2Options;

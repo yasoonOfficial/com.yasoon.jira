@@ -1,6 +1,7 @@
 import { Field, IFieldEventHandler, UiActionEventData } from './Field';
 import { EventType } from './Enumerations';
 import { FieldController } from './FieldController';
+import { JiraProject, JiraRequestType, JiraServiceDeskKey, JiraRequestTypeFieldMeta } from './JiraModels';
 import { UserSelectField } from './fields/UserSelectField';
 import { RequestTypeField } from './fields/RequestTypeField';
 import { IssueTypeField } from './fields/IssueTypeField';

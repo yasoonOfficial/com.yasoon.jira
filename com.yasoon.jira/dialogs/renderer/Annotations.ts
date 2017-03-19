@@ -1,4 +1,15 @@
 import { GetterType, SetterType } from './Enumerations';
+import { GetTextValue } from './getter/GetTextValue';
+import { GetObject } from './getter/GetObject';
+import { GetObjectArray } from './getter/GetObjectArray';
+import { GetOption } from './getter/GetOption';
+import { GetArray } from './getter/GetArray';
+import { SetCheckedValues } from './setter/SetCheckedValues';
+import { SetDateTimeValue } from './setter/SetDateTimeValue';
+import { SetDateValue } from './setter/SetDateValue';
+import { SetOptionValue } from './setter/SetOptionValue';
+import { SetTagValue } from './setter/SetTagValue';
+import { SetValue } from './setter/SetValue';
 import { Field } from './Field';
 
 //@getter Annotation

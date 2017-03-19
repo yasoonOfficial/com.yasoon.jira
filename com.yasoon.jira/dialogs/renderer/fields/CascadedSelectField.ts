@@ -1,8 +1,10 @@
-/// <reference path="../Field.ts" />
-/// <reference path="Select2Field.ts" />
-/// <reference path="../../../definitions/common.d.ts" />
+import { FieldController } from '../FieldController';
+import { Field, IFieldEventHandler } from '../Field';
+import { EventType } from '../Enumerations';
+import { JiraMetaField, JiraSentObj } from '../JiraModels';
+import { JiraSelectField } from './JiraSelectField';
 
-class CascadedSelectField extends Field implements IFieldEventHandler {
+export class CascadedSelectField extends Field implements IFieldEventHandler {
     private parentField: JiraSelectField;
     private childField: JiraSelectField;
 

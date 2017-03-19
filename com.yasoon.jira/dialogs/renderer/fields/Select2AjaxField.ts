@@ -1,4 +1,5 @@
 import { Select2Field, Select2Element, Select2Options } from './Select2Field';
+import { JiraMetaField } from '../JiraModels';
 
 export abstract class Select2AjaxField extends Select2Field {
 	options: any;

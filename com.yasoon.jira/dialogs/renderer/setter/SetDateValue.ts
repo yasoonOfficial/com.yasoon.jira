@@ -1,3 +1,4 @@
+declare var moment;
 import { Field, FieldSetter } from '../Field';
 
 export class SetDateValue implements FieldSetter {

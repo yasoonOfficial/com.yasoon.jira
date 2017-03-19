@@ -1,7 +1,9 @@
-/// <reference path="../Field.ts" />
-/// <reference path="Select2Field.ts" />
-/// <reference path="../getter/GetOption.ts" />
-/// <reference path="../setter/SetOptionValue.ts" />
+import { FieldController } from '../FieldController';
+import { getter, setter } from '../Annotations';
+import { GetterType, SetterType, EventType } from '../Enumerations';
+import { Select2Field, Select2Element } from './Select2Field';
+import { JiraMetaField, JiraVersion, JiraValue } from '../JiraModels';
+import { JiraIconController } from '../IconController';
 
 @getter(GetterType.Option, "id", null)
 @setter(SetterType.Option)
@@ -62,7 +64,7 @@ class VersionSelectField extends Select2Field {
         };
 
         if (version.iconUrl) {
-            result.icon = jira.icons.mapIconUrl(version.iconUrl);
+            result.icon = JiraIconController.mapIconUrl(version.iconUrl);
         }
 
         return result;

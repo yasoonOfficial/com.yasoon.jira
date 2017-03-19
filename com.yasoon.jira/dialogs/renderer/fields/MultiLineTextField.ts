@@ -1,7 +1,13 @@
-/// <reference path="../Field.ts" />
-/// <reference path="../getter/GetTextValue.ts" />
-/// <reference path="../setter/SetValue.ts" />
-/// <reference path="../Bootbox.ts" />
+declare var jira;
+import { FieldController } from '../FieldController';
+import { Field, IFieldEventHandler, UiActionEventData } from '../Field';
+import { getter, setter } from '../Annotations';
+import { GetterType, SetterType, EventType } from '../Enumerations';
+import { JiraMetaField, JiraProject, JiraIssue, JiraUser } from '../JiraModels';
+import { EmailController } from '../EmailController';
+import { AttachmentField } from './AttachmentField';
+import { Bootbox } from '../Bootbox';
+import { Utilities } from '../../Util';
 
 interface MultiLineTextFieldOptions {
     isMainField?: boolean;
@@ -10,7 +16,7 @@ interface MultiLineTextFieldOptions {
 
 @getter(GetterType.Text)
 @setter(SetterType.Text)
-class MultiLineTextField extends Field implements IFieldEventHandler {
+export class MultiLineTextField extends Field implements IFieldEventHandler {
     static defaultCommentMeta: JiraMetaField = { key: FieldController.commentFieldId, get name() { return yasoon.i18n('dialog.comment'); }, required: false, schema: { system: 'description', type: '' } };
 
     private isMainField: boolean;
@@ -106,7 +112,7 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
                     markup = '[^' + eventData.value.fileName + ']\n'
                 }
 
-                insertAtCursor($('#' + this.id)[0], markup);
+                Utilities.insertAtCursor($('#' + this.id)[0], markup);
             }
         } else if (type === EventType.FieldChange) {
             if (source === FieldController.projectFieldId) {

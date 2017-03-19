@@ -1,20 +1,18 @@
-/// <reference path="../Field.ts" />
-/// <reference path="../FieldController.ts" />
-/// <reference path="Select2AjaxField.ts" />
-/// <reference path="../../../definitions/common.d.ts" />
-/// <reference path="../getter/GetTextValue.ts" />
-/// <reference path="../setter/SetOptionValue.ts" />
+declare var jira;
+import { getter, setter } from '../Annotations';
+import { GetterType, SetterType, EventType } from '../Enumerations';
+import { Select2Field, Select2Options, Select2Element } from './Select2Field';
+import { JiraOrganization, JiraMetaField, JiraOrganizationResult } from '../JiraModels';
+import { ServiceDeskUtil } from '../ServiceDeskUtil';
 
 @getter(GetterType.Text)
 @setter(SetterType.Option)
-class OrganizationField extends Select2Field {
+export class OrganizationField extends Select2Field {
     getOrganizationsPromise: Promise<JiraOrganization[]>;
-    serviceDeskController: ServiceDeskController;
     constructor(id: string, field: JiraMetaField, options: Select2Options = {}) {
         options.multiple = true;
         options.allowClear = true;
         super(id, field, options, true);
-        this.serviceDeskController = jira.serviceDeskController;
         this.init();
     }
 
@@ -50,7 +48,7 @@ class OrganizationField extends Select2Field {
     }
 
     async getData() {
-        let serviceDeskKey = await this.serviceDeskController.getCurrentServiceDeskKey();
+        let serviceDeskKey = await ServiceDeskUtil.getCurrentServiceDeskKey(jira.currentProject);
         this.getOrganizationsPromise = jiraGetAll('/rest/servicedeskapi/servicedesk/' + serviceDeskKey.id + '/organization')
             .then((organizations: JiraOrganizationResult) => {
                 return organizations.values.sort((a, b) => { return (a.name.toLowerCase() > b.name.toLowerCase()) ? 1 : -1 });

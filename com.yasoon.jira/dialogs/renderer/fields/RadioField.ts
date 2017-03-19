@@ -1,10 +1,11 @@
-/// <reference path="../Field.ts" />
-/// <reference path="../getter/GetObject.ts" />
-/// <reference path="../setter/SetCheckedValues.ts" />
+import { FieldController } from '../FieldController';
+import { Field } from '../Field';
+import { getter, setter } from '../Annotations';
+import { GetterType, SetterType, EventType } from '../Enumerations';
 
 @getter(GetterType.Object, "id")
 @setter(SetterType.CheckedValues)
-class RadioField extends Field {
+export class RadioField extends Field {
 
     getDomValue(): any {
         return $(this.ownContainer).find('input:checked').first().val();

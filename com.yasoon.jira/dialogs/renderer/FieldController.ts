@@ -1,6 +1,7 @@
 declare var jira: any; //Legacy
 
 import { Field, IFieldEventHandler } from './Field';
+import { JiraMetaField } from './JiraModels';
 import { EventType } from './Enumerations';
 
 export namespace FieldController {

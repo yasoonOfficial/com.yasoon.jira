@@ -1,16 +1,17 @@
-/// <reference path="../Field.ts" />
-/// <reference path="Select2Field.ts" />
-/// <reference path="../getter/GetOption.ts" />
-/// <reference path="../setter/SetOptionValue.ts" />
+import { FieldController } from '../FieldController';
+import { IFieldEventHandler } from '../Field';
+import { Select2Field, Select2Element } from './Select2Field';
+import { getter, setter } from '../Annotations';
+import { GetterType, SetterType, EventType } from '../Enumerations';
+import { JiraValue, JiraMetaField } from '../JiraModels';
+import { JiraIconController } from '../IconController';
 
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
-class JiraSelectField extends Select2Field {
-    private iconController: JiraIconController;
+export class JiraSelectField extends Select2Field {
     constructor(id: string, field: JiraMetaField, options: any = { multiple: false }, style: string = 'min-width: 350px; width: 80%;') {
 
         super(id, field, options, options.multiple, style);
-        this.iconController = jira.icons;
         this.init();
     }
 
@@ -31,7 +32,7 @@ class JiraSelectField extends Select2Field {
         };
 
         if (obj.iconUrl) {
-            result.icon = jira.icons.mapIconUrl(obj.iconUrl);
+            result.icon = JiraIconController.mapIconUrl(obj.iconUrl);
         }
 
         return result;

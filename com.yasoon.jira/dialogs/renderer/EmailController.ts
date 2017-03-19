@@ -1,6 +1,7 @@
 /// <reference path="../../definitions/yasoon.d.ts" />
 declare var jira;
 import { Field, IFieldEventHandler, UiActionEventData, LifecycleData } from './Field';
+import { JiraUser, JiraDialogType, YasoonConversationData, JiraIssue } from './JiraModels';
 import { EventType } from './Enumerations';
 import { FieldController } from './FieldController';
 

@@ -1,7 +1,9 @@
-/// <reference path="../../JiraSelectField.ts" />
-/// <reference path="InsightBaseField.ts" />
+import { InsightBaseField, InsightObject } from './InsightBaseField';
+import { JiraMetaField } from '../../../JiraModels';
+import { Select2Element } from '../../Select2Field';
 
-class InsightObjectField extends InsightBaseField {
+
+export class InsightObjectField extends InsightBaseField {
     constructor(id: string, field: JiraMetaField, options: any = {}) {
         super(id, field, options);
     }

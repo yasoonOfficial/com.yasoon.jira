@@ -1,4 +1,6 @@
 import { EventType } from './Enumerations';
+import { FieldController } from './FieldController';
+import { JiraMetaField } from './JiraModels';
 
 export abstract class Field implements FieldGet, FieldSet {
 	public id: string;

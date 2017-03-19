@@ -8,6 +8,7 @@ import { RecentItemController } from '../RecentItemController';
 import { Select2Field, Select2Element, Select2Options } from './Select2Field';
 import { EmailController } from '../EmailController';
 import { TemplateController } from '../TemplateController';
+import { JiraProject, JiraMetaField, YasoonConversationData, YasoonConversationIssue } from '../JiraModels';
 
 export interface ProjectFieldOptions {
     cache?: JiraProject[];

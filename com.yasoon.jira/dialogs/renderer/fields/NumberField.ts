@@ -1,10 +1,10 @@
-/// <reference path="../Field.ts" />
-/// <reference path="../getter/GetTextValue.ts" />
-/// <reference path="../setter/SetValue.ts" />
+import { Field } from '../Field';
+import { getter, setter } from '../Annotations';
+import { GetterType, SetterType } from '../Enumerations';
 
 @getter(GetterType.Text)
 @setter(SetterType.Text)
-class NumberField extends Field {
+export class NumberField extends Field {
 
 	getDomValue(): number {
 		var domValue = $('#' + this.id).val();

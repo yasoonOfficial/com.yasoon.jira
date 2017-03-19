@@ -1,3 +1,5 @@
+import { JiraRequestType, JiraServiceDeskKey, JiraRequestTypeGroup, JiraProject, JiraRequestTypeFieldMeta, JiraServiceDeskData } from './JiraModels';
+
 export class ServiceDeskUtil {
     private static serviceDeskVersion: string;
     private static requestTypes: { [id: string]: JiraRequestType[] } = {};

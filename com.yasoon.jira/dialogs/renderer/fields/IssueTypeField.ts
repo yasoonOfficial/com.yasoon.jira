@@ -9,7 +9,8 @@ import { Select2Field, Select2Element, Select2Options } from './Select2Field';
 import { ServiceDeskUtil } from '../ServiceDeskUtil';
 import { UserSelectField } from './UserSelectField';
 import { RequestTypeField } from './RequestTypeField';
-import { JiraIconController } from '../../Util';
+import { JiraIconController } from '../IconController';
+import { JiraMetaField, JiraProject, JiraIssueType, JiraRequestType } from '../JiraModels';
 
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
@@ -20,7 +21,6 @@ export class IssueTypeField extends Select2Field implements IFieldEventHandler {
     private currentProject: JiraProject;
     private initialId: string;
     private emailController: EmailController;
-    private iconController: JiraIconController;
 
     constructor(id: string, field: JiraMetaField) {
         let options: Select2Options = {};
@@ -29,7 +29,6 @@ export class IssueTypeField extends Select2Field implements IFieldEventHandler {
 
         super(id, field, options);
         this.emailController = jira.emailController;
-        this.iconController = jira.icons;
 
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.requestTypeFieldId);
@@ -73,7 +72,7 @@ export class IssueTypeField extends Select2Field implements IFieldEventHandler {
         return {
             id: issueType.id,
             text: issueType.name,
-            icon: jira.icons.mapIconUrl(issueType.iconUrl),
+            icon: JiraIconController.mapIconUrl(issueType.iconUrl),
             data: issueType
         };
     }

@@ -6,6 +6,7 @@ import { Field, IFieldEventHandler, LifecycleData, UiActionEventData } from '../
 import { getter, setter } from '../Annotations';
 import { GetterType, SetterType, EventType } from '../Enumerations';
 import { Bootbox } from '../Bootbox';
+import { JiraMetaField } from '../JiraModels';
 
 export class AttachmentField extends Field implements IFieldEventHandler {
     static defaultMeta: JiraMetaField = { key: FieldController.attachmentFieldId, get name() { return yasoon.i18n('dialog.attachment'); }, required: false, schema: { system: 'attachment', type: '' } };

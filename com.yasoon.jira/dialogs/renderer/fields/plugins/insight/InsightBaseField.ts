@@ -1,5 +1,15 @@
+declare var jira;
+import { FieldController } from '../../../FieldController';
+import { IFieldEventHandler } from '../../../Field';
+import { setter } from '../../../Annotations';
+import { SetterType, EventType } from '../../../Enumerations';
+import { JiraProject, JiraUser, JiraMetaField } from '../../../JiraModels';
+import { Select2AjaxField } from '../../Select2AjaxField';
+import { ProjectField } from '../../ProjectField';
+import { Utilities } from '../../../../Util';
+
 @setter(SetterType.Option)
-abstract class InsightBaseField extends Select2AjaxField implements IFieldEventHandler {
+export abstract class InsightBaseField extends Select2AjaxField implements IFieldEventHandler {
     currentProject: JiraProject;
 
     currentIssueId: string = '';
@@ -48,7 +58,7 @@ abstract class InsightBaseField extends Select2AjaxField implements IFieldEventH
             //If length the same and all values match, we do not need to send anything            
             if (this.initialValue && this.initialValue.length === convertedValues.length) {
                 let isSame: boolean = this.initialValue.every((c) => {
-                    return findWithAttr(convertedValues, 'key', c['key']) > -1;
+                    return Utilities.findWithAttr(convertedValues, 'key', c['key']) > -1;
                 });
 
                 if (isSame)
@@ -71,7 +81,7 @@ abstract class InsightBaseField extends Select2AjaxField implements IFieldEventH
 }
 
 
-interface InsightObject {
+export interface InsightObject {
     id: number;
     name: string;
     objectKey?: string;
@@ -85,7 +95,7 @@ interface InsightObject {
     }
 }
 
-interface InsightAvatars {
+export interface InsightAvatars {
     url16?: string;
     url48?: string;
     url72?: string;
@@ -94,7 +104,7 @@ interface InsightAvatars {
     objectId?: number;
 }
 
-interface InsightObjectType {
+export interface InsightObjectType {
     id: number;
     name: string;
     type: number;
@@ -107,7 +117,7 @@ interface InsightObjectType {
     objectSchemaId?: number;
 }
 
-interface InsightIcon {
+export interface InsightIcon {
     id: number;
     name: string;
     url16?: string;
