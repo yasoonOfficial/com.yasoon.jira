@@ -1,11 +1,15 @@
-/// <reference path="../../../Field.ts" />
-/// <reference path="../../Select2AjaxField.ts" />
-/// <reference path="../../../../../definitions/common.d.ts" />
-/// <reference path="../../../../../definitions/bluebird.d.ts" />
-/// <reference path="../../../getter/GetTextValue.ts" />
-/// <reference path="../../../setter/SetOptionValue.ts" />
+declare var jira;
+import { FieldController } from '../../../FieldController';
+import { IFieldEventHandler } from '../../../Field';
+import { EventType, GetterType, SetterType } from '../../../Enumerations';
+import { getter, setter } from '../../../Annotations';
+import { JiraValue, JiraUser, JiraMetaField } from '../../../JiraModels';
+import { Select2Field, Select2Element, Select2Options } from '../../Select2Field';
+import { Utilities } from '../../../../Util';
+import { AjaxService } from '../../../../AjaxService';
 
-interface TempoAccount {
+
+export interface TempoAccount {
     id: number;
     key: string;
     name: string;
@@ -15,9 +19,10 @@ interface TempoAccount {
     lead?: JiraUser;
     leadAvatar?: string;
 }
+
 @getter(GetterType.Text)
 @setter(SetterType.Option)
-class TempoAccountField extends Select2Field {
+export class TempoAccountField extends Select2Field {
     getAccountPromise: Promise<any>;
     constructor(id: string, field: JiraMetaField, options: Select2Options = {}) {
         options.placeholder = yasoon.i18n('dialog.selectNone');
@@ -58,8 +63,8 @@ class TempoAccountField extends Select2Field {
 
     getData() {
         this.getAccountPromise = Promise.all([
-            jiraGet('/rest/tempo-accounts/1/account'),
-            jiraGet('/rest/tempo-accounts/1/account/project/' + jira.selectedProject.id)
+            AjaxService.get('/rest/tempo-accounts/1/account'),
+            AjaxService.get('/rest/tempo-accounts/1/account/project/' + jira.selectedProject.id)
         ])
             .spread((accountDataString: string, projectAccountsString: string) => {
                 let accountData: TempoAccount[] = JSON.parse(accountDataString);

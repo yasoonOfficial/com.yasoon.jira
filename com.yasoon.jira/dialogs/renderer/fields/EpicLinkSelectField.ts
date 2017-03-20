@@ -6,6 +6,8 @@ import { SetterType, EventType } from '../Enumerations';
 import { Select2AjaxField } from './Select2AjaxField';
 import { Select2Element } from './Select2Field';
 import { JiraIssueType, JiraMetaField, Jira6Epics, Jira7Epics, JiraEpic } from '../JiraModels';
+import { AjaxService } from '../../AjaxService';
+import { Utilities } from '../../Util';
 
 @setter(SetterType.Option)
 export class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler {
@@ -34,14 +36,14 @@ export class EpicLinkSelectField extends Select2AjaxField implements IFieldEvent
                 if (newEpicLink != oldEpicLink) {
                     if (newEpicLink) {
                         //Create or update
-                        if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
+                        if (Utilities.isVersionHigher(jira.systemInfo, '7.1')) {
                             return this.updateEpic7(newEpicLink, eventData.newData.key);
                         } else {
                             return this.updateEpic6(newEpicLink, eventData.newData.key);
                         }
                     } else {
                         //Delete
-                        if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
+                        if (Utilities.isVersionHigher(jira.systemInfo, '7.1')) {
                             return this.deleteEpic7(eventData.newData.key);
                         } else {
                             return this.deleteEpic6(eventData.newData.key);
@@ -51,7 +53,7 @@ export class EpicLinkSelectField extends Select2AjaxField implements IFieldEvent
                 //AfterSave is only needed for JIRA 7 on creation as the setData does not work anymore.
             } else if (!jira.isEditMode) {
                 if (newEpicLink) {
-                    if (jiraIsVersionHigher(jira.systemInfo, '7.1'))
+                    if (Utilities.isVersionHigher(jira.systemInfo, '7.1'))
                         return this.updateEpic7(newEpicLink, eventData.newData.key);
                     else
                         return this.updateEpic6(newEpicLink, eventData.newData.key);
@@ -64,7 +66,7 @@ export class EpicLinkSelectField extends Select2AjaxField implements IFieldEvent
     }
 
     getValue(changedDataOnly: boolean): string {
-        if (jiraIsVersionHigher(jira.systemInfo, '7.1.4')) {
+        if (Utilities.isVersionHigher(jira.systemInfo, '7.1.4')) {
             if (changedDataOnly) {
                 let newEpicLink = this.getDomValue();
                 let oldEpicLink = this.initialValue;
@@ -81,7 +83,7 @@ export class EpicLinkSelectField extends Select2AjaxField implements IFieldEvent
 
     setValue(value: string): Promise<any> {
         //Format in JIRA < 7.0 "key: epicId" , JIRA 7+: just epic Id
-        if (!jiraIsVersionHigher(jira.systemInfo, '7')) {
+        if (!Utilities.isVersionHigher(jira.systemInfo, '7')) {
             value = value.replace('key:', '');
         }
 
@@ -113,7 +115,7 @@ export class EpicLinkSelectField extends Select2AjaxField implements IFieldEvent
         // JIRA 7+:  {"epicLists":[{"listDescriptor":"All epics","epicNames":[{"key":"SSP-24","name":"Epic 1","isDone":false},{"key":"SSP-25","name":"Epic 2","isDone":false},{"key":"SSP-28","name":"Epic New","isDone":false}]}],"total":3}
         let url = '/rest/greenhopper/1.0/epics?maxResults=10&projectKey=' + jira.selectedProject.key + '&searchQuery=' + searchTerm;
 
-        return jiraGet(url)
+        return AjaxService.get(url)
             .then((data: string) => {
                 let epics: any = JSON.parse(data);
                 let results: Select2Element[] = [];
@@ -149,20 +151,20 @@ export class EpicLinkSelectField extends Select2AjaxField implements IFieldEvent
 
     //Update Epic JIRA 6.x and 7.0
     private updateEpic6 = function (newEpicLink, issueKey) {
-        return jiraAjax('/rest/greenhopper/1.0/epics/' + newEpicLink + '/add', yasoon.ajaxMethod.Put, '{ "issueKeys":["' + issueKey + '"] }');
+        return AjaxService.ajax('/rest/greenhopper/1.0/epics/' + newEpicLink + '/add', yasoon.ajaxMethod.Put, '{ "issueKeys":["' + issueKey + '"] }');
     }
     //Update Epic JIRA > 7.1
     private updateEpic7 = function (newEpicLink, issueKey) {
-        return jiraAjax('/rest/agile/1.0/epic/' + newEpicLink + '/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }');
+        return AjaxService.ajax('/rest/agile/1.0/epic/' + newEpicLink + '/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }');
     }
 
     //Delete Epic JIRA 6.x and 7.0
     private deleteEpic6 = function (issueKey) {
-        return jiraAjax('/rest/greenhopper/1.0/epics/remove', yasoon.ajaxMethod.Put, '{ "issueKeys":["' + issueKey + '"] }');
+        return AjaxService.ajax('/rest/greenhopper/1.0/epics/remove', yasoon.ajaxMethod.Put, '{ "issueKeys":["' + issueKey + '"] }');
     }
 
     //Delete Epic JIRA > 7.1
     private deleteEpic7 = function (issueKey) {
-        return jiraAjax('/rest/agile/1.0/epic/none/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }');
+        return AjaxService.ajax('/rest/agile/1.0/epic/none/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }');
     }
 }

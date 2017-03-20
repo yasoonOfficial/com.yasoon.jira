@@ -1,6 +1,7 @@
 import { EventType } from './Enumerations';
 import { FieldController } from './FieldController';
 import { JiraMetaField } from './JiraModels';
+import { Utilities } from '../Util';
 
 export abstract class Field implements FieldGet, FieldSet {
 	public id: string;
@@ -17,7 +18,7 @@ export abstract class Field implements FieldGet, FieldSet {
 	constructor(id: string, fieldMeta: JiraMetaField, params?: any) {
 		this.id = id;
 		this.fieldMeta = fieldMeta;
-		this.originalFieldMeta = jiraCloneObject(fieldMeta);
+		this.originalFieldMeta = Utilities.jiraCloneObject(fieldMeta);
 		this.params = params;
 	}
 
@@ -92,7 +93,7 @@ export abstract class Field implements FieldGet, FieldSet {
 	}
 
 	resetMeta() {
-		this.fieldMeta = jiraCloneObject(this.originalFieldMeta);
+		this.fieldMeta = Utilities.jiraCloneObject(this.originalFieldMeta);
 		this.setHidden(this.fieldMeta.isHidden);
 		this.setRequired(this.fieldMeta.required);
 	}

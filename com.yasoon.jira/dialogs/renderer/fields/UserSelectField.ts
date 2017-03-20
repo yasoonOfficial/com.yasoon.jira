@@ -9,6 +9,7 @@ import { Select2Element } from './Select2Field';
 import { ProjectField } from './ProjectField';
 import { EmailController } from '../EmailController';
 import { JiraMetaField, JiraUser, JiraProject, } from '../JiraModels';
+import { AjaxService } from '../../AjaxService';
 
 @getter(GetterType.Option, "name", null)
 @setter(SetterType.Option)
@@ -217,7 +218,7 @@ export class UserSelectField extends Select2AjaxField implements IFieldEventHand
             url = '/rest/api/2/user/assignable/search?project=' + this.currentProject.key + '&username=' + searchTerm + '&maxResults=50';
         }
 
-        return jiraGet(url)
+        return AjaxService.get(url)
             .then((data: string) => {
                 let users = JSON.parse(data);
                 //1. Build User Result Array

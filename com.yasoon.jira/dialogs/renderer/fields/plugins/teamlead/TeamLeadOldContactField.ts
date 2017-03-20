@@ -1,8 +1,18 @@
-/// <reference path="../../JiraSelectField.ts" />
+declare var jira;
+import { FieldController } from '../../../FieldController';
+import { IFieldEventHandler } from '../../../Field';
+import { EventType, GetterType } from '../../../Enumerations';
+import { getter } from '../../../Annotations';
+import { JiraValue, JiraMetaField } from '../../../JiraModels';
+import { Select2Field, Select2Element } from '../../Select2Field';
+import { TeamleadContact } from './TeamLeadContactField';
+import { TeamLeadCompanyField } from './TeamLeadCompanyField';
+import { AjaxService } from '../../../../AjaxService';
+
 
 //In contrast to other TeamLead Fields, this one is just a string field requires contact ids in format: (id) for single fields or (id),(id), ... for multi
 @getter(GetterType.Text)
-class TeamLeadOldContactField extends Select2Field implements IFieldEventHandler {
+export class TeamLeadOldContactField extends Select2Field implements IFieldEventHandler {
     private apiKey: string;
     private ownUserKey: string;
 
@@ -15,7 +25,7 @@ class TeamLeadOldContactField extends Select2Field implements IFieldEventHandler
         this.ownUserKey = jira.ownUser.key || jira.ownUser.name; //Depending on version >.<
 
         //Start sync - don't know what it does but it sounds usefull :D
-        jiraGet('/plugins/servlet/crm/api?apiKey=' + this.apiKey + '&userName=' + this.ownUserKey + '&command=sync');
+        AjaxService.get('/plugins/servlet/crm/api?apiKey=' + this.apiKey + '&userName=' + this.ownUserKey + '&command=sync');
 
         this.getContacts('')
             .then((contacts) => {
@@ -84,14 +94,14 @@ class TeamLeadOldContactField extends Select2Field implements IFieldEventHandler
     getContacts(companyName: string): Promise<TeamleadContact[]> {
         let prom: Promise<TeamleadContact[]>;
         if (companyName) {
-            prom = jiraGet('/plugins/servlet/crm/api?command=searchEntities&crm_param_1=Company&crm_param_1_value=' + companyName + '&tableName=CONTACTS&userName=' + this.ownUserKey + '&apiKey=' + this.apiKey)
+            prom = AjaxService.get('/plugins/servlet/crm/api?command=searchEntities&crm_param_1=Company&crm_param_1_value=' + companyName + '&tableName=CONTACTS&userName=' + this.ownUserKey + '&apiKey=' + this.apiKey)
                 .then((contactsString: string) => {
                     let returnValue = JSON.parse(contactsString);
                     let contacts: TeamleadContact[] = returnValue.records || [];
                     return contacts;
                 });
         } else {
-            prom = jiraGet('/plugins/servlet/crm/api?apiKey=' + this.apiKey + '&userName=' + this.ownUserKey + '&command=getcontacts')
+            prom = AjaxService.get('/plugins/servlet/crm/api?apiKey=' + this.apiKey + '&userName=' + this.ownUserKey + '&command=getcontacts')
                 .then((contactsString) => {
                     let returnValue = JSON.parse(contactsString);
                     let contacts: TeamleadContact[] = returnValue.contacts || [];

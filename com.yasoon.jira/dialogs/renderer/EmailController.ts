@@ -1,9 +1,11 @@
 /// <reference path="../../definitions/yasoon.d.ts" />
-declare var jira;
+declare var jira, moment;
 import { Field, IFieldEventHandler, UiActionEventData, LifecycleData } from './Field';
 import { JiraUser, JiraDialogType, YasoonConversationData, JiraIssue } from './JiraModels';
 import { EventType } from './Enumerations';
 import { FieldController } from './FieldController';
+import { AjaxService } from '../AjaxService';
+import { Utilities } from '../Util';
 
 export interface JiraFileHandle extends yasoonModel.EmailAttachmentFileHandle {
     selected: boolean;
@@ -80,7 +82,7 @@ export class EmailController implements IFieldEventHandler {
         }
 
         //Get Reporter User
-        this.loadSenderPromise = jiraGet('/rest/api/2/user/search?username=' + mail.senderEmail)
+        this.loadSenderPromise = AjaxService.get('/rest/api/2/user/search?username=' + mail.senderEmail)
             .then((data: string): JiraUser => {
                 console.log(data);
                 let users = JSON.parse(data);
@@ -144,7 +146,7 @@ export class EmailController implements IFieldEventHandler {
 
                     //Provide unique names for attachments
                     if (uniqueNames) {
-                        let uniqueKey = getUniqueKey();
+                        let uniqueKey = Utilities.getUniqueKey();
                         let oldFileName = handle.getFileName() || 'unknown.file';
                         let newFileName = oldFileName.substring(0, oldFileName.lastIndexOf('.'));
                         newFileName = newFileName + '_' + uniqueKey + oldFileName.substring(oldFileName.lastIndexOf('.'));
@@ -245,10 +247,10 @@ export class EmailController implements IFieldEventHandler {
         return promise
             .then((markup) => {
                 if (jira.settings.addMailHeaderAutomatically === 'top') {
-                    markup = renderMailHeaderText(this.mail, true) + '\n' + markup;
+                    markup = Utilities.renderMailHeaderText(this.mail, true) + '\n' + markup;
                 }
                 else if (jira.settings.addMailHeaderAutomatically === 'bottom') {
-                    markup = markup + '\n' + renderMailHeaderText(this.mail, true);
+                    markup = markup + '\n' + Utilities.renderMailHeaderText(this.mail, true);
                 }
 
                 return this.handleAttachments(markup, this.mail)

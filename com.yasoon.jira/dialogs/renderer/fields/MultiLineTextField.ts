@@ -8,6 +8,7 @@ import { EmailController } from '../EmailController';
 import { AttachmentField } from './AttachmentField';
 import { Bootbox } from '../Bootbox';
 import { Utilities } from '../../Util';
+import { AjaxService } from '../../AjaxService';
 
 interface MultiLineTextFieldOptions {
     isMainField?: boolean;
@@ -112,7 +113,7 @@ export class MultiLineTextField extends Field implements IFieldEventHandler {
                     markup = '[^' + eventData.value.fileName + ']\n'
                 }
 
-                Utilities.insertAtCursor($('#' + this.id)[0], markup);
+                Utilities.insertAtCursor(<HTMLTextAreaElement>$('#' + this.id)[0], markup);
             }
         } else if (type === EventType.FieldChange) {
             if (source === FieldController.projectFieldId) {
@@ -287,7 +288,7 @@ export class MultiLineTextField extends Field implements IFieldEventHandler {
                 $(this).prev().scrollTop($(this).scrollTop());
             });
 
-            $('#' + this.id).on('updated', debounce(() => {
+            $('#' + this.id).on('updated', Utilities.debounce(() => {
                 $('#' + this.id)['mentionsInput']('val', (content) => {
                     this.mentionText = content;
                 });
@@ -313,7 +314,7 @@ export class MultiLineTextField extends Field implements IFieldEventHandler {
         if (this.currentIssue || this.currentProject) {
             var queryKey = (this.currentIssue) ? 'issueKey=' + this.currentIssue.key : 'projectKey=' + this.currentProject.key;
 
-            jiraGet('/rest/api/2/user/viewissue/search?' + queryKey + '&maxResults=10&username=' + query)
+            AjaxService.get('/rest/api/2/user/viewissue/search?' + queryKey + '&maxResults=10&username=' + query)
                 .then(function (usersString) {
                     var data = [];
                     var users: JiraUser[] = JSON.parse(usersString);

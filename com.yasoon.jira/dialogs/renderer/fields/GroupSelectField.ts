@@ -6,6 +6,7 @@ import { GetterType, SetterType, EventType } from '../Enumerations';
 import { Select2AjaxField } from './Select2AjaxField';
 import { Select2Element, Select2Options } from './Select2Field';
 import { JiraMetaField, JiraGroup, JiraGroups } from '../JiraModels';
+import { AjaxService } from '../../AjaxService';
 
 @getter(GetterType.Option, "name", null)
 @setter(SetterType.Option)
@@ -29,7 +30,7 @@ export class GroupSelectField extends Select2AjaxField {
     getData(searchTerm: string): Promise<Select2Element[]> {
         let url = '/rest/api/2/groups/picker?maxResults=50&query=' + searchTerm;
 
-        return jiraGet(url)
+        return AjaxService.get(url)
             .then((data: string) => {
                 let groupsResult: JiraGroups = JSON.parse(data);
                 let groupsArray: Select2Element[] = [];

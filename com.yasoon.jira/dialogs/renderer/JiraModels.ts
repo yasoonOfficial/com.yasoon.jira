@@ -54,12 +54,16 @@ export interface JiraOrganization {
     name: string;
 }
 
-export interface JiraOrganizationResult {
+export interface JiraPageResult {
     size?: number;
     start?: number;
     limit?: number;
     isLastPage?: boolean;
     values?: JiraOrganization[];
+}
+
+export interface JiraOrganizationResult extends JiraPageResult {
+
 }
 
 export interface Jira6Epics {

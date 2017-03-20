@@ -1,4 +1,5 @@
 import { JiraRequestType, JiraServiceDeskKey, JiraRequestTypeGroup, JiraProject, JiraRequestTypeFieldMeta, JiraServiceDeskData } from './JiraModels';
+import { AjaxService } from '../AjaxService';
 
 export class ServiceDeskUtil {
     private static serviceDeskVersion: string;
@@ -10,7 +11,7 @@ export class ServiceDeskUtil {
             return this.serviceDeskVersion;
 
         try {
-            let data = await jiraGet('/rest/servicedeskapi/info');
+            let data = await AjaxService.get('/rest/servicedeskapi/info');
             this.serviceDeskVersion = JSON.parse(data).version;
         }
         catch (e) {
@@ -44,11 +45,11 @@ export class ServiceDeskUtil {
 
         //New API is available starting Service Desk 3.3.0 (Server) and 1000.268.0 (Cloud). We only check for server as Cloud is always fresh
         if (await this.isVersionAtLeast('3.3.0')) {
-            let data = await jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey.key + '/groups');
+            let data = await AjaxService.get('/rest/servicedesk/1/servicedesk/' + serviceDeskKey.key + '/groups');
             let groups: JiraRequestTypeGroup[] = JSON.parse(data);
             let promises: Promise<any>[] = [];
             groups.forEach((group) => {
-                promises.push(jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey.key + '/groups/' + group.id + '/request-types'));
+                promises.push(AjaxService.get('/rest/servicedesk/1/servicedesk/' + serviceDeskKey.key + '/groups/' + group.id + '/request-types'));
             });
 
             //Load in parallel
@@ -67,7 +68,7 @@ export class ServiceDeskUtil {
             return allTypes;
         }
         else {
-            let data = await jiraGet('/rest/servicedesk/1/servicedesk/' + serviceDeskKey.key + '/request-types');
+            let data = await AjaxService.get('/rest/servicedesk/1/servicedesk/' + serviceDeskKey.key + '/request-types');
             let allTypes = <JiraRequestType[]>JSON.parse(data);
             this.requestTypes[serviceDeskKey.key] = allTypes;
             return allTypes;
@@ -77,7 +78,7 @@ export class ServiceDeskUtil {
     static async getRequestTypeMeta(requestType: JiraRequestType): Promise<JiraRequestTypeFieldMeta> {
         if (await this.isVersionAtLeast('3.3.0')) {
             try {
-                let data = await jiraGet(`/rest/servicedeskapi/servicedesk/${requestType.portalId}/requesttype/${requestType.id}/field`);
+                let data = await AjaxService.get(`/rest/servicedeskapi/servicedesk/${requestType.portalId}/requesttype/${requestType.id}/field`);
                 return <JiraRequestTypeFieldMeta>JSON.parse(data);
             } catch (e) {
                 console.log(e);
@@ -94,7 +95,7 @@ export class ServiceDeskUtil {
         }
 
         try {
-            let data = await jiraGet('/rest/servicedesk/1/servicedesk-data');
+            let data = await AjaxService.get('/rest/servicedesk/1/servicedesk-data');
             let serviceData: JiraServiceDeskData[] = JSON.parse(data);
             if (serviceData.length > 0) {
                 let serviceDeskKey = serviceData.filter(function (s) { return s.projectId == projectId; })[0];

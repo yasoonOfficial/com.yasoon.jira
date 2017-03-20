@@ -1,3 +1,4 @@
+declare var moment;
 import { FieldController } from '../FieldController';
 import { Field, IFieldEventHandler } from '../Field';
 import { getter, setter } from '../Annotations';

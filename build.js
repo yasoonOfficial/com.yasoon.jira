@@ -10,7 +10,8 @@ gulp.task('buildRenderer', function () {
             "experimentalDecorators": true,
             "outFile": "./renderer.js",
             "allowJs": true,
-            "target": "es5"
+            "target": "es5",
+			"module": "amd"
         }))
         .pipe(gulp.dest('distribution/com.yasoon.jira/dialogs/js'));
 });

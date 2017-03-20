@@ -7,6 +7,8 @@ import { getter, setter } from '../Annotations';
 import { GetterType, SetterType, EventType } from '../Enumerations';
 import { Bootbox } from '../Bootbox';
 import { JiraMetaField } from '../JiraModels';
+import { AjaxService } from '../../AjaxService';
+
 
 export class AttachmentField extends Field implements IFieldEventHandler {
     static defaultMeta: JiraMetaField = { key: FieldController.attachmentFieldId, get name() { return yasoon.i18n('dialog.attachment'); }, required: false, schema: { system: 'attachment', type: '' } };
@@ -54,7 +56,7 @@ export class AttachmentField extends Field implements IFieldEventHandler {
             this.deactivatePreview = true;
 
             if (formData.length > 0) {
-                return jiraAjax('/rest/api/2/issue/' + lifecycleData.newData.id + '/attachments', yasoon.ajaxMethod.Post, null, formData);
+                return AjaxService.ajax('/rest/api/2/issue/' + lifecycleData.newData.id + '/attachments', yasoon.ajaxMethod.Post, null, formData);
             }
         } else if (type === EventType.Cleanup) {
             //Dispose all Attachments

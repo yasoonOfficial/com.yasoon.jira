@@ -1,5 +1,6 @@
 import { Select2Field, Select2Element, Select2Options } from './Select2Field';
 import { JiraMetaField } from '../JiraModels';
+import { Utilities } from '../../Util';
 
 export abstract class Select2AjaxField extends Select2Field {
 	options: any;
@@ -60,7 +61,7 @@ export abstract class Select2AjaxField extends Select2Field {
 
 		super(id, field, options, multiple, style);
 
-		this.debouncedFunction = debounce((searchTerm) => {
+		this.debouncedFunction = Utilities.debounce((searchTerm) => {
 			this.getData(searchTerm)
 				.then((result) => {
 					this.currentResolve([result, searchTerm]);

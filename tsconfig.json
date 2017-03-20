@@ -1,9 +1,10 @@
 {
     "compilerOptions": {
         "experimentalDecorators": true,
-        //"outFile": "./com.yasoon.jira/dialogs/js/all.js",
+        "outFile": "./com.yasoon.jira/dialogs/js/all.js",
         "allowJs": true,
-        "target": "es5"
+        "target": "es5",
+        "module": "amd"
     },
     "filesGlob": [
         // "com.yasoon.jira/dialogs/renderer/fields/*"

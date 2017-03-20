@@ -3,6 +3,7 @@ import { InsightObjectField } from './InsightObjectField';
 import { JiraMetaField } from '../../../JiraModels';
 import { Select2Element } from '../../Select2Field';
 import { FieldController } from '../../../FieldController';
+import { AjaxService } from '../../../../AjaxService';
 
 export class InsightReferenceField extends InsightBaseField {
     constructor(id: string, field: JiraMetaField, options: any = {}) {
@@ -13,7 +14,7 @@ export class InsightReferenceField extends InsightBaseField {
         let regex = /.*\((.*)\)$/g;
         let realId = regex.exec(id)[1];
         if (realId) {
-            return jiraGet('/rest/insight/1.0/object/' + realId)
+            return AjaxService.get('/rest/insight/1.0/object/' + realId)
                 .then((result) => {
                     var obj = <InsightObject>JSON.parse(result);
                     return obj;
@@ -51,7 +52,7 @@ export class InsightReferenceField extends InsightBaseField {
             });
             let url = `/rest/insight/1.0/customfield/${fieldConfig}/referencedobjects?query=${searchTerm}&parentKeys=${parentKeys}&objectSchemaId=${objectSchemaId}&currentProject=${this.currentProject.id}&currentIssueId=${this.currentIssueId}&currentReporter=${this.currentUser.key}`;
             console.log(url);
-            return jiraGet(url)
+            return AjaxService.get(url)
                 .then((result) => {
                     var resultObj: InsightObject[] = JSON.parse(result);
                     return resultObj.map(this.convertToSelect2);

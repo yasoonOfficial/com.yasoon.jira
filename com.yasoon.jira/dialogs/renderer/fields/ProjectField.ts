@@ -9,6 +9,8 @@ import { Select2Field, Select2Element, Select2Options } from './Select2Field';
 import { EmailController } from '../EmailController';
 import { TemplateController } from '../TemplateController';
 import { JiraProject, JiraMetaField, YasoonConversationData, YasoonConversationIssue } from '../JiraModels';
+import { AjaxService, jiraSyncError } from '../../AjaxService';
+import { Utilities } from '../../Util';
 
 export interface ProjectFieldOptions {
     cache?: JiraProject[];
@@ -114,7 +116,7 @@ export class ProjectField extends Select2Field {
         return {
             id: project.id,
             text: project.name,
-            icon: getProjectIcon(project),
+            icon: Utilities.getProjectIcon(project),
             data: project
         };
     }
@@ -181,7 +183,7 @@ export class ProjectField extends Select2Field {
         if (this.projectCache && this.projectCache.length > 0) {
             return Promise.resolve(this.projectCache.map(this.convertToSelect2));
         }
-        return jiraGet('/rest/api/2/project')
+        return AjaxService.get('/rest/api/2/project')
             .then((data: string) => {
                 let projects: JiraProject[] = JSON.parse(data);
                 this.projectCache = projects;

@@ -6,6 +6,7 @@ import { JiraSelectField } from './JiraSelectField';
 import { IssueField } from './IssueField';
 import { ProjectField } from './ProjectField';
 import { JiraMetaField, JiraProject, JiraValue, JiraIssueLinkTypes, JiraIssue, JiraIssueLinkCreate, JiraSentObj } from '../JiraModels';
+import { AjaxService } from '../../AjaxService';
 
 export class LinkedIssueField extends Field implements IFieldEventHandler {
 
@@ -43,7 +44,7 @@ export class LinkedIssueField extends Field implements IFieldEventHandler {
     }
 
     async initData() {
-        let issueLinksString = await jiraGet('/rest/api/2/issueLinkType');
+        let issueLinksString = await AjaxService.get('/rest/api/2/issueLinkType');
 
         let issueLinks = <JiraIssueLinkTypes>JSON.parse(issueLinksString);
         let allowedValues: JiraValue[] = [];
@@ -101,7 +102,7 @@ export class LinkedIssueField extends Field implements IFieldEventHandler {
                         }
                     };
                     console.log('Post', requestData);
-                    promises.push(jiraAjax('/rest/api/2/issueLink', yasoon.ajaxMethod.Post, JSON.stringify(requestData)))
+                    promises.push(AjaxService.ajax('/rest/api/2/issueLink', yasoon.ajaxMethod.Post, JSON.stringify(requestData)))
                 });
             }
 

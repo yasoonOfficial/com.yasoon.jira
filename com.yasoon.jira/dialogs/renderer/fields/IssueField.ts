@@ -9,6 +9,7 @@ import { EmailController } from '../EmailController';
 import { Select2Element, Select2Options } from './Select2Field';
 import { JiraIconController } from '../IconController';
 import { JiraMetaField, JiraProject, JiraJqlResult, JiraIssue, JiraIssueType } from '../JiraModels';
+import { AjaxService } from '../../AjaxService';
 
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
@@ -81,7 +82,7 @@ export class IssueField extends Select2AjaxField implements IFieldEventHandler {
 
     convertId(issueIdOrKey: string): Promise<any> {
         if (issueIdOrKey) {
-            return jiraGet('/rest/api/2/issue/' + issueIdOrKey + '?fields=summary,project')
+            return AjaxService.get('/rest/api/2/issue/' + issueIdOrKey + '?fields=summary,project')
                 .then((data) => {
                     return <JiraIssue>JSON.parse(data);
                 });
@@ -161,7 +162,7 @@ export class IssueField extends Select2AjaxField implements IFieldEventHandler {
 
         console.log('JQL' + jql);
 
-        return jiraGet('/rest/api/2/search?jql=' + encodeURIComponent(jql) + '&maxResults=20&fields=summary,project,issuetype&validateQuery=false')
+        return AjaxService.get('/rest/api/2/search?jql=' + encodeURIComponent(jql) + '&maxResults=20&fields=summary,project,issuetype&validateQuery=false')
             .then((data: string) => {
                 let jqlResult: JiraJqlResult = JSON.parse(data);
                 let result: Select2Element[] = [];

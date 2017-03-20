@@ -7,6 +7,7 @@
     "@types/bluebird": "^3.0.37",
     "@types/jquery": "^2.0.40",
     "@types/knockout": "^3.4.39",
+    "@types/moment": "^2.13.0",
     "copyfiles": "^1.0.0",
     "gulp": "^3.9.1",
     "gulp-declare": "^0.3.0",

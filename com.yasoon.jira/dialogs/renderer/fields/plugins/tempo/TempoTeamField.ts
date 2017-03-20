@@ -1,11 +1,14 @@
-/// <reference path="../../../Field.ts" />
-/// <reference path="../../Select2AjaxField.ts" />
-/// <reference path="../../../../../definitions/common.d.ts" />
-/// <reference path="../../../../../definitions/bluebird.d.ts" />
-/// <reference path="../../../getter/GetTextValue.ts" />
-/// <reference path="../../../setter/SetOptionValue.ts" />
+declare var jira;
+import { FieldController } from '../../../FieldController';
+import { IFieldEventHandler } from '../../../Field';
+import { EventType, GetterType, SetterType } from '../../../Enumerations';
+import { getter, setter } from '../../../Annotations';
+import { JiraValue, JiraUser, JiraMetaField } from '../../../JiraModels';
+import { Select2Field, Select2Element, Select2Options } from '../../Select2Field';
+import { AjaxService } from '../../../../AjaxService';
 
-interface TempoTeam {
+
+export interface TempoTeam {
     id: number;
     name: string;
     summary?: string;
@@ -13,7 +16,7 @@ interface TempoTeam {
 
 @getter(GetterType.Text)
 @setter(SetterType.Option)
-class TempoTeamField extends Select2Field {
+export class TempoTeamField extends Select2Field {
     getTeamsPromise: Promise<any>;
 
     constructor(id: string, field: JiraMetaField, options: Select2Options = {}) {
@@ -46,7 +49,7 @@ class TempoTeamField extends Select2Field {
     }
 
     getData() {
-        this.getTeamsPromise = jiraGet('/rest/tempo-teams/1/team')
+        this.getTeamsPromise = AjaxService.get('/rest/tempo-teams/1/team')
             .then((teamString: string) => {
                 let teamData: TempoTeam[] = JSON.parse(teamString);
                 return teamData;

@@ -3,6 +3,7 @@ import { Field, IFieldEventHandler } from '../Field';
 import { EventType } from '../Enumerations';
 import { JiraMetaField, JiraSentObj } from '../JiraModels';
 import { JiraSelectField } from './JiraSelectField';
+import { Utilities } from '../../Util';
 
 export class CascadedSelectField extends Field implements IFieldEventHandler {
     private parentField: JiraSelectField;
@@ -35,8 +36,8 @@ export class CascadedSelectField extends Field implements IFieldEventHandler {
             let oldParentValue = (this.initialValue) ? this.initialValue.id : null;
             let oldChildValue = (this.initialValue && this.initialValue.child) ? this.initialValue.child.id : null;
 
-            if (!isEqual(oldParentValue, selectedParentId) ||
-                !isEqual(oldChildValue, selectedChildId)) {
+            if (!Utilities.isEqual(oldParentValue, selectedParentId) ||
+                !Utilities.isEqual(oldChildValue, selectedChildId)) {
                 if (selectedParentId) {
                     let childObj = (selectedChildId) ? { id: selectedChildId } : null;
                     return {

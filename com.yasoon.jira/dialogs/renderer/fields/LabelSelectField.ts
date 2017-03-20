@@ -5,6 +5,7 @@ import { Select2Element } from './Select2Field';
 import { getter, setter } from '../Annotations';
 import { GetterType, SetterType, EventType } from '../Enumerations';
 import { JiraMetaField, JiraLabel } from '../JiraModels';
+import { AjaxService } from '../../AjaxService';
 
 @getter(GetterType.Array)
 @setter(SetterType.Tag)
@@ -52,7 +53,7 @@ export class LabelSelectField extends Select2AjaxField {
         }
 
         this.lastSearchTerm = searchTerm;
-        return jiraGet(url + searchTerm)
+        return AjaxService.get(url + searchTerm)
             .then((data) => {
                 let labels = JSON.parse(data);
                 console.log('SearchTerm ' + searchTerm, labels);

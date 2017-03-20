@@ -4,6 +4,7 @@ import { GetterType, SetterType, EventType } from '../Enumerations';
 import { Select2Field, Select2Options, Select2Element } from './Select2Field';
 import { JiraOrganization, JiraMetaField, JiraOrganizationResult } from '../JiraModels';
 import { ServiceDeskUtil } from '../ServiceDeskUtil';
+import { AjaxService } from '../../AjaxService';
 
 @getter(GetterType.Text)
 @setter(SetterType.Option)
@@ -49,7 +50,7 @@ export class OrganizationField extends Select2Field {
 
     async getData() {
         let serviceDeskKey = await ServiceDeskUtil.getCurrentServiceDeskKey(jira.currentProject);
-        this.getOrganizationsPromise = jiraGetAll('/rest/servicedeskapi/servicedesk/' + serviceDeskKey.id + '/organization')
+        this.getOrganizationsPromise = AjaxService.getAll('/rest/servicedeskapi/servicedesk/' + serviceDeskKey.id + '/organization')
             .then((organizations: JiraOrganizationResult) => {
                 return organizations.values.sort((a, b) => { return (a.name.toLowerCase() > b.name.toLowerCase()) ? 1 : -1 });
             });

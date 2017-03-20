@@ -5,6 +5,8 @@ import { setter } from '../Annotations';
 import { GetterType, SetterType, EventType } from '../Enumerations';
 import { Select2Field, Select2Element } from './Select2Field';
 import { JiraIssueType, JiraMetaField, JiraSprint, JiraSprints } from '../JiraModels';
+import { AjaxService } from '../../AjaxService';
+import { Utilities } from '../../Util';
 
 @setter(SetterType.Option)
 export class SprintSelectField extends Select2Field implements IFieldEventHandler {
@@ -39,9 +41,9 @@ export class SprintSelectField extends Select2Field implements IFieldEventHandle
 
             if (oldSprintId != newSprintId) {
                 if (newSprintId) {
-                    return jiraAjax('/rest/greenhopper/1.0/sprint/rank', yasoon.ajaxMethod.Put, '{"idOrKeys":["' + jira.currentIssue.key + '"],"sprintId":' + newSprintId + ',"addToBacklog":false}');
+                    return AjaxService.ajax('/rest/greenhopper/1.0/sprint/rank', yasoon.ajaxMethod.Put, '{"idOrKeys":["' + jira.currentIssue.key + '"],"sprintId":' + newSprintId + ',"addToBacklog":false}');
                 } else {
-                    return jiraAjax('/rest/greenhopper/1.0/sprint/rank', yasoon.ajaxMethod.Put, '{"idOrKeys":["' + jira.currentIssue.key + '"],"sprintId":"","addToBacklog":true}');
+                    return AjaxService.ajax('/rest/greenhopper/1.0/sprint/rank', yasoon.ajaxMethod.Put, '{"idOrKeys":["' + jira.currentIssue.key + '"],"sprintId":"","addToBacklog":true}');
                 }
             }
         } else if (type === EventType.FieldChange && source === FieldController.issueTypeFieldId) {
@@ -60,7 +62,7 @@ export class SprintSelectField extends Select2Field implements IFieldEventHandle
         if (!changedDataOnly) {
             let stringValue = this.getDomValue();
             if (stringValue) {
-                if (jiraIsVersionHigher(jira.systemInfo, '7.1')) {
+                if (Utilities.isVersionHigher(jira.systemInfo, '7.1')) {
 
                     return parseInt(stringValue);
                 } else {
@@ -87,7 +89,7 @@ export class SprintSelectField extends Select2Field implements IFieldEventHandle
     }
 
     getData(): Promise<Select2Element[]> {
-        return jiraGet('/rest/greenhopper/1.0/sprint/picker')
+        return AjaxService.get('/rest/greenhopper/1.0/sprint/picker')
             .then((data: string) => {
                 //{"suggestions":[{"name":"Sample Sprint 2","id":1,"stateKey":"ACTIVE"}],"allMatches":[]}
                 let sprints: JiraSprints = JSON.parse(data);

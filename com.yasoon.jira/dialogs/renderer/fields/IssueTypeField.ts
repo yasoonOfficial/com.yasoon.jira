@@ -11,6 +11,7 @@ import { UserSelectField } from './UserSelectField';
 import { RequestTypeField } from './RequestTypeField';
 import { JiraIconController } from '../IconController';
 import { JiraMetaField, JiraProject, JiraIssueType, JiraRequestType } from '../JiraModels';
+import { AjaxService } from '../../AjaxService';
 
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
@@ -90,7 +91,7 @@ export class IssueTypeField extends Select2Field implements IFieldEventHandler {
                 let promise: Promise<JiraProject>;
                 if (!project.issueTypes) {
                     this.showSpinner();
-                    promise = jiraGet('/rest/api/2/project/' + project.key)
+                    promise = AjaxService.get('/rest/api/2/project/' + project.key)
                         .then((data: string) => {
                             this.hideSpinner();
                             let proj: JiraProject = JSON.parse(data);
