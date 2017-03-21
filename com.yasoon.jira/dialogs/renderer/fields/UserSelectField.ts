@@ -6,14 +6,14 @@ import { GetterType, SetterType, EventType } from '../Enumerations';
 import { RecentItemController } from '../RecentItemController';
 import { Select2AjaxField } from './Select2AjaxField';
 import { Select2Element } from './Select2Field';
-import { ProjectField } from './ProjectField';
+import ProjectField from './ProjectField';
 import { EmailController } from '../EmailController';
 import { JiraMetaField, JiraUser, JiraProject, } from '../JiraModels';
 import { AjaxService } from '../../AjaxService';
 
 @getter(GetterType.Option, "name", null)
 @setter(SetterType.Option)
-export class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
+export default class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
     static reporterDefaultMeta: JiraMetaField = { key: FieldController.onBehalfOfFieldId, get name() { return yasoon.i18n('dialog.behalfOf'); }, required: true, schema: { system: 'user', type: '' } };
     senderUser: JiraUser;
     ownUser: JiraUser;

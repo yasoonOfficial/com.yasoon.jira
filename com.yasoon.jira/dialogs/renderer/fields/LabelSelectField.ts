@@ -9,7 +9,7 @@ import { AjaxService } from '../../AjaxService';
 
 @getter(GetterType.Array)
 @setter(SetterType.Tag)
-export class LabelSelectField extends Select2AjaxField {
+export default class LabelSelectField extends Select2AjaxField {
 
     private lastSearchTerm: string;
     private emptyData: Promise<Select2Element[]>;

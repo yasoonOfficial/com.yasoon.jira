@@ -10,7 +10,7 @@ import { JiraMetaField } from '../JiraModels';
 import { AjaxService } from '../../AjaxService';
 
 
-export class AttachmentField extends Field implements IFieldEventHandler {
+export default class AttachmentField extends Field implements IFieldEventHandler {
     static defaultMeta: JiraMetaField = { key: FieldController.attachmentFieldId, get name() { return yasoon.i18n('dialog.attachment'); }, required: false, schema: { system: 'attachment', type: '' } };
 
     static uiActionRename = 'renameAttachment';

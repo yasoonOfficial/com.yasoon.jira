@@ -8,7 +8,7 @@ import { AjaxService } from '../../AjaxService';
 
 @getter(GetterType.Text)
 @setter(SetterType.Option)
-export class OrganizationField extends Select2Field {
+export default class OrganizationField extends Select2Field {
     getOrganizationsPromise: Promise<JiraOrganization[]>;
     constructor(id: string, field: JiraMetaField, options: Select2Options = {}) {
         options.multiple = true;

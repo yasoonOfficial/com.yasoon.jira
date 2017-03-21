@@ -7,7 +7,7 @@ import { GetterType, SetterType, EventType } from '../Enumerations';
 
 @getter(GetterType.Text)
 @setter(SetterType.DateTime)
-export class DateTimeField extends Field {
+export default class DateTimeField extends Field {
 
 	getDomValue(): string {
 		let date = $('#' + this.id)["datetimepicker"]("getValue");

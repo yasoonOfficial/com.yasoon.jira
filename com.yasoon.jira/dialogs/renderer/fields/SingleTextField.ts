@@ -5,7 +5,7 @@ import { GetterType, SetterType, EventType } from '../Enumerations';
 
 @getter(GetterType.Text)
 @setter(SetterType.Text)
-export class SingleTextField extends Field {
+export default class SingleTextField extends Field {
 
 	getDomValue(): string {
 		return $('#' + this.id).val();

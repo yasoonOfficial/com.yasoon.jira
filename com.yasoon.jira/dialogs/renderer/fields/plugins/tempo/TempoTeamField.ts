@@ -16,7 +16,7 @@ export interface TempoTeam {
 
 @getter(GetterType.Text)
 @setter(SetterType.Option)
-export class TempoTeamField extends Select2Field {
+export default class TempoTeamField extends Select2Field {
     getTeamsPromise: Promise<any>;
 
     constructor(id: string, field: JiraMetaField, options: Select2Options = {}) {

@@ -2,13 +2,13 @@ import { FieldController } from '../FieldController';
 import { Field, IFieldEventHandler, LifecycleData } from '../Field';
 import { getter, setter } from '../Annotations';
 import { EventType } from '../Enumerations';
-import { JiraSelectField } from './JiraSelectField';
-import { IssueField } from './IssueField';
-import { ProjectField } from './ProjectField';
+import JiraSelectField from './JiraSelectField';
+import IssueField from './IssueField';
+import ProjectField from './ProjectField';
 import { JiraMetaField, JiraProject, JiraValue, JiraIssueLinkTypes, JiraIssue, JiraIssueLinkCreate, JiraSentObj } from '../JiraModels';
 import { AjaxService } from '../../AjaxService';
 
-export class LinkedIssueField extends Field implements IFieldEventHandler {
+export default class LinkedIssueField extends Field implements IFieldEventHandler {
 
     blocksMeta: JiraMetaField = {
         required: false,

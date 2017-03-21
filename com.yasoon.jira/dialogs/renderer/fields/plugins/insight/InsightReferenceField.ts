@@ -1,11 +1,11 @@
 import { InsightBaseField, InsightObject } from './InsightBaseField';
-import { InsightObjectField } from './InsightObjectField';
+import InsightObjectField from './InsightObjectField';
 import { JiraMetaField } from '../../../JiraModels';
 import { Select2Element } from '../../Select2Field';
 import { FieldController } from '../../../FieldController';
 import { AjaxService } from '../../../../AjaxService';
 
-export class InsightReferenceField extends InsightBaseField {
+export default class InsightReferenceField extends InsightBaseField {
     constructor(id: string, field: JiraMetaField, options: any = {}) {
         super(id, field, options);
     }

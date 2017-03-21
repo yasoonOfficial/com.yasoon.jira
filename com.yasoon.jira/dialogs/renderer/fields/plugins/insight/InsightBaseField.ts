@@ -5,7 +5,7 @@ import { setter } from '../../../Annotations';
 import { SetterType, EventType } from '../../../Enumerations';
 import { JiraProject, JiraUser, JiraMetaField } from '../../../JiraModels';
 import { Select2AjaxField } from '../../Select2AjaxField';
-import { ProjectField } from '../../ProjectField';
+import ProjectField from '../../ProjectField';
 import { Utilities } from '../../../../Util';
 
 @setter(SetterType.Option)

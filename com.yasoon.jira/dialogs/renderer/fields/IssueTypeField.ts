@@ -7,15 +7,15 @@ import { RecentItemController } from '../RecentItemController';
 import { EmailController } from '../EmailController';
 import { Select2Field, Select2Element, Select2Options } from './Select2Field';
 import { ServiceDeskUtil } from '../ServiceDeskUtil';
-import { UserSelectField } from './UserSelectField';
-import { RequestTypeField } from './RequestTypeField';
+import UserSelectField from './UserSelectField';
+import RequestTypeField from './RequestTypeField';
 import { JiraIconController } from '../IconController';
 import { JiraMetaField, JiraProject, JiraIssueType, JiraRequestType } from '../JiraModels';
-import { AjaxService } from '../../AjaxService';
+import { AjaxService, jiraSyncError } from '../../AjaxService';
 
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
-export class IssueTypeField extends Select2Field implements IFieldEventHandler {
+export default class IssueTypeField extends Select2Field implements IFieldEventHandler {
     static defaultMeta: JiraMetaField = { key: FieldController.issueTypeFieldId, get name() { return yasoon.i18n('dialog.issueType'); }, required: true, schema: { system: 'issue', type: '' } };
     static uiActionServiceDesk = 'ServiceDeskActivated';
 

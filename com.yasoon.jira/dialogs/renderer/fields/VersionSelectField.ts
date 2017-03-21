@@ -7,14 +7,14 @@ import { JiraIconController } from '../IconController';
 
 @getter(GetterType.Option, "id", null)
 @setter(SetterType.Option)
-class VersionSelectField extends Select2Field {
+export default class VersionSelectField extends Select2Field {
     private releasedFirst: boolean;
 
-    constructor(id: string, field: JiraMetaField, config: { releasedFirst: boolean, multiSelect: boolean }) {
+    constructor(id: string, field: JiraMetaField, config: { releasedFirst: boolean, multiple: boolean }) {
         let options = {
             data: []
         };
-        super(id, field, options, config.multiSelect);
+        super(id, field, options, config.multiple);
         this.releasedFirst = config.releasedFirst;
         this.init();
     }

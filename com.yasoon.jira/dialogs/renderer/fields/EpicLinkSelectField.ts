@@ -10,7 +10,7 @@ import { AjaxService } from '../../AjaxService';
 import { Utilities } from '../../Util';
 
 @setter(SetterType.Option)
-export class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler {
+export default class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler {
 
     private currentIssueType: JiraIssueType;
 

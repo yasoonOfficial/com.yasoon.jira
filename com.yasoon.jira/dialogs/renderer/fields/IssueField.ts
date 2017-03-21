@@ -13,7 +13,7 @@ import { AjaxService } from '../../AjaxService';
 
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
-export class IssueField extends Select2AjaxField implements IFieldEventHandler {
+export default class IssueField extends Select2AjaxField implements IFieldEventHandler {
     static defaultMeta: JiraMetaField = { key: FieldController.issueFieldId, get name() { return yasoon.i18n('dialog.issue'); }, required: true, schema: { system: 'issue', type: '' } };
 
     private currentProject: JiraProject;

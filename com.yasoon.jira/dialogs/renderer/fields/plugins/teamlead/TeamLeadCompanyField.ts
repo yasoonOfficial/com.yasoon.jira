@@ -1,10 +1,10 @@
 declare var jira;
 import { JiraMetaField } from '../../../JiraModels';
-import { JiraSelectField } from '../../JiraSelectField';
+import JiraSelectField from '../../JiraSelectField';
 import { AjaxService } from '../../../../AjaxService';
 
 
-export class TeamLeadCompanyField extends JiraSelectField {
+export default class TeamLeadCompanyField extends JiraSelectField {
     private apiKey: string;
     private ownUserKey: string;
 

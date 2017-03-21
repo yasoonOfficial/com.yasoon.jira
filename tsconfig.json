@@ -4,19 +4,18 @@
         "outFile": "./com.yasoon.jira/dialogs/js/all.js",
         "allowJs": true,
         "target": "es5",
-        "module": "amd"
+        "module": "system",
+        "baseUrl": "./com.yasoon.jira/dialogs",
+        "paths": {
+            "*": [
+                "*"
+            ]
+        }
     },
     "filesGlob": [
         // "com.yasoon.jira/dialogs/renderer/fields/*"
     ],
     "include": [
-        "com.yasoon.jira/dialogs/renderer/fields/plugins/insight/*",
-        "com.yasoon.jira/dialogs/renderer/fields/plugins/teamlead/*",
-        "com.yasoon.jira/dialogs/renderer/fields/plugins/tempo/*",
-        "com.yasoon.jira/dialogs/renderer/fields/plugins/*",
-        "com.yasoon.jira/dialogs/renderer/fields/*",
-        "com.yasoon.jira/dialogs/renderer/getter/*",
-        "com.yasoon.jira/dialogs/renderer/setter/*",
-        "com.yasoon.jira/dialogs/renderer/*"
+        "com.yasoon.jira/dialogs/**/*.ts"
     ]
 }

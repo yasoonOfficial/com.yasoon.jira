@@ -10,7 +10,7 @@ import { AjaxService } from '../../AjaxService';
 
 @getter(GetterType.Option, "name", null)
 @setter(SetterType.Option)
-export class GroupSelectField extends Select2AjaxField {
+export default class GroupSelectField extends Select2AjaxField {
     constructor(id: string, field: JiraMetaField, options: { multiple: boolean } = { multiple: false }) {
         let select2Options: Select2Options = {};
         if (!options.multiple) {

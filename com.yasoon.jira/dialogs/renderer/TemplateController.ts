@@ -3,10 +3,10 @@ import { Field, IFieldEventHandler, UiActionEventData } from './Field';
 import { EventType } from './Enumerations';
 import { FieldController } from './FieldController';
 import { EmailController } from './EmailController';
-import { ProjectField } from './fields/ProjectField';
-import { UserSelectField } from './fields/UserSelectField';
-import { IssueTypeField } from './fields/IssueTypeField';
-import { MultiLineTextField } from './fields/MultiLineTextField';
+import ProjectField from './fields/ProjectField';
+import UserSelectField from './fields/UserSelectField';
+import IssueTypeField from './fields/IssueTypeField';
+import MultiLineTextField from './fields/MultiLineTextField';
 import { Bootbox } from './Bootbox';
 import { JiraUser, YasoonGroupHierarchy, YasoonDefaultTemplate, YasoonInitialSelection, JiraDialogType, JiraIssue, JiraProject } from './JiraModels';
 

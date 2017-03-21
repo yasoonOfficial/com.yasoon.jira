@@ -1,11 +1,12 @@
 import { Field, IFieldEventHandler, UiActionEventData } from './Field';
 import { EventType } from './Enumerations';
 import { FieldController } from './FieldController';
-import { JiraProject, JiraRequestType, JiraServiceDeskKey, JiraRequestTypeFieldMeta } from './JiraModels';
-import { UserSelectField } from './fields/UserSelectField';
-import { RequestTypeField } from './fields/RequestTypeField';
-import { IssueTypeField } from './fields/IssueTypeField';
+import { JiraProject, JiraRequestType, JiraServiceDeskKey, JiraRequestTypeFieldMeta, JiraIssue } from './JiraModels';
+import UserSelectField from './fields/UserSelectField';
+import RequestTypeField from './fields/RequestTypeField';
+import IssueTypeField from './fields/IssueTypeField';
 import { ServiceDeskUtil } from './ServiceDeskUtil';
+import { AjaxService } from '../AjaxService';
 
 export interface ServiceDeskSaveResult {
     issueCreated: boolean;
@@ -90,7 +91,7 @@ export class ServiceDeskController implements IFieldEventHandler {
                 postData.requestFieldValues[field.fieldId] = data.fields[field.fieldId];
             });
 
-            let response = await jiraAjax('/rest/servicedeskapi/request', yasoon.ajaxMethod.Post, JSON.stringify(postData));
+            let response = await AjaxService.ajax('/rest/servicedeskapi/request', yasoon.ajaxMethod.Post, JSON.stringify(postData));
             let responseData = JSON.parse(response);
 
             return {
@@ -113,7 +114,7 @@ export class ServiceDeskController implements IFieldEventHandler {
                 let requestTypeOption: { id: string } = FieldController.getField(FieldController.requestTypeFieldId).getValue(false);
                 let requestTypeId = parseInt(requestTypeOption.id);
 
-                return jiraAjax('/rest/servicedesk/1/servicedesk/request/' + issue.id + '/request-types', yasoon.ajaxMethod.Post, JSON.stringify({ rtId: requestTypeId }));
+                return AjaxService.ajax('/rest/servicedesk/1/servicedesk/request/' + issue.id + '/request-types', yasoon.ajaxMethod.Post, JSON.stringify({ rtId: requestTypeId }));
             } catch (e) {
                 return Promise.reject(new Error('Could not create ServiceDesk Data'));
             }

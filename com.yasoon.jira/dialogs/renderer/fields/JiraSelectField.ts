@@ -8,7 +8,7 @@ import { JiraIconController } from '../IconController';
 
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
-export class JiraSelectField extends Select2Field {
+export default class JiraSelectField extends Select2Field {
     constructor(id: string, field: JiraMetaField, options: any = { multiple: false }, style: string = 'min-width: 350px; width: 80%;') {
 
         super(id, field, options, options.multiple, style);

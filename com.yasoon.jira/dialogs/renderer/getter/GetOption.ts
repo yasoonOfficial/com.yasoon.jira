@@ -57,7 +57,7 @@ export class GetOption implements FieldGetter {
                     select2Value = selectField.convertToSelect2(field.initialValue);
                 }
 
-                if (!isEqual(select2Value.id, newValue)) {
+                if (!Utilities.isEqual(select2Value.id, newValue)) {
                     result[this.keyName] = newValue || this.nullValue;
                     return result;
                 }

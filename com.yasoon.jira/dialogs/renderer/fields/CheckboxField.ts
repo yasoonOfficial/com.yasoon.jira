@@ -5,7 +5,7 @@ import { GetterType, SetterType, EventType } from '../Enumerations';
 
 @getter(GetterType.ObjectArray, "id")
 @setter(SetterType.CheckedValues)
-export class CheckboxField extends Field {
+export default class CheckboxField extends Field {
 
     getDomValue(): any {
         let checkedValues = [];

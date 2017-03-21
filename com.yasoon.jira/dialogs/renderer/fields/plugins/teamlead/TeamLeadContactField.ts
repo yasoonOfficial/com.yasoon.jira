@@ -3,8 +3,8 @@ import { FieldController } from '../../../FieldController';
 import { IFieldEventHandler } from '../../../Field';
 import { EventType } from '../../../Enumerations';
 import { JiraValue, JiraMetaField } from '../../../JiraModels';
-import { JiraSelectField } from '../../JiraSelectField';
-import { TeamLeadCompanyField } from './TeamLeadCompanyField';
+import JiraSelectField from '../../JiraSelectField';
+import TeamLeadCompanyField from './TeamLeadCompanyField';
 import { AjaxService } from '../../../../AjaxService';
 
 
@@ -18,7 +18,7 @@ export interface TeamleadContact {
     name?: string;
 }
 
-export class TeamLeadContactField extends JiraSelectField implements IFieldEventHandler {
+export default class TeamLeadContactField extends JiraSelectField implements IFieldEventHandler {
     private apiKey: string;
     private ownUserKey: string;
 

@@ -2,10 +2,10 @@ import { FieldController } from '../FieldController';
 import { Field, IFieldEventHandler } from '../Field';
 import { EventType } from '../Enumerations';
 import { JiraMetaField, JiraSentObj } from '../JiraModels';
-import { JiraSelectField } from './JiraSelectField';
+import JiraSelectField from './JiraSelectField';
 import { Utilities } from '../../Util';
 
-export class CascadedSelectField extends Field implements IFieldEventHandler {
+export default class CascadedSelectField extends Field implements IFieldEventHandler {
     private parentField: JiraSelectField;
     private childField: JiraSelectField;
 

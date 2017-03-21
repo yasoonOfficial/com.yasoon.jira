@@ -21,7 +21,7 @@ export interface ProjectFieldOptions {
 
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
-export class ProjectField extends Select2Field {
+export default class ProjectField extends Select2Field {
 
     static defaultMeta: JiraMetaField = { key: FieldController.projectFieldId, get name() { return yasoon.i18n('dialog.project'); }, required: true, schema: { system: 'project', type: '' } };
 

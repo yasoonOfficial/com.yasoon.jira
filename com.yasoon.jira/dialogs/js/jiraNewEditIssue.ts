@@ -1,38 +1,24 @@
 /// <reference path="../../definitions/yasoon.d.ts" />
-var jira: any = null; //Legacy
+declare var jira;
+import { Field, IFieldEventHandler, UiActionEventData, LifecycleData } from 'renderer/Field';
+import { EventType } from 'renderer/Enumerations';
+import { FieldController } from 'renderer/FieldController';
+import { ServiceDeskController, ServiceDeskSaveResult } from 'renderer/ServiceDeskController';
+import { RecentItemController } from 'renderer/RecentItemController';
+import { EmailController, JiraFileHandle } from 'renderer/EmailController';
+import { TemplateController } from 'renderer/TemplateController';
+import { ProjectFieldOptions } from 'renderer/fields/ProjectField';
+import ProjectField from 'renderer/fields/ProjectField';
+import IssueTypeField from 'renderer/fields/IssueTypeField';
+import IssueField from 'renderer/fields/IssueField';
+import AttachmentField from 'renderer/fields/AttachmentField';
+import UserSelectField from 'renderer/fields/UserSelectField';
+import { AjaxService, jiraSyncError } from 'AjaxService';
+import { Utilities } from 'Util';
+import { JiraProject, JiraIssue, JiraDialogType, JiraUser, JiraUserConfigMeta, JiraProjectMeta, JiraSystemInfo, JiraIssueType, JiraMetaField, YasoonDialogCloseParams, YasoonFieldMappingConfig, JiraAppSettings, NewEditDialogInitParams } from '../renderer/JiraModels';
 
-import { Field, IFieldEventHandler, UiActionEventData, LifecycleData } from '../renderer/Field';
-import { EventType } from '../renderer/Enumerations';
-import { FieldController } from '../renderer/FieldController';
-import { ServiceDeskController, ServiceDeskSaveResult } from '../renderer/ServiceDeskController';
-import { RecentItemController } from '../renderer/RecentItemController';
-import { EmailController, JiraFileHandle } from '../renderer/EmailController';
-import { TemplateController } from '../renderer/TemplateController';
-import { ProjectField, ProjectFieldOptions } from '../renderer/fields/ProjectField';
-import { IssueTypeField } from '../renderer/fields/IssueTypeField';
-import { IssueField } from '../renderer/fields/IssueField';
-import { AttachmentField } from '../renderer/fields/AttachmentField';
-import { UserSelectField } from '../renderer/fields/UserSelectField';
-import { JiraIconController } from '../util';
-import { JiraProject, JiraIssue, JiraDialogType, JiraUser, JiraUserConfigMeta, JiraProjectMeta, JiraSystemInfo, JiraIssueType, JiraMetaField, YasoonDialogCloseParams } from '../renderer/JiraModels';
-
-interface newEditDialogInitParams {
-    mail: yasoonModel.Email;
-    settings: JiraAppSettings;
-    text: string;
-    projects: JiraProject[];
-    issue: JiraIssue;
-    type: JiraDialogType;
-    ownUser: JiraUser;
-    editIssueId: string;
-    userMeta: JiraUserConfigMeta[];
-    createMetas: JiraProjectMeta[];
-    systemInfo: JiraSystemInfo;
-}
-
-class NewEditDialog implements IFieldEventHandler {
+export class NewEditDialog implements IFieldEventHandler {
     //For application
-    icons: JiraIconController = new JiraIconController();
     recentItems: RecentItemController = null;
     emailController: EmailController = null;
     templateController: TemplateController = null;
@@ -73,8 +59,8 @@ class NewEditDialog implements IFieldEventHandler {
         'timetracking'
     ];
 
-    init = (initParams: newEditDialogInitParams) => {
-        jira = this;
+    init = (initParams: NewEditDialogInitParams) => {
+        window['jira'] = this;
         //Parameter taken over from Main JIRA
         this.settings = initParams.settings;
         this.ownUser = initParams.ownUser;
@@ -91,7 +77,7 @@ class NewEditDialog implements IFieldEventHandler {
         yasoon.dialog.onClose(this.cleanup);
 
         // Resize Window if nessecary (sized are optimized for default Window - user may have changed that)
-        resizeWindowNew();
+        window['resizeWindowNew']();
 
         //It's the edit case
         //Add Class to change title & labels
@@ -150,7 +136,7 @@ class NewEditDialog implements IFieldEventHandler {
                 //Set Project and issueType read-only
                 $('#' + FieldController.projectFieldId).prop('disabled', true);
                 $('#' + FieldController.issueTypeFieldId).prop('disabled', true);
-                jiraGet('/rest/api/2/issue/' + this.editIssueId + '?expand=editmeta,renderedFields')
+                AjaxService.get('/rest/api/2/issue/' + this.editIssueId + '?expand=editmeta,renderedFields')
                     .then((issueString) => {
                         this.currentIssue = JSON.parse(issueString);
 
@@ -359,20 +345,20 @@ class NewEditDialog implements IFieldEventHandler {
                 //Submit request	
                 return [
                     sdData,
-                    jiraAjax(url, method, JSON.stringify(result))
+                    AjaxService.ajax(url, method, JSON.stringify(result))
                 ];
             })
             .spread((sdData: ServiceDeskSaveResult, data: string) => {
                 if (this.isEditMode) {
                     this.issueCreatedKey = this.currentIssue.key;
-                    return jiraGet('/rest/api/2/issue/' + this.currentIssue.id);
+                    return AjaxService.get('/rest/api/2/issue/' + this.currentIssue.id);
                 } else if (sdData.issueCreated) {
                     this.issueCreatedKey = sdData.issueKey;
-                    return jiraGet('/rest/api/2/issue/' + sdData.issueId);
+                    return AjaxService.get('/rest/api/2/issue/' + sdData.issueId);
                 } else {
                     let issue = JSON.parse(data);//A non-populated issue
                     this.issueCreatedKey = issue.key;
-                    return jiraGet('/rest/api/2/issue/' + issue.id);
+                    return AjaxService.get('/rest/api/2/issue/' + issue.id);
                 }
             })
             .then((data: string) => {
@@ -523,12 +509,12 @@ class NewEditDialog implements IFieldEventHandler {
             return Promise.resolve(this.cacheUserMeta[projectId][issueTypeId]);
         }
 
-        return jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + projectId + '&issuetype=' + issueTypeId)
+        return AjaxService.get('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + projectId + '&issuetype=' + issueTypeId)
             .then((data: string) => {
                 if (!this.cacheUserMeta[projectId]) {
                     this.cacheUserMeta[projectId] = {};
                 }
-                this.cacheUserMeta[projectId][issueTypeId] = parseUserMeta(data);
+                this.cacheUserMeta[projectId][issueTypeId] = Utilities.parseUserMeta(data);
                 return this.cacheUserMeta[projectId][issueTypeId];
             })
             .catch((e) => {
@@ -538,9 +524,9 @@ class NewEditDialog implements IFieldEventHandler {
     }
 
     getUserPreferencesEdit(editIssueId: string): Promise<JiraUserConfigMeta> {
-        return jiraGet('/secure/QuickEditIssue!default.jspa?issueId=' + editIssueId + '&decorator=none')
+        return AjaxService.get('/secure/QuickEditIssue!default.jspa?issueId=' + editIssueId + '&decorator=none')
             .then((data: string) => {
-                return parseUserMeta(data);
+                return Utilities.parseUserMeta(data);
             })
             .catch((e) => {
                 console.log('An error occured while getting userPreferences for Edit', e, e.stack);
@@ -554,7 +540,7 @@ class NewEditDialog implements IFieldEventHandler {
         } else {
             return this.getCreateMetaData(this.selectedProject.id, this.selectedIssueType.id);
         }
-    };
+    }
 
     getEditMetaData(): { [id: string]: JiraMetaField } {
         if (this.currentIssue && this.currentIssue.editmeta) {
@@ -575,7 +561,7 @@ class NewEditDialog implements IFieldEventHandler {
             }
         }
 
-        return jiraGet('/rest/api/2/issue/createmeta?projectIds=' + projectId + '&expand=projects.issuetypes.fields')
+        return AjaxService.get('/rest/api/2/issue/createmeta?projectIds=' + projectId + '&expand=projects.issuetypes.fields')
             .then((data: string) => {
                 let meta = JSON.parse(data);
                 //Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
@@ -590,7 +576,12 @@ class NewEditDialog implements IFieldEventHandler {
             });
     }
 
-    loadFields() {
+    async loadFields() {
+        let fieldMapping = <YasoonFieldMappingConfig>await SystemJS.import('dialogs/config/JiraFieldMapping.json!json');
+
+        await this.registerConfig(fieldMapping);
+
+        /*
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:textfield', SingleTextField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:url', SingleTextField);
         FieldController.register('summary', SingleTextField);
@@ -637,7 +628,7 @@ class NewEditDialog implements IFieldEventHandler {
         /*if (this.editIssueId) {
             FieldController.register('com.atlassian.servicedesk:sd-customer-organizations', OrganizationField);
         }*/
-
+        /*
         //Tempo
         FieldController.register('com.tempoplugin.tempo-accounts:accounts.customfield', TempoAccountField);
         FieldController.register('com.tempoplugin.tempo-teams:team.customfield', TempoTeamField);
@@ -669,32 +660,21 @@ class NewEditDialog implements IFieldEventHandler {
         FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object', InsightObjectField);
         FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-reference-multi', InsightReferenceField, { multiple: true });
         FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-reference', InsightReferenceField);
+        */
+    }
 
-    };
-}
-
-yasoon.dialog.load(new NewEditDialog());
-
-function resizeWindowNew() {
-    var bodyHeight = $('body').height();
-    if (bodyHeight > 460) {
-        $('body').css('overflow-y', 'hidden');
-        $(".form-body").height(bodyHeight - 162);
-    } else {
-        $('body').css('overflow-y', 'scroll');
-        $(".form-body").height(290);
+    async registerConfig(config: YasoonFieldMappingConfig) {
+        for (let key in config) {
+            let value = config[key];
+            if (typeof value === 'string') {
+                let classType = await SystemJS.import(value);
+                console.log('Loader', classType);
+                FieldController.register(key, classType['default']);
+            } else {
+                let classType = await SystemJS.import(value.module);
+                console.log('Loader', classType);
+                FieldController.register(key, classType['default'], value.options);
+            }
+        }
     }
 }
-
-
-$(function () {
-    $('body').css('overflow-y', 'hidden');
-    $('form').on('submit', function (e) {
-        e.preventDefault();
-        return false;
-    });
-});
-
-$(window).resize(resizeWindowNew);
-
-//@ sourceURL=http://Jira/Dialog/jiraNewEditIssue.js

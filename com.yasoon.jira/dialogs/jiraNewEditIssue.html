@@ -10,9 +10,47 @@
 <script src="libs/select2/select2.full.min.js"></script>
 <script src="libs/datetimePicker/jquery.datetimepicker.full.min.js"></script>
 <script src="libs/mentionsInput/jquery.mentionsInput.js"></script>
-<script src="common.js"></script>
+<script src="libs/systemjs/system.js"></script>
 <script src="dialogs/js/renderer.js"></script>
-<script src="dialogs/js/jiraNewEditIssue.js"></script>
+<script>
+	SystemJS.config({
+		// locate the plugin via map configuration
+		// (alternatively have it in the baseURL)
+		map: {
+			json: '../libs/systemjs/json.js'
+		}
+	});
+
+	SystemJS.import('dialogs/js/jiraNewEditIssue.js')
+		.then(function (jiraApp) {
+			yasoon.dialog.load(new jiraApp.NewEditDialog());
+		})
+		.catch(function (e) {
+			console.log('Couldnt load file', e, e.stack);
+		});
+
+	function resizeWindowNew() {
+		var bodyHeight = $('body').height();
+		if (bodyHeight > 460) {
+			$('body').css('overflow-y', 'hidden');
+			$(".form-body").height(bodyHeight - 162);
+		} else {
+			$('body').css('overflow-y', 'scroll');
+			$(".form-body").height(290);
+		}
+	}
+
+	$(function () {
+		$('body').css('overflow-y', 'hidden');
+		$('form').on('submit', function (e) {
+			e.preventDefault();
+			return false;
+		});
+	});
+
+	$(window).resize(resizeWindowNew);
+
+</script>
 
 <div style="padding:10px; position: fixed; width: 100%">
 	<div id="MainAlert" class="alert alert-danger hidden">
@@ -20,7 +58,7 @@
 		<span class="error-text" data-bind="localizedText: 'dialog.connectionError'">Connection Error. Loading Values from Jira not possible.</span>
 	</div>
 	<div style="display: block; width: 100%; min-width: 690px;" class="jira-dialog box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready"
-		id="create-issue-dialog">
+	 id="create-issue-dialog">
 		<div class="jira-dialog-heading">
 			<h2 class="jira-title" data-bind="localizedText: 'dialog.titleCreateIssue'"></h2>
 			<h2 class="jira-edit-title" data-bind="localizedText: 'dialog.titleEditIssue'"></h2>
@@ -68,5 +106,5 @@
 				</div>
 			</div>
 		</div>
-</div>
+	</div>
 </div>

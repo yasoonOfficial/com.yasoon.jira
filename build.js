@@ -11,7 +11,7 @@ gulp.task('buildRenderer', function () {
             "outFile": "./renderer.js",
             "allowJs": true,
             "target": "es5",
-			"module": "amd"
+			"module": "system"
         }))
         .pipe(gulp.dest('distribution/com.yasoon.jira/dialogs/js'));
 });
@@ -19,11 +19,18 @@ gulp.start('buildRenderer');
 
 // 1.2 Typescript Dialogs
 gulp.task('buildDialogs', function () {
-    return gulp.src('com.yasoon.jira/dialogs/js/*.ts')
+    return gulp.src('com.yasoon.jira/dialogs/js/jiraNewEditIssue.ts')
         .pipe(ts({
             "experimentalDecorators": true,
             "allowJs": true,
-            "target": "es5"
+            "target": "es5",
+			"module": "system",
+			"baseUrl": "com.yasoon.jira/dialogs",
+			"paths": {
+				"*": [
+					"*"
+				]
+			}
         }))
         .pipe(gulp.dest('distribution/com.yasoon.jira/dialogs/js'));
 });
@@ -83,7 +90,8 @@ var pathes = [
     'com.yasoon.jira/assets/*',
     'com.yasoon.jira/dialogs/*',
     'com.yasoon.jira/dialogs/js/*.js',
-    'com.yasoon.jira/dialogs/css/*',
+    'com.yasoon.jira/dialogs/config/*',
+	'com.yasoon.jira/dialogs/css/*',
 	'com.yasoon.jira/templates/issueNotification.handlebars',
     'com.yasoon.jira/images/*',
     'com.yasoon.jira/libs/**/*',

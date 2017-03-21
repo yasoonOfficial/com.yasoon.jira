@@ -4,7 +4,7 @@ import { GetterType, SetterType } from '../Enumerations';
 
 @getter(GetterType.Text)
 @setter(SetterType.Text)
-export class NumberField extends Field {
+export default class NumberField extends Field {
 
 	getDomValue(): number {
 		var domValue = $('#' + this.id).val();

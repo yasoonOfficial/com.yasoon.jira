@@ -1,0 +1,93 @@
+{
+    "com.atlassian.jira.plugin.system.customfieldtypes:textfield": "renderer/fields/SingleTextField",
+    "com.atlassian.jira.plugin.system.customfieldtypes:url": "renderer/fields/SingleTextField",
+    "summary": "renderer/fields/SingleTextField",
+    "com.atlassian.jira.plugin.system.customfieldtypes:textarea": "renderer/fields/MultiLineTextField",
+    "description": {
+        "module": "renderer/fields/MultiLineTextField",
+        "options": {
+            "hasMentions": true,
+            "isMainField": true
+        }
+    },
+    "environment": "renderer/fields/MultiLineTextField",
+    "com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes": "renderer/fields/CheckboxField",
+    "com.atlassian.jira.plugin.system.customfieldtypes:radiobuttons": "renderer/fields/RadioField",
+    "duedate": "renderer/fields/DateField",
+    "com.atlassian.jira.plugin.system.customfieldtypes:datepicker": "renderer/fields/DateField",
+    "com.atlassian.jira.plugin.system.customfieldtypes:datetime": "renderer/fields/DateTimeField",
+    "labels": "renderer/fields/LabelSelectField",
+    "com.atlassian.jira.plugin.system.customfieldtypes:labels": "renderer/fields/LabelSelectField",
+    "com.atlassian.jira.plugin.system.customfieldtypes:float": "renderer/fields/NumberField",
+    "priority": "renderer/fields/JiraSelectField",
+    "security": "renderer/fields/JiraSelectField",
+    "com.atlassian.jira.plugin.system.customfieldtypes:select": "renderer/fields/JiraSelectField",
+    "components": {
+        "module": "renderer/fields/JiraSelectField",
+        "options": {
+            "multiple": true
+        }
+    },
+    "com.atlassian.jira.plugin.system.customfieldtypes:multiselect": {
+        "module": "renderer/fields/JiraSelectField",
+        "options": {
+            "multiple": true
+        }
+    },
+    "fixVersions": {
+        "module": "renderer/fields/VersionSelectField",
+        "options": {
+            "multiple": true,
+            "releasedFirst": false
+        }
+    },
+    "versions": {
+        "module": "renderer/fields/VersionSelectField",
+        "options": {
+            "multiple": true,
+            "releasedFirst": true
+        }
+    },
+    "com.atlassian.jira.plugin.system.customfieldtypes:multiversion": {
+        "module": "renderer/fields/VersionSelectField",
+        "options": {
+            "multiple": true,
+            "releasedFirst": true
+        }
+    },
+    "com.atlassian.jira.plugin.system.customfieldtypes:version": {
+        "module": "renderer/fields/VersionSelectField",
+        "options": {
+            "multiple": false,
+            "releasedFirst": true
+        }
+    },
+    "reporter": "renderer/fields/UserSelectField",
+    "assignee": "renderer/fields/UserSelectField",
+    "com.atlassian.jira.plugin.system.customfieldtypes:userpicker": "renderer/fields/UserSelectField",
+    "com.atlassian.jira.plugin.system.customfieldtypes:multiuserpicker": {
+        "module": "renderer/fields/UserSelectField",
+        "options": {
+            "multiple": true
+        }
+    },
+    "com.atlassian.jira.plugin.system.customfieldtypes:cascadingselect": "renderer/fields/CascadedSelectField",
+    "timetracking": "renderer/fields/TimeTrackingField",
+    "com.atlassian.jira.plugin.system.customfieldtypes:grouppicker": "renderer/fields/GroupSelectField",
+    "com.atlassian.jira.plugin.system.customfieldtypes:multigrouppicker": {
+        "module": "renderer/fields/GroupSelectField",
+        "options": {
+            "multiple": true
+        }
+    },
+    "issuelinks": "renderer/fields/LinkedIssueField",
+    "com.pyxis.greenhopper.jira:gh-epic-link": "renderer/fields/EpicLinkSelectField",
+    "com.pyxis.greenhopper.jira:gh-sprint": "renderer/fields/SpringSelectField",
+    "com.pyxis.greenhopper.jira:gh-epic-label": "renderer/fields/SingleTextField",
+    "com.atlassian.servicedesk:sd-request-participants": {
+        "module": "renderer/fields/UserSelectField",
+        "options": {
+            "multiple": true
+        }
+    }
+}

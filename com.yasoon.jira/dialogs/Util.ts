@@ -1,6 +1,6 @@
 declare var jira, moment;
 import { Select2Element } from './renderer/fields/Select2Field'
-import { JiraSystemInfo, JiraProject } from './renderer/JiraModels';
+import { JiraSystemInfo, JiraProject, JiraUserConfigMeta } from './renderer/JiraModels';
 
 export class Utilities {
     static sortByText(a: Select2Element, b: Select2Element): number {
@@ -136,5 +136,17 @@ export class Utilities {
     static jiraCloneObject(obj) {
         if (obj)
             return JSON.parse(JSON.stringify(obj));
+    }
+
+    static parseUserMeta(metaString: string): JiraUserConfigMeta {
+        var userMeta = JSON.parse(metaString);
+        userMeta.fields.forEach(function (field) {
+            var el = $('<div>' + field.editHtml + '</div>');
+            field.defaultValue = el.find('select, input, textarea').val();
+            field.data = el.find('select, input, textarea').data();
+            delete field.editHtml;
+        });
+
+        return userMeta;
     }
 }

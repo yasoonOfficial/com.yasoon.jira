@@ -9,7 +9,7 @@ import { AjaxService } from '../../AjaxService';
 import { Utilities } from '../../Util';
 
 @setter(SetterType.Option)
-export class SprintSelectField extends Select2Field implements IFieldEventHandler {
+export default class SprintSelectField extends Select2Field implements IFieldEventHandler {
 
     private currentIssueType: JiraIssueType;
 

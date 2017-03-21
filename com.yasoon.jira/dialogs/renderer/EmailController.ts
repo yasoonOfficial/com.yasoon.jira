@@ -1,7 +1,7 @@
 /// <reference path="../../definitions/yasoon.d.ts" />
 declare var jira, moment;
 import { Field, IFieldEventHandler, UiActionEventData, LifecycleData } from './Field';
-import { JiraUser, JiraDialogType, YasoonConversationData, JiraIssue } from './JiraModels';
+import { JiraUser, JiraDialogType, YasoonConversationData, JiraIssue, JiraAppSettings } from './JiraModels';
 import { EventType } from './Enumerations';
 import { FieldController } from './FieldController';
 import { AjaxService } from '../AjaxService';
@@ -189,7 +189,7 @@ export class EmailController implements IFieldEventHandler {
         return this.senderUser;
     }
 
-    getSentAt(): moment.Moment {
+    getSentAt(): any {
         return moment(this.mail.receivedAt);
     }
 

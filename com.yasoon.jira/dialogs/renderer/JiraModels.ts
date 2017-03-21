@@ -411,3 +411,54 @@ export interface YasoonDialogCloseParams {
     };
 }
 
+
+export interface JiraAppSettings {
+    currentService: string;
+    lastSync: Date;
+    showDesktopNotif: boolean;
+    addAttachmentsOnNewAddIssue: boolean;
+    addMailHeaderAutomatically: string;
+    addEmailOnNewAddIssue: boolean;
+    showFeedAssignee: boolean;
+    showFeedMentioned: boolean;
+    showFeedWatcher: boolean;
+    showFeedProjectLead: boolean;
+    showFeedReporter: boolean;
+    showFeedCreator: boolean;
+    showFeedComment: boolean;
+    newCreationScreen: boolean;
+    syncCalendar: boolean;
+    syncFeed: string;
+    syncTask: boolean;
+    taskSyncEnabled: boolean;
+    tasksActiveProjects: string;
+    deleteCompletedTasks: boolean;
+    tasksSyncAllProjects: boolean;
+    hideResolvedIssues: boolean;
+    activeFilters: string;
+    teamlead: {
+        apiKey: string,
+        mapping: string
+    };
+}
+
+export interface NewEditDialogInitParams {
+    mail: yasoonModel.Email;
+    settings: JiraAppSettings;
+    text: string;
+    projects: JiraProject[];
+    issue: JiraIssue;
+    type: JiraDialogType;
+    ownUser: JiraUser;
+    editIssueId: string;
+    userMeta: JiraUserConfigMeta[];
+    createMetas: JiraProjectMeta[];
+    systemInfo: JiraSystemInfo;
+}
+
+export type YasoonFieldMappingConfig = {
+    [id: string]: string | {
+        module: string,
+        options: any
+    }
+}

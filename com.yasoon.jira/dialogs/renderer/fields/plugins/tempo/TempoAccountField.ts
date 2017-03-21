@@ -22,7 +22,7 @@ export interface TempoAccount {
 
 @getter(GetterType.Text)
 @setter(SetterType.Option)
-export class TempoAccountField extends Select2Field {
+export default class TempoAccountField extends Select2Field {
     getAccountPromise: Promise<any>;
     constructor(id: string, field: JiraMetaField, options: Select2Options = {}) {
         options.placeholder = yasoon.i18n('dialog.selectNone');

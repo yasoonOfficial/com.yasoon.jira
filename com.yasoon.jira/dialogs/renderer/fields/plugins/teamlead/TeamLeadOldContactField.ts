@@ -6,13 +6,13 @@ import { getter } from '../../../Annotations';
 import { JiraValue, JiraMetaField } from '../../../JiraModels';
 import { Select2Field, Select2Element } from '../../Select2Field';
 import { TeamleadContact } from './TeamLeadContactField';
-import { TeamLeadCompanyField } from './TeamLeadCompanyField';
+import TeamLeadCompanyField from './TeamLeadCompanyField';
 import { AjaxService } from '../../../../AjaxService';
 
 
 //In contrast to other TeamLead Fields, this one is just a string field requires contact ids in format: (id) for single fields or (id),(id), ... for multi
 @getter(GetterType.Text)
-export class TeamLeadOldContactField extends Select2Field implements IFieldEventHandler {
+export default class TeamLeadOldContactField extends Select2Field implements IFieldEventHandler {
     private apiKey: string;
     private ownUserKey: string;
 

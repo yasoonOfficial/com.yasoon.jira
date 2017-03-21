@@ -5,7 +5,7 @@ import { getter, setter } from '../Annotations';
 import { GetterType, SetterType, EventType } from '../Enumerations';
 import { JiraMetaField, JiraProject, JiraIssue, JiraUser } from '../JiraModels';
 import { EmailController } from '../EmailController';
-import { AttachmentField } from './AttachmentField';
+import AttachmentField from './AttachmentField';
 import { Bootbox } from '../Bootbox';
 import { Utilities } from '../../Util';
 import { AjaxService } from '../../AjaxService';
@@ -17,7 +17,7 @@ interface MultiLineTextFieldOptions {
 
 @getter(GetterType.Text)
 @setter(SetterType.Text)
-export class MultiLineTextField extends Field implements IFieldEventHandler {
+export default class MultiLineTextField extends Field implements IFieldEventHandler {
     static defaultCommentMeta: JiraMetaField = { key: FieldController.commentFieldId, get name() { return yasoon.i18n('dialog.comment'); }, required: false, schema: { system: 'description', type: '' } };
 
     private isMainField: boolean;

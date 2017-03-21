@@ -1,4 +1,5 @@
 import { Field, FieldGetter } from '../Field';
+import { Utilities } from '../../Util';
 
 export class GetObject implements FieldGetter {
     keyName: string;
@@ -18,7 +19,7 @@ export class GetObject implements FieldGetter {
                 value = field.initialValue[this.keyName];
             }
 
-            if (!isEqual(value, newValue)) {
+            if (!Utilities.isEqual(value, newValue)) {
                 result[this.keyName] = newValue || "-1";
                 return result;
             }

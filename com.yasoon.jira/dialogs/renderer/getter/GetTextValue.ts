@@ -1,4 +1,5 @@
 import { Field, FieldGetter } from '../Field';
+import { Utilities } from '../../Util';
 
 export class GetTextValue implements FieldGetter {
 
@@ -7,7 +8,7 @@ export class GetTextValue implements FieldGetter {
 
         if (onlyChangedData)
             //In edit case: Only send if changed	
-            return (isEqual(field.initialValue, newValue)) ? undefined : newValue;
+            return (Utilities.isEqual(field.initialValue, newValue)) ? undefined : newValue;
         else
             //In creation case: Only send if not null	
             return (newValue) ? newValue : undefined;

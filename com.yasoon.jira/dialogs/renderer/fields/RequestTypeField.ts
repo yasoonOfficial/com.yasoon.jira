@@ -12,7 +12,7 @@ import { JiraMetaField, JiraProject, JiraRequestType } from '../JiraModels';
 
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
-export class RequestTypeField extends Select2Field implements IFieldEventHandler {
+export default class RequestTypeField extends Select2Field implements IFieldEventHandler {
     static defaultMeta: JiraMetaField = { key: FieldController.requestTypeFieldId, get name() { return yasoon.i18n('dialog.requestType'); }, required: true, schema: { system: 'requesttype', type: '' } };
 
     private currentProject: JiraProject;
