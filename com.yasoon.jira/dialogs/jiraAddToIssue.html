@@ -6,12 +6,60 @@
 <script src="libs/select2/select2.full.min.js"></script>
 <script src="libs/mentionsInput/jquery.mentionsInput.js"></script>
 <script src="common.js"></script>
+<script src="libs/systemjs/system.js"></script>
 <script src="dialogs/js/renderer.js"></script>
-<script src="dialogs/js/jiraAddToIssue.js"></script>
+<script>
+	SystemJS.config({
+		// locate the plugin via map configuration
+		// (alternatively have it in the baseURL)
+		map: {
+			json: '../libs/systemjs/json.js'
+		}
+	});
+
+	SystemJS.import('dialogs/js/jiraAddToIssue.js')
+		.then(function (jiraApp) {
+			yasoon.dialog.load(new jiraApp.AddToIssueDialog());
+		})
+		.catch(function (e) {
+			console.log('Couldnt load file', e, e.stack);
+		});
+
+	function resizeWindowComment() {
+		var bodyHeight = $('body').height();
+		if (bodyHeight > 584) {
+			console.log('setting form body height', bodyHeight - 162);
+			$('.form-body').height(bodyHeight - 162);
+			//164 => Difference between Body und form-body
+			//Space for project, issue and attachment field (in maximum)
+			var restHeight = $('#formContent').height() - $('#comment').height() + 2;
+			//200 => Min height of comment field
+
+			//If the rest has 270 pixel, only increase the comment field
+			if ($('.form-body').height() - restHeight >= 200) {
+				$('#comment').height($('.form-body').height() - restHeight);
+			}
+		} else {
+			$('.form-body').height(414);
+			$('#comment').height(200);
+		}
+	}
+
+	$(function () {
+		$('body').css('overflow-y', 'hidden');
+		$('form').on('submit', function (e) {
+			e.preventDefault();
+			return false;
+		});
+	});
+
+	$(window).resize(resizeWindowComment);
+
+</script>
 
 <div style="padding: 10px;">
 	<div style="display:block; width: 100%; min-width: 550px;" class="jira-dialog addToIssue box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready"
-		id="add-to-issue-dialog">
+	 id="add-to-issue-dialog">
 		<div class="jira-dialog-heading">
 			<h2 class="jira-title" data-bind="localizedText: 'dialog.titleAddToIssue'"></h2>
 		</div>
@@ -39,10 +87,9 @@
 								<img src="images/ajax-loader.gif" class="hidden" id="JiraSpinner">
 								<span class="servicedesk-warning"><i class="fa fa-exclamation-circle servicedesk-popover" aria-hidden="true"></i></span>
 								<button type="button" class="button jira submit-button" id="add-issue-submit" data-type="submit" data-bind="localizedText: 'dialog.add'"></button>
-								<button type="button" class="aui-button aui-button-primary servicedesk submit-button" data-type="submitCustomer"
-									data-bind="localizedText: 'dialog.addCustomer'"> Share with customer</button>
+								<button type="button" class="aui-button aui-button-primary servicedesk submit-button" data-type="submitCustomer" data-bind="localizedText: 'dialog.addCustomer'"> Share with customer</button>
 								<button type="button" class="button servicedesk submit-button" data-type="submitInternal" data-bind="localizedText: 'dialog.addInternal'"> Share internally</button>
-								<a href="#"  id="add-issue-cancel" class="cancel" data-bind="localizedText: 'dialog.cancel'"></a>
+								<a href="#" id="add-issue-cancel" class="cancel" data-bind="localizedText: 'dialog.cancel'"></a>
 							</div>
 						</div>
 					</form>

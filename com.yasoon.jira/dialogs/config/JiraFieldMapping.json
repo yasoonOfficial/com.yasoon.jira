@@ -82,7 +82,7 @@
     },
     "issuelinks": "renderer/fields/LinkedIssueField",
     "com.pyxis.greenhopper.jira:gh-epic-link": "renderer/fields/EpicLinkSelectField",
-    "com.pyxis.greenhopper.jira:gh-sprint": "renderer/fields/SpringSelectField",
+    "com.pyxis.greenhopper.jira:gh-sprint": "renderer/fields/SprintSelectField",
     "com.pyxis.greenhopper.jira:gh-epic-label": "renderer/fields/SingleTextField",
     "com.atlassian.servicedesk:sd-request-participants": {
         "module": "renderer/fields/UserSelectField",

@@ -1,15 +1,13 @@
 {
-    "jira": {
-        "com.atlassian.jira.plugin.system.customfieldtypes:textfield": "renderer/fields/SingleTextField",
-        "description": {
-            "module": "renderer/fields/MultiLineTextField",
-            "options": {
-                "hasMentions": true,
-                "isMainField": true
-            }
+    "com.intenso.jira.plugin.dynamic-forms:dynamic-cascadingselect-customfield": "renderer/fields/CascadedSelectField",
+    "com.intenso.jira.plugin.dynamic-forms:dynamic-check-box-customfield": "renderer/fields/CheckboxField",
+    "com.intenso.jira.plugin.dynamic-forms:dynamic-multiselect-customfield": {
+        "module": "renderer/fields/JiraSelectField",
+        "options": {
+            "multiple": true
         }
     },
-    "tempo": {
-        "com.tempoplugin.tempo-accounts:accounts.customfield": "renderer/fields/plugins/tempo/TempoAccountField"
-    }
+    "com.intenso.jira.plugin.dynamic-forms:dynamic-radiobutton-customfield": "renderer/fields/RadioField",
+    "com.intenso.jira.plugin.dynamic-forms:dynamic-select-customfield": "renderer/fields/JiraSelectField",
+    "com.intenso.jira.plugin.dynamic-forms:secured-select": "renderer/fields/JiraSelectField"
 }

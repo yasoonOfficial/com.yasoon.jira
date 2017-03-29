@@ -1,15 +1,4 @@
 {
-    "jira": {
-        "com.atlassian.jira.plugin.system.customfieldtypes:textfield": "renderer/fields/SingleTextField",
-        "description": {
-            "module": "renderer/fields/MultiLineTextField",
-            "options": {
-                "hasMentions": true,
-                "isMainField": true
-            }
-        }
-    },
-    "tempo": {
-        "com.tempoplugin.tempo-accounts:accounts.customfield": "renderer/fields/plugins/tempo/TempoAccountField"
-    }
+    "com.tempoplugin.tempo-accounts:accounts.customfield": "renderer/fields/plugins/tempo/TempoAccountField",
+    "com.tempoplugin.tempo-teams:team.customfield": "renderer/fields/plugins/tempo/TempoTeamField"
 }

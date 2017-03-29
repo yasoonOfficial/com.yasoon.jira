@@ -1,15 +1,24 @@
 {
-    "jira": {
-        "com.atlassian.jira.plugin.system.customfieldtypes:textfield": "renderer/fields/SingleTextField",
-        "description": {
-            "module": "renderer/fields/MultiLineTextField",
-            "options": {
-                "hasMentions": true,
-                "isMainField": true
-            }
+    "ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:company-select-field": "renderer/fields/plugins/teamlead/TeamLeadCompanyField",
+    "ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:companies-select-field": {
+        "module": "renderer/fields/plugins/teamlead/TeamLeadCompanyField",
+        "options": {
+            "multiple": true
         }
     },
-    "tempo": {
-        "com.tempoplugin.tempo-accounts:accounts.customfield": "renderer/fields/plugins/tempo/TempoAccountField"
+    "ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contact-select-field": "renderer/fields/plugins/teamlead/TeamLeadContactField",
+    "ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contact-field": "renderer/fields/plugins/teamlead/TeamLeadOldContactField",
+    "ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contacts-field": {
+        "module": "renderer/fields/plugins/teamlead/TeamLeadOldContactField",
+        "options": {
+            "multiple": true
+        }
+    },
+    "ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:single-product-select-field": "renderer/fields/plugins/teamlead/TeamLeadProductField",
+    "ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:multi-products-select-field": {
+        "module": "renderer/fields/plugins/teamlead/TeamLeadProductField",
+        "options": {
+            "multiple": true
+        }
     }
 }

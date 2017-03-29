@@ -19,7 +19,7 @@ gulp.start('buildRenderer');
 
 // 1.2 Typescript Dialogs
 gulp.task('buildDialogs', function () {
-    return gulp.src('com.yasoon.jira/dialogs/js/jiraNewEditIssue.ts')
+    return gulp.src('com.yasoon.jira/dialogs/js/*.ts')
         .pipe(ts({
             "experimentalDecorators": true,
             "allowJs": true,

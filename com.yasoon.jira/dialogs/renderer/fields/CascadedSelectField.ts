@@ -9,16 +9,16 @@ export default class CascadedSelectField extends Field implements IFieldEventHan
     private parentField: JiraSelectField;
     private childField: JiraSelectField;
 
-    constructor(id: string, field: JiraMetaField) {
+    constructor(id: string, field: JiraMetaField, options: any = { width: '45%' }) {
         super(id, field);
-
-        this.parentField = new JiraSelectField(id + '_parent', field, {}, 'min-width: 150px; width: 45%;');
+        options.multiple = false;
+        this.parentField = new JiraSelectField(id + '_parent', field, options);
         FieldController.registerEvent(EventType.FieldChange, this, id + '_parent');
 
         let childFieldMeta: JiraMetaField = JSON.parse(JSON.stringify(field));
         childFieldMeta.allowedValues = [];
 
-        this.childField = new JiraSelectField(id + '_child', childFieldMeta, {}, 'min-width: 150px; width: 45%;');
+        this.childField = new JiraSelectField(id + '_child', childFieldMeta, options);
         FieldController.registerEvent(EventType.FieldChange, this, id + '_child');
     }
 
@@ -92,13 +92,13 @@ export default class CascadedSelectField extends Field implements IFieldEventHan
     hookEventHandler(): void { }
 
     render(container: JQuery): void {
-        let parentContainer = $(`<div id="${this.id}_parent-container" style="display:inline;"></div>`).appendTo(container);
+        $(container).addClass('cascaded-select-field');
+        let parentContainer = $(`<div id="${this.id}_parent-container" class="parent"></div>`).appendTo(container);
         this.parentField.render(parentContainer);
         this.parentField.hookEventHandler();
         this.parentField.ownContainer = parentContainer;
-        container.append('<span style="margin-left: 10px;">&nbsp</span>');
 
-        let childContainer = $(`<div id="${this.id}_child-container" style="display:inline;"></div>`).appendTo(container);
+        let childContainer = $(`<div id="${this.id}_child-container" class="child"></div>`).appendTo(container);
         this.childField.render(childContainer);
         this.childField.hookEventHandler();
         this.childField.ownContainer = childContainer;

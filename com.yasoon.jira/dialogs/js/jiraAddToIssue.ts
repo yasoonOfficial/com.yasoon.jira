@@ -1,32 +1,24 @@
-/// <reference path="../../definitions/bluebird.d.ts" />
-/// <reference path="../../definitions/jira.d.ts" />
-/// <reference path="../../definitions/common.d.ts" />
+declare var jira;
 /// <reference path="../../definitions/yasoon.d.ts" />
-/// <reference path="./../renderer/FieldController.ts" />
-/// <reference path="./../renderer/EmailController.ts" />
-/// <reference path="./../renderer/RecentItemController.ts" />
-/// <reference path="./../renderer/Field.ts" />
-/// <reference path="./../renderer/fields/AttachmentField.ts" />
-/// <reference path="./../renderer/fields/MultiLineTextField.ts" />
-/// <reference path="./../renderer/fields/IssueField.ts" />
-/// <reference path="./../renderer/fields/ProjectField.ts" />
 
-interface commentDialogInitParams {
-    mail: yasoonModel.Email;
-    settings: JiraAppSettings;
-    text: string;
-    projects: JiraProject[];
-    issue: JiraIssue;
-    type: JiraDialogType;
-    ownUser: JiraUser;
-}
+import { Field, IFieldEventHandler, UiActionEventData, LifecycleData } from 'renderer/Field';
+import { EventType } from 'renderer/Enumerations';
+import { FieldController } from 'renderer/FieldController';
+import { EmailController } from 'renderer/EmailController';
+import { RecentItemController } from 'renderer/RecentItemController';
+import { ProjectFieldOptions } from 'renderer/fields/ProjectField';
+import ProjectField from 'renderer/fields/ProjectField';
+import AttachmentField from 'renderer/fields/AttachmentField';
+import IssueField from 'renderer/fields/IssueField';
+import MultiLineTextField from 'renderer/fields/MultiLineTextField';
+import { MultiLineTextFieldOptions } from 'renderer/fields/MultiLineTextField';
+import { AjaxService, jiraSyncError } from 'AjaxService';
+import { JiraProject, JiraIssue, JiraDialogType, JiraUser, JiraAppSettings, CommentDialogInitParams, JiraSubmitComment, YasoonDialogCloseParams } from '../renderer/JiraModels';
 
-var jira: any = null;
-
-class AddToIssueDialog implements IFieldEventHandler {
-    icons: JiraIconController = new JiraIconController();
+export class AddToIssueDialog implements IFieldEventHandler {
     emailController: EmailController;
     recentItems: RecentItemController;
+    defaultWidth: string = '80%';
 
     settings: JiraAppSettings = null;
     mail: yasoonModel.Email = null;
@@ -39,8 +31,8 @@ class AddToIssueDialog implements IFieldEventHandler {
     currentProject: JiraProject = null;
     currentIssue: JiraIssue = null;
 
-    init = (initParams: commentDialogInitParams) => {
-        jira = this; //Legacy
+    init = (initParams: CommentDialogInitParams) => {
+        window['jira'] = this; //Legacy
         this.mail = initParams.mail;
         this.settings = initParams.settings;
         this.selectedText = initParams.text;
@@ -52,7 +44,7 @@ class AddToIssueDialog implements IFieldEventHandler {
         //Register Close Handler
         yasoon.dialog.onClose(this.cleanup);
 
-        resizeWindowComment();
+        window['resizeWindowComment']();
 
         setTimeout(() => { this.initDelayed(); }, 1);
     }
@@ -102,7 +94,7 @@ class AddToIssueDialog implements IFieldEventHandler {
             attachments = this.emailController.getAttachmentFileHandles(true);
         }
         FieldController.loadField(AttachmentField.defaultMeta, AttachmentField, attachments);
-        FieldController.render(FieldController.attachmentFieldId, $('#ContentArea')).then(() => resizeWindowComment());
+        FieldController.render(FieldController.attachmentFieldId, $('#ContentArea')).then(() => window['resizeWindowComment']());
 
         //Hook up events
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
@@ -117,7 +109,6 @@ class AddToIssueDialog implements IFieldEventHandler {
                 });
         }
 
-        // Resize Window to maximize Comment field
         FieldController.raiseEvent(EventType.AfterRender, {});
 
         //Submit Button - (Create & Edit)
@@ -157,7 +148,7 @@ class AddToIssueDialog implements IFieldEventHandler {
                     if (this.currentIssue && this.currentProject && this.currentProject.projectTypeKey === 'service_desk') {
 
                         //We have a service Project... Check if it is a service request
-                        jiraGet('/rest/servicedeskapi/request/' + this.currentIssue.id)
+                        AjaxService.get('/rest/servicedeskapi/request/' + this.currentIssue.id)
                             .then((data) => {
                                 $('.buttons').addClass('servicedesk');
                                 $('.buttons').removeClass('no-requesttype');
@@ -227,7 +218,7 @@ class AddToIssueDialog implements IFieldEventHandler {
                 if (comment) {
                     //Upload comment
                     promises.push(
-                        jiraAjax(url, yasoon.ajaxMethod.Post, JSON.stringify(body))
+                        AjaxService.ajax(url, yasoon.ajaxMethod.Post, JSON.stringify(body))
                             .catch(jiraSyncError, (e) => {
                                 $('#MainAlert .errorText').text(yasoon.i18n('dialog.errorSubmitComment', { error: e.getUserFriendlyError() }));
                                 $('#MainAlert').show();
@@ -278,38 +269,3 @@ class AddToIssueDialog implements IFieldEventHandler {
         e.preventDefault();
     }
 }
-
-
-yasoon.dialog.load(new AddToIssueDialog());
-
-function resizeWindowComment() {
-    var bodyHeight = $('body').height();
-    if (bodyHeight > 584) {
-        console.log('setting form body height', bodyHeight - 162);
-        $('.form-body').height(bodyHeight - 162);
-        //164 => Difference between Body und form-body
-        //Space for project, issue and attachment field (in maximum)
-        var restHeight = $('#formContent').height() - $('#comment').height() + 2;
-        //200 => Min height of comment field
-
-        //If the rest has 270 pixel, only increase the comment field
-        if ($('.form-body').height() - restHeight >= 200) {
-            $('#comment').height($('.form-body').height() - restHeight);
-        }
-    } else {
-        $('.form-body').height(414);
-        $('#comment').height(200);
-    }
-}
-
-$(function () {
-    $('body').css('overflow-y', 'hidden');
-    $('form').on('submit', function (e) {
-        e.preventDefault();
-        return false;
-    });
-});
-
-$(window).resize(resizeWindowComment);
-
-//@ sourceURL=http://Jira/Dialog/jiraAddCommentDialog.js

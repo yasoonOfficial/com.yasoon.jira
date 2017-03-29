@@ -22,7 +22,7 @@ export default class DateField extends Field {
 
 	render(container: JQuery) {
 		container.append($(`<input style="height: 28px;" class="text long-field" id="${this.id}" name="${this.id}" placeholder="${yasoon.i18n('dialog.datePickerFormatTitle')}" value="" type="text" >
-							<a href="#" id="${this.id}-trigger" title="${yasoon.i18n('dialog.titleSelectDate')}"><span class="aui-icon icon-date">${yasoon.i18n('dialog.titleSelectDate')}</span></a>`));
+							<a href="#" class="date-selector" id="${this.id}-trigger" title="${yasoon.i18n('dialog.titleSelectDate')}"><span class="aui-icon icon-date">${yasoon.i18n('dialog.titleSelectDate')}</span></a>`));
 
 		$('#' + this.id)["datetimepicker"]({
 			timepicker: false,

@@ -413,3 +413,20 @@ form.aui .text {
 	background-color: #909090;
 }
 /* End Custom Scrollbar */
+
+.cascaded-select-field .parent {
+	display: inline;
+	margin-right: 10px;
+}
+
+.cascaded-select-field .select {
+	min-width: 150px !important;
+}
+
+.cascaded-select-field .child {
+	display: inline;
+}
+
+.select.input-field {
+	min-width: 350px;
+}

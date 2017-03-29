@@ -26,6 +26,7 @@ export class NewEditDialog implements IFieldEventHandler {
     selectedProject: JiraProject = null;
     selectedIssueType: JiraIssueType = null;
     issueCreatedKey: string = null;
+    defaultWidth: string = '80%';
 
     //From Init
     isEditMode: boolean = false;
@@ -577,90 +578,22 @@ export class NewEditDialog implements IFieldEventHandler {
     }
 
     async loadFields() {
-        let fieldMapping = <YasoonFieldMappingConfig>await SystemJS.import('dialogs/config/JiraFieldMapping.json!json');
-
-        await this.registerConfig(fieldMapping);
-
-        /*
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:textfield', SingleTextField);
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:url', SingleTextField);
-        FieldController.register('summary', SingleTextField);
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:textarea', MultiLineTextField);
-        FieldController.register('description', MultiLineTextField, { hasMentions: true, isMainField: true });
-        FieldController.register('environment', MultiLineTextField);
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes', CheckboxField);
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:radiobuttons', RadioField);
-        FieldController.register('duedate', DateField);
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:datepicker', DateField);
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:datetime', DateTimeField);
-        FieldController.register('labels', LabelSelectField);
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:labels', LabelSelectField);
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:float', NumberField);
-        FieldController.register('priority', JiraSelectField);
-        FieldController.register('security', JiraSelectField);
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:select', JiraSelectField);
-        FieldController.register('components', JiraSelectField, { multiple: true });
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:multiselect', JiraSelectField, { multiple: true });
-        FieldController.register('fixVersions', VersionSelectField, { multiSelect: true, releasedFirst: false });
-        FieldController.register('versions', VersionSelectField, { multiSelect: true, releasedFirst: true });
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:multiversion', VersionSelectField, { multiSelect: true, releasedFirst: true });
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:version', VersionSelectField, { multiSelect: false, releasedFirst: true });
-        FieldController.register('reporter', UserSelectField);
-        FieldController.register('assignee', UserSelectField);
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:userpicker', UserSelectField);
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:multiuserpicker', UserSelectField, { multiple: true });
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:cascadingselect', CascadedSelectField);
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:project', ProjectField, { cache: jira.cacheProjects, allowClear: true });
-        FieldController.register('timetracking', TimeTrackingField);
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:grouppicker', GroupSelectField);
-        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:multigrouppicker', GroupSelectField, { multiple: true });
-        FieldController.register('issuelinks', LinkedIssueField);
-
-        //Software
-        FieldController.register('com.pyxis.greenhopper.jira:gh-epic-link', EpicLinkSelectField);
-        FieldController.register('com.pyxis.greenhopper.jira:gh-sprint', SprintSelectField);
-        FieldController.register('com.pyxis.greenhopper.jira:gh-epic-label', SingleTextField);
-
-        //Service Desk
-        FieldController.register('com.atlassian.servicedesk:sd-request-participants', UserSelectField, { multiple: true });
         //https://jira.atlassian.com/browse/JSD-4353
         //https://jira.atlassian.com/browse/JSD-4723
-        /*if (this.editIssueId) {
-            FieldController.register('com.atlassian.servicedesk:sd-customer-organizations', OrganizationField);
-        }*/
-        /*
-        //Tempo
-        FieldController.register('com.tempoplugin.tempo-accounts:accounts.customfield', TempoAccountField);
-        FieldController.register('com.tempoplugin.tempo-teams:team.customfield', TempoTeamField);
-        //In Cloud we also have this one?!: com.atlassian.plugins.atlassian-connect-plugin:io.tempo.jira__account
+        //"com.atlassian.servicedesk:sd-customer-organizations":"renderer/fields/OrganizationField"
 
-        //Teamlead
-        if (this.settings.teamlead && this.settings.teamlead.apiKey) {
-            FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:company-select-field', TeamLeadCompanyField);
-            FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:companies-select-field', TeamLeadCompanyField, { multiple: true });
-            FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contact-select-field', TeamLeadContactField);
-            FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contact-field', TeamLeadOldContactField);
-            FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:contacts-field', TeamLeadOldContactField, { multiple: true });
-            FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:single-product-select-field', TeamLeadProductField);
-            FieldController.register('ru.teamlead.jira.plugins.teamlead-crm-plugin-for-jira:multi-products-select-field', TeamLeadProductField, { multiple: true });
-        }
-        //Watcher Field
-        FieldController.register('com.burningcode.jira.issue.customfields.impl.jira-watcher-field:watcherfieldtype', UserSelectField, { multiple: true });
+        let fieldMapping = <YasoonFieldMappingConfig>await SystemJS.import('dialogs/config/JiraFieldMapping.json!json');
+        await this.registerConfig(fieldMapping);
+        fieldMapping = <YasoonFieldMappingConfig>await SystemJS.import('dialogs/config/InsightFieldMapping.json!json');
+        await this.registerConfig(fieldMapping);
+        fieldMapping = <YasoonFieldMappingConfig>await SystemJS.import('dialogs/config/IntensoFieldMapping.json!json');
+        await this.registerConfig(fieldMapping);
+        fieldMapping = <YasoonFieldMappingConfig>await SystemJS.import('dialogs/config/TeamleadFieldMapping.json!json');
+        await this.registerConfig(fieldMapping);
+        fieldMapping = <YasoonFieldMappingConfig>await SystemJS.import('dialogs/config/WatcherFieldMapping.json!json');
+        await this.registerConfig(fieldMapping);
 
-        //Intenso Dynamic (currently without Dynamic - just render)
-        FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-cascadingselect-customfield', CascadedSelectField);
-        FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-check-box-customfield', CheckboxField);
-        FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-multiselect-customfield', JiraSelectField, { multiple: true });
-        FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-radiobutton-customfield', RadioField);
-        FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-select-customfield', JiraSelectField);
-        FieldController.register('com.intenso.jira.plugin.dynamic-forms:secured-select', JiraSelectField);
-
-        //Insight
-        FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-multi', InsightObjectField, { multiple: true });
-        FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object', InsightObjectField);
-        FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-reference-multi', InsightReferenceField, { multiple: true });
-        FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-reference', InsightReferenceField);
-        */
+        FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:project', ProjectField, { cache: jira.cacheProjects, allowClear: true });
     }
 
     async registerConfig(config: YasoonFieldMappingConfig) {

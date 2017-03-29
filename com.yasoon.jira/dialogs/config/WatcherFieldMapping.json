@@ -1,15 +1,8 @@
 {
-    "jira": {
-        "com.atlassian.jira.plugin.system.customfieldtypes:textfield": "renderer/fields/SingleTextField",
-        "description": {
-            "module": "renderer/fields/MultiLineTextField",
-            "options": {
-                "hasMentions": true,
-                "isMainField": true
-            }
+    "com.burningcode.jira.issue.customfields.impl.jira-watcher-field:watcherfieldtype": {
+        "module": "renderer/fields/UserSelectField",
+        "options": {
+            "multiple": true
         }
-    },
-    "tempo": {
-        "com.tempoplugin.tempo-accounts:accounts.customfield": "renderer/fields/plugins/tempo/TempoAccountField"
     }
 }

@@ -43,10 +43,12 @@ export default class UserSelectField extends Select2AjaxField implements IFieldE
         }
 
         //Init sender user
-        this.emailController.loadSenderPromise
-            .then((senderUser) => {
-                this.senderUser = senderUser;
-            });
+        if (this.emailController) {
+            this.emailController.loadSenderPromise
+                .then((senderUser) => {
+                    this.senderUser = senderUser;
+                });
+        }
     }
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
@@ -197,7 +199,7 @@ export default class UserSelectField extends Select2AjaxField implements IFieldE
 
     convertId(user: any): Promise<any> {
         if (!user.displayName) {
-            let name: string = (typeof user === 'string') ? user : user.name;
+            let name: string = (typeof user === 'string') ? user : (user.name || user.key);
             return this.getData(name)
                 .then((result) => {
                     if (result[0].children[0])

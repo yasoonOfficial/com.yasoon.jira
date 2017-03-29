@@ -1,15 +1,16 @@
 {
-    "jira": {
-        "com.atlassian.jira.plugin.system.customfieldtypes:textfield": "renderer/fields/SingleTextField",
-        "description": {
-            "module": "renderer/fields/MultiLineTextField",
-            "options": {
-                "hasMentions": true,
-                "isMainField": true
-            }
+    "com.riadalabs.jira.plugins.insight:rlabs-customfield-object-multi": {
+        "module": "renderer/fields/plugins/insight/InsightObjectField",
+        "options": {
+            "multiple": true
         }
     },
-    "tempo": {
-        "com.tempoplugin.tempo-accounts:accounts.customfield": "renderer/fields/plugins/tempo/TempoAccountField"
-    }
+    "com.riadalabs.jira.plugins.insight:rlabs-customfield-object": "renderer/fields/plugins/insight/InsightObjectField",
+    "com.riadalabs.jira.plugins.insight:rlabs-customfield-object-reference-multi": {
+        "module": "renderer/fields/plugins/insight/InsightReferenceField",
+        "options": {
+            "multiple": true
+        }
+    },
+    "com.riadalabs.jira.plugins.insight:rlabs-customfield-object-reference": "renderer/fields/plugins/insight/InsightReferenceField"
 }

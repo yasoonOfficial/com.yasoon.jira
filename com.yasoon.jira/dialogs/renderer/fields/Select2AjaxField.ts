@@ -14,7 +14,7 @@ export abstract class Select2AjaxField extends Select2Field {
 	private currentReject;
 	protected emptySearchResult: Select2Element[];
 
-	constructor(id: string, field: JiraMetaField, options: Select2Options = {}, multiple: boolean = false, style: string = "min-width: 350px; width: 80%;") {
+	constructor(id: string, field: JiraMetaField, options: Select2Options = {}, multiple: boolean = false) {
 		if (!options.ajax) {
 			options.ajax = {
 				url: '',
@@ -59,7 +59,7 @@ export abstract class Select2AjaxField extends Select2Field {
 			};
 		}
 
-		super(id, field, options, multiple, style);
+		super(id, field, options, multiple);
 
 		this.debouncedFunction = Utilities.debounce((searchTerm) => {
 			this.getData(searchTerm)

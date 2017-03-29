@@ -1,6 +1,6 @@
 import { FieldController } from '../FieldController';
 import { IFieldEventHandler } from '../Field';
-import { Select2Field, Select2Element } from './Select2Field';
+import { Select2Field, Select2Element, Select2Options } from './Select2Field';
 import { getter, setter } from '../Annotations';
 import { GetterType, SetterType, EventType } from '../Enumerations';
 import { JiraValue, JiraMetaField } from '../JiraModels';
@@ -9,9 +9,9 @@ import { JiraIconController } from '../IconController';
 @getter(GetterType.Option, "id")
 @setter(SetterType.Option)
 export default class JiraSelectField extends Select2Field {
-    constructor(id: string, field: JiraMetaField, options: any = { multiple: false }, style: string = 'min-width: 350px; width: 80%;') {
+    constructor(id: string, field: JiraMetaField, options: Select2Options = { multiple: false }) {
 
-        super(id, field, options, options.multiple, style);
+        super(id, field, options, options.multiple);
         this.init();
     }
 

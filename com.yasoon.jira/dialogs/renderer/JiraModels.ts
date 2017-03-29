@@ -456,6 +456,17 @@ export interface NewEditDialogInitParams {
     systemInfo: JiraSystemInfo;
 }
 
+export interface CommentDialogInitParams {
+    mail: yasoonModel.Email;
+    settings: JiraAppSettings;
+    text: string;
+    projects: JiraProject[];
+    issue: JiraIssue;
+    type: JiraDialogType;
+    ownUser: JiraUser;
+}
+
+
 export type YasoonFieldMappingConfig = {
     [id: string]: string | {
         module: string,

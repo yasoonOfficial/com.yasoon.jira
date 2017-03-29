@@ -1,3 +1,4 @@
+declare var jira;
 import { Field } from '../Field';
 import { EventType } from '../Enumerations';
 import { FieldController } from '../FieldController';
@@ -5,13 +6,11 @@ import { JiraMetaField } from '../JiraModels';
 
 export abstract class Select2Field extends Field {
 	options: Select2Options;
-	styleCss: string;
 	multiple: boolean;
 
-	constructor(id: string, field: JiraMetaField, options: Select2Options, multiple: boolean = false, style: string = "min-width: 350px; width: 80%;") {
+	constructor(id: string, field: JiraMetaField, options: Select2Options, multiple: boolean = false) {
 		super(id, field);
-		this.options = $.extend({ data: [], minimumInputLength: 0, allowClear: true, templateResult: Select2Field.formatIcon, templateSelection: Select2Field.formatIcon }, options);
-		this.styleCss = style;
+		this.options = $.extend({ data: [], minimumInputLength: 0, allowClear: true, templateResult: Select2Field.formatIcon, templateSelection: Select2Field.formatIcon, width: jira.defaultWidth }, options);
 		this.multiple = multiple;
 
 		//https://github.com/select2/select2/issues/3497
@@ -65,10 +64,10 @@ export abstract class Select2Field extends Field {
 	}
 
 	render(container: JQuery) {
-		container.append($(`<select class="select input-field" id="${this.id}" name="${this.id}" style="${this.styleCss}" ${(this.multiple) ? 'multiple' : ''}>
+		container.append($(`<select class="select input-field" id="${this.id}" name="${this.id}" ${(this.multiple) ? 'multiple' : ''}>
 							${ ((!this.multiple) ? '<option></option>' : '')}
 							</select>
-							<img src="images/ajax-loader.gif" class="hidden" id="${this.id}-spinner" />`));
+							<img src="images/ajax-loader.gif" class="hidden spinner-icon" id="${this.id}-spinner" />`));
 
 		$('#' + this.id)["select2"](this.options);
 	}
@@ -144,44 +143,45 @@ export abstract class Select2Field extends Field {
 
 
 export interface Select2Options {
-	allowClear?: boolean,
-	placeholder?: string,
-	templateResult?: Select2FormatMethod,
-	templateSelection?: Select2FormatMethod,
-	minimumInputLength?: number,
-	ajax?: Select2Ajax,
-	data?: Select2Element[],
-	multiple?: boolean
+	allowClear?: boolean;
+	placeholder?: string;
+	templateResult?: Select2FormatMethod;
+	templateSelection?: Select2FormatMethod;
+	minimumInputLength?: number;
+	ajax?: Select2Ajax;
+	data?: Select2Element[];
+	multiple?: boolean;
+	width?: string;
 }
 
 export interface Select2Element {
 	id: string;
-	text: string,
-	icon?: string,
-	iconClass?: string,
-	children?: Select2Element[],
-	data?: any
+	text: string;
+	icon?: string;
+	iconClass?: string;
+	children?: Select2Element[];
+	data?: any;
 }
 
 export interface Select2Ajax {
-	url?: string,
-	transport?: Select2AjaxMethod,
-	processResults?: any
+	url?: string;
+	transport?: Select2AjaxMethod;
+	processResults?: any;
 }
 
 export interface Select2AjaxMethod {
-	(params: Select2CallbackParams, success: Select2Callback, failure: Select2Callback): void
+	(params: Select2CallbackParams, success: Select2Callback, failure: Select2Callback): void;
 }
 
 export interface Select2FormatMethod {
-	(element: Select2Element): string | JQuery
+	(element: Select2Element): string | JQuery;
 }
 
 export interface Select2CallbackParams {
-	data: { q: string }
+	data: { q: string };
 }
 
 export interface Select2Callback {
-	(result?: { results: any[] }): void
+	(result?: { results: any[] }): void;
 }
 
