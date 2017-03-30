@@ -140,7 +140,7 @@ export default class IssueField extends Select2AjaxField implements IFieldEventH
         let jql = '';
 
         if (searchTerm) {
-            jql += 'key = "' + searchTerm + '" OR ( Summary ~ "' + searchTerm + '"';
+            jql += 'key = "' + searchTerm + '" OR ( Summary ~ "' + searchTerm + '*"';
         }
 
         if (this.currentProject) {
