@@ -131,7 +131,7 @@ class IssueField extends Select2AjaxField implements IFieldEventHandler {
         let jql = '';
 
         if (searchTerm) {
-            jql += 'key = "' + searchTerm + '" OR ( Summary ~ "' + searchTerm + '"';
+            jql += 'key = "' + searchTerm + '" OR ( Summary ~ "' + searchTerm + '*"';
         }
 
         if (this.currentProject) {
