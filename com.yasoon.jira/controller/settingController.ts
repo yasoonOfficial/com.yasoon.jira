@@ -318,6 +318,11 @@ class JiraSettingController {
                 if (param.value === null) //Null filter is not good :D
                     param.value = '';
             }
+
+            if (param.key === 'syncFeed' && this[param.key] === 'live') {
+                yasoon.feed.enableLiveMode();
+            }
+
             if (param.key === 'tasksActiveProjects' && this[param.key] != param.value ||
                 param.key === 'taskSyncEnabled' && this[param.key] != param.value ||
                 param.key === 'tasksSyncAllProjects' && this[param.key] != param.value) {

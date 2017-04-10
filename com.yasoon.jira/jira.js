@@ -3,6 +3,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	var self = this;
 	jira = this;
 	jira.CONST_PULL_RESULTS = 25;
+	jira.CONST_LIVE_PAGE_SIZE = 10;
 
 	jira.data = {
 		ownUser: null,
@@ -11,10 +12,11 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 
 	jira.firstTime = true;
-	jira.restartRequired = false;
+	jira.restartRequired = false;	
 	var startSync = new Date();
 	var ignoreEntriesAtSync = 0;
 	var oAuthSuccess = false;
+	var liveModeCurrentPageSize = jira.CONST_LIVE_PAGE_SIZE;
 
 	this.lifecycle = function (action, oldVersion, newVersion) {
 		if (action === yasoon.lifecycle.Upgrade && newVersion === '1.0.4' && oldVersion[0] !== '1') { //Only to 1.0.4 if we are coming from an really old version (e.g. 0.9.3)
@@ -80,6 +82,8 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		yasoon.addHook(yasoon.feed.HookCreateUserComment, jira.notifications.addComment);
 		yasoon.addHook(yasoon.setting.HookRenderSettingsContainer, jira.settings.renderSettingsContainer);
 		yasoon.addHook(yasoon.setting.HookSaveSettings, jira.settings.saveSettings);
+		yasoon.addHook(yasoon.setting.HookLoadFeedChildren, jira.syncChildren);
+		yasoon.addHook(yasoon.setting.HookLoadNextFeedPage, jira.syncNextFeed);
 
 		yasoon.outlook.mail.registerRenderer("jiraMarkup", getJiraMarkupRenderer());
 
@@ -92,6 +96,12 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		}
 		self.checkLicense();
 
+		//Check if live mode needs to be enabled
+		if (jira.settings.syncFeed === 'live') {
+			yasoon.feed.enableLiveMode();
+			jira.sync();
+		}
+
 		//Download custom script
 		self.downloadCustomScript();
 	};
@@ -102,11 +112,14 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		yasoon.app.on("oAuthError", jira.handleOAuthError);
 		yasoon.outlook.on("selectionChange", jira.handleSelectionChange);
 		yasoon.outlook.on("itemOpen", jira.handleNewInspector);
-		yasoon.periodicCallback(300, function () {
-			//Don't pass the function directly, as yasoon will hook itself
-			// to the promise otherwise
-			jira.sync(arguments[0]);
-		});
+
+		if (jira.settings.syncFeed !== 'live') {			
+			yasoon.periodicCallback(300, function () {
+				//Don't pass the function directly, as yasoon will hook itself
+				// to the promise otherwise
+				jira.sync(arguments[0]);
+			});
+		}
 
 		yasoon.on("sync", function () {
 			//Don't pass the function directly, as yasoon will hook itself
@@ -142,11 +155,46 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				return;
 		}
 
-		if (self.firstTime && jira.settings.syncFeed == 'off' && !jira.settings.syncTasks) {
+		if (self.firstTime && (jira.settings.syncFeed == 'off' || jira.settings.syncFeed === 'manual') && !jira.settings.syncTasks) {
 			return self.initData();
 		}
 
-		return jira.queue.add(self.syncData, source);
+		if (jira.settings.syncFeed === 'live')
+			return jira.queue.add(self.syncLive, source);
+		else
+			return jira.queue.add(self.syncData, source);
+	};
+
+	this.syncLive = function (source) {
+		//On sync from tab activation: limit entries to 10 again
+		if (source !== 'manualRefresh') {
+			liveModeCurrentPageSize = self.CONST_LIVE_PAGE_SIZE;
+			yasoon.model.feeds.displayedEntries(self.CONST_LIVE_PAGE_SIZE);
+		}
+		
+		jira.issues.getLastRelevant(liveModeCurrentPageSize)
+			.then(function (lastRelevant) {
+				return lastRelevant.map(function (i) { return i.key });
+			})
+			.each(function (issueKey) {
+				return self.syncStream('/activity?providers=issues&streams=issue-key+IS+' + issueKey, 4, true);
+			});
+	};
+
+	this.syncNextFeed = function() {
+		liveModeCurrentPageSize += self.CONST_LIVE_PAGE_SIZE;
+		jira.issues.getLastRelevant(self.CONST_LIVE_PAGE_SIZE, true)
+			.then(function (lastRelevant) {
+				return lastRelevant.map(function (i) { return i.key });
+			})
+			.each(function (issueKey) {
+				return self.syncStream('/activity?providers=issues&streams=issue-key+IS+' + issueKey, 4, true);
+			});
+	};
+
+	this.syncChildren = function(notif, count) {
+		var key = JSON.parse(notif.externalData).key;
+		self.syncStream('/activity?providers=issues&streams=issue-key+IS+' + key, count + 1, true);
 	};
 
 	this.syncData = function (source) {
@@ -273,7 +321,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 
 	//Handle Sync Event
-	this.syncStream = function (url, maxResults) {
+	this.syncStream = function (url, maxResults, noPaging) {
 		//Defaults
 		maxResults = maxResults || jira.CONST_PULL_RESULTS;
 
@@ -323,7 +371,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 					var lastObjDate = new Date(lastObj.updated['#text']);
 					var firstObjDate = new Date(entries[0].updated['#text']);
 
-					if (entries.length == maxResults && lastObjDate > jira.settings.lastSync) {
+					if (entries.length == maxResults && lastObjDate > jira.settings.lastSync && !noPaging) {
 						var newSyncDate = new Date(lastObjDate.getTime() + 2000);
 						if ((firstObjDate.getTime() - lastObjDate.getTime()) <= 2000) {
 							//Special Case... If all page entries are within 2 seconds, newSyncDate will be bigger than the lastSync date and we will receive exactly the same page again --> endless loop.

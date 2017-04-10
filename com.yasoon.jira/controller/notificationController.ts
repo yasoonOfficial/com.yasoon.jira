@@ -145,6 +145,9 @@ class JiraNotificationController {
 	};
 
 	queueChildren(issue) {
+		if (jira.settings.syncFeed === 'live')
+			return;
+
 		var results = $.grep(this.childQueue, (i) => { return issue.key === i.key; });
 		if (results.length === 0) {
 			//console.log('Queue Child - Add to Array ' + issue.key);

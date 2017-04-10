@@ -22,12 +22,10 @@
 	</div>
 	<div>{{i18n 'settings.systemMissing'}} <button id="jiraReloadOAuth" class="btn btn-link" style="padding-top: 4px; margin-left: -10px;">{{i18n 'settings.reloadSystems'}}</button></div>
 </form>
-{{/unless}}
-
-{{#if loggedIn}}
+{{/unless}} {{#if loggedIn}}
 <p>{{i18n 'settings.headingChooseSettings'}}</p>
 <form class="form-horizontal" role="form">
-		<!-- Logout -->
+	<!-- Logout -->
 	<div class="form-group" style="position:relative;margin-top:20px;">
 		<div class="col-sm-4">
 			<button class="btn btn-default" id="jiraLogout">{{i18n 'settings.logoutButton'}}</button>
@@ -37,7 +35,7 @@
 		<div class="panel panel-default">
 			<div class="panel-heading" role="tab" id="headingOne">
 				<h4 class="panel-title">
-					<a role="button" data-toggle="collapse"  href="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+					<a role="button" data-toggle="collapse" href="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
 						{{i18n 'settings.general'}}
 					</a>
 				</h4>
@@ -157,6 +155,7 @@
 								<option value="auto">{{i18n 'settings.syncFeedAuto'}}</option>
 								<option value="manual">{{i18n 'settings.syncFeedManual'}}</option>
 								<option value="off">{{i18n 'settings.syncFeedOff'}}</option>
+								<option value="live">{{i18n 'settings.syncFeedLive'}}</option>
 							</select>
 						</div>
 					</div>
@@ -253,11 +252,9 @@
 									<option value="{{key}}" {{#if selected}} selected {{/if}}>{{name}}</option>
 
 									{{/each}}
-								</select>
-								{{else}}
+								</select> {{else}}
 								<div>
-									<img src="{{loaderPath}}" />
-									{{i18n 'settings.projectsNotLoaded'}}
+									<img src="{{loaderPath}}" /> {{i18n 'settings.projectsNotLoaded'}}
 								</div>
 								{{/if}}
 							</div>

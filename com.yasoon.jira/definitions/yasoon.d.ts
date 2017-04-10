@@ -257,6 +257,7 @@ interface yasoon_outlook_mail {
 }
 
 interface yasoon_feed {
+  enableLiveMode();
   addFilter(filter: any);
   saveSyncDate(d: Date);
   allowUpdate(id: string): boolean;
