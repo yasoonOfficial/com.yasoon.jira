@@ -12,7 +12,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 
 	jira.firstTime = true;
-	jira.restartRequired = false;	
+	jira.restartRequired = false;
 	var startSync = new Date();
 	var ignoreEntriesAtSync = 0;
 	var oAuthSuccess = false;
@@ -113,7 +113,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		yasoon.outlook.on("selectionChange", jira.handleSelectionChange);
 		yasoon.outlook.on("itemOpen", jira.handleNewInspector);
 
-		if (jira.settings.syncFeed !== 'live') {			
+		if (jira.settings.syncFeed !== 'live') {
 			yasoon.periodicCallback(300, function () {
 				//Don't pass the function directly, as yasoon will hook itself
 				// to the promise otherwise
@@ -171,8 +171,11 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			liveModeCurrentPageSize = self.CONST_LIVE_PAGE_SIZE;
 			yasoon.model.feeds.displayedEntries(self.CONST_LIVE_PAGE_SIZE);
 		}
-		
-		jira.issues.getLastRelevant(liveModeCurrentPageSize)
+
+		self.initData()
+			.then(function () {
+				return jira.issues.getLastRelevant(liveModeCurrentPageSize);
+			})
 			.then(function (lastRelevant) {
 				return lastRelevant.map(function (i) { return i.key });
 			})
@@ -181,7 +184,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			});
 	};
 
-	this.syncNextFeed = function() {
+	this.syncNextFeed = function () {
 		liveModeCurrentPageSize += self.CONST_LIVE_PAGE_SIZE;
 		jira.issues.getLastRelevant(self.CONST_LIVE_PAGE_SIZE, true)
 			.then(function (lastRelevant) {
@@ -192,7 +195,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			});
 	};
 
-	this.syncChildren = function(notif, count) {
+	this.syncChildren = function (notif, count) {
 		var key = JSON.parse(notif.externalData).key;
 		self.syncStream('/activity?providers=issues&streams=issue-key+IS+' + key, count + 1, true);
 	};
