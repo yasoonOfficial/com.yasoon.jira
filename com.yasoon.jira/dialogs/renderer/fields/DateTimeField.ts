@@ -8,11 +8,13 @@
 class DateTimeField extends Field {
 
 	getDomValue(): string {
-		let date = $('#' + this.id)["datetimepicker"]("getValue");
-		if (date) {
-			date = moment(date).format('YYYY-MM-DD[T]HH:mm:ss.[000]ZZ');
+		if ($('#' + this.id).length > 0) {
+			let date = $('#' + this.id)["datetimepicker"]("getValue");
+			if (date) {
+				date = moment(date).format('YYYY-MM-DD[T]HH:mm:ss.[000]ZZ');
+			}
+			return date;
 		}
-		return date;
 	}
 
 	hookEventHandler(): void {
