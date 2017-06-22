@@ -82,3 +82,5 @@ declare class JiraAppSettings {
     };
 }
 
+declare function parseUserMeta(metaString: string): JiraUserConfigMeta;
+

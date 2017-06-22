@@ -224,7 +224,7 @@ class NewEditDialog implements IFieldEventHandler {
             if (this.selectedIssueType.subtask) {
                 if (!FieldController.getField(FieldController.issueFieldId)) {
                     //First time we need the issue field
-                    let issueField = <IssueField>FieldController.loadField(IssueField.defaultMeta, IssueField);
+                    let issueField = <IssueField>FieldController.loadField(IssueField.defaultMeta, IssueField, { excludeSubtasks: true, multiple: false });
                     issueField.setProject(this.selectedProject);
                     FieldController.render(FieldController.issueFieldId, $('#SubtaskArea'));
                 }
@@ -237,8 +237,20 @@ class NewEditDialog implements IFieldEventHandler {
             //Get latest meta and start new Rendering
             $('#LoaderArea').removeClass('hidden');
             $('#ContentArea').css('visibility', 'hidden');
-            this.getMetaData()
-                .then((meta) => {
+            Promise.all([
+                this.getMetaData(),
+                this.getUserPreferences()
+            ])
+                .spread((meta: { [id: string]: JiraMetaField }, userMeta: JiraUserConfigMeta) => {
+                    //Merge "custom" attributes from usermeta.
+                    //DefaultValue and data are parsed from editHtml
+                    for (let fieldId in meta) {
+                        var currentUserMeta = userMeta.fields.filter(f => f.id === fieldId)[0];
+                        if (currentUserMeta) {
+                            meta[fieldId].data = currentUserMeta.data;
+                            meta[fieldId].defaultValue = currentUserMeta.defaultValue;
+                        }
+                    }
                     //Set this as current meta
                     FieldController.loadMeta(meta);
                     return this.renderIssue(meta);
@@ -507,11 +519,11 @@ class NewEditDialog implements IFieldEventHandler {
         }
 
         return jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + projectId + '&issuetype=' + issueTypeId)
-            .then((data) => {
+            .then((data: string) => {
                 if (!this.cacheUserMeta[projectId]) {
                     this.cacheUserMeta[projectId] = {};
                 }
-                this.cacheUserMeta[projectId][issueTypeId] = JSON.parse(data);
+                this.cacheUserMeta[projectId][issueTypeId] = parseUserMeta(data);
                 return this.cacheUserMeta[projectId][issueTypeId];
             })
             .catch((e) => {
@@ -522,8 +534,8 @@ class NewEditDialog implements IFieldEventHandler {
 
     getUserPreferencesEdit(editIssueId: string): Promise<JiraUserConfigMeta> {
         return jiraGet('/secure/QuickEditIssue!default.jspa?issueId=' + editIssueId + '&decorator=none')
-            .then((data) => {
-                return JSON.parse(data);
+            .then((data: string) => {
+                return parseUserMeta(data);
             })
             .catch((e) => {
                 console.log('An error occured while getting userPreferences for Edit', e, e.stack);
@@ -559,7 +571,7 @@ class NewEditDialog implements IFieldEventHandler {
         }
 
         return jiraGet('/rest/api/2/issue/createmeta?projectIds=' + projectId + '&expand=projects.issuetypes.fields')
-            .then((data) => {
+            .then((data: string) => {
                 let meta = JSON.parse(data);
                 //Find selected project (should be selected by API Call, but I'm not sure if it works due to missing test data )
                 let projectMeta: JiraProjectMeta = meta.projects.filter((p) => { return p.id === projectId; })[0];
@@ -606,6 +618,7 @@ class NewEditDialog implements IFieldEventHandler {
         FieldController.register('timetracking', TimeTrackingField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:grouppicker', GroupSelectField);
         FieldController.register('com.atlassian.jira.plugin.system.customfieldtypes:multigrouppicker', GroupSelectField, { multiple: true });
+        FieldController.register('issuelinks', LinkedIssueField);
 
         //Software
         FieldController.register('com.pyxis.greenhopper.jira:gh-epic-link', EpicLinkSelectField);
@@ -616,7 +629,9 @@ class NewEditDialog implements IFieldEventHandler {
         FieldController.register('com.atlassian.servicedesk:sd-request-participants', UserSelectField, { multiple: true });
         //https://jira.atlassian.com/browse/JSD-4353
         //https://jira.atlassian.com/browse/JSD-4723
-        //FieldController.register('com.atlassian.servicedesk:sd-customer-organizations', OrganizationField);
+        /*if (this.editIssueId) {
+            FieldController.register('com.atlassian.servicedesk:sd-customer-organizations', OrganizationField);
+        }*/
 
         //Tempo
         FieldController.register('com.tempoplugin.tempo-accounts:accounts.customfield', TempoAccountField);
@@ -643,6 +658,12 @@ class NewEditDialog implements IFieldEventHandler {
         FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-radiobutton-customfield', RadioField);
         FieldController.register('com.intenso.jira.plugin.dynamic-forms:dynamic-select-customfield', JiraSelectField);
         FieldController.register('com.intenso.jira.plugin.dynamic-forms:secured-select', JiraSelectField);
+
+        //Insight
+        FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-multi', InsightObjectField, { multiple: true });
+        FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object', InsightObjectField);
+        FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-reference-multi', InsightReferenceField, { multiple: true });
+        FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-reference', InsightReferenceField);
 
     };
 }

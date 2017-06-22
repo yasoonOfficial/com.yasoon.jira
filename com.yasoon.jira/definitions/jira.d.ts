@@ -226,7 +226,7 @@ interface JiraRequestTypeFieldMeta {
 }
 
 interface JiraUserConfigMeta {
-    fields?: { [id: string]: JiraUserConfigField };
+    fields?: JiraUserConfigField[];
     sortedTabs: JiraTab[];
     userPreferences: JiraUserPreferences;
 }
@@ -236,6 +236,8 @@ interface JiraUserConfigField {
     label: string;
     required: boolean;
     tab?: JiraUserConfigFieldTab;
+    data?: any[];
+    defaultValue?: any;
 }
 
 interface JiraUserConfigFieldTab {
@@ -292,16 +294,18 @@ interface JiraServiceDeskMetaField {
 }
 
 interface JiraMetaField {
-    required: boolean,
-    schema: JiraSchema,
-    name: string,
-    key: string,
-    description?: string,
-    hasDefaultValue?: boolean,
-    operators?: Array<string>,
-    autoCompleteUrl?: string,
-    allowedValues?: Array<JiraValue>,
-    isHidden?: boolean
+    required: boolean;
+    schema: JiraSchema;
+    name: string;
+    key: string;
+    description?: string;
+    hasDefaultValue?: boolean;
+    operators?: Array<string>;
+    autoCompleteUrl?: string;
+    allowedValues?: Array<JiraValue>;
+    isHidden?: boolean;
+    defaultValue?: any;
+    data?: any[];
 }
 
 interface JiraLabel {
@@ -316,6 +320,45 @@ interface JiraSubmitComment {
 interface JiraComment {
     id: string;
     body: string;
+}
+
+interface JiraIssueLinkTypes {
+    issueLinkTypes: JiraIssueLinkType[];
+}
+
+interface JiraIssueLinkType {
+    id: string;
+    name: string;
+    inward?: string;
+    outward?: string;
+    self?: string;
+}
+
+interface JiraIssueLinkCreate {
+    type: {
+        name?: string;
+        id?: string;
+    };
+
+    inwardIssue: {
+        key?: string;
+        id?: string;
+    };
+
+    outwardIssue: {
+        key?: string;
+        id?: string;
+    };
+
+    comment?: {
+        body: string;
+        visibility?: JiraCommentVisibility
+    };
+}
+
+interface JiraCommentVisibility {
+    type: 'group' | 'role',
+    value: string;
 }
 
 interface YasoonGroupHierarchy {

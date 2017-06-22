@@ -11,6 +11,7 @@ class CascadedSelectField extends Field implements IFieldEventHandler {
 
         this.parentField = new JiraSelectField(id + '_parent', field, {}, 'min-width: 150px; width: 45%;');
         FieldController.registerEvent(EventType.FieldChange, this, id + '_parent');
+
         let childFieldMeta: JiraMetaField = JSON.parse(JSON.stringify(field));
         childFieldMeta.allowedValues = [];
 
@@ -88,13 +89,13 @@ class CascadedSelectField extends Field implements IFieldEventHandler {
     hookEventHandler(): void { }
 
     render(container: JQuery): void {
-        let parentContainer = $(`<div id="{this.id}_parent-container" style="display:inline;"></div>`).appendTo(container);
+        let parentContainer = $(`<div id="${this.id}_parent-container" style="display:inline;"></div>`).appendTo(container);
         this.parentField.render(parentContainer);
         this.parentField.hookEventHandler();
         this.parentField.ownContainer = parentContainer;
         container.append('<span style="margin-left: 10px;">&nbsp</span>');
 
-        let childContainer = $(`<div id="{this.id}_child-container" style="display:inline;"></div>`).appendTo(container);
+        let childContainer = $(`<div id="${this.id}_child-container" style="display:inline;"></div>`).appendTo(container);
         this.childField.render(childContainer);
         this.childField.hookEventHandler();
         this.childField.ownContainer = childContainer;
