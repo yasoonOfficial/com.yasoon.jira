@@ -138,7 +138,7 @@ abstract class Field implements FieldGet, FieldSet {
 		//If it returns a promise, waitbefore adding event handler
 		if (result && result.then) {
 			return result.then(() => {
-				this.afterRender();
+				return this.afterRender();
 			});
 		} else {
 			return this.afterRender();

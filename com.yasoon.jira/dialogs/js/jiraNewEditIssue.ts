@@ -441,6 +441,7 @@ class NewEditDialog implements IFieldEventHandler {
 
                 //Render each field
                 let renderedTabs: { [id: string]: boolean } = {};
+                let renderProms: Promise<any>[] = [];
                 for (let fieldName in renderData.fields) {
                     let field = renderData.fields[fieldName];
                     if (field.id === FieldController.projectFieldId || field.id === FieldController.issueTypeFieldId)
@@ -467,7 +468,8 @@ class NewEditDialog implements IFieldEventHandler {
                         containerId = '#tab-content' + field.tab.position;
                     }
                     if (meta[field.id]) {
-                        FieldController.render(field.id, $(containerId));
+                        let prom = FieldController.render(field.id, $(containerId));
+                        renderProms.push(prom);
                     }
                 }
 
@@ -477,6 +479,8 @@ class NewEditDialog implements IFieldEventHandler {
                 } else {
                     $('#tab-list').addClass('hidden');
                 }
+
+                return Promise.all(renderProms);
             });
     }
 

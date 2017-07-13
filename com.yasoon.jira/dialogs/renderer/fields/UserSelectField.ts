@@ -109,11 +109,11 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
         super.render(container);
 
         if (this.options.multiple) {
-            container.append(`<span style="display:block; padding: 5px 0px;">
+            container.append(`<span class="user-select-myself" style="display:block; padding: 5px 0px;">
 				            <a href="#${this.id}" class="add-myself-trigger" title="${yasoon.i18n('dialog.addMyselfTitle')}">${yasoon.i18n('dialog.addMyself')}</a>
                         </span>`);
         } else {
-            container.append(`<span style="display:block; padding: 5px 0px;">
+            container.append(`<span class="user-select-myself" style="display:block; padding: 5px 0px;">
 				            <a href="#${this.id}" class="assign-to-me-trigger" title="${yasoon.i18n('dialog.assignMyselfTitle')}">${yasoon.i18n('dialog.assignMyself')}</a>
                         </span>`);
         }
