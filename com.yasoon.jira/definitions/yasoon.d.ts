@@ -240,6 +240,8 @@ interface yasoon_outlook {
 
   supportsFeature(feature: string): boolean;
   isOffice365Account(): boolean;
+  getStoreAccountSectionUID(): string;
+  isOffice365AppInstalled(guid: string): boolean;
   getVersion(): number;
   showTaskPane(): boolean;
 }

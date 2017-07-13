@@ -72,12 +72,38 @@ class JiraRibbonController {
 		var addToIssueRibbons = this.createContextRibbonItems(yasoon.i18n('ribbon.addToIssue'), 'addToIssueFromText', this.ribbonOnAddToIssue);
 		contextMenuItems = contextMenuItems.concat(addToIssueRibbons);
 
-		//Add main menu ribbon
-		ribbonFactory.create({
+		let office365AppGuid = "7164e150-dc86-49ff-b549-1bac57abdc7c";
+		let hasOffice365App = yasoon.outlook.isOffice365AppInstalled(office365AppGuid);
+
+		/*
+			<group idQ="online:Group_7164e150-dc86-49ff-b549-1bac57abdc7c_groupJiraMsgRead" insertAfterMso="GroupMailRespond">
+				<button idQ="online:Btn_7164e150-dc86-49ff-b549-1bac57abdc7c_buttonJiraOpenNewEdit" visible="false"/>
+				<button idQ="online:Btn_7164e150-dc86-49ff-b549-1bac57abdc7c_buttonJiraOpenAddToIssue" visible="false"/>
+			</group>
+		*/
+		let hideOffice365Ribbon = {
+			type: 'group',
+			idQ: 'jira_online:Group_' + office365AppGuid + '_groupJiraMsgRead',
+			insertAfterMso: 'GroupMailRespond',
+			items: [{
+				type: 'button',
+				idQ: 'jira_online:Btn_' + office365AppGuid + '_buttonJiraOpenNewEdit',
+				visible: false
+			}, {
+				type: 'button',
+				idQ: 'jira_online:Btn_' + office365AppGuid + '_buttonJiraOpenAddToIssue',
+				visible: false
+			}]
+		};
+
+		let explorerRibbon: any = {
 			type: 'ribbon',
 			renderTo: [
 				'Microsoft.Outlook.Explorer'
 			],
+			namespaces: {
+				"jira_online": office365AppGuid + "_" + yasoon.outlook.getStoreAccountSectionUID()
+			},
 			items: [{
 				type: 'tabs',
 				items: [{
@@ -128,14 +154,23 @@ class JiraRibbonController {
 					}]
 				}]
 			}]
-		});
+		};
+
+		if (hasOffice365App) {
+			explorerRibbon.items[0].items[0].items.unshift(hideOffice365Ribbon);
+		}
+
+		ribbonFactory.create(explorerRibbon);
 
 		//Add Mail Read
-		ribbonFactory.create({
+		let mailReadRibbon: any = {
 			type: 'ribbon',
 			renderTo: [
 				'Microsoft.Outlook.Mail.Read'
 			],
+			namespaces: {
+				"jira_online": office365AppGuid + "_" + yasoon.outlook.getStoreAccountSectionUID()
+			},
 			items: [{
 				type: 'tabs',
 				items: [{
@@ -151,7 +186,13 @@ class JiraRibbonController {
 					}]
 				}]
 			}]
-		});
+		};
+
+		if (hasOffice365App) {
+			mailReadRibbon.items[0].items[0].items.unshift(hideOffice365Ribbon);
+		}
+
+		ribbonFactory.create(mailReadRibbon);
 
 		//Add Context Menus
 		ribbonFactory.create({
@@ -271,7 +312,7 @@ class JiraRibbonController {
 	};
 
 	createJiraRibbonGroup(id) {
-		return [{
+		var ribbon: any[] = [{
 			type: 'button',
 			id: 'newIssueFrom' + id,
 			size: 'large',
@@ -305,8 +346,9 @@ class JiraRibbonController {
 				id: 'openIssueMenuFrom' + id,
 				items: []
 			}]
-
 		}];
+
+		return ribbon;
 	}
 
 	updateRibbons(item, inspectorId) {
