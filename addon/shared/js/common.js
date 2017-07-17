@@ -213,17 +213,18 @@ function loadUI() {
         $('#pageError').removeClass('hidden').text('Please register this instance first under General Overview');
 
     } else if (webLinkKey) {
-        Promise.resolve($('#pageContent').removeClass('hidden').load(htmlPath))
-            .then(function () {
-                return $.getScript(jsPath);
-            })
-            .caught(function () {
+        $('#pageContent').removeClass('hidden').load(htmlPath, null, function (text, status, xhr) {
+            if (xhr.status != 200)
+                return $('#pageError').removeClass('hidden').text('Could not load page due to an unknown error while fetching scripts');
+
+            Promise.resolve($.getScript(jsPath)).caught(function () {
                 $('#pageError').removeClass('hidden').text('Could not load page due to an unknown error while fetching scripts');
             });
+        });
+
     } else {
         $('#pageError').removeClass('hidden').text('Could not load page due to an unknown error: Page unknown');
     }
-
 }
 
 function getOwnUser() {
