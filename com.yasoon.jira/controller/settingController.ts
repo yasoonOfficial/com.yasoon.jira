@@ -25,7 +25,7 @@ let defaults = {
     showFeedComment: true,
     newCreationScreen: true,
     syncCalendar: false,
-    syncFeed: 'auto',
+    syncFeed: 'live',
     syncTask: false,
     tasksActiveProjects: '',
     deleteCompletedTasks: false,
