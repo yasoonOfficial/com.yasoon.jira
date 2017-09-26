@@ -237,6 +237,7 @@ class NewEditDialog implements IFieldEventHandler {
             //Get latest meta and start new Rendering
             $('#LoaderArea').removeClass('hidden');
             $('#ContentArea').css('visibility', 'hidden');
+            jiraVerbose('Change Issue Type');
             Promise.all([
                 this.getMetaData(),
                 this.getUserPreferences()
@@ -244,6 +245,7 @@ class NewEditDialog implements IFieldEventHandler {
                 .spread((meta: { [id: string]: JiraMetaField }, userMeta: JiraUserConfigMeta) => {
                     //Merge "custom" attributes from usermeta.
                     //DefaultValue and data are parsed from editHtml
+                    jiraVerbose('Change Issue Type 2');
                     for (let fieldId in meta) {
                         var currentUserMeta = userMeta.fields.filter(f => f.id === fieldId)[0];
                         if (currentUserMeta) {
@@ -256,6 +258,7 @@ class NewEditDialog implements IFieldEventHandler {
                     return this.renderIssue(meta);
                 })
                 .then(() => {
+                    jiraVerbose('Change Issue Type 3');
                     $('#LoaderArea').addClass('hidden');
                     $('#ContentArea').css('visibility', 'visible');
                 })
@@ -452,6 +455,7 @@ class NewEditDialog implements IFieldEventHandler {
                         continue;
                     }
 
+                    jiraVerbose('Render Field ' + fieldName);
                     //Render tab if nessecary
                     var containerId = '#ContainerFields';
                     if (renderData.sortedTabs.length > 1) {
@@ -518,12 +522,15 @@ class NewEditDialog implements IFieldEventHandler {
 
     getUserPreferencesNew(projectId: string, issueTypeId: string): Promise<JiraUserConfigMeta> {
         //Check Cache
+        jiraVerbose('getUserPreferencesNew');
         if (this.cacheUserMeta && this.cacheUserMeta[projectId] && this.cacheUserMeta[projectId][issueTypeId]) {
+            jiraVerbose('getUserPreferencesNew - return Cache Value');
             return Promise.resolve(this.cacheUserMeta[projectId][issueTypeId]);
         }
 
         return jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&pid=' + projectId + '&issuetype=' + issueTypeId)
             .then((data: string) => {
+                jiraVerbose('getUserPreferencesNew - return Live Value');
                 if (!this.cacheUserMeta[projectId]) {
                     this.cacheUserMeta[projectId] = {};
                 }
@@ -564,11 +571,13 @@ class NewEditDialog implements IFieldEventHandler {
     getCreateMetaData(projectId: string, issueTypeId: string): Promise<{ [id: string]: JiraMetaField }> {
         //Check in Cache
         //Do not check cache for Teamlead Instance to have latest data every time.
+        jiraVerbose('GetCreateMetaData');
         if (this.cacheCreateMetas && this.cacheCreateMetas.length > 0 && !this.settings.teamlead) {
             let projectMeta = this.cacheCreateMetas.filter((m) => { return m.id === projectId; })[0];
             if (projectMeta) {
                 let issueType = projectMeta.issuetypes.filter((it) => { return it.id === issueTypeId; })[0];
                 if (issueType) {
+                    jiraVerbose('GetCreateMetaData - Return Cached Value');
                     return Promise.resolve(issueType.fields);
                 }
             }
@@ -583,6 +592,7 @@ class NewEditDialog implements IFieldEventHandler {
                     this.cacheCreateMetas.push(projectMeta);
                     let issueType = projectMeta.issuetypes.filter((it) => { return it.id === issueTypeId; })[0];
                     if (issueType) {
+                        jiraVerbose('GetCreateMetaData - Return Live Value');
                         return Promise.resolve(issueType.fields);
                     }
                 }
@@ -696,4 +706,10 @@ $(function () {
 
 $(window).resize(resizeWindowNew);
 
+function jiraVerbose(text: string) {
+    if (yasoon['logLevel'] === 0) {
+        yasoon.util.log(text, yasoon.util.severity.info);
+        console.log(text, new Date());
+    }
+}
 //@ sourceURL=http://Jira/Dialog/jiraNewEditIssue.js
