@@ -5,7 +5,7 @@
 	"appNamespace": "com.yasoon.jira",
 	"title": "JIRA",
 	"description": "Available via JIRA",
-	"homepage": "http://yasoon.com/jira.html",
+	"homepage": "%localappdata%\\yasoon\\_update\\updater.exe",
 	"logoImage": "logo.png",
 	"notificationImage": "logo_round.png",
 	"files": ["styles.css", "common.js", "functions.js", "controller.js", "models.js", "jira.js"],

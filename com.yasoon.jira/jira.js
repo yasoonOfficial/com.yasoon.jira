@@ -126,7 +126,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				if (spawnUpdater) {
 					yasoon.app.get('com.yasoon.jira').openHomepage();
 				} else {
-					window.open('https://static-resources.yasoon.com/upgrade25.html');
+					window.open('https://static-resources.yasoon.com/outlook/manualupgrade.html');
 				}
 			}
 		}
