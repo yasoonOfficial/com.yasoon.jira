@@ -62,6 +62,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			yasoon.setting.setAppParameter('createTemplates', '{}');
 			yasoon.setting.setAppParameter('recentIssues', '[]');
 		}
+
 		jira.downloadScript = true;
 	};
 
@@ -104,6 +105,34 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 
 		//Download custom script
 		self.downloadCustomScript();
+
+		//Upgrade to 2.5 check
+		try {
+			//"2.5.6500.26063 x64"
+			var versionNums = yasoon.internal.getYasoonVersion().split('.');
+			if (versionNums[0] == 2 && versionNums[1] < 5) {
+				//On first time, we will set the pendingUpdate25 parameter.
+				//If it does not exist here --> first start, always try to start the updater.exe via openHomepage (you remember... hacky workaround to start a Process)
+				//If it does exist --> not first start, check for require25.upgrade file. If it still exists, updater.exe could not be spawned and we will show a popup instead
+				var param = yasoon.setting.getAppParameter('pendingUpdate25');
+				var spawnUpdater = false;
+				if (!param) {
+					spawnUpdater = true;
+					yasoon.setting.setAppParameter('pendingUpdate25', 'true');
+				} else {
+					spawnUpdater = !yasoon.io.exists('require25.upgrade');
+				}
+
+				if (spawnUpdater) {
+					yasoon.app.get('com.yasoon.jira').openHomepage();
+				} else {
+					window.open('https://static-resources.yasoon.com/upgrade25.html');
+				}
+			}
+		}
+		catch (e) {
+			//?!
+		}
 	};
 
 	this.registerEvents = function () {
