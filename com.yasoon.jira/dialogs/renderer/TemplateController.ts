@@ -274,8 +274,19 @@ class TemplateController implements IFieldEventHandler {
         return (value.indexOf && value.indexOf('<') === 0 && value.indexOf('>') > 0);
     }
 
-    private getFixedValue(value: string, field: Field): Promise<any> {
+    private async getFixedValue(value: string, field: Field): Promise<any> {
         let result = null;
+        let regex: RegExp = null;
+        //Check if regex is provided
+        if (value.indexOf("@") > 0) {
+            //Parse stuff
+            let r = /^<([^@]*)@(.*)>$/g;
+            let rE = r.exec(value);
+
+            value = '<' + rE[1] + '>';
+            regex = new RegExp(rE[2]);
+        }
+
         if (value === '<TODAY>') {
             result = moment(new Date()).format('YYYY-MM-DD');
         } else if (value.indexOf('<TODAY>') === 0) {
@@ -292,14 +303,12 @@ class TemplateController implements IFieldEventHandler {
             result = this.ownUser.name || this.ownUser.key;
         } else if (value === '<SUBJECT>' && this.emailController) {
             result = this.emailController.getSubject();
-        } else if (value === '<BODY>' && this.emailController) {
-            if (!this.emailContent) {
-                if (field instanceof MultiLineTextField) {
-                    (<MultiLineTextField>field).showSpinner();
-                }
-                return this.emailController.getCurrentMailContent(true);
+        } else if (value.indexOf('<BODY') === 0 && this.emailController) {
+            if (field instanceof MultiLineTextField) {
+                (<MultiLineTextField>field).showSpinner();
             }
-            result = this.emailContent;
+
+            result = await this.emailController.getCurrentMailContent(value !== '<BODY_PLAIN>');
         } else if (value === '<SENDER>' && this.emailController) {
             //Special Handling for User Picker
             if (field instanceof UserSelectField) {
@@ -309,6 +318,19 @@ class TemplateController implements IFieldEventHandler {
             }
         } else if (value === '<SENTAT>' && this.emailController) {
             result = moment(this.emailController.getSentAt()).format('YYYY-MM-DD hh:mm:ss');
+        }
+
+        if (regex) {
+            let parsedResult = regex.exec(result);
+            if (parsedResult.length === 0) {
+                result = null;
+            } else if (parsedResult.length === 1)
+                result = parsedResult[0];
+            else if (parsedResult.length === 2)
+                result = parsedResult[1]
+            else {
+                //Todo
+            }
         }
 
         return Promise.resolve(result);
