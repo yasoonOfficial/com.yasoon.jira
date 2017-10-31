@@ -81,17 +81,17 @@ class JiraRibbonController {
 				<button idQ="online:Btn_7164e150-dc86-49ff-b549-1bac57abdc7c_buttonJiraOpenAddToIssue" visible="false"/>
 			</group>
 		*/
-		let hideOffice365Ribbon = {
+		let hideOffice365RibbonMail = {
 			type: 'group',
-			idQ: 'jira_online:Group_' + office365AppGuid + '_groupJiraMsgRead',
+			idQ: 'jira_online:Group_' + office365AppGuid + '_groupJiraMsgRead_TabMail',
 			insertAfterMso: 'GroupMailRespond',
 			items: [{
 				type: 'button',
-				idQ: 'jira_online:Btn_' + office365AppGuid + '_buttonJiraOpenNewEdit',
+				idQ: 'jira_online:Btn_' + office365AppGuid + '_buttonJiraOpenNewEdit_TabMail',
 				visible: false
 			}, {
 				type: 'button',
-				idQ: 'jira_online:Btn_' + office365AppGuid + '_buttonJiraOpenAddToIssue',
+				idQ: 'jira_online:Btn_' + office365AppGuid + '_buttonJiraOpenAddToIssue_TabMail',
 				visible: false
 			}]
 		};
@@ -157,7 +157,7 @@ class JiraRibbonController {
 		};
 
 		if (hasOffice365App) {
-			explorerRibbon.items[0].items[0].items.unshift(hideOffice365Ribbon);
+			explorerRibbon.items[0].items[0].items.unshift(hideOffice365RibbonMail);
 		}
 
 		ribbonFactory.create(explorerRibbon);
@@ -188,8 +188,23 @@ class JiraRibbonController {
 			}]
 		};
 
+		let hideOffice365RibbonRead = {
+			type: 'group',
+			idQ: 'jira_online:Group_' + office365AppGuid + '_groupJiraMsgRead_TabReadMessage',
+			insertAfterMso: 'GroupShow',
+			items: [{
+				type: 'button',
+				idQ: 'jira_online:Btn_' + office365AppGuid + '_buttonJiraOpenNewEdit_TabReadMessage',
+				visible: false
+			}, {
+				type: 'button',
+				idQ: 'jira_online:Btn_' + office365AppGuid + '_buttonJiraOpenAddToIssue_TabReadMessage',
+				visible: false
+			}]
+		};
+
 		if (hasOffice365App) {
-			mailReadRibbon.items[0].items[0].items.unshift(hideOffice365Ribbon);
+			mailReadRibbon.items[0].items[0].items.unshift(hideOffice365RibbonRead);
 		}
 
 		ribbonFactory.create(mailReadRibbon);
