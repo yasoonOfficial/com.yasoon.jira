@@ -68,7 +68,10 @@ class EmailController implements IFieldEventHandler {
         if (this.type === 'selectedText') {
             this.selectionPlain = this.mail.getSelection(0).replace(/\r/g, '').replace(/\n\n/g, '\n');
 
-            this.renderSelectionMarkupPromise = yasoon.outlook.mail.renderSelection(mail, 'jiraMarkup')
+            this.renderSelectionMarkupPromise = this.renderBodyMarkupPromise
+                .then(() => {
+                    return yasoon.outlook.mail.renderSelection(mail, 'jiraMarkup');
+                })
                 .then((markup) => {
                     this.selectionAsMarkup = markup;
                 })
