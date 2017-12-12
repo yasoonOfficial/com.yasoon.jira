@@ -239,6 +239,7 @@ class EmailController implements IFieldEventHandler {
             }
             result = result + label + ':' + attachments + '\n';
         }
+
         //Add Final seperator
         result = result + '----\n';
 
@@ -255,10 +256,10 @@ class EmailController implements IFieldEventHandler {
         return promise
             .then((markup) => {
                 if (jira.settings.addMailHeaderAutomatically === 'top') {
-                    markup = renderMailHeaderText(this.mail, true) + '\n' + markup;
+                    markup = this.getMailHeaderText(true) + '\n' + markup;
                 }
                 else if (jira.settings.addMailHeaderAutomatically === 'bottom') {
-                    markup = markup + '\n' + renderMailHeaderText(this.mail, true);
+                    markup = markup + '\n' + this.getMailHeaderText(true);
                 }
 
                 return this.handleAttachments(markup, this.mail)

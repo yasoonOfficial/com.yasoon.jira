@@ -45,31 +45,6 @@ function getUniqueKey() {
 	return window.btoa(binary).replace(/=/g, '').replace(/\//g, '').replace(/\+/g, '');
 }
 
-function renderMailHeaderText(mail, useMarkup) {
-	var result = '';
-
-	if (useMarkup) {
-		result = yasoon.i18n('mail.mailHeaderMarkup', {
-			senderName: mail.senderName,
-			senderEmail: mail.senderEmail,
-			date: moment(mail.receivedAt).format('LLL'),
-			recipients: ((mail.recipients.length > 0) ? '[mailto:' + mail.recipients.join('],[mailto:') : 'No One'),
-			subject: mail.subject
-		});
-	}
-	else {
-		result = yasoon.i18n('mail.mailHeaderPlain', {
-			senderName: mail.senderName,
-			senderEmail: mail.senderEmail,
-			date: moment(mail.receivedAt).format('LLL'),
-			recipients: mail.recipients.join(','),
-			subject: mail.subject
-		});
-	}
-
-	return result;
-}
-
 function jiraLog(text, obj, stacktrace) {
 	if (yasoon.logLevel == 0) { //jshint ignore:line
 		var stack = '';

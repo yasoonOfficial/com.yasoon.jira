@@ -40,8 +40,6 @@ declare function jiraLog(msg: string, ...args);
 
 declare function getProjectIcon(project: JiraProject): string;
 
-declare function renderMailHeaderText(mail: any, useMarkup: boolean): string;
-
 declare function isEqual(a: any, b: any): boolean;
 
 declare function jiraMinimizeIssue(issue: JiraIssue): JiraIssue;
