@@ -318,7 +318,11 @@ class TemplateController implements IFieldEventHandler {
             }
         } else if (value === '<SENTAT>' && this.emailController) {
             result = moment(this.emailController.getSentAt()).format('YYYY-MM-DD hh:mm:ss');
+        } else if (value === '<RECIPIENTS>' && this.emailController) {
+            //Special Handling for User Picker
+            result = this.emailController.getRecipients();
         }
+
 
         if (regex) {
             let parsedResult = regex.exec(result);

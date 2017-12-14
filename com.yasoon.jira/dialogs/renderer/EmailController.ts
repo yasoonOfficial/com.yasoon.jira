@@ -204,6 +204,10 @@ class EmailController implements IFieldEventHandler {
         return moment(this.mail.receivedAt);
     }
 
+    getRecipients(): string {
+        return this.mail.recipients.join(',');
+    }
+
     getMailHeaderText(useMarkup: boolean): string {
         let result = '';
         if (useMarkup) {

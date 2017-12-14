@@ -33,6 +33,15 @@ class TempoAccountField extends Select2Field {
             });
     }
 
+    getDomValue() {
+        let result = super.getDomValue();
+        if (jira.settings.tempo && jira.settings.tempo.accountIdIsNumber) {
+            return parseInt(result);
+        } else {
+            return result;
+        }
+    }
+
     convertToSelect2(obj: TempoAccount): Select2Element {
         return {
             id: obj.id.toString(),

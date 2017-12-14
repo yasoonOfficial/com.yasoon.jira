@@ -237,7 +237,11 @@ namespace FieldController {
                                 returnPromises.push(result);
                             }
                         } catch (e) {
-                            yasoon.util.log('Error: ' + e.message + ' in raiseEvent. EventType ' + eventType + ' || newValue ' + newValue, yasoon.util.severity.error, getStackTrace(e));
+                            let paramString = '';
+                            if (field instanceof Field) {
+                                paramString = ' || Field: ' + field.id;
+                            }
+                            yasoon.util.log('Error: ' + e.message + ' in raiseEvent. EventType ' + eventType + paramString + ' || newValue ' + newValue, yasoon.util.severity.error, getStackTrace(e));
                         }
                     });
                 }
