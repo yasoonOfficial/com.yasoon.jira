@@ -59,9 +59,9 @@ function initAdminUI() {
 
             //Prefill Wizard
             if (isCloud) {
-                $('#comment').val('Registered via JIRA Cloud');
+                $('#comment').val('Registered via Jira Cloud');
             } else {
-                $('#comment').val('Registered via JIRA Server');
+                $('#comment').val('Registered via Jira Server');
             }
             if (systemInfo.userName) {
                 var userNameSplitted = systemInfo.userName.split(' ');
@@ -377,7 +377,7 @@ function handleNext() {
                     else {
                         swal({
                             title: "Are you sure?",
-                            text: "We could not find a correctly configured application link and JIRA for Outlook may not work until you have created it. ",
+                            text: "We could not find a correctly configured application link and Jira for Outlook may not work until you have created it. ",
                             type: "warning",
                             showCancelButton: true,
                             confirmButtonText: "Continue anyway",
@@ -696,7 +696,7 @@ function checkDownloadLink() {
                 location.reload();
                 return;
             }
-            $('#DownloadLinkText').text('Could not load JIRA for Outlook Download URL.');
+            $('#DownloadLinkText').text('Could not load Jira for Outlook Download URL.');
         });
 }
 
@@ -809,7 +809,7 @@ function updateCustomJiraCert(cert) {
                 resolve();
             })
             .fail(function () {
-                reject('Could not update Custom JIRA Certificate');
+                reject('Could not update Custom Jira Certificate');
             });
     });
 }

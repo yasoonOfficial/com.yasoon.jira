@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
 	<link href="dialogs/css/purchase.css" rel="stylesheet" type="text/css">
@@ -18,91 +19,133 @@
 							<h2 id="CentralHeader" style="margin:0px;" data-bind="localizedText:'purchase.heading'">Jira for Outlook Trial expired</h2>
 						</div>
 						<div class="cols">
-							<div class="col-5 text-left" style="margin-top: 14px;"></div>                       
+							<div class="col-5 text-left" style="margin-top: 14px;"></div>
 							<div id="text" class="col-90 text-left" style="margin-top: 14px;">
-								Hi <span id="FirstName"> Firstname </span>, <br /><br />
+								Hi
+								<span id="FirstName"> Firstname </span>,
+								<br />
+								<br />
 								<span data-bind="localizedText:'purchase.introText'">
-									Thanks for using JIRA for Outlook. We hope, it saved you a lot of time and it has been useful for you.
-									Unfortunately your JIRA for Outlook is currently running in a trial and it has come to an end.
+									Thanks for using Jira for Outlook. We hope, it saved you a lot of time and it has been useful for you. Unfortunately your
+									Jira for Outlook is currently running in a trial and it has come to an end.
 								</span>
 
 								<div class="isAdminServer hidden">
 									<div class="separator"></div>
-									<div data-bind="localizedText:'purchase.adminValue'"> Don't worry, it's not too late to take advantage of JIRA for Outlook and make it absolutely easy to work with JIRA issues.</div<>
-									<div data-bind="localizedText:'purchase.adminSteps'"> Simply follow these steps to proceed. If you have any questions, just send a mail to <a class="mailSupport">our support team</a>.</div>
-									<div style="margin: 20px;">
-										<div class="clearfix">
-											<div class="pull-left"><img src="images/icon1.png" style="width: 45px;" /></div>
-											<div style="margin-left: 50px; margin-top: 3px;" data-bind="localizedText:'purchase.adminServerStep1'"><b>Get licenses</b> for your company. Choose the tier that fits best for you.</div> 
+									<div data-bind="localizedText:'purchase.adminValue'"> Don't worry, it's not too late to take advantage of Jira for Outlook and make it absolutely easy to work with Jira
+										issues.</div<>
+										<div data-bind="localizedText:'purchase.adminSteps'"> Simply follow these steps to proceed. If you have any questions, just send a mail to
+											<a class="mailSupport">our support team</a>.</div>
+										<div style="margin: 20px;">
+											<div class="clearfix">
+												<div class="pull-left">
+													<img src="images/icon1.png" style="width: 45px;" />
+												</div>
+												<div style="margin-left: 50px; margin-top: 3px;" data-bind="localizedText:'purchase.adminServerStep1'">
+													<b>Get licenses</b> for your company. Choose the tier that fits best for you.</div>
+											</div>
+											<div class="clearfix" style="margin-top: 10px;">
+												<div class="pull-left">
+													<img src="images/icon2.png" style="width: 45px;" />
+												</div>
+												<div style="margin-left: 50px; margin-top: 3px;" data-bind="localizedText:'purchase.adminServerStep2'">Setup a
+													<b>personal welcome message</b>
+													<a id="openSettings">in the admin panel</a> to have the best experience for your users.</div>
+											</div>
+											<div class="clearfix" style="margin-top: 10px;">
+												<div class="pull-left">
+													<img src="images/icon3.png" style="width: 45px;" />
+												</div>
+												<div style="margin-left: 50px; margin-top: 3px;" data-bind="localizedText:'purchase.adminServerStep3'">
+													<b>Share the setup</b> with all users. If you need help for the rollout,
+													<a class="mailSupport">our support team</a> will help you out.</div>
+											</div>
 										</div>
-										<div class="clearfix" style="margin-top: 10px;">
-											<div class="pull-left"><img src="images/icon2.png" style="width: 45px;" /></div>
-											<div style="margin-left: 50px; margin-top: 3px;" data-bind="localizedText:'purchase.adminServerStep2'">Setup a <b>personal welcome message</b> <a id="openSettings">in the admin panel</a> to have the best experience for your users.</div>
-										</div>
-										<div class="clearfix" style="margin-top: 10px;">
-											<div class="pull-left"><img src="images/icon3.png" style="width: 45px;" /></div>
-											<div style="margin-left: 50px; margin-top: 3px;" data-bind="localizedText:'purchase.adminServerStep3'"><b>Share the setup</b> with all users. If you need help for the rollout, <a class="mailSupport">our support team</a> will help you out.</div>
-										</div>
-									</div>
-									<div class="separator"></div>
-									<div class="cols" style="margin-bottom: 2px !important;">
-										<div class="col-100" style="padding-left: 217px; margin-top: 5px; ">
-											<a id="buyLicenses" class="button big left green go-pro" style="margin-right: 20px; width: 200px" tabindex="0"><strong data-bind="localizedText:'purchase.adminActionButton'"> Licenses</strong></a>
-										</div>
-									</div>
-								</div>
-
-								<div class="isAdminCloud hidden">
-									<div class="separator"></div>
-									<div data-bind="localizedText:'purchase.adminValue'"> Don't worry, it's not too late to take advantage of JIRA for Outlook and make it absolutely easy to work with JIRA issues.</div>
-									<div data-bind="localizedText:'purchase.adminSteps'"> Simply follow these steps to proceed. If you have any questions, just send a mail to <a class="mailSupport">our support team</a>.</div>
-									<div style="margin: 20px;">
-										<div class="clearfix">
-											<div class="pull-left"><img src="images/icon1.png" style="width: 45px;" /></div>
-											<div style="margin-left: 50px; margin-top: 3px;" data-bind="localizedText:'purchase.adminCloudStep1'"><b>Subscribe to the Outlook App JIRA addon</b> <a id="OpenAddonPage">here</a>.</div>
-										</div>
-										<div class="clearfix" style="margin-top: 10px;">
-											<div class="pull-left"><img src="images/icon2.png" style="width: 45px;" /></div>
-											<div style="margin-left: 50px; margin-top: 3px;" data-bind="localizedText:'purchase.adminCloudStep2'">Setup a <b>personal welcome message</b> <a id="openSettings">in the admin panel</a> to have the best experience for your users.</div>
-										</div>
-										<div class="clearfix" style="margin-top: 10px;">
-											<div class="pull-left"><img src="images/icon3.png" style="width: 45px;" /></div>
-											<div style="margin-left: 50px; margin-top: 3px;" data-bind="localizedText:'purchase.adminCloudStep3'"><b>Share the setup</b> with all users. If you need help for the rollout, <a class="mailSupport">our support team</a> will help you out.</div>
-										</div>
-									</div>
-									<div class="separator"></div>
-									<div class="cols" style="margin-bottom: 2px !important;">
-										<div class="col-100" style="padding-left: 217px; margin-top: 5px; ">
-											<a id="buyLicensesCloud" class="button big left green go-pro" style="margin-right: 20px; width: 200px" tabindex="0"><strong data-bind="localizedText:'purchase.adminActionButton'">Get Licenses</strong></a>
-										</div>
-									</div>
-								</div>
-
-								<div class="isNoAdmin hidden">
-									<div class="separator"></div>
-									<div data-bind="localizedText:'purchase.userText'">
-										If you like to continue to use, please ask your JIRA admin to get a full license for you. <br />
-										Here is some help who to contact: <br />
-									</div>
-									<div id="isAdminKnown hidden">
-										<span id="AdminName" style="font-weight:bold"></span><br />
-										<span><span data-bind="localizedText:'purchase.userEmailLabel'">E-Mail:</span> <a id="AdminEmail"></a></span>
 										<div class="separator"></div>
 										<div class="cols" style="margin-bottom: 2px !important;">
 											<div class="col-100" style="padding-left: 217px; margin-top: 5px; ">
-												<a id="SendMailAdmin" class="button big left green go-pro" style="margin-right: 20px; width: 200px" tabindex="0"><strong data-bind="localizedText:'purchase.userActionButton'">Send your admin a mail now</strong></a>
+												<a id="buyLicenses" class="button big left green go-pro" style="margin-right: 20px; width: 200px" tabindex="0">
+													<strong data-bind="localizedText:'purchase.adminActionButton'"> Licenses</strong>
+												</a>
 											</div>
 										</div>
 									</div>
-									
-								</div> 
+
+									<div class="isAdminCloud hidden">
+										<div class="separator"></div>
+										<div data-bind="localizedText:'purchase.adminValue'"> Don't worry, it's not too late to take advantage of Jira for Outlook and make it absolutely easy to work with Jira
+											issues.</div>
+										<div data-bind="localizedText:'purchase.adminSteps'"> Simply follow these steps to proceed. If you have any questions, just send a mail to
+											<a class="mailSupport">our support team</a>.</div>
+										<div style="margin: 20px;">
+											<div class="clearfix">
+												<div class="pull-left">
+													<img src="images/icon1.png" style="width: 45px;" />
+												</div>
+												<div style="margin-left: 50px; margin-top: 3px;" data-bind="localizedText:'purchase.adminCloudStep1'">
+													<b>Subscribe to the Outlook App Jira addon</b>
+													<a id="OpenAddonPage">here</a>.</div>
+											</div>
+											<div class="clearfix" style="margin-top: 10px;">
+												<div class="pull-left">
+													<img src="images/icon2.png" style="width: 45px;" />
+												</div>
+												<div style="margin-left: 50px; margin-top: 3px;" data-bind="localizedText:'purchase.adminCloudStep2'">Setup a
+													<b>personal welcome message</b>
+													<a id="openSettings">in the admin panel</a> to have the best experience for your users.</div>
+											</div>
+											<div class="clearfix" style="margin-top: 10px;">
+												<div class="pull-left">
+													<img src="images/icon3.png" style="width: 45px;" />
+												</div>
+												<div style="margin-left: 50px; margin-top: 3px;" data-bind="localizedText:'purchase.adminCloudStep3'">
+													<b>Share the setup</b> with all users. If you need help for the rollout,
+													<a class="mailSupport">our support team</a> will help you out.</div>
+											</div>
+										</div>
+										<div class="separator"></div>
+										<div class="cols" style="margin-bottom: 2px !important;">
+											<div class="col-100" style="padding-left: 217px; margin-top: 5px; ">
+												<a id="buyLicensesCloud" class="button big left green go-pro" style="margin-right: 20px; width: 200px" tabindex="0">
+													<strong data-bind="localizedText:'purchase.adminActionButton'">Get Licenses</strong>
+												</a>
+											</div>
+										</div>
+									</div>
+
+									<div class="isNoAdmin hidden">
+										<div class="separator"></div>
+										<div data-bind="localizedText:'purchase.userText'">
+											If you like to continue to use, please ask your Jira admin to get a full license for you.
+											<br /> Here is some help who to contact:
+											<br />
+										</div>
+										<div id="isAdminKnown hidden">
+											<span id="AdminName" style="font-weight:bold"></span>
+											<br />
+											<span>
+												<span data-bind="localizedText:'purchase.userEmailLabel'">E-Mail:</span>
+												<a id="AdminEmail"></a>
+											</span>
+											<div class="separator"></div>
+											<div class="cols" style="margin-bottom: 2px !important;">
+												<div class="col-100" style="padding-left: 217px; margin-top: 5px; ">
+													<a id="SendMailAdmin" class="button big left green go-pro" style="margin-right: 20px; width: 200px" tabindex="0">
+														<strong data-bind="localizedText:'purchase.userActionButton'">Send your admin a mail now</strong>
+													</a>
+												</div>
+											</div>
+										</div>
+
+									</div>
+								</div>
 							</div>
 						</div>
-					</div>
 
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
 </body>
+
 </html>

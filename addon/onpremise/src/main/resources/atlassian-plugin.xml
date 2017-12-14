@@ -77,7 +77,7 @@
         
     <!--
     <component key="eventListener" class="com.yasoon.jira.LifecycleListener">
-       <description>Class that processes the incoming JIRA issue events.</description>
+       <description>Class that processes the incoming Jira issue events.</description>
     </component>
     -->
     <web-section key="yasoonoutlookapp" location="admin_plugins_menu" weight="25">

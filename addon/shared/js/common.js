@@ -35,7 +35,7 @@ if (!String.prototype.endsWith) {
 $(document).ready(function () {
     //Init Zendesk
     zE(function () {
-        zE.identify({ ze23772381: 'JIRA for Outlook' });
+        zE.identify({ ze23772381: 'Jira for Outlook' });
         zE.show();
     });
 
@@ -97,7 +97,7 @@ $(document).ready(function () {
                 if (systemInfo.userName && systemInfo.userEmailAddress) {
                     zE(function () {
                         zE.identify({
-                            ze23772381: 'JIRA for Outlook',
+                            ze23772381: 'Jira for Outlook',
                             name: systemInfo.userName,
                             email: systemInfo.userEmailAddress
                         });
@@ -268,7 +268,7 @@ function captureMessage(message, e) {
             var errorText = e.responseText;
             var stackElement = $(e.responseText).find('#stacktrace');
             if (stackElement.length > 0) {
-                //JIRA Error message
+                //Jira Error message
                 //Get first characters and send it.
                 errorText = stackElement.text().substr(0, 300);
             }

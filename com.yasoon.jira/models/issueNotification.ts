@@ -204,7 +204,7 @@ class JiraIssueNotification extends JiraNotification {
 		feed.setProperties(feed.properties);
 
 		var icon_url = yasoon.io.getLinkPath('Task-03.png');
-		//In JIRA 7 issue types icons are svg so we can display them in the feed
+		//In Jira 7 issue types icons are svg so we can display them in the feed
 		if (jiraIsVersionHigher(jira.sysInfo, '7')) {
 			icon_url = jira.icons.mapIconUrl(this.issue.fields.issuetype.iconUrl);
 		}

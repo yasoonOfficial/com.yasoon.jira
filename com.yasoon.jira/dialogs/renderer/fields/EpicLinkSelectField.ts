@@ -45,7 +45,7 @@ class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler
                         }
                     }
                 }
-                //AfterSave is only needed for JIRA 7 on creation as the setData does not work anymore.
+                //AfterSave is only needed for Jira 7 on creation as the setData does not work anymore.
             } else if (!jira.isEditMode) {
                 if (newEpicLink) {
                     if (jiraIsVersionHigher(jira.systemInfo, '7.1'))
@@ -77,7 +77,7 @@ class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler
     }
 
     setValue(value: string): Promise<any> {
-        //Format in JIRA < 7.0 "key: epicId" , JIRA 7+: just epic Id
+        //Format in Jira < 7.0 "key: epicId" , Jira 7+: just epic Id
         if (!jiraIsVersionHigher(jira.systemInfo, '7')) {
             value = value.replace('key:', '');
         }
@@ -106,8 +106,8 @@ class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler
 
     getData(searchTerm: string): Promise<Select2Element[]> {
         //Result of Service
-        // JIRA 6.x: {"epicNames":[{"key":"SSP-24","name":"Epic 1"},{"key":"SSP-25","name":"Epic 2"}],"total":2}
-        // JIRA 7+:  {"epicLists":[{"listDescriptor":"All epics","epicNames":[{"key":"SSP-24","name":"Epic 1","isDone":false},{"key":"SSP-25","name":"Epic 2","isDone":false},{"key":"SSP-28","name":"Epic New","isDone":false}]}],"total":3}
+        // Jira 6.x: {"epicNames":[{"key":"SSP-24","name":"Epic 1"},{"key":"SSP-25","name":"Epic 2"}],"total":2}
+        // Jira 7+:  {"epicLists":[{"listDescriptor":"All epics","epicNames":[{"key":"SSP-24","name":"Epic 1","isDone":false},{"key":"SSP-25","name":"Epic 2","isDone":false},{"key":"SSP-28","name":"Epic New","isDone":false}]}],"total":3}
         let url = '/rest/greenhopper/1.0/epics?maxResults=10&projectKey=' + jira.selectedProject.key + '&searchQuery=' + searchTerm;
 
         return jiraGet(url)
@@ -144,21 +144,21 @@ class EpicLinkSelectField extends Select2AjaxField implements IFieldEventHandler
         }
     }
 
-    //Update Epic JIRA 6.x and 7.0
+    //Update Epic Jira 6.x and 7.0
     private updateEpic6 = function (newEpicLink, issueKey) {
         return jiraAjax('/rest/greenhopper/1.0/epics/' + newEpicLink + '/add', yasoon.ajaxMethod.Put, '{ "issueKeys":["' + issueKey + '"] }');
     }
-    //Update Epic JIRA > 7.1
+    //Update Epic Jira > 7.1
     private updateEpic7 = function (newEpicLink, issueKey) {
         return jiraAjax('/rest/agile/1.0/epic/' + newEpicLink + '/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }');
     }
 
-    //Delete Epic JIRA 6.x and 7.0
+    //Delete Epic Jira 6.x and 7.0
     private deleteEpic6 = function (issueKey) {
         return jiraAjax('/rest/greenhopper/1.0/epics/remove', yasoon.ajaxMethod.Put, '{ "issueKeys":["' + issueKey + '"] }');
     }
 
-    //Delete Epic JIRA > 7.1
+    //Delete Epic Jira > 7.1
     private deleteEpic7 = function (issueKey) {
         return jiraAjax('/rest/agile/1.0/epic/none/issue', yasoon.ajaxMethod.Post, '{ "issues":["' + issueKey + '"] }');
     }

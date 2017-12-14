@@ -192,7 +192,7 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
             let backup: string = '';
             let lastAction: string = this.emailController.type;
 
-            //Static toggle JIRA markup in drop down menus
+            //Static toggle Jira markup in drop down menus
             this.ownContainer.find('.toggleJiraMarkup').on('click', (e) => {
                 useMarkup = e.target['checked'];
                 //Make sure all other toggles (even in other fields) have the same state

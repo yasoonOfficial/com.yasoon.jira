@@ -25,7 +25,7 @@ class TimeTrackingField extends Field {
 		let origVal: string = this.origField.getDomValue();
 		let remainVal: string = this.remainingField.getDomValue();
 
-		//JIRA timetracking legacy mode
+		//Jira timetracking legacy mode
 		// --> it's not allowed to set orig and remainaing Estimate during creation
 		// --> it's not allowed to change original estimate.
 		let result: JiraTimetrackingValue = {};

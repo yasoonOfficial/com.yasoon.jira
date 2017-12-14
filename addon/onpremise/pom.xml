@@ -14,8 +14,8 @@
         <url>http://jira.yasoon.com/</url>
     </organization>
 
-    <name>JIRA for Outlook</name>
-    <description>JIRA for Outlook 2010, 2013 and 2016. Outlook app can be downloaded on the configuration page after the initial setup.</description>
+    <name>Jira for Outlook</name>
+    <description>Jira for Outlook 2010, 2013 and 2016. Outlook app can be downloaded on the configuration page after the initial setup.</description>
     <packaging>atlassian-plugin</packaging>
     
     <dependencies>
@@ -113,7 +113,7 @@
                 <configuration>
                     <productVersion>${jira.version}</productVersion>
                     <productDataVersion>${jira.version}</productDataVersion>
-					<!-- Uncomment to install TestKit backdoor in JIRA. -->
+					<!-- Uncomment to install TestKit backdoor in Jira. -->
 					<!--
 					<pluginArtifacts>
 						<pluginArtifact>
@@ -152,7 +152,7 @@
         <jira.version>6.3.15</jira.version>
         <amps.version>5.0.13</amps.version>
         <plugin.testrunner.version>1.2.3</plugin.testrunner.version>
-		<!-- TestKit version 5.x for JIRA 5.x, 6.x for JIRA 6.x -->
+		<!-- TestKit version 5.x for Jira 5.x, 6.x for Jira 6.x -->
 		<testkit.version>5.2.26</testkit.version>
     </properties>
 

@@ -31,7 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Simple JIRA listener using the atlassian-event library and demonstrating
+ * Simple Jira listener using the atlassian-event library and demonstrating
  * plugin lifecycle integration.
  */
 public class LifecycleListener implements InitializingBean, DisposableBean {
@@ -138,9 +138,9 @@ public class LifecycleListener implements InitializingBean, DisposableBean {
 //            conn.disconnect();
 //            
 //        } catch (MalformedURLException e) {
-//            log.error("Error while updating JIRA data", e);
+//            log.error("Error while updating Jira data", e);
 //        } catch (IOException e) {
-//            log.error("Error while updating JIRA data", e);
+//            log.error("Error while updating Jira data", e);
 //       }
 //    }
 //

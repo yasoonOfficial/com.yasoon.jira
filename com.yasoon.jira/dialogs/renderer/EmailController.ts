@@ -139,7 +139,7 @@ class EmailController implements IFieldEventHandler {
                 mailHandle.selected = true;
             }
 
-            //Replace some invalid JIRA chars
+            //Replace some invalid Jira chars
             let mailFileName = mailHandle.getFileName() || 'no subject.msg';
             mailFileName = mailFileName.replace('&', yasoon.i18n('general.and'));
             mailFileName = mailFileName.replace('+', yasoon.i18n('general.and'));
@@ -372,7 +372,7 @@ class EmailController implements IFieldEventHandler {
 
             let fields: any = {};
             try {
-                //We want the templates to be the same as in the JIRA addon, so we cannot use the values.fields, as they use deep objects. e.g. reporter: { name: 'admin' }
+                //We want the templates to be the same as in the Jira addon, so we cannot use the values.fields, as they use deep objects. e.g. reporter: { name: 'admin' }
                 //We need just reporter: 'admin', so we get all values again from the rendered Fields
                 for (let fieldId in values.fields) {
                     if (fieldId != 'summary' && fieldId != 'description' && fieldId != 'duedate' && fieldId != 'project' && fieldId != 'issuetype') {

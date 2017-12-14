@@ -153,7 +153,7 @@ function getJiraMarkupRenderer() {
 				return '[' + url + ']';
 		},
 		renderTable: function (time) {
-			//JIRA does not support nested tables
+			//Jira does not support nested tables
 			//So we count how often renderTable has been called and only render rows & cells if inTableCount = 1.
 			lastOp = 'renderTable';
 

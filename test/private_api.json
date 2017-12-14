@@ -1,7 +1,7 @@
 {
 	"variables": [],
 	"info": {
-		"name": "JIRA Private API",
+		"name": "Jira Private API",
 		"_postman_id": "a4ab13a0-f5b1-de5e-5844-ee93118f7c1b",
 		"description": "",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"

@@ -113,7 +113,7 @@ class JiraRibbonController {
 						type: 'group',
 						id: 'jiraMailExplorerGroup',
 						insertAfterMso: 'GroupMailRespond',
-						label: 'JIRA',
+						label: 'Jira',
 						image: 'brandedlogo-64',
 						items: this.createJiraRibbonGroup('MailMain')
 					}]
@@ -125,7 +125,7 @@ class JiraRibbonController {
 						type: 'group',
 						id: 'jiraTaskExplorerGroup',
 						insertAfterMso: 'GroupTaskRespond',
-						label: 'JIRA',
+						label: 'Jira',
 						image: 'brandedlogo-64',
 						items: [{
 							type: 'splitButton',
@@ -180,7 +180,7 @@ class JiraRibbonController {
 						type: 'group',
 						id: 'jiraMailReadGroup',
 						insertAfterMso: 'GroupShow',
-						label: 'JIRA',
+						label: 'Jira',
 						image: 'brandedlogo-64',
 						items: this.createJiraRibbonGroup('MailRead')
 					}]
@@ -234,7 +234,7 @@ class JiraRibbonController {
 						type: 'group',
 						id: 'buttonGroupTask',
 						insertAfterMso: 'GroupActions',
-						label: 'JIRA',
+						label: 'Jira',
 						items: [{
 							type: 'button',
 							id: 'jiraOpenTask',

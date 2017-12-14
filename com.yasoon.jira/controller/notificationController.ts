@@ -183,7 +183,7 @@ class JiraNotificationController {
 	}
 
 	processCommentEdits() {
-		/* Editing a comment does not affect the acitivity stream - JIRA BUG!
+		/* Editing a comment does not affect the acitivity stream - Jira BUG!
 			Issue is open since 2007, so we do not expect a quick fix and we create a workaround.
 			We check manually all changed issues and check if update date is newer than last sync
 		*/
@@ -314,7 +314,7 @@ class JiraNotificationController {
 
 					//Parse date --> it's in format YYYY/MM/DD hh:mm --> Date can parse it automcatically
 					var dateString = new Date(dataWorkStarted).toISOString();
-					//WTF... JIRA accepts 2015-09-25T09:56:18.082+0000 but not 2015-09-25T09:56:18Z
+					//WTF... Jira accepts 2015-09-25T09:56:18.082+0000 but not 2015-09-25T09:56:18Z
 					dateString = dateString.replace('Z', '+0000');
 
 					//Set Data

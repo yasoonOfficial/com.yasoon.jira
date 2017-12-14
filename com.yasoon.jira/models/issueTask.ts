@@ -75,7 +75,7 @@ class JiraIssueTask {
 				if (!dbItem) {
 					//Creation
 					creation = true;
-					dbItem = { categories: ['JIRA'] };
+					dbItem = { categories: ['Jira'] };
 				} else if (!forceSync && this.issue.fields.updated) {
 					var oldIssue = JSON.parse(dbItem.externalData);
 					if (new Date(oldIssue.fields.updated).getTime() >= new Date(this.issue.fields.updated).getTime()) {

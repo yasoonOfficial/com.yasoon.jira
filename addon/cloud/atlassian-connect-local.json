@@ -1,6 +1,6 @@
 {
-    "name": "Outlook App for JIRA Cloud",
-    "description": "JIRA for Outlook 2010, 2013 and 2016. Outlook app can be downloaded on the configuration page after the initial setup.",
+    "name": "Outlook App for Jira Cloud",
+    "description": "Jira for Outlook 2010, 2013 and 2016. Outlook app can be downloaded on the configuration page after the initial setup.",
     "key": "com.yasoon.jira.cloud",
     "baseUrl": "http://localhost:1337/jira",
     "vendor": {

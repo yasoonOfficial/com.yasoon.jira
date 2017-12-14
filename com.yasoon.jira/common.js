@@ -362,17 +362,17 @@ function jiraIsVersionHigher(systemInfo, versionString) {
 	var result = versions.some(function (version, index) {
 		var jiraVersion = systemInfo.versionNumbers[index];
 		version = parseInt(version);
-		//We can'T control JIRA version numbers, but if our version has more numbers, we should assume a lower version.
-		// E.g. JIRA 7.0 < 7.0.3 (even if we hope, JIRA will send a 7.0.0)
+		//We can'T control Jira version numbers, but if our version has more numbers, we should assume a lower version.
+		// E.g. Jira 7.0 < 7.0.3 (even if we hope, Jira will send a 7.0.0)
 		if (jiraVersion === undefined)
 			return false;
 
-		//JIRA version higher
+		//Jira version higher
 		if (jiraVersion > version)
 			return true;
 
-		//JIRA version equals but last element of our version string
-		//E.g. JIRA 7.0.2 > 7
+		//Jira version equals but last element of our version string
+		//E.g. Jira 7.0.2 > 7
 		if (index === (versions.length - 1) && jiraVersion === version)
 			return true;
 	});

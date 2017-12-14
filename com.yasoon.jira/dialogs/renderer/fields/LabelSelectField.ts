@@ -44,7 +44,7 @@ class LabelSelectField extends Select2AjaxField {
     }
 
     getData(searchTerm: string) {
-        //Damit JIRA!! ... in old JIRA releases the autocomplete URL is wrong :/
+        //Damit Jira!! ... in old Jira releases the autocomplete URL is wrong :/
         let url = '/rest/api/1.0/labels/suggest?maxResults=50&query=';
         if (this.id !== 'labels') {
             url = '/rest/api/1.0/labels/suggest?maxResults=50&customFieldId=' + this.fieldMeta.schema.customId + '&query=';

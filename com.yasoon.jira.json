@@ -3,102 +3,114 @@
 	"versionId": 999,
 	"version": "0.8.1",
 	"appNamespace": "com.yasoon.jira",
-	"title": "JIRA",
-	"description": "Available via JIRA",
+	"title": "Jira",
+	"description": "Available via Jira",
 	"homepage": "%localappdata%\\yasoon\\_update\\updater.exe",
 	"logoImage": "logo.png",
 	"notificationImage": "logo_round.png",
-	"files": ["styles.css", "common.js", "functions.js", "controller.js", "models.js", "jira.js"],
+	"files": [
+		"styles.css",
+		"common.js",
+		"functions.js",
+		"controller.js",
+		"models.js",
+		"jira.js"
+	],
 	"main": "jira.js",
-	"oauth": [{
-		"serviceName": "jira:98903134-c504-4f23-a14d-766e65bc7aaf",
-		"oauthVersion": 1,
-		"clientId": "yasoonjira",
-		"clientSecret": null,
-		"signatureMethod": "rsaSha1",
-		"requestUrl": "$baseUrl$/plugins/servlet/oauth/request-token",
-		"requestMethod": "post",
-		"requestParams": {
-			"url": {
-				"baseUrl": "$param:baseUrl"
-			}
+	"oauth": [
+		{
+			"serviceName": "jira:98903134-c504-4f23-a14d-766e65bc7aaf",
+			"oauthVersion": 1,
+			"clientId": "yasoonjira",
+			"clientSecret": null,
+			"signatureMethod": "rsaSha1",
+			"requestUrl": "$baseUrl$/plugins/servlet/oauth/request-token",
+			"requestMethod": "post",
+			"requestParams": {
+				"url": {
+					"baseUrl": "$param:baseUrl"
+				}
+			},
+			"authorizationUrl": "$baseUrl$/plugins/servlet/oauth/authorize",
+			"authorizationMethod": "post",
+			"authorizationParams": {
+				"url": {
+					"baseUrl": "$param:baseUrl"
+				}
+			},
+			"tokenUrl": "$baseUrl$/plugins/servlet/oauth/access-token",
+			"tokenMethod": "post",
+			"tokenParams": {
+				"url": {
+					"baseUrl": "$param:baseUrl"
+				}
+			},
+			"scope": null,
+			"clientCertificate": "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",
+			"accessTokenExpirationDuration": 0,
+			"selfSignedCertificate": null,
+			"appParams": {
+				"default": true,
+				"description": "Jira Cloud (yasoon.atlassian.net)",
+				"url": "https://yasoon.atlassian.net"
+			},
+			"mainService": true
 		},
-		"authorizationUrl": "$baseUrl$/plugins/servlet/oauth/authorize",
-		"authorizationMethod": "post",
-		"authorizationParams": {
-			"url": {
-				"baseUrl": "$param:baseUrl"
-			}
+		{
+			"serviceName": "jira:98903134-c504-4f23-a14d-766e65bc7a23",
+			"oauthVersion": 1,
+			"clientId": "yasoonjira",
+			"clientSecret": null,
+			"signatureMethod": "rsaSha1",
+			"requestUrl": "$baseUrl$/plugins/servlet/oauth/request-token",
+			"requestMethod": "post",
+			"requestParams": {
+				"url": {
+					"baseUrl": "$param:baseUrl"
+				}
+			},
+			"authorizationUrl": "$baseUrl$/plugins/servlet/oauth/authorize",
+			"authorizationMethod": "post",
+			"authorizationParams": {
+				"url": {
+					"baseUrl": "$param:baseUrl"
+				}
+			},
+			"tokenUrl": "$baseUrl$/plugins/servlet/oauth/access-token",
+			"tokenMethod": "post",
+			"tokenParams": {
+				"url": {
+					"baseUrl": "$param:baseUrl"
+				}
+			},
+			"scope": null,
+			"clientCertificate": "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",
+			"accessTokenExpirationDuration": 0,
+			"selfSignedCertificate": null,
+			"appParams": {
+				"default": false,
+				"description": "Jira Cloud (yasoon.atlassian.net) Fake",
+				"url": "https://yasoon.atlassian.net"
+			},
+			"mainService": false
+		}
+	],
+	"authorizations": [
+		{
+			"name": "calendar",
+			"mode": "full"
 		},
-		"tokenUrl": "$baseUrl$/plugins/servlet/oauth/access-token",
-		"tokenMethod": "post",
-		"tokenParams": {
-			"url": {
-				"baseUrl": "$param:baseUrl"
-			}
+		{
+			"name": "tasks",
+			"mode": "full"
 		},
-		"scope": null,
-		"clientCertificate": "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",
-		"accessTokenExpirationDuration": 0,
-		"selfSignedCertificate": null,
-		"appParams": {
-			"default": true,
-			"description": "JIRA Cloud (yasoon.atlassian.net)",
-			"url": "https://yasoon.atlassian.net"
-		},
-		"mainService": true
-	}, {
-		"serviceName": "jira:98903134-c504-4f23-a14d-766e65bc7a23",
-		"oauthVersion": 1,
-		"clientId": "yasoonjira",
-		"clientSecret": null,
-		"signatureMethod": "rsaSha1",
-		"requestUrl": "$baseUrl$/plugins/servlet/oauth/request-token",
-		"requestMethod": "post",
-		"requestParams": {
-			"url": {
-				"baseUrl": "$param:baseUrl"
-			}
-		},
-		"authorizationUrl": "$baseUrl$/plugins/servlet/oauth/authorize",
-		"authorizationMethod": "post",
-		"authorizationParams": {
-			"url": {
-				"baseUrl": "$param:baseUrl"
-			}
-		},
-		"tokenUrl": "$baseUrl$/plugins/servlet/oauth/access-token",
-		"tokenMethod": "post",
-		"tokenParams": {
-			"url": {
-				"baseUrl": "$param:baseUrl"
-			}
-		},
-		"scope": null,
-		"clientCertificate": "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",
-		"accessTokenExpirationDuration": 0,
-		"selfSignedCertificate": null,
-		"appParams": {
-			"default": false,
-			"description": "JIRA Cloud (yasoon.atlassian.net) Fake",
-			"url": "https://yasoon.atlassian.net"
-		},
-		"mainService": false
-	}],
-	"authorizations": [{
-		"name": "calendar",
-		"mode": "full"
-	},
-	{
-		"name":"tasks",
-		"mode":"full"
-	},
-	{
-		"name": "files",
-		"mode": "full"
-	}],
+		{
+			"name": "files",
+			"mode": "full"
+		}
+	],
 	"predeliveredConfiguration": {
 		"baseUrl": "https://yasoon.atlassian.net",
-		"settings":  "{\"syncFeed\":\"off\"}"
+		"settings": "{\"syncFeed\":\"off\"}"
 	}
 }

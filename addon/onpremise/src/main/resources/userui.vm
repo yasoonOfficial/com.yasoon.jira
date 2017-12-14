@@ -3,7 +3,7 @@
 
 <head>
     <meta name="decorator" content="atl.general" />
-    <title>JIRA for Outlook</title>
+    <title>Jira for Outlook</title>
 
     $webResourceManager.requireResource("com.yasoon.jira.cloud:userResources")
 

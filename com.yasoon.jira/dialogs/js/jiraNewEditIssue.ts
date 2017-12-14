@@ -70,7 +70,7 @@ class NewEditDialog implements IFieldEventHandler {
 
     init = (initParams: newEditDialogInitParams) => {
         jira = this;
-        //Parameter taken over from Main JIRA
+        //Parameter taken over from Main Jira
         this.settings = initParams.settings;
         this.ownUser = initParams.ownUser;
         this.isEditMode = !!initParams.editIssueId;
@@ -495,7 +495,7 @@ class NewEditDialog implements IFieldEventHandler {
 
         let addedFields: string[] = [];
 
-        //Render Standard Fields on a predefined order if they are in the current meta. (We do not get any order from JIRA, so we assume one for standard fields)
+        //Render Standard Fields on a predefined order if they are in the current meta. (We do not get any order from Jira, so we assume one for standard fields)
         for (let name in this.fieldOrder) {
             if (meta[name]) {
                 FieldController.render(name, $('#ContainerFields'));
