@@ -127,7 +127,7 @@ class EmailController implements IFieldEventHandler {
                         let requestData = {
                             userId: yasoon.setting.getUserParameter('user.id'),
                             companyId: yasoon.setting.getProjectSetting('setupCompanyId'),
-                            conversationId: this.mail.conversationId,
+                            conversationId: this.mail.conversationId.toLowerCase(),
                             mailId: this.mail.messageId,
                             appNamespace: 'com.yasoon.jira',
                             key: 'issues',
