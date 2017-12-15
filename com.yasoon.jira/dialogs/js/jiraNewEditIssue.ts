@@ -649,7 +649,9 @@ class NewEditDialog implements IFieldEventHandler {
 
         //Tempo
         FieldController.register('com.tempoplugin.tempo-accounts:accounts.customfield', TempoAccountField);
+        FieldController.register('com.atlassian.plugins.atlassian-connect-plugin:io.tempo.jira__account', TempoAccountField);
         FieldController.register('com.tempoplugin.tempo-teams:team.customfield', TempoTeamField);
+        FieldController.register('com.atlassian.plugins.atlassian-connect-plugin:io.tempo.jira__team', TempoTeamField);
         //In Cloud we also have this one?!: com.atlassian.plugins.atlassian-connect-plugin:io.tempo.jira__account
 
         //Teamlead
