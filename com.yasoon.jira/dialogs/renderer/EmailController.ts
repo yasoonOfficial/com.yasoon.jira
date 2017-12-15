@@ -120,6 +120,37 @@ class EmailController implements IFieldEventHandler {
                 //Set new message class to switch icon
                 if (!this.mail.isSignedOrEncrypted || jira.settings.overwriteEncrypted)
                     this.mail.setMessageClass('IPM.Note.Jira');
+
+                try {
+                    if (yasoon.outlook.isOffice365Account()) {
+                        //Set "new" conversation data
+                        let requestData = {
+                            userId: yasoon.setting.getUserParameter('user.id'),
+                            companyId: yasoon.setting.getProjectSetting('setupCompanyId'),
+                            conversationId: this.mail.conversationId,
+                            mailId: this.mail.messageId,
+                            appNamespace: 'com.yasoon.jira',
+                            key: 'issues',
+                            data: conversationData
+                        };
+
+                        let service = yasoon.app.getOAuthService(jira.settings.currentService);
+                        if (service && service.appParams) {
+                            requestData.data.issues[issue.id]['instanceId'] = service.appParams.jiraDataId;
+                        }
+
+                        return Promise.resolve($.ajax({
+                            url: 'https://emailapi.yasoon.com/conversations',
+                            method: 'put',
+                            contentType: 'application/json',
+                            data: JSON.stringify(requestData)
+                        }));
+                    }
+                }
+                catch (e) {
+
+                }
+
             } catch (e) {
                 //Not so important
                 yasoon.util.log('Failed to set Conversation data', yasoon.util.severity.info, getStackTrace(e));
@@ -139,7 +170,7 @@ class EmailController implements IFieldEventHandler {
                 mailHandle.selected = true;
             }
 
-            //Replace some invalid Jira chars
+            //Replace some invalid JIRA chars
             let mailFileName = mailHandle.getFileName() || 'no subject.msg';
             mailFileName = mailFileName.replace('&', yasoon.i18n('general.and'));
             mailFileName = mailFileName.replace('+', yasoon.i18n('general.and'));
@@ -202,10 +233,6 @@ class EmailController implements IFieldEventHandler {
 
     getSentAt(): moment.Moment {
         return moment(this.mail.receivedAt);
-    }
-
-    getRecipients(): string {
-        return this.mail.recipients.join(',');
     }
 
     getMailHeaderText(useMarkup: boolean): string {
@@ -372,7 +399,7 @@ class EmailController implements IFieldEventHandler {
 
             let fields: any = {};
             try {
-                //We want the templates to be the same as in the Jira addon, so we cannot use the values.fields, as they use deep objects. e.g. reporter: { name: 'admin' }
+                //We want the templates to be the same as in the JIRA addon, so we cannot use the values.fields, as they use deep objects. e.g. reporter: { name: 'admin' }
                 //We need just reporter: 'admin', so we get all values again from the rendered Fields
                 for (let fieldId in values.fields) {
                     if (fieldId != 'summary' && fieldId != 'description' && fieldId != 'duedate' && fieldId != 'project' && fieldId != 'issuetype') {

@@ -925,6 +925,7 @@ declare namespace yasoonModel {
     entryId: string;
     parentEntryId: string;
     storeId: string;
+    messageId: string;
     subject: string;
     isHtmlBody: boolean;
     body: string;
