@@ -51,6 +51,7 @@
                 "editJiraIssueDialogTitle": "Edit Jira Issue",
                 "titleAddToIssue": "Add to Issue",
                 "titleCreateIssue": "Create New Issue",
+                "titleMissingField": "Missing a field?",
                 "titleEditIssue": "Edit Issue",
                 "errorInitConnection": "Connection Error. Loading Values from Jira not possible. Please check your internet connection or if a VPN access is required.",
                 "errorInitUnknown": "The dialog could not be rendered completely due to an unknown error. Please contact our support team.",

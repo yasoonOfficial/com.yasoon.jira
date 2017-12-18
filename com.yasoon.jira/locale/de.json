@@ -51,6 +51,7 @@
 				"editJiraIssueDialogTitle": "Jira Vorgang bearbeiten",
 				"titleAddToIssue": "Zu Vorgang hinzufügen",
 				"titleCreateIssue": "Neuer Vorgang",
+				"titleMissingField": "Fehlt ein Feld?",
 				"titleEditIssue": "Vorgang bearbeiten",
 				"errorInitConnection": "Verbindungsfehler. Die Daten konnten nicht vollständig von Jira geladen werden. Bitte prüfen deine Internetverbindung oder ob ein VPN benötigt wird.",
 				"errorInitUnknown": "Der Dialog kann auf Grund eines unbekannten Fehlers nicht vollständig gerendert werden. Bitte nimm Kontakt zu unserem Support auf.",

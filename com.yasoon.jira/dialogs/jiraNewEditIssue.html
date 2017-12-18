@@ -16,14 +16,28 @@
 
 <div style="padding:10px; position: fixed; width: 100%">
 	<div id="MainAlert" class="alert alert-danger hidden">
-		<button onclick="$('#MainAlert').addClass('hidden')" type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		<button onclick="$('#MainAlert').addClass('hidden')" type="button" class="close" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		</button>
 		<span class="error-text" data-bind="localizedText: 'dialog.connectionError'">Connection Error. Loading Values from Jira not possible.</span>
 	</div>
 	<div style="display: block; width: 100%; min-width: 690px;" class="jira-dialog box-shadow jira-dialog-open popup-width-custom jira-dialog-content-ready"
-		id="create-issue-dialog">
+	 id="create-issue-dialog">
 		<div class="jira-dialog-heading">
-			<h2 class="jira-title" data-bind="localizedText: 'dialog.titleCreateIssue'"></h2>
-			<h2 class="jira-edit-title" data-bind="localizedText: 'dialog.titleEditIssue'"></h2>
+			<h2 class="jira-title">
+				<span data-bind="localizedText: 'dialog.titleCreateIssue'"></span>
+				<span style="position: absolute; right: 15px; font-size: small; line-height: 30px;">
+					<a onclick="yasoon.openBrowser('https://yasoon.atlassian.net/wiki/spaces/OAFJ/pages/11604189')" data-bind="localizedText: 'dialog.titleMissingField'"
+					 style="cursor: pointer;"></a>
+				</span>
+			</h2>
+			<h2 class="jira-edit-title">
+				<span data-bind="localizedText: 'dialog.titleEditIssue'"></span>
+				<span style="position: absolute; right: 15px; font-size: small; line-height: 30px;">
+					<a onclick="yasoon.openBrowser('https://yasoon.atlassian.net/wiki/spaces/OAFJ/pages/11604189')" data-bind="localizedText: 'dialog.titleMissingField'"
+					 style="cursor: pointer;"></a>
+				</span>
+			</h2>
 		</div>
 		<div class="jira-dialog-content">
 			<div class="qf-container">
@@ -68,5 +82,5 @@
 				</div>
 			</div>
 		</div>
-</div>
+	</div>
 </div>
