@@ -160,7 +160,7 @@ class EmailController implements IFieldEventHandler {
     }
 
     getRecipients(): string {
-        return this.mail.recipients.join(',');
+        return this.mail.recipients.join('; ');
     }
 
     getAttachmentFileHandles(uniqueNames?: boolean): JiraFileHandle[] {
