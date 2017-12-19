@@ -353,7 +353,7 @@ class NewEditDialog implements IFieldEventHandler {
                 //Switch for edit or create
                 let url = (doUpdate) ? '/rest/api/2/issue/' + issueId : '/rest/api/2/issue';
                 let method = (doUpdate) ? yasoon.ajaxMethod.Put : yasoon.ajaxMethod.Post;
-
+                console.log('Data Sent', result);
                 //Submit request	
                 return [
                     sdData,
@@ -680,6 +680,9 @@ class NewEditDialog implements IFieldEventHandler {
         FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object', InsightObjectField);
         FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-reference-multi', InsightReferenceField, { multiple: true });
         FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-reference', InsightReferenceField);
+
+        //NFeed
+        FieldController.register('com.valiantys.jira.plugins.SQLFeed:nfeed-standard-customfield-type', NFeedField);
 
     };
 }

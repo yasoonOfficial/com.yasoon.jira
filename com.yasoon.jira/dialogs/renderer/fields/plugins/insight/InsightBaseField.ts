@@ -1,3 +1,6 @@
+/// <reference path="../../Select2AjaxField.ts" />
+/// <reference path="../../../setter/SetOptionValue.ts" />
+
 @setter(SetterType.Option)
 abstract class InsightBaseField extends Select2AjaxField implements IFieldEventHandler {
     currentProject: JiraProject;
