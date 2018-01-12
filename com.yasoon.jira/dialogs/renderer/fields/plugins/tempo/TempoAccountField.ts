@@ -11,7 +11,7 @@ interface TempoAccount {
     name: string;
     global: boolean;
     contactAvatar?: string;
-    status?: string;
+    status?: 'CLOSED' | 'OPEN' | 'ARCHIVED';
     lead?: JiraUser;
     leadAvatar?: string;
 }
@@ -81,7 +81,7 @@ class TempoAccountField extends Select2Field {
                 let result: Select2Element[] = [];
 
                 if (projectAccounts && projectAccounts.length > 0) {
-                    let childs: Select2Element[] = projectAccounts.map(this.convertToSelect2);
+                    let childs: Select2Element[] = projectAccounts.filter(this._filterClosedAccounts).map(this.convertToSelect2);
                     result.push({
                         id: 'projectAccounts',
                         text: yasoon.i18n('dialog.projectAccounts'),
@@ -93,7 +93,7 @@ class TempoAccountField extends Select2Field {
                     accountData = accountData.filter((acc) => { return acc.global; });
 
                     if (accountData.length > 0) {
-                        let accChilds: Select2Element[] = accountData.map(this.convertToSelect2);
+                        let accChilds: Select2Element[] = accountData.filter(this._filterClosedAccounts).map(this.convertToSelect2);
                         result.push({
                             id: 'globalAccounts',
                             text: yasoon.i18n('dialog.globalAccounts'),
@@ -104,6 +104,10 @@ class TempoAccountField extends Select2Field {
                 return result;
             })
             .catch(this.handleError);
+    }
+
+    private _filterClosedAccounts(account: TempoAccount) {
+        return account.status === 'OPEN';
     }
 
 }
