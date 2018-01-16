@@ -57,16 +57,29 @@ class EmailController implements IFieldEventHandler {
                 this.bodyAsMarkup = markup;
             })
             .catch(() => {
-                this.bodyAsMarkup = yasoon.i18n('general.couldNotRenderMarkup');
+                //Body can be empty, in 2010 this will return null --> check if there is a string at all
+                this.bodyAsMarkup = (this.bodyPlain) ? yasoon.i18n('general.couldNotRenderMarkup') : '';
+
             })
             .then(() => {
                 return this.bodyAsMarkup;
             });
 
-        this.bodyPlain = mail.getBody(0).replace(/\r/g, '').replace(/\n\n/g, '\n');
+        try {
+            //Body can be empty, in 2010 this will return null --> check if there is a string at all
+            this.bodyPlain = mail.getBody(0) || '';
+            this.bodyPlain = this.bodyPlain.replace(/\r/g, '').replace(/\n\n/g, '\n');
+        } catch (e) {
+            this.bodyPlain = '';
+        }
 
         if (this.type === 'selectedText') {
-            this.selectionPlain = this.mail.getSelection(0).replace(/\r/g, '').replace(/\n\n/g, '\n');
+            try {
+                this.selectionPlain = this.mail.getSelection(0) || '';
+                this.selectionPlain = this.selectionPlain.replace(/\r/g, '').replace(/\n\n/g, '\n');
+            } catch (e) {
+                this.selectionPlain = '';
+            }
 
             this.renderSelectionMarkupPromise = this.renderBodyMarkupPromise
                 .then(() => {
@@ -76,11 +89,11 @@ class EmailController implements IFieldEventHandler {
                     this.selectionAsMarkup = markup;
                 })
                 .catch(() => {
-                    this.selectionAsMarkup = yasoon.i18n('general.couldNotRenderMarkup');
+                    this.selectionAsMarkup = (this.selectionPlain) ? yasoon.i18n('general.couldNotRenderMarkup') : '';
                 })
                 .then(() => {
                     return this.selectionAsMarkup;
-                })
+                });
         }
 
         //Get Reporter User
