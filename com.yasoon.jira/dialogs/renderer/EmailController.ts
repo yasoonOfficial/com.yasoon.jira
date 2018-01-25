@@ -144,7 +144,8 @@ class EmailController implements IFieldEventHandler {
                             mailId: this.mail.messageId,
                             appNamespace: 'com.yasoon.jira',
                             key: 'issues',
-                            data: conversationData
+                            data: conversationData,
+                            references: this.mail.references
                         };
 
                         let service = yasoon.app.getOAuthService(jira.settings.currentService);
@@ -156,7 +157,10 @@ class EmailController implements IFieldEventHandler {
                             url: 'https://emailapi.yasoon.com/conversations',
                             method: 'put',
                             contentType: 'application/json',
-                            data: JSON.stringify(requestData)
+                            data: JSON.stringify(requestData),
+                            headers: {
+                                'x-api-version': 2
+                            }
                         }));
                     }
                 }
