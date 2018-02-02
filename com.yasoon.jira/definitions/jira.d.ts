@@ -8,12 +8,13 @@ interface JiraSchema {
 }
 
 interface JiraValue {
-    id: string,
-    name?: string,
-    key?: string,
-    value?: string,
-    iconUrl?: string,
-    children?: Array<JiraValue>
+    id: string;
+    name?: string;
+    key?: string;
+    value?: string;
+    label?: string;
+    iconUrl?: string;
+    children?: Array<JiraValue>;
 }
 
 interface JiraRequestTypeFieldValue {

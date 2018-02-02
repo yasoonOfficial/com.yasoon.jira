@@ -681,6 +681,10 @@ class NewEditDialog implements IFieldEventHandler {
         FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-reference-multi', InsightReferenceField, { multiple: true });
         FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-reference', InsightReferenceField);
 
+        //Icon Fields
+        FieldController.register('com.codebarrel.jira.iconselectlist:icon-multi-select-cf', JiraSelectField, { multiple: true });
+        FieldController.register('com.codebarrel.jira.iconselectlist:icon-select-cf', JiraSelectField, { multiple: false });
+
         //NFeed
         FieldController.register('com.valiantys.jira.plugins.SQLFeed:nfeed-standard-customfield-type', NFeedField);
 

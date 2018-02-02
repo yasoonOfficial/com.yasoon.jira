@@ -26,7 +26,7 @@ class JiraSelectField extends Select2Field {
     convertToSelect2(this: null, obj: JiraValue): Select2Element {
         let result: Select2Element = {
             id: obj.id,
-            text: obj.name || obj.value,
+            text: obj.name || obj.value || obj.label,
             data: obj
         };
 
