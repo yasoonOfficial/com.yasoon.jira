@@ -322,7 +322,7 @@ class JiraIssueNotification extends JiraNotification {
 						content = this.issue.fields.description.trim();
 					}
 				}
-				yEvent.content = content;
+				yEvent.content = 'not rendered yet';
 				yEvent.title = this.issue.fields.summary;
 				yEvent.type = 1;
 				yEvent.createdAt = new Date(this.issue.fields.updated);
