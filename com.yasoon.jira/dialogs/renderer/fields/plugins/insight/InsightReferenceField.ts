@@ -55,4 +55,8 @@ class InsightReferenceField extends InsightBaseField {
                 });
         }
     }
+
+    getEmptyData(): Promise<Select2Element[]> {
+        return this.getData('');
+    }
 }
