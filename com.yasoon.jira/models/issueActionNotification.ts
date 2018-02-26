@@ -128,7 +128,9 @@ class JiraIssueActionNotification extends JiraNotification {
 				if (comment && comment.id) {
 					externalId = 'c' + comment.id;
 				} else if (this.event.id) {
-					externalId = this.event.id['#text'];
+					//Jira messed up the IDs...
+					//externalId = this.event.id['#text'];
+					externalId = this.getExternalId();
 				} else {
 					var logObj = JSON.parse(JSON.stringify(this.event));
 					delete logObj.issue;
@@ -223,7 +225,7 @@ class JiraIssueActionNotification extends JiraNotification {
 		});
 
 		yEvent.parentNotificationId = parent.notificationId;
-		yEvent.externalId = this.event.id['#text'];
+		yEvent.externalId = this.getExternalId();
 		yEvent.title = $('<div>' + this.event.title['#text'] + '</div>').text();
 		yEvent.content = (yEvent.title) ? yEvent.title : yasoon.i18n('notification.noContent');
 		yEvent.contactId = (this.event.author['usr:username']) ? this.event.author['usr:username']['#text'] : '';
@@ -251,6 +253,14 @@ class JiraIssueActionNotification extends JiraNotification {
 				.then((newNotif) => {
 					jira.notifications.addDesktopNotification(newNotif, minEvent);
 				});
+		}
+	}
+
+	getExternalId() {
+		if (this.event['activity:object'] && this.event['activity:object']['id']) {
+			return this.event['activity:object']['id']['#text'] + this.event['published']['#text'];
+		} else {
+			return this.event['published']['#text'];
 		}
 	}
 

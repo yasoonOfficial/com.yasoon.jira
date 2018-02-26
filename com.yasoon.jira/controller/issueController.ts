@@ -2,7 +2,7 @@
 /// <reference path="../definitions/moment.d.ts" />
 
 class JiraIssueController {
-	issues = [];
+	issues: JiraIssue[] = [];
 	lastStartAt = 0;
 
 	refreshBuffer(query) {
@@ -42,7 +42,7 @@ class JiraIssueController {
 
 	async getLastRelevant(numOfEntries: number, loadMore: boolean = false) {
 		//Reset Buffer
-		let jql = encodeURIComponent('order by updated desc');		
+		let jql = encodeURIComponent('order by updated desc');
 		let relevantIssues = [];
 		let result = { total: 0, issues: [] };
 		const PAGE_SIZE = 10;
@@ -50,7 +50,7 @@ class JiraIssueController {
 		let startAt = loadMore ? (this.lastStartAt + numOfEntries) : 0;
 
 		while (relevantIssues.length < numOfEntries) {
-			let issueData = <string> await jiraGet('/rest/api/2/search?jql=' + jql + '&fields=id,project,issuetype,creator,reporter,assignee,watches,comment&startAt=' + startAt);
+			let issueData = <string>await jiraGet('/rest/api/2/search?jql=' + jql + '&fields=id,project,issuetype,creator,reporter,assignee,watches,comment&startAt=' + startAt);
 			result = JSON.parse(issueData);
 
 			if (result.issues) {
@@ -66,7 +66,7 @@ class JiraIssueController {
 					}
 
 					if (relevantIssues.length >= numOfEntries)
-						break;		
+						break;
 				}
 			}
 
@@ -95,7 +95,7 @@ class JiraIssueController {
 	}
 
 	isInFeed(externalId: string) {
-		return yasoon.model.feeds.data().filter(function(e) { return e.externalId === externalId }).length > 0;
+		return yasoon.model.feeds.data().filter(function (e) { return e.externalId === externalId }).length > 0;
 	}
 
 	isRelevant(issue) {
@@ -173,7 +173,11 @@ class JiraIssueController {
 
 				return issue;
 			});
-	};
+	}
+
+	invalidate(id: string) {
+		this.issues = this.issues.filter(function (i) { return (i.id !== id); });
+	}
 
 	all() {
 		return this.issues;

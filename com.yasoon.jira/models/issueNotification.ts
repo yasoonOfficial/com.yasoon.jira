@@ -247,6 +247,7 @@ class JiraIssueNotification extends JiraNotification {
 							return jiraAjax('/rest/api/2/issue/' + key + '/transitions', yasoon.ajaxMethod.Post, body)
 								.then(() => {
 									yasoon.feed.allowUpdate(feed.feedId);
+									jira.issues.invalidate(id);
 									return jira.sync();
 								});
 						}
