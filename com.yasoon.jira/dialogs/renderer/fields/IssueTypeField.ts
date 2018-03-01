@@ -85,7 +85,7 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                 let promise: Promise<JiraProject>;
                 if (!project.issueTypes) {
                     this.showSpinner();
-                    promise = jiraGet('/rest/api/2/project/' + project.key)
+                    promise = jiraGet('/rest/api/2/project/' + project.key + '?expand=issueTypes')
                         .then((data: string) => {
                             this.hideSpinner();
                             let proj: JiraProject = JSON.parse(data);

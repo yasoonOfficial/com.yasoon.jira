@@ -477,7 +477,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 						})
 						.each(function (project) {
 							//Get detailed information for each project
-							return jiraGet('/rest/api/2/project/' + project.key)
+							return jiraGet('/rest/api/2/project/' + project.key + '?expand=issueTypes')
 								.then(function (singleProject) {
 									var proj = JSON.parse(singleProject);
 									var foundIndex = -1;
