@@ -1,9 +1,44 @@
 /// <reference path="../../JiraSelectField.ts" />
 /// <reference path="InsightBaseField.ts" />
 
-class InsightReferenceField extends InsightBaseField {
+class InsightReferenceField extends InsightBaseField implements IFieldEventHandler {
+    fieldConfig: string;
+    objectSchemaId: string;
+    parentFieldId: string;
+    parentCustomFieldName: string;
+
     constructor(id: string, field: JiraMetaField, options: any = {}) {
         super(id, field, options);
+        this.updateFieldMeta(field);
+    }
+
+    updateFieldMeta(newMeta: JiraMetaField) {
+        super.updateFieldMeta(newMeta);
+        console.log('New Insight Meta', newMeta);
+        if (newMeta.data) {
+            let oldParentId = this.parentFieldId;
+
+            this.fieldConfig = newMeta.data['fieldconfig'];
+            this.objectSchemaId = newMeta.data['objectschemaId'];
+            this.parentFieldId = newMeta.data['parentCustomfield'];
+            this.parentCustomFieldName = 'customfield_' + this.parentFieldId;
+
+            if(oldParentId != this.parentFieldId) {
+                console.log('Register Event', this.parentFieldId);
+                FieldController.registerEvent(EventType.FieldChange, this, this.parentCustomFieldName);
+            }
+        }
+    }
+
+    handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
+        console.log('handle Event Insight', newValue, source, this);
+        super.handleEvent(type, newValue, source);
+        
+        if (type === EventType.FieldChange && source === this.parentCustomFieldName) {
+            this.clear();
+        }
+
+        return null;
     }
 
     convertId(id: string): Promise<any> {
@@ -30,23 +65,16 @@ class InsightReferenceField extends InsightBaseField {
     }
 
     getData(searchTerm: string): Promise<Select2Element[]> {
+        console.log('Get data',searchTerm, this.fieldConfig);
 
-        let fieldConfig, objectSchemaId, parentFieldId = '';
-        let field: InsightObjectField;
-        if (this.fieldMeta.data) {
-            fieldConfig = this.fieldMeta.data['fieldconfig'];
-            objectSchemaId = this.fieldMeta.data['objectschemaId'];
-            parentFieldId = this.fieldMeta.data['parentCustomfield'];
-            field = <InsightObjectField>FieldController.getField('customfield_' + parentFieldId);
-        }
-        //let objectSchemaId = (this.fieldMeta.data) ? 
-        if (fieldConfig && field) {
-            let parentValue = field.getValue(false) || [];
+        let parentField: InsightObjectField = <InsightObjectField>FieldController.getField(this.parentCustomFieldName);
+        if (this.fieldConfig && parentField) {
+            let parentValue = parentField.getValue(false) || [];
             let parentKeys = '';
             parentValue.forEach(value => {
                 parentKeys = ((parentKeys) ? ',' : '') + value.key;
             });
-            let url = `/rest/insight/1.0/customfield/${fieldConfig}/referencedobjects?query=${searchTerm}&parentKeys=${parentKeys}&objectSchemaId=${objectSchemaId}&currentProject=${this.currentProject.id}&currentIssueId=${this.currentIssueId}&currentReporter=${this.currentUser.key}`;
+            let url = `/rest/insight/1.0/customfield/${this.fieldConfig}/referencedobjects?query=${searchTerm}&parentKeys=${parentKeys}&objectSchemaId=${this.objectSchemaId}&currentProject=${this.currentProject.id}&currentIssueId=${this.currentIssueId}&currentReporter=${this.currentUser.key}`;
             console.log(url);
             return jiraGet(url)
                 .then((result) => {

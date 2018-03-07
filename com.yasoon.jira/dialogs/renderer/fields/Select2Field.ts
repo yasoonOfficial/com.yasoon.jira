@@ -76,6 +76,8 @@ abstract class Select2Field extends Field {
 	triggerValueChange() {
 		setTimeout(() => {
 			let value = this.getObjectValue();
+
+			console.log('TriggerValueChange', this.id, value, this.lastValue);
 			if (!this.lastValue && !value)
 				return;
 

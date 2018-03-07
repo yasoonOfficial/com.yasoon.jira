@@ -324,16 +324,18 @@ class TemplateController implements IFieldEventHandler {
         }
 
 
-        if (regex) {
+        if (regex && result) {
             let parsedResult = regex.exec(result);
-            if (parsedResult.length === 0) {
-                result = null;
-            } else if (parsedResult.length === 1)
-                result = parsedResult[0];
-            else if (parsedResult.length === 2)
-                result = parsedResult[1]
-            else {
-                //Todo
+            if(parsedResult) { //Can be null
+                if (parsedResult.length === 0) {
+                    result = null;
+                } else if (parsedResult.length === 1)
+                    result = parsedResult[0];
+                else if (parsedResult.length === 2)
+                    result = parsedResult[1]
+                else {
+                    //Todo
+                }
             }
         }
 
