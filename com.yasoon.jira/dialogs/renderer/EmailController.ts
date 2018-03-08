@@ -161,7 +161,16 @@ class EmailController implements IFieldEventHandler {
                             headers: {
                                 'x-api-version': 2
                             }
-                        }));
+                        }))
+                            .catch(function (e) {
+                                try {
+                                    yasoon.util.log('Failed to set online conversation data', yasoon.util.severity.error, getStackTrace(e));
+                                    yasoon.util.log(JSON.stringify(requestData), yasoon.util.severity.info);
+                                }
+                                catch (e) {
+
+                                }
+                            });
                     }
                 }
                 catch (e) {
