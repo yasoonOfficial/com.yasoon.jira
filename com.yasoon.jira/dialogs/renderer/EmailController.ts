@@ -97,7 +97,7 @@ class EmailController implements IFieldEventHandler {
         }
 
         //Get Reporter User
-        this.loadSenderPromise = jiraGet('/rest/api/2/user/search?username=' + mail.senderEmail)
+        this.loadSenderPromise = jiraGet('/rest/api/2/user/search?username=' + encodeURIComponent(mail.senderEmail))
             .then((data: string): JiraUser => {
                 console.log(data);
                 let users: JiraUser[] = JSON.parse(data);
