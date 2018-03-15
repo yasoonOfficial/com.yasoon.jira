@@ -100,9 +100,14 @@ class EmailController implements IFieldEventHandler {
         this.loadSenderPromise = jiraGet('/rest/api/2/user/search?username=' + mail.senderEmail)
             .then((data: string): JiraUser => {
                 console.log(data);
-                let users = JSON.parse(data);
+                let users: JiraUser[] = JSON.parse(data);
                 if (users.length > 0) {
-                    this.senderUser = users[0];
+                    if (users.length === 1) {
+                        this.senderUser = users[0];
+                    } else if (users.length > 1) {
+                        //emailAddress
+                        this.senderUser = users.filter(u => u.emailAddress === mail.senderEmail)[0];
+                    }
                     FieldController.raiseEvent(EventType.SenderLoaded, this.senderUser);
                     return this.senderUser;
                 }
