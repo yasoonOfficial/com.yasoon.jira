@@ -268,7 +268,8 @@
                 "tasksSyncAllProjects": "All Projects",
                 "projectsNotLoaded": "Projects not loaded yet",
                 "taskProjectAvailable": "All Projects",
-                "taskProjectActive": "Active Projects"
+                "taskProjectActive": "Active Projects",
+                "preselectProject": "Preselect last used project / issuetype"
             },
             "purchase": {
                 "heading": "Jira for Outlook Trial expired",

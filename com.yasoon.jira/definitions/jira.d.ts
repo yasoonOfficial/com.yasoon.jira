@@ -1,5 +1,3 @@
-
-
 interface JiraSchema {
     type: string,
     custom?: string,
@@ -12,7 +10,7 @@ interface JiraValue {
     name?: string;
     key?: string;
     value?: string;
-    label?: string;
+    label?: string; //E.g. for IconSelectFields
     iconUrl?: string;
     children?: Array<JiraValue>;
 }
@@ -32,6 +30,8 @@ interface JiraSentObj {
 interface JiraTimetrackingValue {
     originalEstimate?: string,
     remainingEstimate?: string
+    originalEstimateSeconds?: number;
+    remainingEstimateSeconds?: number;
 }
 
 interface JiraGroups {
@@ -57,12 +57,16 @@ interface JiraOrganization {
     name: string;
 }
 
-interface JiraOrganizationResult {
+interface JiraPageResult {
     size?: number;
     start?: number;
     limit?: number;
     isLastPage?: boolean;
     values?: JiraOrganization[];
+}
+
+interface JiraOrganizationResult extends JiraPageResult {
+
 }
 
 interface Jira6Epics {
@@ -76,37 +80,40 @@ interface Jira7Epics {
 }
 
 interface JiraEpicList {
-    listDescriptor: string,
-    epicNames: JiraEpic[],
+    listDescriptor: string;
+    epicNames: JiraEpic[];
 }
 
 
 interface JiraEpic {
-    key: string,
-    name: string,
-    isDone?: boolean
+    key: string;
+    name: string;
+    isDone?: boolean;
 }
 
 interface JiraSprints {
-    suggestions: JiraSprint[],
-    allMatches: JiraSprint[]
+    suggestions: JiraSprint[];
+    allMatches: JiraSprint[];
 }
 
 interface JiraSprint {
-    name: string,
-    id: number,
-    statusKey: string
+    name: string;
+    id: number;
+    statusKey: string;
 }
 
 interface JiraJqlResult {
-    issues: JiraIssue[]
+    issues?: JiraIssue[];
+    startAt?: number;
+    maxResults?: number;
+    total?: number;
 }
 
 interface JiraComponent {
-    id: string,
-    name: string,
-    description: string,
-    isAssigneeTypeValid: boolean
+    id: string;
+    name: string;
+    description: string;
+    isAssigneeTypeValid: boolean;
 }
 
 interface JiraVersion {
@@ -123,11 +130,147 @@ interface JiraVersion {
 
 }
 
-interface JiraIssue {
+interface JiraTransitions {
+    expand?: string;
+    transitions: JiraTransition[];
+}
+
+interface JiraTransition {
+    id: string;
+    name: string;
+    hasScreen?: boolean;
+    to?: JiraStatus;
+}
+
+interface JiraStatus {
+    self?: string;
+    description?: string;
+    iconUrl?: string;
+    name?: string;
+    id?: string;
+    statusCategory?: JiraStatusCategory;
+
+}
+
+interface JiraSubmitTransition {
+    transition: {
+        id: string;
+    };
+}
+
+interface JiraStatusCategory {
+    self?: string;
+    id: number;
+    key: string;
+    colorName?: string;
+    name?: string;
+}
+
+interface JiraResolution {
+    self?: string;
+    id?: string;
+    description?: string;
+    name?: string;
+}
+
+interface JiraPriority {
+    self?: string;
+    iconUrl?: string;
+    name?: string;
+    id?: string;
+}
+
+interface JiraProgress {
+    progress?: number;
+    total?: number;
+    percent?: number;
+}
+
+interface JiraVotes {
+    self?: string;
+    votes?: number;
+    hasVoted?: boolean;
+}
+
+interface JiraWorklogResult {
+    startAt?: number;
+    maxResults?: number;
+    total?: number;
+    worklogs?: JiraWorklog[];
+}
+
+interface JiraWorklog {
+
+}
+
+interface JiraAttachment {
+    self?: string;
+    id?: string;
+    filename?: string;
+    author?: JiraUser;
+    created?: string; //Format	"2017-08-17T11:50:23.772+0200"
+    size?: number;
+    mimeType?: string;
+    content?: string;
+}
+
+interface JiraWatches {
+    self?: string;
+    watchCount?: number;
+    isWatching?: boolean;
+}
+
+interface JiraIssueKey {
     id: string;
     key: string;
-    fields: { [id: string]: any };
+}
+
+interface JiraIssue extends JiraIssueKey {
+    fields: JiraIssueFields;
+    renderedFields?: { [id: string]: any };
     editmeta?: { fields: { [id: string]: JiraMetaField } };
+    transitions?: JiraTransition[];
+}
+
+interface JiraIssueFields {
+    project?: JiraProject;
+    issuetype?: JiraIssueType;
+    fixVersions?: JiraVersion[];
+    resolution?: JiraResolution;
+    resolutiondate?: string; //Format: 2016-04-28T11:54:19.957+0200
+    lastViewed?: string;
+    priority?: JiraPriority;
+    labels?: string[];
+    aggregatetimeoriginalestimate?: number;
+    aggregatetimeestimate?: number;
+    aggregatetimespent?: number;
+    aggregateprogress?: JiraProgress;
+    timeestimate?: number;
+    timeoriginalestimate?: number;
+    timespent?: number;
+    versions?: JiraVersion[];
+    issuelinks?: JiraIssueLinkType[];
+    assignee?: JiraUser;
+    status?: JiraStatus;
+    components?: JiraComponent[];
+    creator?: JiraUser;
+    subTasks?: JiraIssue[];
+    reporter?: JiraUser;
+    progress?: JiraProgress;
+    votes?: JiraVotes;
+    worklog?: JiraWorklogResult;
+    watches?: JiraWatches;
+    created?: string; //Format: 2016-04-28T11:54:19.957+0200
+    updated?: string; //Format: 2016-04-28T11:54:19.957+0200
+    description?: string;
+    timetracking?: JiraTimetrackingValue;
+    summary?: string;
+    environment?: string;
+    duedate?: string; //Format 2016-04-28
+    comment?: JiraCommentResult;
+    attachment?: JiraAttachment[];
+    // allow custom fields
+    [x: string]: any;
 }
 
 interface JiraUser {
@@ -135,6 +278,7 @@ interface JiraUser {
     displayName?: string,
     emailAddress?: string,
     name?: string,
+    accountId?: string; //Cloud only
     locale?: string,
     timezone?: string,
     active?: boolean,
@@ -180,6 +324,11 @@ interface JiraProject {
     self?: string,
 }
 
+
+interface JiraCreateMeta {
+    projects: JiraProjectMeta[];
+}
+
 interface JiraProjectMeta {
     id: string,
     name: string,
@@ -189,12 +338,12 @@ interface JiraProjectMeta {
 }
 
 interface JiraIssueType {
-    avatarId: number;
-    description: string;
-    iconUrl: string;
-    id: string;
-    name: string;
-    subtask: boolean;
+    avatarId?: number;
+    description?: string;
+    iconUrl?: string;
+    id?: string;
+    name?: string;
+    subtask?: boolean;
 }
 
 interface JiraIssueTypeMeta extends JiraIssueType {
@@ -238,7 +387,9 @@ interface JiraUserConfigField {
     required: boolean;
     tab?: JiraUserConfigFieldTab;
     data?: any[];
+    editHtml?: string;
     defaultValue?: any;
+    description: string;
 }
 
 interface JiraUserConfigFieldTab {
@@ -294,6 +445,12 @@ interface JiraServiceDeskMetaField {
     validValues?: Array<JiraRequestTypeFieldValue>
 }
 
+interface JiraServiceDeskInfo {
+    version?: string;
+    platformVersion?: string;
+    isLicensedForUse?: boolean;
+}
+
 interface JiraMetaField {
     required: boolean;
     schema: JiraSchema;
@@ -306,11 +463,16 @@ interface JiraMetaField {
     allowedValues?: Array<JiraValue>;
     isHidden?: boolean;
     defaultValue?: any;
-    data?: any[];
+    data?: { [id: string]: any };
 }
 
 interface JiraLabel {
     label: string
+}
+
+interface JiraLabelResult {
+    token?: string;
+    suggestions?: JiraLabel[];
 }
 
 interface JiraSubmitComment {
@@ -320,9 +482,19 @@ interface JiraSubmitComment {
 
 interface JiraComment {
     id: string;
-    body: string;
+    body?: string;
+    created?: string; //Format	"2016-10-12T17:40:13.787+0200"
+    author?: JiraUser;
+    updated?: string; // Format	"2016-10-12T17:40:13.787+0200"
+    updateAuthor?: JiraUser;
 }
 
+interface JiraCommentResult {
+    maxResults?: number;
+    total?: number;
+    startAt?: number;
+    comments?: JiraComment[];
+}
 interface JiraIssueLinkTypes {
     issueLinkTypes: JiraIssueLinkType[];
 }
@@ -369,8 +541,8 @@ interface YasoonGroupHierarchy {
 
 interface YasoonInitialSelection {
     group?: string,
-    projectId: string,
-    issueTypeId: string
+    projectId?: string,
+    issueTypeId?: string
 }
 
 interface YasoonDefaultTemplate {
@@ -392,16 +564,18 @@ type YasoonConversationIssueDict = { [id: string]: YasoonConversationIssue };
 
 
 interface YasoonConversationIssue {
-    id: string,
-    key: string,
-    summary: string,
-    projectId: string
+    id: string;
+    key: string;
+    summary: string;
+    projectId: string;
+    instanceId?: number;
 }
 
 type JiraDialogType = 'selectedText' | 'wholeMail' | '';
 
 interface YasoonDialogCloseParams {
-    action: 'success' | 'cancel';
+    action: 'success' | 'cancel' | 'errorAfterSave';
+    errorMessage?: string;
     issueKey?: string;
     changeType?: 'updated' | 'created';
     mail?: {
@@ -410,3 +584,83 @@ interface YasoonDialogCloseParams {
     };
 }
 
+
+interface JiraAppSettings {
+    currentService: string;
+    baseUrl: string;
+    lastSync?: Date;
+    showDesktopNotif?: boolean;
+    addAttachmentsOnNewAddIssue?: boolean;
+    addMailHeaderAutomatically?: string;
+    addEmailOnNewAddIssue?: boolean;
+    showFeedAssignee?: boolean;
+    showFeedMentioned?: boolean;
+    showFeedWatcher?: boolean;
+    showFeedProjectLead?: boolean;
+    showFeedReporter?: boolean;
+    showFeedCreator?: boolean;
+    showFeedComment?: boolean;
+    newCreationScreen?: boolean;
+    syncCalendar?: boolean;
+    syncFeed?: string;
+    syncTask?: boolean;
+    taskSyncEnabled?: boolean;
+    tasksActiveProjects?: string;
+    deleteCompletedTasks?: boolean;
+    tasksSyncAllProjects?: boolean;
+    hideResolvedIssues?: boolean;
+    activeFilters?: string;
+    teamlead?: {
+        apiKey: string,
+        mapping: string
+    };
+}
+
+interface NewEditDialogInitParams {
+    mail?: yasoonModel.Email;
+    settings?: JiraAppSettings;
+    text?: string;
+    projects?: JiraProject[];
+    issue?: JiraIssue;
+    type?: JiraDialogType;
+    ownUser?: JiraUser;
+    editIssueId?: string;
+    userMeta?: JiraUserConfigMeta[];
+    createMetas?: JiraProjectMeta[];
+    systemInfo?: JiraSystemInfo;
+    hideHeader?: boolean;
+}
+
+interface CommentDialogInitParams {
+    mail: yasoonModel.Email;
+    settings: JiraAppSettings;
+    text: string;
+    projects: JiraProject[];
+    issue: JiraIssue;
+    type: JiraDialogType;
+    ownUser: JiraUser;
+}
+
+
+type YasoonFieldMappingConfig = {
+    [id: string]: string | {
+        module: string,
+        options: any
+    }
+}
+
+interface JiraFileHandle extends yasoonModel.EmailAttachmentFileHandle {
+    selected: boolean;
+    hash: string;
+    blacklisted: boolean;
+    fileName: string;
+    extension: string;
+    fileIcon: string;
+    fileNameNoExtension: string;
+    attachment: yasoonModel.OutlookAttachment;
+}
+
+interface IconBufferEntry {
+    url: string;
+    fileName: string;
+}

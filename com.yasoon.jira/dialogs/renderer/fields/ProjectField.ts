@@ -69,6 +69,7 @@ class ProjectField extends Select2Field {
             this.setValue(jira.issue.fields.project);
             return;
         }
+
         // Mail may already contain a conversation. Should this also be valid for newIssue?!
         if (this.emailController) {
             let convData: YasoonConversationData = this.emailController.getConversationData();

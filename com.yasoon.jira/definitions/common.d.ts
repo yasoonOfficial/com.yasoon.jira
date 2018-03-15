@@ -65,6 +65,7 @@ declare class JiraAppSettings {
     showFeedCreator: boolean;
     showFeedComment: boolean;
     newCreationScreen: boolean;
+    preselectLastProject: boolean;
     syncCalendar: boolean;
     syncFeed: string;
     syncTask: boolean;

@@ -15,6 +15,7 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
     private initialId: string;
     private emailController: EmailController;
     private serviceDeskController: ServiceDeskController;
+    private recentItems: RecentItemController;
 
     constructor(id: string, field: JiraMetaField) {
         let options: Select2Options = {};
@@ -24,6 +25,7 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
         super(id, field, options);
         this.emailController = jira.emailController;
         this.serviceDeskController = jira.serviceDeskController;
+        this.recentItems = jira.recentItems;
 
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
         FieldController.registerEvent(EventType.FieldChange, this, FieldController.requestTypeFieldId);
@@ -110,11 +112,21 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                     }
 
                     let issueType: JiraIssueType = null;
-                    if (this.initialValue && typeof this.initialValue === 'string') {
-                        //Check if this issue type is still available for this project
-                        issueType = proj.issueTypes.filter((it) => { return it.id === this.initialValue; })[0];
-                    } else if (currentIssueType) {
-                        issueType = proj.issueTypes.filter((it) => { return it.id === currentIssueType.id; })[0];
+
+                    if (this.recentItems.recentSelection) {
+                        let lastIssueType = this.recentItems.recentSelection[proj.id] || null;
+                        if (lastIssueType) {
+                            issueType = proj.issueTypes.filter((it) => { return it.id === lastIssueType; })[0];
+                        }
+                    }
+
+                    if (!issueType) {
+                        if (this.initialValue && typeof this.initialValue === 'string') {
+                            //Check if this issue type is still available for this project
+                            issueType = proj.issueTypes.filter((it) => { return it.id === this.initialValue; })[0];
+                        } else if (currentIssueType) {
+                            issueType = proj.issueTypes.filter((it) => { return it.id === currentIssueType.id; })[0];
+                        }
                     }
 
                     if (issueType) {

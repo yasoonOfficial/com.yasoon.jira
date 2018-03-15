@@ -16,6 +16,7 @@ let defaults = {
     addAttachmentsOnNewAddIssue: false,
     addMailHeaderAutomatically: 'off',
     addEmailOnNewAddIssue: false,
+    preselectLastProject: false,
     showFeedAssignee: true,
     showFeedMentioned: true,
     showFeedWatcher: true,

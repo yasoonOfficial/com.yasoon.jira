@@ -159,7 +159,21 @@ class NewEditDialog implements IFieldEventHandler {
                         yasoon.util.log('Error during init of Edit View. ' + e.message, yasoon.util.severity.warning, getStackTrace(e));
                     });
             } else {
-                this.templateController.setInitialValues();
+                //There is a setting to preselect the last used project & issuetype that overwrites initial values from templates
+                let initialValues: YasoonInitialSelection = null;
+                if (this.settings.preselectLastProject) {
+                    if (this.recentItems.recentProjects && this.recentItems.recentProjects[0]) {
+                        initialValues = {
+                            projectId: this.recentItems.recentProjects[0].id
+                        };
+                    }
+
+                    if (this.recentItems.recentSelection && initialValues && initialValues.projectId) {
+                        initialValues.issueTypeId = this.recentItems.recentSelection[initialValues.projectId] || null;
+                    }
+                }
+
+                this.templateController.setInitialValues(initialValues);
             }
 
             //Submit Button - (Create & Edit)

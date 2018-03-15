@@ -2,6 +2,7 @@ class RecentItemController implements IFieldEventHandler {
     static recentIssuesSetting: string = 'recentIssues';
     static recentProjectsSetting: string = 'recentProjects';
     static recentUserSetting: string = 'recentUsers';
+    static recentSelectionSetting: string = 'recentSelection';
 
     numberRecentIssues: number = 15;
     numberRecentUsers: number = 10;
@@ -12,6 +13,8 @@ class RecentItemController implements IFieldEventHandler {
     recentProjects: JiraProject[] = [];
     recentIssues: JiraIssue[] = [];
     recentUsers: JiraUser[] = [];
+    recentSelection: { [projectId: string]: string } = {};
+
 
     constructor(ownUser: JiraUser) {
         FieldController.registerEvent(EventType.AfterSave, this);
@@ -34,6 +37,12 @@ class RecentItemController implements IFieldEventHandler {
             this.recentUsers = JSON.parse(usersString);
         }
 
+        //Load Recent Selection from DB
+        let recentSelectionString = yasoon.setting.getAppParameter(RecentItemController.recentSelectionSetting);
+        if (recentSelectionString) {
+            this.recentSelection = JSON.parse(recentSelectionString);
+        }
+
         this.ownUser = ownUser;
     }
 
@@ -44,8 +53,12 @@ class RecentItemController implements IFieldEventHandler {
             this.addRecentIssue(issue);
 
             //Add Project to RecentProjects
-            if (issue.fields && issue.fields['project']) {
-                this.addRecentProject(issue.fields['project']);
+            if (issue.fields && issue.fields.project) {
+                this.addRecentProject(issue.fields.project);
+            }
+
+            if (issue.fields && issue.fields.issuetype && issue.fields.project) {
+                this.addRecentInitialSelection(issue.fields.project.id, issue.fields.issuetype.id);
             }
         }
 
@@ -66,6 +79,14 @@ class RecentItemController implements IFieldEventHandler {
             this.recentProjects.unshift(project);
 
             yasoon.setting.setAppParameter(RecentItemController.recentProjectsSetting, JSON.stringify(this.recentProjects));
+        });
+    }
+
+    addRecentInitialSelection(projectId: string, issueTypeId: string) {
+        setTimeout(() => {
+            this.recentSelection[projectId] = issueTypeId;
+
+            yasoon.setting.setAppParameter(RecentItemController.recentSelectionSetting, JSON.stringify(this.recentSelection));
         });
     }
 
