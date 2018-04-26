@@ -291,7 +291,7 @@ class EmailController implements IFieldEventHandler {
         //Add Attachments if available 
         let attachments = '';
         this.attachmentHandles.forEach((handle) => {
-            if (handle.attachment && !handle.attachment.isEmbeddedItem) {
+            if (handle.attachment && !handle.attachment.isEmbeddedItem && !handle.attachment.isHidden) {
                 if (useMarkup) {
                     attachments = attachments + ((attachments) ? ', ' : ' ') + '[^' + handle.fileName + ']';
                 } else {
