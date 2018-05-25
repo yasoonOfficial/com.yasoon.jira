@@ -131,6 +131,7 @@
 				"attachmentReference": "Referenz in Text einfügen",
 				"attachmentDelete": "Löschen",
 				"attachmentAdd": "Anhang einfügen",
+				"selectAllNoneAttachments": "Alle / Keines",
 				"showBlacklistedAttachments": "Ignorierte Anhänge anzeigen",
 				"hideBlacklistedAttachments": "Ignorierte Anhänge verstecken",
 				"timetrackingExample": "(z.B. 3w 4d 12h)",

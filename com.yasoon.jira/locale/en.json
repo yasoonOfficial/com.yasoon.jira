@@ -131,6 +131,7 @@
                 "attachmentReference": "Add Reference to Text",
                 "attachmentDelete": "Delete",
                 "attachmentAdd": "Add Attachment",
+                "selectAllNoneAttachments": "All / None",
                 "showBlacklistedAttachments": "Show Excluded Attachments",
                 "hideBlacklistedAttachments": "Hide Excluded Attachments",
                 "timetrackingExample": "(eg. 3w 4d 12h)",

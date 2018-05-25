@@ -1,5 +1,4 @@
-
-form.aui .field-group > label {
+form.aui .field-group>label {
 	margin-left: -155px!important;
 	width: 145px!important;
 }
@@ -7,6 +6,7 @@ form.aui .field-group > label {
 .input-field {
 	width: 250px;
 }
+
 .select2-container-multi .select2-choices {
 	border: 0px !important;
 }
@@ -20,16 +20,15 @@ form.aui .field-group > label {
 	margin-top: 5px;
 }
 
-
 body {
-	font-family: 'open_sansregular',Arial, Helvetica, Wingdings, Calibri, Cambria,Consolas,sans-serif !important; 
+	font-family: 'open_sansregular', Arial, Helvetica, Wingdings, Calibri, Cambria, Consolas, sans-serif !important;
 }
 
 .addToIssue form.aui .field-group {
 	padding: 4px 0 4px 95px !important;
 }
 
-.addToIssue form.aui .field-group > label {
+.addToIssue form.aui .field-group>label {
 	margin-left: -95px !important;
 	width: 80px !important;
 }
@@ -46,13 +45,13 @@ body {
 	display: none;
 }
 
-#behalfReporter-container{
-	padding:0px;
+#behalfReporter-container {
+	padding: 0px;
 }
 
-#markupLoader { 
+#markupLoader {
 	display: none;
-	position:absolute;
+	position: absolute;
 	background: url(/images/ajax-loader.gif) no-repeat center center;
 	width: 36px;
 	height: 36px;
@@ -63,7 +62,7 @@ body {
 
 #create-issue-dialog .mentions-help-text {
 	position: absolute;
-	display:none;
+	display: none;
 	top: 0px;
 	left: 0px;
 	right: 0px;
@@ -74,7 +73,7 @@ body {
 
 #add-to-issue-dialog .mentions-help-text {
 	position: absolute;
-	display:none;
+	display: none;
 	top: 0px;
 	left: 0px;
 	right: 0px;
@@ -83,57 +82,56 @@ body {
 	z-index: 1000;
 }
 
-
 /* Attachments */
 
-.jiraAttachmentLink{
+.jiraAttachmentLink {
 	margin-bottom: 2px;
 	position: relative;
 }
 
-.attachmentCheckbox{
+.attachmentCheckbox {
 	position: absolute !important;
 }
 
-.attachmentIcon{
+.attachmentIcon {
 	position: absolute;
 	left: 20px;
 	top: 7px;
 }
 
 .attachmentIcon img {
-	width:16px;
+	width: 16px;
 }
 
-.attachmentMain{
+.attachmentMain {
 	margin-left: 40px;
 	margin-right: 40px;
 }
 
-.attachmentName{
+.attachmentName {
 	padding-top: 7px;
 }
 
-.attachmentNewName{
+.attachmentNewName {
 	display: none;
 	padding-top: 3px;
 }
 
 .edit .attachmentName {
-	display:none;
+	display: none;
 }
 
 .edit .attachmentNewName {
 	display: block !important;
 }
 
-.attachmentNewName .input-group{
+.attachmentNewName .input-group {
 	display: inline-table;
 	width: 350px;
 }
 
-.attachmentRenameActions{
-	font-size: 20px; 
+.attachmentRenameActions {
+	font-size: 20px;
 	margin-left: 5px;
 	color: #707070;
 	vertical-align: top;
@@ -152,33 +150,33 @@ body {
 	display: inline-block;
 }
 
-.attachmentMore{
+.attachmentMore {
 	cursor: pointer;
-	color:grey;
+	color: grey;
 }
 
-.attachmentMoreIcons{
-	font-size:6px;	
-    position: relative;
+.attachmentMoreIcons {
+	font-size: 6px;
+	position: relative;
 	top: -1px;
 }
 
 .attachmentMoreIcons:after {
-  content: '';
-  position: absolute;
-  top: -8px;
-  bottom: -8px;
-  left: -2px;
-  right: -2px;
-  cursor: pointer;
+	content: '';
+	position: absolute;
+	top: -8px;
+	bottom: -8px;
+	left: -2px;
+	right: -2px;
+	cursor: pointer;
 }
 
 .attachmentMoreIcons i:not(:first-child) {
 	margin-left: 1px;
 }
 
-.addAttachmentLink{	
-	cursor:pointer;
+.addAttachmentLink {
+	cursor: pointer;
 }
 
 .attachment-bottom-actions {
@@ -214,12 +212,13 @@ body {
 }
 
 /* Add to issue Service Comment Buttons */
+
 button.servicedesk {
-	display:none !important;
+	display: none !important;
 }
 
 .servicedesk button.jira {
-	display:none !important;
+	display: none !important;
 }
 
 .servicedesk button.servicedesk {
@@ -229,6 +228,7 @@ button.servicedesk {
 .servicedesk-warning {
 	display: none;
 }
+
 .no-requesttype .servicedesk-warning {
 	display: inline !important;
 }
@@ -246,27 +246,27 @@ button.servicedesk {
 }
 
 .edit-mode .jira-title {
-	display:none;
+	display: none;
 }
 
 .jira-edit-title {
-	display:none;
+	display: none;
 }
 
 .edit-mode .jira-edit-title {
-	display:block !important;
+	display: block !important;
 }
 
 .edit-mode #createAnotherCheckbox {
-	display:none !important;
+	display: none !important;
 }
 
 #label-save {
-	display:none;
+	display: none;
 }
 
 .edit-mode #label-create {
-	display:none !important;
+	display: none !important;
 }
 
 .edit-mode #label-save {
@@ -286,79 +286,67 @@ form.aui .text {
 	padding: 3px 6px !important;
 }
 
-
 /* Not nessecary with new renderer */
+
 .attachments-blacklisted-old {
 	display: none;
 }
 
-.show-blacklisted-attachments-old,
-.hide-blacklisted-attachments-old
-{
+.show-blacklisted-attachments-old, .hide-blacklisted-attachments-old {
 	margin-right: 10px;
-	cursor:pointer;
-	display:none;
+	cursor: pointer;
+	display: none;
 }
 
-.show-blacklisted-attachments,
-.hide-blacklisted-attachments
-{
+.select-all-none-attachments, .show-blacklisted-attachments, .hide-blacklisted-attachments {
 	margin-right: 10px;
-	cursor:pointer;
+	cursor: pointer;
 }
 
-#MainAlert
-{
+#MainAlert {
 	border-radius: 0px;
 	position: fixed;
 	z-index: 100;
 	width: 100%;
 	white-space: normal;
-	margin: -10px -10px;	
+	margin: -10px -10px;
 }
 
-#LoaderArea 
-{
-	position:absolute;
+#LoaderArea {
+	position: absolute;
 	top: 0px;
 	background: url(/images/ajax-loader.gif) no-repeat center center;
 	width: 500px;
 	height: 350px;
 }
 
-#JiraSpinner 
-{
+#JiraSpinner {
 	margin-right: 20px;
-	 margin-top: -12px;
+	margin-top: -12px;
 }
 
-.field-error 
-{
-	color:#d04437;
+.field-error {
+	color: #d04437;
 }
 
-.field-error .fa 
-{
+.field-error .fa {
 	margin-top: 9px;
 }
 
-.servicedesk-popover 
-{
-	color:#ffd800;
+.servicedesk-popover {
+	color: #ffd800;
 	font-size: 20px;
-	cursor:pointer;
+	cursor: pointer;
 	margin-right: 10px;
 }
 
-.select2-icon-size
-{
+.select2-icon-size {
 	width: 20px;
 	max-width: 20px;
 	max-height: 20px;
-
 }
-.select2-icon-margin
-{
+
+.select2-icon-margin {
 	margin-top: -3px;
 	margin-right: 4px;
 }
@@ -368,13 +356,12 @@ form.aui .text {
 	padding-top: 5px
 }
 
-#markupLoader 
-{
-	position:absolute;
+#markupLoader {
+	position: absolute;
 	background: url(../../images/ajax-loader.gif) no-repeat center center;
 	width: 36px;
 	height: 36px;
-	left: 175px; 
+	left: 175px;
 	z-index: 100;
 	margin-top: 10px;
 }
@@ -384,32 +371,33 @@ form.aui .text {
 	font-size: 12pt;
 }
 
-.modal-dialog { 
+.modal-dialog {
 	z-index: 1050;
 }
-
 
 .trigger-template {
 	cursor: pointer;
 }
 
 /* Custom Scrollbar */
-::-webkit-scrollbar{
+
+::-webkit-scrollbar {
 	width: 10px;
 }
 
-::-webkit-scrollbar-track-piece{
+::-webkit-scrollbar-track-piece {
 	background-color: #FFF;
 }
 
-::-webkit-scrollbar-thumb{
+::-webkit-scrollbar-thumb {
 	background-color: #CBCBCB;
 	outline: 2px solid #FFF;
 	outline-offset: -2px;
 	border: .1px solid #B7B7B7;
 }
 
-::-webkit-scrollbar-thumb:hover{
+::-webkit-scrollbar-thumb:hover {
 	background-color: #909090;
 }
+
 /* End Custom Scrollbar */

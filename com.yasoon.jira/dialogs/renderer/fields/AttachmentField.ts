@@ -132,7 +132,6 @@ class AttachmentField extends Field implements IFieldEventHandler {
     hookEventHandler(): void {
         //Blacklist Events
         if (this.currentParameters.blacklistedAttachments.length > 0) {
-
             $(this.ownContainer).find('.show-blacklisted-attachments').removeClass('hidden');
 
             $(this.ownContainer).find('.show-blacklisted-attachments').off().click((e) => {
@@ -150,6 +149,17 @@ class AttachmentField extends Field implements IFieldEventHandler {
             });
         }
 
+        $(this.ownContainer).find('.select-all-none-attachments').off().click((e) => {
+            var newState = !$('#attachment-select-all-none').is(':checked');
+            $('.jiraAttachmentLink').find('.checkbox input').prop('checked', newState).trigger('change');
+            $('#attachment-select-all-none').prop('checked', newState);
+        });
+
+        $('#attachment-select-all-none').off().on('change', (e) => {
+            var newState = e.target['checked'];
+            $('.jiraAttachmentLink').find('.checkbox input').prop('checked', newState).trigger('change');
+            $('#attachment-select-all-none').prop('checked', newState);
+        });
 
         $(this.ownContainer).find('.addAttachmentLink').off().click((e) => {
             e.preventDefault();
@@ -166,9 +176,8 @@ class AttachmentField extends Field implements IFieldEventHandler {
 
         $('.jiraAttachmentLink .checkbox input').off().on('change', (e) => {
             let handle = this.getCurrentAttachment($(e.target));
-            handle.selected = !handle.selected;
+            handle.selected = e.target['checked'];
             this.raiseHandleChangedEvent(handle);
-
         });
 
         $('.attachmentAddRef').off().click((e) => {
