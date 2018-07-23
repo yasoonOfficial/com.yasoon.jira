@@ -1,9 +1,9 @@
 /// <reference path="../definitions/yasoon.d.ts" />
 
 class JiraIssueTask {
-	
-    constructor(private issue: any) {
-    }
+
+	constructor(private issue: any) {
+	}
 
 	isSyncNeeded() {
 		if (!jira.settings.syncTask)
@@ -40,7 +40,18 @@ class JiraIssueTask {
 			dbItem.completionPercent = 0;
 		}
 
-		if (this.issue.fields.duedate) {
+		let startDateField = jira.settings['customTaskStartDate'];
+		if (startDateField && this.issue.fields[startDateField]) {
+			dbItem.startDate = moment(this.issue.fields[startDateField]).toDate();
+		}
+
+		let reminderDateField = jira.settings['customTaskReminderDate'];
+		if (reminderDateField && this.issue.fields[reminderDateField]) {
+			dbItem.reminderDate = moment(this.issue.fields[reminderDateField]).toDate();
+		}
+
+		let dueDateField = jira.settings['customTaskEndDate'] || 'duedate';
+		if (this.issue.fields[dueDateField]) {
 			//We need to use momentJS to parse the date correctly
 			// Wunderlist JSON contains "2014-04-14"
 			// If using new Date(json), this will result in a date:
