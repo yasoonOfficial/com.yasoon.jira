@@ -9,7 +9,16 @@ class NFeedField extends Select2AjaxField {
     }
 
     getData(searchTerm: string): Promise<Select2Element[]> {
-        return jiraAjax('/rest/nfeed/2.0/nFeed/field/autocomplete/query', yasoon.ajaxMethod.Post, JSON.stringify({ query: searchTerm, field: { name: this.id, mode: 'EDIT' } }))
+        return jiraAjax('/rest/nfeed/3.0/nFeed/field-new/input/options', yasoon.ajaxMethod.Post, JSON.stringify({
+            customFieldId: this.id,
+            userInput: searchTerm,
+            fieldContext: {},
+            formData: {
+                [this.id]: []
+            },
+            startIndex: 0,
+            view: "EDIT"
+        }))
             .then((resultString) => {
                 let result = JSON.parse(resultString);
                 return result.values;
