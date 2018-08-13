@@ -19,35 +19,29 @@ interface NFeedQueryResult {
         "criticalMessages": string[]
     };
 }
-let config = {
-    "customfield_10400": {
-        isMulti: true
-    },
-    "customfield_10500": {
-        isMulti: false,
-        dependency: {
-            fieldId: 'customfield_10400'
-        }
-    }
-};
 
+interface NFeedConfig {
+    isMulti?: boolean;
+    dependency?: {
+        fieldId: string;
+    };
+}
 
 @getter(GetterType.Array)
 @setter(SetterType.Option)
 class NFeedField extends Select2AjaxField implements IFieldEventHandler {
     dependendValue: NFeedOption;
-    ownConfig: any;
+    ownConfig: NFeedConfig;
 
     constructor(id: string, field: JiraMetaField, options: any = {}) {
-        let ownConfig = {};
+        let ownConfig: NFeedConfig = {};
         if (jira.settings.nfeed && jira.settings.nfeed[id]) {
             ownConfig = jira.settings.nfeed[id];
         }
 
-        let multiple = ownConfig.isMultiple || false;
+        let multiple = ownConfig.isMulti || false;
 
         super(id, field, options, multiple);
-
 
         this.ownConfig = ownConfig;
 
@@ -80,6 +74,7 @@ class NFeedField extends Select2AjaxField implements IFieldEventHandler {
                 return result.options.map(this.convertToSelect2);
             });
     }
+
     convertToSelect2(obj: NFeedOption): Select2Element {
         return {
             id: obj.id,
