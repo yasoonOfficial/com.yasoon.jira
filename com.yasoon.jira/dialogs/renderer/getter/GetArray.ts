@@ -2,7 +2,7 @@
 
 class GetArray implements FieldGetter {
     getValue(field: Field, onlyChangedData: boolean) {
-        let newValue = field.getDomValue();
+        let newValue = field.getDomValue() || [] ;
         if (!Array.isArray(newValue)) {
             newValue = [newValue];
         }

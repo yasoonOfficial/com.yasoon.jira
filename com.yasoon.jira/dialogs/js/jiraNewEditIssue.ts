@@ -701,6 +701,8 @@ class NewEditDialog implements IFieldEventHandler {
 
         //NFeed
         FieldController.register('com.valiantys.jira.plugins.SQLFeed:nfeed-standard-customfield-type', NFeedField);
+        //Create via REST API does not work - unknown data format
+        //FieldController.register('com.valiantys.jira.plugins.SQLFeed:com.valiantys.jira.plugins.sqlfeed.user.customfield.type', NFeedField);
 
     };
 }
