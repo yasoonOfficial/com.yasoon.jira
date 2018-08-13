@@ -1,27 +1,29 @@
 /// <reference path="../../Select2AjaxField.ts" />
 
 interface NFeedOption {
-    "id": string;
-    "index": number;
-    "values": string[];
-    "isSelected": boolean;
+    id: string;
+    index: number;
+    values: string[];
+    isSelected: boolean;
 }
 
 interface NFeedQueryResult {
-    "columnNames": string[];
-    "options": NFeedOption[];
-    "start": number,
-    "hasNext": boolean;
-    "messages": {
-        "infoMessages": string[],
-        "warningMessages": string[],
-        "errorMessages": string[],
-        "criticalMessages": string[]
+    columnNames: string[];
+    selectedOptions?: NFeedOption[];
+    options: NFeedOption[];
+    start: number,
+    hasNext: boolean;
+    messages: {
+        infoMessages: string[],
+        warningMessages: string[],
+        errorMessages: string[],
+        criticalMessages: string[]
     };
 }
 
 interface NFeedConfig {
     isMulti?: boolean;
+    isReadOnly?: boolean;
     dependency?: {
         fieldId: string;
     };
@@ -40,6 +42,10 @@ class NFeedField extends Select2AjaxField implements IFieldEventHandler {
         }
 
         let multiple = ownConfig.isMulti || false;
+
+        if (ownConfig.isReadOnly) {
+            options.disabled = true;
+        }
 
         super(id, field, options, multiple);
 
@@ -77,8 +83,19 @@ class NFeedField extends Select2AjaxField implements IFieldEventHandler {
             view: "EDIT"
         }))
             .then((resultString) => {
-                let result = JSON.parse(resultString);
-                return result.options.map(this.convertToSelect2);
+                let result: NFeedQueryResult = JSON.parse(resultString);
+
+                console.log('Result', this.id, result);
+                let select2Result = result.options.map(this.convertToSelect2);
+
+                if (result.selectedOptions && result.selectedOptions.length > 0) {
+                    //Dangerously set Default Values (important for ReadOnly fields)
+                    setTimeout(() => {
+                        this.setValue(result.selectedOptions[0]);
+                    }, 100);
+                }
+
+                return select2Result;
             });
     }
 
@@ -93,7 +110,7 @@ class NFeedField extends Select2AjaxField implements IFieldEventHandler {
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
         console.log('Get Event', type, newValue, source);
         this.dependendValue = newValue;
-        this.setData(null);
-        return Promise.resolve();
+        this.setData([]);
+        return this.getData('');
     }
 }
