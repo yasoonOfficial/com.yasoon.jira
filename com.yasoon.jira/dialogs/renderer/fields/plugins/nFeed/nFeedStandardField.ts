@@ -35,8 +35,8 @@ class NFeedField extends Select2AjaxField implements IFieldEventHandler {
 
     constructor(id: string, field: JiraMetaField, options: any = {}) {
         let ownConfig: NFeedConfig = {};
-        if (jira.settings.nfeed && jira.settings.nfeed[id]) {
-            ownConfig = jira.settings.nfeed[id];
+        if (jira.settings.nFeed && jira.settings.nFeed[id]) {
+            ownConfig = jira.settings.nFeed[id];
         }
 
         let multiple = ownConfig.isMulti || false;
@@ -52,12 +52,19 @@ class NFeedField extends Select2AjaxField implements IFieldEventHandler {
         }
     }
 
+    async getEmptyData(): Promise<Select2Element[]> {
+        //Don't Buffer!
+        return this.getData('');
+    }
+
     getData(searchTerm: string): Promise<Select2Element[]> {
         let formData = {
             [this.id]: []
         };
         //If we have a dependend value, we need to send it...
-        if (this.dependendValue) {
+        if ($.isArray(this.dependendValue)) {
+            formData[this.ownConfig.dependency.fieldId] = this.dependendValue.map(v => v.id);
+        } else if (this.dependendValue) {
             formData[this.ownConfig.dependency.fieldId] = [this.dependendValue.id];
         }
 
