@@ -169,8 +169,7 @@
 							"tests[\"Status code is 200\"] = responseCode.code === 200;",
 							"tests[\"epicLists array exists\"] = !!jsonData.epicLists;",
 							"tests[\"total value exists\"] = jsonData.total > 0;",
-							"tests[\"Epic Names exist\"] = !!jsonData.epicLists[0].epicNames;",
-							"tests[\"Epic count is correct\"] = jsonData.epicLists[0].epicNames.length === jsonData.total;",
+							"tests[\"Epic Names exist\"] = !!jsonData.epicLists[0].epicNames;",							
 							"tests[\"Epic structure is correct\"] = jsonData.epicLists[0].epicNames[0].key && jsonData.epicLists[0].epicNames[0].name;"
 						]
 					}
