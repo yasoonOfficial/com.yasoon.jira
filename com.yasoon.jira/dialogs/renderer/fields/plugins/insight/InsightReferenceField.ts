@@ -23,7 +23,7 @@ class InsightReferenceField extends InsightBaseField implements IFieldEventHandl
             this.parentFieldId = newMeta.data['parentCustomfield'];
             this.parentCustomFieldName = 'customfield_' + this.parentFieldId;
 
-            if(oldParentId != this.parentFieldId) {
+            if (oldParentId != this.parentFieldId) {
                 console.log('Register Event', this.parentFieldId);
                 FieldController.registerEvent(EventType.FieldChange, this, this.parentCustomFieldName);
             }
@@ -33,7 +33,7 @@ class InsightReferenceField extends InsightBaseField implements IFieldEventHandl
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
         console.log('handle Event Insight', newValue, source, this);
         super.handleEvent(type, newValue, source);
-        
+
         if (type === EventType.FieldChange && source === this.parentCustomFieldName) {
             this.clear();
         }
@@ -64,8 +64,8 @@ class InsightReferenceField extends InsightBaseField implements IFieldEventHandl
         };
     }
 
-    getData(searchTerm: string): Promise<Select2Element[]> {
-        console.log('Get data',searchTerm, this.fieldConfig);
+    async getData(searchTerm: string): Promise<Select2Element[]> {
+        console.log('Get data', searchTerm, this.fieldConfig);
 
         let parentField: InsightObjectField = <InsightObjectField>FieldController.getField(this.parentCustomFieldName);
         if (this.fieldConfig && parentField) {
@@ -74,13 +74,21 @@ class InsightReferenceField extends InsightBaseField implements IFieldEventHandl
             parentValue.forEach(value => {
                 parentKeys = ((parentKeys) ? ',' : '') + value.key;
             });
-            let url = `/rest/insight/1.0/customfield/${this.fieldConfig}/referencedobjects?query=${searchTerm}&parentKeys=${parentKeys}&objectSchemaId=${this.objectSchemaId}&currentProject=${this.currentProject.id}&currentIssueId=${this.currentIssueId}&currentReporter=${this.currentUser.key}`;
-            console.log(url);
-            return jiraGet(url)
-                .then((result) => {
-                    var resultObj: InsightObject[] = JSON.parse(result);
-                    return resultObj.map(this.convertToSelect2);
-                });
+
+            let url = `/rest/insight/1.0/customfield/reference/${this.fieldConfig}/objects`;
+            let params: InsightReferenceQueryParams = {
+                currentProject: parseInt(this.currentProject.id),
+                currentReporter: this.currentUser.key,
+                query: searchTerm,
+                parentKeys: parentKeys
+            }
+
+            console.log('Query Data', params);
+            //let url = `/rest/insight/1.0/customfield/${this.fieldConfig}/referencedobjects?query=${searchTerm}&parentKeys=${parentKeys}&objectSchemaId=${this.objectSchemaId}&currentProject=${this.currentProject.id}&currentIssueId=${this.currentIssueId}&currentReporter=${this.currentUser.key}`;
+            let result = await jiraAjax(url, yasoon.ajaxMethod.Post, JSON.stringify(params));
+            let resultObj: InsightQueryResult = JSON.parse(result);
+            console.log('Result', resultObj);
+            return resultObj.objects.map(this.convertToSelect2);
         }
     }
 

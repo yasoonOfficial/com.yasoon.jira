@@ -3,6 +3,10 @@
 
 class InsightObjectField extends InsightBaseField {
     constructor(id: string, field: JiraMetaField, options: any = {}) {
+        if (field.data['multiple']) {
+            options.multiple = true;
+        }
+
         super(id, field, options);
     }
 
@@ -29,15 +33,24 @@ class InsightObjectField extends InsightBaseField {
         };
     }
 
-    getData(searchTerm: string): Promise<Select2Element[]> {
+    async getData(searchTerm: string): Promise<Select2Element[]> {
+        console.log('FieldMeta', this.fieldMeta);
         let fieldConfig = (this.fieldMeta.data) ? this.fieldMeta.data['fieldconfig'] : null;
         if (fieldConfig) {
-            let url = `/rest/insight/1.0/customfield/${fieldConfig}/objects?query=${searchTerm}&currentProject=${this.currentProject.id}&currentIssueId=${this.currentIssueId}&currentReporter=${this.currentUser.key}`;
-            return jiraGet(url)
-                .then((result) => {
-                    var resultObj: InsightObject[] = JSON.parse(result);
-                    return resultObj.map(this.convertToSelect2);
-                });
+            let url = `/rest/insight/1.0/customfield/default/${fieldConfig}/objects`;
+            let params: InsightObjectQueryParams = {
+                currentProject: parseInt(this.currentProject.id),
+                currentReporter: this.currentUser.key,
+                query: searchTerm
+            };
+
+            if (this.currentIssueId) {
+                params.currentIssueId = parseInt(this.currentIssueId);
+            }
+
+            let result = await jiraAjax(url, yasoon.ajaxMethod.Post, JSON.stringify(params));
+            let resultObj: InsightQueryResult = JSON.parse(result);
+            return resultObj.objects.map(this.convertToSelect2);
         }
     }
 }

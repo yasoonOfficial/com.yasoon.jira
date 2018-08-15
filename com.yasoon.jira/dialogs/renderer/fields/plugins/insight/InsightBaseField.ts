@@ -74,10 +74,34 @@ abstract class InsightBaseField extends Select2AjaxField implements IFieldEventH
 }
 
 
+interface InsightObjectQueryParams {
+    currentIssueId?: number;
+    currentProject: number;
+    currentReporter: string;
+    customFieldRequestFields?: { fieldId: string, value: any }[];
+    excludeIssueScope?: boolean;
+    query: string;
+}
+
+interface InsightReferenceQueryParams extends InsightObjectQueryParams {
+    parentKeys: string;
+}
+
+interface InsightQueryResult {
+    objects: InsightObject[];
+    offset: number;
+    limit: number;
+    attributeNamesForSearch: string[];
+    size: number;
+}
+
+
 interface InsightObject {
     id: number;
+    label: string;
     name: string;
     objectKey?: string;
+    objectType: InsightObjectType;
     avatar?: InsightAvatars;
     created?: string;
     updated?: string;

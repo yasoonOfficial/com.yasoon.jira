@@ -690,8 +690,7 @@ class NewEditDialog implements IFieldEventHandler {
         FieldController.register('com.intenso.jira.plugin.dynamic-forms:secured-select', JiraSelectField);
 
         //Insight
-        FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-multi', InsightObjectField, { multiple: true });
-        FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object', InsightObjectField);
+        FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-default-object', InsightObjectField);
         FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-reference-multi', InsightReferenceField, { multiple: true });
         FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-reference', InsightReferenceField);
 
