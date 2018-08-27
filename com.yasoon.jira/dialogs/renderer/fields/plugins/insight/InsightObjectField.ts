@@ -2,12 +2,16 @@
 /// <reference path="InsightBaseField.ts" />
 
 class InsightObjectField extends InsightBaseField {
+    private deprecated: boolean;
+
     constructor(id: string, field: JiraMetaField, options: any = {}) {
         if (field.data['multiple']) {
             options.multiple = true;
         }
 
         super(id, field, options);
+
+        this.deprecated = !!options.deprecated;
     }
 
     convertId(id: string): Promise<any> {
@@ -33,11 +37,12 @@ class InsightObjectField extends InsightBaseField {
         };
     }
 
+
     async getData(searchTerm: string): Promise<Select2Element[]> {
         console.log('FieldMeta', this.fieldMeta);
         let fieldConfig = (this.fieldMeta.data) ? this.fieldMeta.data['fieldconfig'] : null;
         if (fieldConfig) {
-            let url = `/rest/insight/1.0/customfield/default/${fieldConfig}/objects`;
+            let url = `/rest/insight/1.0/customfield/${(this.deprecated) ? 'deprecated' : 'default'}/${fieldConfig}/objects`;
             let params: InsightObjectQueryParams = {
                 currentProject: parseInt(this.currentProject.id),
                 currentReporter: this.currentUser.key,

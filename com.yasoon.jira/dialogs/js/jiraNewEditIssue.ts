@@ -693,6 +693,10 @@ class NewEditDialog implements IFieldEventHandler {
         FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-default-object', InsightObjectField);
         FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-reference-multi', InsightReferenceField, { multiple: true });
         FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-reference', InsightReferenceField);
+        //Deprecated Insight Fields
+        FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object', InsightObjectField, { deprecated: true });
+        FieldController.register('com.riadalabs.jira.plugins.insight:rlabs-customfield-object-multi', InsightObjectField, { multiple: true, deprecated: true });
+
 
         //Icon Fields
         FieldController.register('com.codebarrel.jira.iconselectlist:icon-multi-select-cf', JiraSelectField, { multiple: true });
