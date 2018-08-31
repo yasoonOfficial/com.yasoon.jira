@@ -63,6 +63,18 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			yasoon.setting.setAppParameter('recentIssues', '[]');
 		}
 
+		if (action === yasoon.lifecycle.Upgrade && newVersion === '1.7.13') {
+			var settingsString = yasoon.setting.getAppParameter('settings');
+			var settings = null;
+			if (settingsString) {
+				//Load Settings
+				settings = JSON.parse(settingsString);
+				settings.syncFeed = 'off';
+				settings.syncTasks = false;
+				yasoon.setting.setAppParameter('settings', JSON.stringify(settings));
+			}
+		}
+
 		jira.downloadScript = true;
 	};
 
