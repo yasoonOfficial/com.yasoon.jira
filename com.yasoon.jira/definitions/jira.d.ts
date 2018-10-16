@@ -409,6 +409,7 @@ interface JiraTabField {
 
 interface JiraSystemInfo {
     versionNumbers: number[];
+    deploymentType: "Cloud" | "Server";
 }
 
 interface JiraUserPreferences {

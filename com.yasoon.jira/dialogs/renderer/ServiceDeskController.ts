@@ -130,6 +130,9 @@ class ServiceDeskController implements IFieldEventHandler {
     }
 
     async isVersionAtLeast(as: string): Promise<boolean> {
+        if (jira && (jira.systemInfo as JiraSystemInfo).deploymentType === 'Cloud')
+            return true;
+
         let version = await this.getServiceDeskVersion();
         let baseVersion = version.split('-')[0];
         let baseNumbers = baseVersion.split('.').map(n => parseInt(n));
