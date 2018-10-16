@@ -445,19 +445,21 @@ class NewEditDialog implements IFieldEventHandler {
                 //Render each field
                 let renderedTabs: { [id: string]: boolean } = {};
                 let renderProms: Promise<any>[] = [];
+                var containerId = '#ContainerFields';
                 for (let fieldName in renderData.fields) {
                     let field = renderData.fields[fieldName];
                     if (field.id === FieldController.projectFieldId || field.id === FieldController.issueTypeFieldId)
                         continue;
 
                     //Check if userPrefences allow current field
-                    if (renderData.userPreferences.useQuickForm && (renderData.userPreferences.fields.indexOf(field.id) === -1 && field.required === false)) {
+                    if ((renderData.userPreferences.useQuickForm &&
+                        (renderData.userPreferences.fields.indexOf(field.id) === -1 && field.required === false))
+                    ) {
                         continue;
                     }
 
                     jiraVerbose('Render Field ' + fieldName);
                     //Render tab if nessecary
-                    var containerId = '#ContainerFields';
                     if (renderData.sortedTabs.length > 1) {
                         if (!renderedTabs[field.tab.position]) {
                             $('#tab-list').append('<li role="presentation" class="' + ((field.tab.position === 0) ? 'active' : '') + '"><a href="#tab-content' + field.tab.position + '" role="tab" data-toggle="tab">' + field.tab.label + '</a></li>');
@@ -475,6 +477,11 @@ class NewEditDialog implements IFieldEventHandler {
                         let prom = FieldController.render(field.id, $(containerId));
                         renderProms.push(prom);
                     }
+                }
+
+                for (let fieldId of Object.keys(meta)) {
+                    if (meta[fieldId].schema.custom && meta[fieldId].schema.custom === 'com.atlassian.servicedesk:sd-customer-organizations')
+                        renderProms.push(FieldController.render(fieldId, $(containerId)));
                 }
 
                 //Tabs nessecary?
@@ -641,6 +648,7 @@ class NewEditDialog implements IFieldEventHandler {
 
         //Service Desk
         FieldController.register('com.atlassian.servicedesk:sd-request-participants', UserSelectField, { multiple: true });
+        FieldController.register('com.atlassian.servicedesk:sd-customer-organizations', OrganizationField);
         //https://jira.atlassian.com/browse/JSD-4353
         //https://jira.atlassian.com/browse/JSD-4723
         /*if (this.editIssueId) {

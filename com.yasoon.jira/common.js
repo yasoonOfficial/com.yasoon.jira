@@ -452,6 +452,9 @@ function notificationOpenIssue(params) {
 function parseUserMeta(metaString) {
 	var userMeta = JSON.parse(metaString);
 	userMeta.fields.forEach(function (field) {
+		if (field.id === "assignee")
+			return;
+
 		var el = $('<div>' + field.editHtml + '</div>');
 		field.defaultValue = el.find('select, input, textarea').val();
 		field.data = el.find('select, input, textarea').data();
