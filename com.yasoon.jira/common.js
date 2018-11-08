@@ -267,7 +267,7 @@ function jiraAjax(relativeUrl, method, data, formData) {
 		var request = {
 			url: jira.settings.baseUrl + relativeUrl,
 			oauthServiceName: jira.settings.currentService,
-			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck', 'X-ExperimentalApi': 'true' }, //nocheck is deprecated since REST 3.0.0 - us no-check instead
+			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'no-check', 'X-ExperimentalApi': 'true' },
 			data: data,
 			formData: formData,
 			type: method,

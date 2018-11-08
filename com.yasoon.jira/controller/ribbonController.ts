@@ -603,7 +603,7 @@ class JiraRibbonController {
 				oauthServiceName: jira.settings.currentService,
 				type: yasoon.ajaxMethod.Post,
 				formData: formData,
-				headers: { Accept: 'application/json', 'X-Atlassian-Token': 'nocheck' },
+				headers: { Accept: 'application/json', 'X-Atlassian-Token': 'no-check' },
 				error: function (data, statusCode, result, errorText, cbkParam) {
 					yasoon.dialog.showMessageBox(yasoon.i18n('general.couldNotUploadAttachments') + ' - ' + errorText);
 				},
