@@ -49,7 +49,6 @@ class JiraTaskController {
 
 		var updatedIssues = [];
 		var ownIssues = [];
-		var ownUserKey = jira.data.ownUser.key || jira.data.ownUser.name; //Depending on version >.<
 
 		var getIssueData = (jql, startAt) => {
 			return jiraGet('/rest/api/2/search?jql=' + jql + '&startAt=' + startAt + '&expand=transitions,renderedFields')
@@ -67,7 +66,7 @@ class JiraTaskController {
 				});
 		};
 
-		var jql = 'assignee="' + ownUserKey + '" AND status != "resolved" AND status != "closed" AND status != "done" ORDER BY created DESC';
+		var jql = 'assignee = currentUser() AND status != "resolved" AND status != "closed" AND status != "done" ORDER BY created DESC';
 
 		return getIssueData(jql, 0)
 			.then((data) => {
