@@ -90,31 +90,16 @@ function JiraIconController() {
 		var fileName = 'Images\\' + jiraCreateHash(url);
 		console.log('Download Icon - URL: ' + url + ' : FileName: ' + fileName);
 
-		if (url.indexOf('secure') > -1) {
-			//Authed
-			yasoon.io.downloadAuthed(url, fileName, jira.settings.currentService, false, function (handle) {
-				//Success Handler --> update IconBuffer to local URL
-				var result = iconBuffer.filter(function (elem) { return elem.url == url; });
-				if (result.length === 1) {
-					result[0].fileName = 'Images\\' + handle.getFileName();
-					saveSettings();
-				}
+		//Authed
+		yasoon.io.downloadAuthed(url, fileName, jira.settings.currentService, false, function (handle) {
+			//Success Handler --> update IconBuffer to local URL
+			var result = iconBuffer.filter(function (elem) { return elem.url == url; });
+			if (result.length === 1) {
+				result[0].fileName = 'Images\\' + handle.getFileName();
+				saveSettings();
+			}
+		});
 
-			});
-
-		} else {
-			//Download File
-			yasoon.io.download(url, fileName, false, function (handle) {
-				//Success Handler --> update IconBuffer to local URL
-				var result = iconBuffer.filter(function (elem) { return elem.url == url; });
-				if (result.length === 1) {
-					result[0].fileName = 'Images\\' + handle.getFileName();
-					saveSettings();
-				}
-
-			});
-
-		}
 		//Temporary save URL in Buffer
 		iconBuffer.push({ url: url, fileName: url });
 		return url;
