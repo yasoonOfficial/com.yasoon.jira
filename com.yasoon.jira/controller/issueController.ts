@@ -42,48 +42,52 @@ class JiraIssueController {
 
 	async getLastRelevant(numOfEntries: number, loadMore: boolean = false) {
 		//Reset Buffer
-		let jql = encodeURIComponent('order by updated desc');
+		//let jql = encodeURIComponent('order by updated desc');
 		let relevantIssues = [];
 		let result = { total: 0, issues: [] };
 		const PAGE_SIZE = 10;
 		const MAX_ISSUES = 500;
 		let startAt = loadMore ? (this.lastStartAt + numOfEntries) : 0;
 
-		while (relevantIssues.length < numOfEntries) {
-			let issueData = <string>await jiraGet('/rest/api/2/search?jql=' + jql + '&fields=id,project,issuetype,creator,reporter,assignee,watches,comment&startAt=' + startAt);
-			result = JSON.parse(issueData);
+		let jql = 'issuetype != Epic AND';
 
-			if (result.issues) {
-				for (let i = 0; i < result.issues.length; i++) {
-					if (relevantIssues.filter(v => v.id === result.issues[i].id).length > 0)
-						continue;
+		if (jira.settings.showFeedReporter) {
+			jql += ' reporter in (currentUser()) ';
+		}
 
-					if (this.isRelevant(result.issues[i]) && (!loadMore || !this.isInFeed(result.issues[i].id))) {
-						relevantIssues.push({
-							id: result.issues[i].id,
-							key: result.issues[i].key
-						});
-					}
+		if (jira.settings.showFeedAssignee) {
+			jql += ' OR assignee in (currentUser()) ';
+		}
 
-					if (relevantIssues.length >= numOfEntries)
-						break;
+		if (jira.settings.showFeedWatcher) {
+			jql += ' OR watcher = currentUser() ';
+		}
+
+		if (jira.settings.showFeedComment || jira.settings.showFeedMentioned) {
+			jql += ' OR (summary ~ currentUser() OR description ~ currentUser() OR comment ~ currentUser()) ';
+		}
+
+		jql += 'order by updated desc';
+		jql = encodeURIComponent(jql);
+
+		let issueData = <string>await jiraGet('/rest/api/2/search?jql=' + jql + '&fields=id,key&maxResults=10&startAt=' + startAt);
+		result = JSON.parse(issueData);
+
+		if (result.issues) {
+			for (let i = 0; i < result.issues.length; i++) {
+				if (relevantIssues.filter(v => v.id === result.issues[i].id).length > 0)
+					continue;
+
+				if (!loadMore || !this.isInFeed(result.issues[i].id)) {
+					relevantIssues.push({
+						id: result.issues[i].id,
+						key: result.issues[i].key
+					});
 				}
 			}
-
-			if (relevantIssues.length >= numOfEntries)
-				break;
-
-			startAt += PAGE_SIZE;
-			if (startAt > result.total || startAt >= MAX_ISSUES)
-				break;
 		}
 
-		if (startAt > result.total) {
-			//Disable more
-		}
-		else {
-			this.lastStartAt = startAt;
-		}
+		this.lastStartAt = startAt;
 
 		//Fill buffer for relevant issues
 		if (relevantIssues.length === 0)
