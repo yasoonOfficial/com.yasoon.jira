@@ -39,6 +39,7 @@ class JiraSettingController {
 
     baseUrl: string;
     taskSyncEnabled: boolean = false;
+    feedDisabled: boolean = false;
     teamlead: any;
     lastSync: Date;
     currentService: string;
@@ -119,6 +120,10 @@ class JiraSettingController {
             this.taskSyncEnabled = (taskSyncString.toLowerCase() == 'true');
         }
 
+        let feedDisabled: string = yasoon.setting.getAppParameter('feedDisabled');
+        if (feedDisabled) {
+            this.feedDisabled = (feedDisabled.toLowerCase() == 'true');
+        }
         //Determine URL from service if possible
         if (this.currentService) {
             var service = yasoon.app.getOAuthService(this.currentService);
@@ -165,6 +170,7 @@ class JiraSettingController {
         var templateParams = {
             oAuthServices: oAuthServices,
             loggedIn: !!jira.settings.currentService,
+            feedDisabled: jira.settings.feedDisabled,
             filters: jira.filter.filterObj,
             taskSyncEnabled: jira.settings.taskSyncEnabled,
             tasksSyncAllProjects: jira.settings.tasksSyncAllProjects,

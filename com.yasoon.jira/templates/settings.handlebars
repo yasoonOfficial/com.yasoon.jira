@@ -20,7 +20,8 @@
 			<button class="btn btn-primary" id="jiraLogin">{{i18n 'settings.loginButton'}}</button>
 		</div>
 	</div>
-	<div>{{i18n 'settings.systemMissing'}} <button id="jiraReloadOAuth" class="btn btn-link" style="padding-top: 4px; margin-left: -10px;">{{i18n 'settings.reloadSystems'}}</button></div>
+	<div>{{i18n 'settings.systemMissing'}} <button id="jiraReloadOAuth" class="btn btn-link" style="padding-top: 4px; margin-left: -10px;">{{i18n
+			'settings.reloadSystems'}}</button></div>
 </form>
 {{/unless}} {{#if loggedIn}}
 <p>{{i18n 'settings.headingChooseSettings'}}</p>
@@ -157,7 +158,15 @@
 				</h4>
 			</div>
 			<div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+
 				<div class="panel-body">
+					{{#if taskSyncEnabled}}
+					<div class="form-group" style="position:relative; margin-top:20px;">
+						Feed has been disabled by the administrator
+					</div>
+					{{else}}
+
+
 					<!-- Sync Feed -->
 					<div class="form-group" style="position:relative; margin-top:20px;">
 						<div class="col-sm-4 checkbox">
@@ -216,81 +225,73 @@
 						<div class="col-sm-8">
 							<select multiple id="activeFilters" class="formValue">
 								{{#each filters}}
-								<option value="{{key}}" {{#if selected}}selected{{/if}}>{{name}}</option>
-								{{/each}}
-							</select>
+								<option value="{{key}}" {{#if selected}} selected{{/if}}>{{name}} </option> {{/each}} </select> </div> </div>
+								 {{/if}} </div> </div> </div> {{#if taskSyncEnabled}} <div class="panel panel-default">
+									<div class="panel-heading" role="tab" id="headingFour">
+										<h4 class="panel-title">
+											<a role="button" data-toggle="collapse" href="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+												{{i18n 'settings.headingSyncTasks'}}
+											</a>
+										</h4>
+									</div>
+									<div id="collapseFour" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
+										<div class="panel-body">
+											<!-- Enable Task Sync-->
+											<div class="form-group" style="position:relative; margin-top:20px;">
+												<div class="col-sm-4 checkbox">
+													<b class="pull-right">{{i18n 'settings.syncTasks'}}</b>
+												</div>
+												<div class="col-sm-8">
+													<div class="checkbox awesome">
+														<input class="formValue" type="checkbox" id="syncTask" name="syncTask">
+														<label for="syncTask"></label>
+													</div>
+												</div>
+											</div>
+
+											<!-- Choose Projects for Task Sync -->
+											<div class="form-group" style="position:relative; margin-top:20px;">
+												<div class="col-sm-4 checkbox">
+													<b class="pull-right">{{i18n 'settings.tasksProjectsSync'}}</b>
+												</div>
+												<div class="col-sm-8">
+													<div class="checkbox awesome">
+														<input class="formValue" type="checkbox" id="tasksSyncAllProjects" name="tasksSyncAllProjects">
+														<label for="tasksSyncAllProjects">{{i18n 'settings.tasksSyncAllProjects'}}</label>
+													</div>
+													<div style="margin-top: 20px;" id="tasksProjectfilterContainer">
+														{{#if projects}}
+														<select multiple id="tasksActiveProjects" class="formValue {{#if tasksSyncAllProjects}} hidden {{/if}}">
+															{{#each projects}}
+															<option value="{{key}}" {{#if selected}} selected {{/if}}>{{name}}</option>
+
+															{{/each}}
+														</select> {{else}}
+														<div>
+															<img src="{{loaderPath}}" /> {{i18n 'settings.projectsNotLoaded'}}
+														</div>
+														{{/if}}
+													</div>
+												</div>
+											</div>
+
+											<!-- Keep completed Tasks-->
+											<div class="form-group" style="position:relative; margin-top:20px;">
+												<div class="col-sm-4 checkbox">
+													<b class="pull-right">{{i18n 'settings.deleteCompletedTasks'}}</b>
+												</div>
+												<div class="col-sm-8">
+													<div class="checkbox awesome">
+														<input class="formValue" type="checkbox" id="deleteCompletedTasks" name="deleteCompletedTasks">
+														<label for="deleteCompletedTasks"></label>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
 						</div>
+						{{/if}}
 					</div>
-				</div>
-			</div>
-		</div>
-		{{#if taskSyncEnabled}}
-		<div class="panel panel-default">
-			<div class="panel-heading" role="tab" id="headingFour">
-				<h4 class="panel-title">
-					<a role="button" data-toggle="collapse" href="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-						{{i18n 'settings.headingSyncTasks'}}
-					</a>
-				</h4>
-			</div>
-			<div id="collapseFour" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
-				<div class="panel-body">
-					<!-- Enable Task Sync-->
-					<div class="form-group" style="position:relative; margin-top:20px;">
-						<div class="col-sm-4 checkbox">
-							<b class="pull-right">{{i18n 'settings.syncTasks'}}</b>
-						</div>
-						<div class="col-sm-8">
-							<div class="checkbox awesome">
-								<input class="formValue" type="checkbox" id="syncTask" name="syncTask">
-								<label for="syncTask"></label>
-							</div>
-						</div>
-					</div>
-
-					<!-- Choose Projects for Task Sync -->
-					<div class="form-group" style="position:relative; margin-top:20px;">
-						<div class="col-sm-4 checkbox">
-							<b class="pull-right">{{i18n 'settings.tasksProjectsSync'}}</b>
-						</div>
-						<div class="col-sm-8">
-							<div class="checkbox awesome">
-								<input class="formValue" type="checkbox" id="tasksSyncAllProjects" name="tasksSyncAllProjects">
-								<label for="tasksSyncAllProjects">{{i18n 'settings.tasksSyncAllProjects'}}</label>
-							</div>
-							<div style="margin-top: 20px;" id="tasksProjectfilterContainer">
-								{{#if projects}}
-								<select multiple id="tasksActiveProjects" class="formValue {{#if tasksSyncAllProjects}} hidden {{/if}}">
-									{{#each projects}}
-									<option value="{{key}}" {{#if selected}} selected {{/if}}>{{name}}</option>
-
-									{{/each}}
-								</select> {{else}}
-								<div>
-									<img src="{{loaderPath}}" /> {{i18n 'settings.projectsNotLoaded'}}
-								</div>
-								{{/if}}
-							</div>
-						</div>
-					</div>
-
-					<!-- Keep completed Tasks-->
-					<div class="form-group" style="position:relative; margin-top:20px;">
-						<div class="col-sm-4 checkbox">
-							<b class="pull-right">{{i18n 'settings.deleteCompletedTasks'}}</b>
-						</div>
-						<div class="col-sm-8">
-							<div class="checkbox awesome">
-								<input class="formValue" type="checkbox" id="deleteCompletedTasks" name="deleteCompletedTasks">
-								<label for="deleteCompletedTasks"></label>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		{{/if}}
-	</div>
 
 
 
@@ -298,8 +299,8 @@
 
 
 
-	<!-- Calendar Integration -->
-	<!--
+					<!-- Calendar Integration -->
+					<!--
 	<div class="form-group" style="position:relative; margin-top:20px;">
 		<div class="col-sm-4 checkbox">
 			<b class="pull-right">{{i18n 'settings.calendarIntegration'}}</b>
