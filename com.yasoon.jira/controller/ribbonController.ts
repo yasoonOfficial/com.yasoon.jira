@@ -460,6 +460,29 @@ class JiraRibbonController {
 
 					return;
 				}
+			} else {
+				let jiraUrl = jira.settings.baseUrl;
+				let issuePattern = new RegExp(jiraUrl + '\/browse\/([^"]+?-[0-9]+)', 'g');
+				let matches = issuePattern.exec(item.getBody(0));
+				let issueKey = null;
+				if (matches && matches.length > 0) {
+					issueKey = matches[1];
+				}
+
+				if (issueKey) {
+					jira.ribbonFactory[method](ribbonButton, {
+						label: yasoon.i18n('ribbon.openIssueWithKey', { key: issueKey }),
+						externalData: issueKey,
+						enabled: true,
+						visible: true
+					}, parameters);
+
+					jira.ribbonFactory[method](ribbonDynamicMenu, {
+						visible: false
+					}, parameters);
+				}
+
+				return;
 			}
 
 			jira.ribbonFactory[method](ribbonButton, {
