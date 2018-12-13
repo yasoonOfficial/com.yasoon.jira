@@ -173,11 +173,6 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			return;
 		}
 
-		if (jira.settings.feedDisabled) {
-			console.log('Feed disabled by Admin');
-			return;
-		}
-
 		//Settings Check, Do not sync regularly if turned off.
 		//If sync is turned off, we still need to sync data if task sync is active
 		//+ For intial sync
@@ -189,7 +184,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				return;
 		}
 
-		if (self.firstTime && (jira.settings.syncFeed == 'off' || jira.settings.syncFeed === 'manual') && !jira.settings.syncTasks) {
+		if (self.firstTime && (jira.settings.syncFeed == 'off' || jira.settings.syncFeed === 'manual' || jira.settings.feedDisabled) && !jira.settings.syncTasks) {
 			return self.initData();
 		}
 
