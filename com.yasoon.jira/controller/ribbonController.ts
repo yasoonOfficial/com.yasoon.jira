@@ -462,7 +462,7 @@ class JiraRibbonController {
 				}
 			} else {
 				let jiraUrl = jira.settings.baseUrl;
-				let issuePattern = new RegExp(jiraUrl + '\/browse\/([^"]+?-[0-9]+)', 'g');
+				let issuePattern = new RegExp(jiraUrl + '\/browse\/([^"^\\?]+?-[0-9]+)', 'g');
 				let matches = issuePattern.exec(item.getBody(0));
 				let issueKey = null;
 				if (matches && matches.length > 0) {
@@ -480,9 +480,9 @@ class JiraRibbonController {
 					jira.ribbonFactory[method](ribbonDynamicMenu, {
 						visible: false
 					}, parameters);
-				}
 
-				return;
+					return;
+				}
 			}
 
 			jira.ribbonFactory[method](ribbonButton, {
