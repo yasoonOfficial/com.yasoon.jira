@@ -298,6 +298,19 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 	};
 
 	this.handleOAuthSuccess = function (serviceName) {
+		//Clear caches first
+		jira.cache = {};
+		jira.firstTime = true;
+		jira.issues = new JiraIssueController();
+		jira.data = {
+			ownUser: null,
+			projects: null,
+			issueTypes: null
+		};
+
+		if (jira.settings.syncFeed === 'live')
+			yasoon.notification.removeAll();
+
 		jira.settings.currentService = serviceName;
 		yasoon.setting.setAppParameter('settings', JSON.stringify(jira.settings));
 		try {
