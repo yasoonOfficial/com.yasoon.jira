@@ -87,13 +87,12 @@ class JiraIssueNotification extends JiraNotification {
 
 	searchUser = (mode, query, callback) => {
 		var userNamePromise = Promise.resolve("");
-		// To-Do wait until [~accountId] is fixed
-		/*
+
 		if (jiraIsCloud(jira.settings.baseUrl)) {
-			userNamePromise = jiraGet('/rest/api/2/user/viewissue/search?issueKey=' + this.issue.key + '&projectKey=' + this.issue.fields.project.key + '&maxResults=10&query=' + query)
-		} else { */
-		userNamePromise = jiraGet('/rest/api/2/user/viewissue/search?issueKey=' + this.issue.key + '&projectKey=' + this.issue.fields.project.key + '&maxResults=10&username=' + query, true);
-		//}
+			userNamePromise = jiraGet('/rest/api/2/user/viewissue/search?issueKey=' + this.issue.key + '&projectKey=' + this.issue.fields.project.key + '&maxResults=10&query=' + query);
+		} else {
+			userNamePromise = jiraGet('/rest/api/2/user/viewissue/search?issueKey=' + this.issue.key + '&projectKey=' + this.issue.fields.project.key + '&maxResults=10&username=' + query);
+		}
 
 		userNamePromise.then((userJson) => {
 			//console.log('Result:',users);

@@ -33,7 +33,11 @@ class JiraNotificationController {
 		}
 		try {
 			//check comment for mention
-			comment = comment.replace(/@.*?\]\(user:([^\)]+)\)/g, '[~$1]');
+			var pattern = '[~$1]';
+			if (jiraIsCloud(jira.settings.baseUrl))
+				pattern = '[~accountId:$1]';
+
+			comment = comment.replace(/@.*?\]\(user:([^\)]+)\)/g, pattern);
 			var body = JSON.stringify({
 				"body": comment
 			});

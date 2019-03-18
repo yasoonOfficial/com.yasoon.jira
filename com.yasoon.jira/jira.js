@@ -180,11 +180,11 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 			if (jira.settings.syncFeed == "manual" && source != 'manualRefresh')
 				return;
 
-			if (jira.settings.syncFeed == "off")
+			if (jira.settings.syncFeed == "off" || jira.settings.feedDisabled || !yasoon.internal.isFeedAvailable())
 				return;
 		}
 
-		if (self.firstTime && (jira.settings.syncFeed == 'off' || jira.settings.syncFeed === 'manual' || jira.settings.feedDisabled) && !jira.settings.syncTasks) {
+		if (self.firstTime && (jira.settings.syncFeed == 'off' || jira.settings.syncFeed === 'manual' || jira.settings.feedDisabled || !yasoon.internal.isFeedAvailable()) && !jira.settings.syncTasks) {
 			return self.initData();
 		}
 
