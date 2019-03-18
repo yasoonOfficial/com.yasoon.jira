@@ -170,15 +170,26 @@ function JiraIconController() {
 	}
 }
 
-function jiraGet(relativeUrl) {
+function jiraGet(relativeUrl, noForceAccountId) {
 	return new Promise(function (resolve, reject) {
 		if (jira.testPreventJiraGet === true) {
 			return reject(new jiraSyncError(relativeUrl + ' --> 500 || Internal Testing Error: Reason', 500, 'Reason', {}, 'Error Messages'));
 		}
+
+		var headers = {
+			'Accept': 'application/json',
+			'Content-Type': 'application/json',
+			'X-ExperimentalApi': 'true',
+			'x-atlassian-force-account-id': 'true'
+		};
+
+		if (noForceAccountId)
+			delete headers['x-atlassian-force-account-id'];
+
 		yasoon.oauth({
 			url: jira.settings.baseUrl + relativeUrl,
 			oauthServiceName: jira.settings.currentService,
-			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-ExperimentalApi': 'true' },
+			headers: headers,
 			type: yasoon.ajaxMethod.Get,
 			error: function jiraGetError(data, statusCode, result, errorText, cbkParam) {
 				//Detect if oAuth token has become invalid
@@ -231,7 +242,12 @@ function jiraGetWithHeaders(relativeUrl) {
 		yasoon.oauth({
 			url: jira.settings.baseUrl + relativeUrl,
 			oauthServiceName: jira.settings.currentService,
-			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-ExperimentalApi': 'true' },
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json',
+				'X-ExperimentalApi': 'true',
+				'x-atlassian-force-account-id': 'true'
+			},
 			type: yasoon.ajaxMethod.Get,
 			error: function jiraGetError(data, statusCode, result, errorText, cbkParam) {
 				reject(new jiraSyncError(relativeUrl + ' --> ' + statusCode + ' || ' + result + ': ' + errorText, statusCode, errorText, data, result));
@@ -252,7 +268,13 @@ function jiraAjax(relativeUrl, method, data, formData) {
 		var request = {
 			url: jira.settings.baseUrl + relativeUrl,
 			oauthServiceName: jira.settings.currentService,
-			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'no-check', 'X-ExperimentalApi': 'true' },
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json',
+				'X-ExperimentalApi': 'true',
+				'x-atlassian-force-account-id': 'true',
+				'X-Atlassian-Token': 'no-check'
+			},
 			data: data,
 			formData: formData,
 			type: method,

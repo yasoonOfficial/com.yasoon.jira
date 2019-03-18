@@ -164,7 +164,7 @@ abstract class Field implements FieldGet, FieldSet {
 }
 
 enum GetterType {
-	Text, Object, ObjectArray, Array, Option
+	Text, Object, ObjectArray, Array, Option, OptionWithCloudSwitch
 }
 
 enum SetterType {
@@ -197,7 +197,11 @@ function getter(getterType: GetterType, ...params: any[]) {
 				break;
 
 			case GetterType.Option:
-				proto.getter = new GetOption(params[0], params[1]);
+				proto.getter = new GetOption(params[0], params[1], false);
+				break;
+
+			case GetterType.OptionWithCloudSwitch:
+				proto.getter = new GetOption(params[0], params[1], true);
 				break;
 		}
 	}

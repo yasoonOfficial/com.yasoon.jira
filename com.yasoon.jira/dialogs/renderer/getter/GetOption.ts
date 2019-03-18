@@ -4,7 +4,7 @@ class GetOption implements FieldGetter {
     keyName: string;
     nullValue: any = '-1';
 
-    constructor(keyName: string, nullValue?: any) {
+    constructor(keyName: string, nullValue?: any, private withCloudSwitch?: boolean) {
         this.keyName = keyName;
         if (nullValue !== undefined) {
             this.nullValue = nullValue;
@@ -12,6 +12,18 @@ class GetOption implements FieldGetter {
     }
 
     getValue(field: Field, onlyChangedData: boolean) {
+        let keyName: any = this.keyName;
+        let nullValue: any = this.nullValue;
+        if (this.withCloudSwitch) {
+            if (!jiraIsCloud(jira.settings.baseUrl)) {
+                keyName = keyName[0];
+                nullValue = nullValue[0];
+            } else {
+                keyName = keyName[1];
+                nullValue = nullValue[1];
+            }
+        }
+
         let selectField = <Select2Field>field;
         let newValue = selectField.getDomValue();
 
@@ -19,7 +31,7 @@ class GetOption implements FieldGetter {
             let convertedValues = [];
             newValue.forEach((id) => {
                 let obj = {};
-                obj[this.keyName] = id;
+                obj[keyName] = id;
                 convertedValues.push(obj);
             });
 
@@ -32,7 +44,7 @@ class GetOption implements FieldGetter {
                 //If length the same and all values match, we do not need to send anything            
                 if (field.initialValue && field.initialValue.length === convertedValues.length) {
                     let isSame: boolean = field.initialValue.every((c) => {
-                        return findWithAttr(convertedValues, this.keyName, c[this.keyName]) > -1;
+                        return findWithAttr(convertedValues, keyName, c[keyName]) > -1;
                     });
 
                     if (isSame)
@@ -56,14 +68,14 @@ class GetOption implements FieldGetter {
                 }
 
                 if (!isEqual(select2Value.id, newValue)) {
-                    result[this.keyName] = newValue || this.nullValue;
+                    result[keyName] = newValue || nullValue;
                     return result;
                 }
 
             } else {
                 //In creation case: Only send if not null	
                 if (newValue) {
-                    result[this.keyName] = newValue;
+                    result[keyName] = newValue;
                     return result;
                 }
             }

@@ -453,6 +453,13 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 				})
 				.then(function (ownUserData) {
 					jira.data.ownUser = JSON.parse(ownUserData);
+
+					// Cloud GDPR
+					if (jiraIsCloud(jira.settings.baseUrl)) {
+						jira.data.ownUser.key = jira.data.ownUser.accountId;
+						jira.data.ownUser.name = jira.data.ownUser.accountId;
+					}
+
 					yasoon.setting.setAppParameter('ownUser', JSON.stringify(jira.data.ownUser));
 					jira.contacts.updateOwn(jira.data.ownUser);
 				})

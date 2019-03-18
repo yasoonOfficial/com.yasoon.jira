@@ -6,6 +6,11 @@ class JiraContactController {
 	buffer = [];
 
 	update(actor) {
+		if (jiraIsCloud(jira.settings.baseUrl)) {
+			actor.name = actor.accountId;
+			actor.key = actor.accountId;
+		}
+
 		if (!actor.name || !actor.displayName || !actor.emailAddress)
 			return;
 

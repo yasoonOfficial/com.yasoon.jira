@@ -306,16 +306,21 @@ class MultiLineTextField extends Field implements IFieldEventHandler {
     searchJiraUser = (mode, query, callback) => {
         if (this.currentIssue || this.currentProject) {
             var queryKey = (this.currentIssue) ? 'issueKey=' + this.currentIssue.key : 'projectKey=' + this.currentProject.key;
+            var userNamePromise = Promise.resolve("");
+            if (jiraIsCloud(jira.settings.baseUrl)) {
+                userNamePromise = jiraGet('/rest/api/2/user/viewissue/search?' + queryKey + '&maxResults=10&query=' + query);
+            } else {
+                userNamePromise = jiraGet('/rest/api/2/user/viewissue/search?' + queryKey + '&maxResults=10&username=' + query);
+            }
 
-            jiraGet('/rest/api/2/user/viewissue/search?' + queryKey + '&maxResults=10&username=' + query)
-                .then(function (usersString) {
-                    var data = [];
-                    var users: JiraUser[] = JSON.parse(usersString);
-                    users.forEach(function (user) {
-                        data.push({ id: user.name, name: user.displayName, type: 'user' });
-                    });
-                    callback(data);
+            userNamePromise.then(function (usersString) {
+                var data = [];
+                var users: JiraUser[] = JSON.parse(usersString);
+                users.forEach(function (user) {
+                    data.push({ id: user.name || user.accountId, name: user.displayName, type: 'user' });
                 });
+                callback(data);
+            });
         } else {
             //Show alert
             $('.mentions-input-box + .mentions-help-text').slideDown();

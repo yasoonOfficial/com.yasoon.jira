@@ -97,21 +97,27 @@ class EmailController implements IFieldEventHandler {
         }
 
         //Get Reporter User
-        this.loadSenderPromise = jiraGet('/rest/api/2/user/search?username=' + encodeURIComponent(mail.senderEmail))
-            .then((data: string): JiraUser => {
-                console.log(data);
-                let users: JiraUser[] = JSON.parse(data);
-                if (users.length > 0) {
-                    if (users.length === 1) {
-                        this.senderUser = users[0];
-                    } else if (users.length > 1) {
-                        //emailAddress
-                        this.senderUser = users.filter(u => u.emailAddress === mail.senderEmail)[0];
-                    }
-                    FieldController.raiseEvent(EventType.SenderLoaded, this.senderUser);
-                    return this.senderUser;
+        var userNamePromise = Promise.resolve("");
+        if (jiraIsCloud(jira.settings.baseUrl)) {
+            userNamePromise = jiraGet('/rest/api/2/user/search?query=' + encodeURIComponent(mail.senderEmail));
+        } else {
+            userNamePromise = jiraGet('/rest/api/2/user/search?username=' + encodeURIComponent(mail.senderEmail));
+        }
+
+        this.loadSenderPromise = userNamePromise.then((data: string): JiraUser => {
+            console.log(data);
+            let users: JiraUser[] = JSON.parse(data);
+            if (users.length > 0) {
+                if (users.length === 1) {
+                    this.senderUser = users[0];
+                } else if (users.length > 1) {
+                    //emailAddress
+                    this.senderUser = users.filter(u => u.emailAddress === mail.senderEmail)[0];
                 }
-            });
+                FieldController.raiseEvent(EventType.SenderLoaded, this.senderUser);
+                return this.senderUser;
+            }
+        });
 
         //Get Sender templates            
         let templateString = yasoon.setting.getAppParameter(EmailController.settingCreateTemplates);

@@ -5,7 +5,7 @@
 /// <reference path="../getter/GetOption.ts" />
 /// <reference path="../setter/SetOptionValue.ts" />
 
-@getter(GetterType.Option, "name", null)
+@getter(GetterType.OptionWithCloudSwitch, ["name", "accountId"], [null, null])
 @setter(SetterType.Option)
 class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
     static reporterDefaultMeta: JiraMetaField = { key: FieldController.onBehalfOfFieldId, get name() { return yasoon.i18n('dialog.behalfOf'); }, required: true, schema: { system: 'user', type: '' } };
@@ -124,8 +124,13 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
     }
 
     convertToSelect2(user: JiraUser) {
+        if (jiraIsCloud(jira.settings.baseUrl)) {
+            user.name = user.accountId;
+            user.key = user.accountId;
+        }
+
         let result: Select2Element = {
-            id: user.name,
+            id: user.name || user.accountId,
             text: user.displayName,
             data: user
         };
@@ -189,7 +194,7 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
 
     convertId(user: any): Promise<any> {
         if (!user.displayName) {
-            let name: string = (typeof user === 'string') ? user : user.name;
+            let name: string = (typeof user === 'string') ? user : (user.name || user.accountId);
             return this.getData(name)
                 .then((result) => {
                     if (result[0].children[0])
@@ -206,8 +211,11 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
     getData(searchTerm: string): Promise<Select2Element[]> {
         let url = '/rest/api/2/user/picker?query=' + searchTerm + '&maxResults=50';
         if (this.id === 'assignee' && this.currentProject) {
-            //Only get assignable users
-            url = '/rest/api/2/user/assignable/search?project=' + this.currentProject.key + '&username=' + searchTerm + '&maxResults=50';
+            if (jiraIsCloud(jira.settings.baseUrl)) {
+                url = '/rest/api/2/user/assignable/search?project=' + this.currentProject.key + '&query=' + searchTerm + '&maxResults=50';
+            } else {
+                url = '/rest/api/2/user/assignable/search?project=' + this.currentProject.key + '&username=' + searchTerm + '&maxResults=50';
+            }
         }
 
         return jiraGet(url)

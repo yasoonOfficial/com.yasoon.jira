@@ -86,17 +86,24 @@ class JiraIssueNotification extends JiraNotification {
 	}
 
 	searchUser = (mode, query, callback) => {
-		//console.log('Search User');
-		jiraGet('/rest/api/2/user/viewissue/search?issueKey=' + this.issue.key + '&projectKey=' + this.issue.fields.project.key + '&maxResults=10&username=' + query)
-			.then((userJson) => {
-				//console.log('Result:',users);
-				var data = [];
-				let users = JSON.parse(userJson);
-				users.forEach((user) => {
-					data.push({ id: user.name, name: user.displayName, type: 'user' });
-				});
-				callback(data);
+		var userNamePromise = Promise.resolve("");
+		// To-Do wait until [~accountId] is fixed
+		/*
+		if (jiraIsCloud(jira.settings.baseUrl)) {
+			userNamePromise = jiraGet('/rest/api/2/user/viewissue/search?issueKey=' + this.issue.key + '&projectKey=' + this.issue.fields.project.key + '&maxResults=10&query=' + query)
+		} else { */
+		userNamePromise = jiraGet('/rest/api/2/user/viewissue/search?issueKey=' + this.issue.key + '&projectKey=' + this.issue.fields.project.key + '&maxResults=10&username=' + query, true);
+		//}
+
+		userNamePromise.then((userJson) => {
+			//console.log('Result:',users);
+			var data = [];
+			let users = JSON.parse(userJson);
+			users.forEach((user) => {
+				data.push({ id: user.name || user.accountId, name: user.displayName, type: 'user' });
 			});
+			callback(data);
+		});
 	}
 
 	renderTitle(feed) {
