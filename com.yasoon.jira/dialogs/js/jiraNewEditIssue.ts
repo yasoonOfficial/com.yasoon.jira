@@ -34,6 +34,7 @@ class NewEditDialog implements IFieldEventHandler {
     serviceDeskController: ServiceDeskController = null;
     selectedProject: JiraProject = null;
     selectedIssueType: JiraIssueType = null;
+    selectedIssue: JiraIssue = null;
     issueCreatedKey: string = null;
 
     //From Init
@@ -138,6 +139,8 @@ class NewEditDialog implements IFieldEventHandler {
             //Hook Events
             FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
             FieldController.registerEvent(EventType.FieldChange, this, FieldController.issueTypeFieldId);
+            FieldController.registerEvent(EventType.FieldChange, this, FieldController.issueFieldId);
+
 
             if (this.isEditMode) {
                 $('#LoaderArea').removeClass('hidden');
@@ -233,19 +236,23 @@ class NewEditDialog implements IFieldEventHandler {
                 //Check Service Desk
                 $('#ServiceArea').addClass('hidden');  //IssueTypeField Button will toggle this
             }
-        } else if (source === FieldController.issueTypeFieldId) {
-            this.selectedIssueType = newValue;
-            if (this.selectedIssueType.subtask) {
-                if (!FieldController.getField(FieldController.issueFieldId)) {
-                    //First time we need the issue field
-                    let issueField = <IssueField>FieldController.loadField(IssueField.defaultMeta, IssueField, { excludeSubtasks: true, multiple: false });
-                    issueField.setProject(this.selectedProject);
-                    FieldController.render(FieldController.issueFieldId, $('#SubtaskArea'));
-                }
+        } else if (source === FieldController.issueTypeFieldId || source === FieldController.issueFieldId) {
+            if (source === FieldController.issueTypeFieldId) {
+                this.selectedIssueType = newValue;
+                if (this.selectedIssueType.subtask) {
+                    if (!FieldController.getField(FieldController.issueFieldId)) {
+                        //First time we need the issue field
+                        let issueField = <IssueField>FieldController.loadField(IssueField.defaultMeta, IssueField, { excludeSubtasks: true, multiple: false });
+                        issueField.setProject(this.selectedProject);
+                        FieldController.render(FieldController.issueFieldId, $('#SubtaskArea'));
+                    }
 
-                $('#SubtaskArea').removeClass('hidden');
-            } else {
-                $('#SubtaskArea').addClass('hidden');
+                    $('#SubtaskArea').removeClass('hidden');
+                } else {
+                    $('#SubtaskArea').addClass('hidden');
+                }
+            } else if (source === FieldController.issueFieldId) {
+                this.selectedIssue = newValue;
             }
 
             //Get latest meta and start new Rendering
@@ -530,11 +537,19 @@ class NewEditDialog implements IFieldEventHandler {
         if (this.isEditMode) {
             return this.getUserPreferencesEdit(this.editIssueId);
         } else {
-            return this.getUserPreferencesNew(this.selectedProject.id, this.selectedIssueType.id);
+            return this.getUserPreferencesNew(this.selectedProject.id, this.selectedIssueType.id, (this.selectedIssue) ? this.selectedIssue.id : null);
         }
     }
 
-    getUserPreferencesNew(projectId: string, issueTypeId: string): Promise<JiraUserConfigMeta> {
+    getUserPreferencesNew(projectId: string, issueTypeId: string, issueId?: string): Promise<JiraUserConfigMeta> {
+        if (issueId) {
+            //We do not cache this...
+            //But Subtasks can have own user meta (waaaah)
+            return jiraGet('/secure/QuickCreateIssue!default.jspa?decorator=none&parentIssueId=' + issueId)
+                .then((data: string) => {
+                    return parseUserMeta(data);
+                });
+        }
         //Check Cache
         jiraVerbose('getUserPreferencesNew');
         if (this.cacheUserMeta && this.cacheUserMeta[projectId] && this.cacheUserMeta[projectId][issueTypeId]) {
