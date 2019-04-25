@@ -259,22 +259,27 @@ function jiraGetWithHeaders(relativeUrl) {
 	});
 }
 
-function jiraAjax(relativeUrl, method, data, formData) {
+function jiraAjax(relativeUrl, method, data, formData, noForceAccountId) {
 	return new Promise(function (resolve, reject) {
 		if (jira.testPreventJiraGet === true) {
 			return reject(new jiraSyncError(relativeUrl + ' --> 500 || Internal Testing Error: Reason', 500, 'Reason', {}, 'Error Messages'));
 		}
 
+		var headers = {
+			'Accept': 'application/json',
+			'Content-Type': 'application/json',
+			'X-ExperimentalApi': 'true',
+			'x-atlassian-force-account-id': 'true',
+			'X-Atlassian-Token': 'no-check'
+		};
+
+		if (noForceAccountId)
+			delete headers['x-atlassian-force-account-id'];
+
 		var request = {
 			url: jira.settings.baseUrl + relativeUrl,
 			oauthServiceName: jira.settings.currentService,
-			headers: {
-				'Accept': 'application/json',
-				'Content-Type': 'application/json',
-				'X-ExperimentalApi': 'true',
-				'x-atlassian-force-account-id': 'true',
-				'X-Atlassian-Token': 'no-check'
-			},
+			headers: headers,
 			data: data,
 			formData: formData,
 			type: method,

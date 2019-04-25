@@ -84,7 +84,7 @@ class ServiceDeskController implements IFieldEventHandler {
                 postData.requestFieldValues[field.fieldId] = data.fields[field.fieldId];
             });
 
-            let response = await jiraAjax('/rest/servicedeskapi/request', yasoon.ajaxMethod.Post, JSON.stringify(postData));
+            let response = await jiraAjax('/rest/servicedeskapi/request', yasoon.ajaxMethod.Post, JSON.stringify(postData), null, true);
             let responseData = JSON.parse(response);
 
             return {
