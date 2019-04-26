@@ -124,7 +124,7 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
     }
 
     convertToSelect2(user: JiraUser) {
-        if (jiraIsCloud(jira.settings.baseUrl) && user.name !== '<new>') {
+        if (jiraIsCloud(jira.settings.baseUrl) && (!user.name || user.name.indexOf('<new>') === -1)) {
             user.name = user.accountId;
             user.key = user.accountId;
         }
