@@ -267,6 +267,10 @@ class EmailController implements IFieldEventHandler {
         return this.mail.senderEmail;
     }
 
+    getSenderName(): string {
+        return this.mail.senderName || this.mail.senderEmail;
+    }
+
     getSenderUser(): JiraUser {
         return this.senderUser;
     }

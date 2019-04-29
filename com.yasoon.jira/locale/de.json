@@ -93,7 +93,7 @@
 				"errorNoData": "Bitte entweder einen Kommentar hinzufügen oder einen Anhang wählen.",
 				"errorSubmitComment": "Verbindungsfehler! Kommentieren hat nicht funktioniert: <br /> {{error}}",
 				"errorAttachment": "Verbindungsfehler! Das hochladen der Anhänge hat nicht funktioniert: <br />{{error}}",
-				"errorSubmitIssue": "Das hat leider nicht funktioniert. Bitte prüfe deine Eingaben und versuche es erneut.  <br />{{error}}",
+				"errorSubmitIssue": "Das hat leider nicht funktioniert. Bitte prüfe deine Eingaben und versuche es erneut.  <br />{{- error}}",
 				"errorAfterSubmitIssue": "Der Vorgang wurde angelegt, allerdings ist anschließend ein Fehler aufgetreten. Bitte überprüfe den angelegten Vorgang. <br />{{error}}",
 				"errorCreateAttachment": "Vergang {{key}} wurde angelegt, aber beim hochladen der Anhänge sind Fehler aufgetreten. <br />{{error}}",
 				"SDAssignment": "Service Anfrage erstellen",

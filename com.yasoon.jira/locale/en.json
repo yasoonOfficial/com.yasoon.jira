@@ -93,7 +93,7 @@
                 "errorNoData": "Please add either an comment or select an attachment",
                 "errorSubmitComment": "Connection Error! Commenting did not work: {{error}}",
                 "errorAttachment": "Connection Error: Uploading the attachments failed: <br />{{error}}",
-                "errorSubmitIssue": "Sorry, that did not work. Check your input and try again. <br />{{error}}",
+                "errorSubmitIssue": "Sorry, that did not work. Check your input and try again. <br />{{- error}}",
                 "errorAfterSubmitIssue": "The issue has been created, but there happend an error afterwards. Please check your data. <br />{{error}}",
                 "errorCreateAttachment": "Issue {{key}} created, but uploading the attachments did not work.<br />{{error}}",
                 "SDAssignment": "Create Service Desk assignment",

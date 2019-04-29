@@ -129,9 +129,14 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
             user.key = user.accountId;
         }
 
+        let displayName = user.displayName;
+        if (user.name.indexOf('<new>') > -1 && user.displayName.indexOf("new") === -1) {
+            displayName += " (new)";
+        }
+
         let result: Select2Element = {
             id: user.name || user.accountId,
-            text: user.displayName,
+            text: displayName,
             data: user
         };
 
@@ -231,11 +236,15 @@ class UserSelectField extends Select2AjaxField implements IFieldEventHandler {
                     userArray = users;
                 }
 
+                let exactSearchTermExists = false;
                 userArray.forEach((user) => {
+                    if (user.emailAddress === searchTerm || user.displayName === searchTerm)
+                        exactSearchTermExists = true;
+
                     result.push(this.convertToSelect2(user));
                 });
 
-                if (this.allowNew && searchTerm.indexOf('@') > 0) {
+                if (!exactSearchTermExists && this.allowNew && searchTerm.indexOf('@') > 0) {
                     result.push(this.convertToSelect2({
                         name: '<new>_' + searchTerm,
                         displayName: searchTerm + ' (new)',

@@ -273,11 +273,19 @@ function jiraAjax(relativeUrl, method, data, formData, noForceAccountId) {
 			'X-Atlassian-Token': 'no-check'
 		};
 
+		// Wellll.. Hackidihack?
+		if (relativeUrl.indexOf("api.yasoon.com") > 0)
+			headers['x-jira-base-url'] = jira.settings.baseUrl;
+
 		if (noForceAccountId)
 			delete headers['x-atlassian-force-account-id'];
 
+		var url = relativeUrl;
+		if (url.indexOf("http") !== 0)
+			url = jira.settings.baseUrl + relativeUrl;
+
 		var request = {
-			url: jira.settings.baseUrl + relativeUrl,
+			url: url,
 			oauthServiceName: jira.settings.currentService,
 			headers: headers,
 			data: data,

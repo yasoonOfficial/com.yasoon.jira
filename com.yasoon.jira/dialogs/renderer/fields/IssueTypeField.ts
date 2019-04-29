@@ -180,7 +180,7 @@ class IssueTypeField extends Select2Field implements IFieldEventHandler {
                         }
                         else if (this.emailController && isNewServiceDesk) {
                             behalfOfField.senderUser = {
-                                displayName: this.emailController.getSenderEmail() + ' (new)',
+                                displayName: this.emailController.getSenderName(),
                                 emailAddress: this.emailController.getSenderEmail(),
                                 name: '<new>'
                             };

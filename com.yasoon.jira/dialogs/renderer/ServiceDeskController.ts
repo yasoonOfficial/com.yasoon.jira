@@ -84,7 +84,34 @@ class ServiceDeskController implements IFieldEventHandler {
                 postData.requestFieldValues[field.fieldId] = data.fields[field.fieldId];
             });
 
-            let response = await jiraAjax('/rest/servicedeskapi/request', yasoon.ajaxMethod.Post, JSON.stringify(postData), null, true);
+            // Try to create, that may fail in post-GDPR-cloud scenarios..
+            let response = null;
+            try {
+                response = await jiraAjax('/rest/servicedeskapi/request', yasoon.ajaxMethod.Post, JSON.stringify(postData), null, true);
+            }
+            catch (e) {
+                if (e.result.indexOf("sd.request.create.error.unknown.account.id") > 0) {
+                    // Alright, this is to be expected in Cloud, try to do it via our backend
+                    let user = onBehalfOfField.getObjectValue();
+                    let createCustomerResponse = await jiraAjax('https://api.yasoon.com/v1/jira-service-desk/createCustomer', yasoon.ajaxMethod.Post, JSON.stringify({
+                        email: user.emailAddress,
+                        displayName: user.displayName.replace(' (new)', '')
+                    }));
+
+                    let createdCustomer = JSON.parse(createCustomerResponse);
+                    if (createdCustomer.success === false) {
+                        // Probably app is missing
+                        throw e;
+                    }
+
+                    // Fix up postData and try again
+                    postData.raiseOnBehalfOf = createdCustomer.user.accountId;
+                    response = await jiraAjax('/rest/servicedeskapi/request', yasoon.ajaxMethod.Post, JSON.stringify(postData), null, true);
+                } else {
+                    throw e;
+                }
+            }
+
             let responseData = JSON.parse(response);
 
             return {

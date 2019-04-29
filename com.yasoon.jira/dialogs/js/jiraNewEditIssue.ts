@@ -428,7 +428,11 @@ class NewEditDialog implements IFieldEventHandler {
 
                 let text = 'Unknown';
                 if (e instanceof jiraSyncError) {
-                    text = e.getUserFriendlyError();
+                    if (e.result.indexOf("sd.request.create.error.unknown.account.id") > 0) {
+                        text = 'Error while creating new Service Desk customer. With recent changes to Jira Cloud, you\'ll need to do some additional configuration to continue creating customers from Outlook. Find more info <a href="#" onclick="javascript:yasoon.openBrowser(\'https://yasoon.atlassian.net/wiki/spaces/OAFJ/pages/581894145/Enable+customer+creation+for+Jira+Service+Desk\');">here</a>.'
+                    } else {
+                        text = e.getUserFriendlyError();
+                    }
                 } else if (e.message) {
                     text = e.message;
                 }

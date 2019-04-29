@@ -93,7 +93,7 @@
                 "errorNoData": "Prosím pridajte komentár alebo vyberte prílohu",
                 "errorSubmitComment": "Chyba spojenia! Komentovanie nefuguje: {{error}}",
                 "errorAttachment": "Chyba spojenia: Nahranie prílohy nefunguje: <br />{{error}}",
-                "errorSubmitIssue": "Prepáč, toto nefunguje. Skontroluj a skús znovu. <br />{{error}}",
+                "errorSubmitIssue": "Prepáč, toto nefunguje. Skontroluj a skús znovu. <br />{{- error}}",
                 "errorAfterSubmitIssue": "Požiadavka bola vytvorená, ale objavila sa tu chyba. Prosím skontroluj tvoje dáta. <br />{{error}}",
                 "errorCreateAttachment": "Požiadavka {{key}} vytvorená, ale pridanie prílohy nefungovalo.<br />{{error}}",
                 "SDAssignment": "Vytvor Service Desk priradenie",
