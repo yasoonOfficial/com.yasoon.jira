@@ -28,6 +28,6 @@
     "email": "tobias.viehweger@yasoon.com"
   },
   "devDependencies": {
-    "handlebars": "^1.3.0"
+    "handlebars": "^4.0.0"
   }
 }
