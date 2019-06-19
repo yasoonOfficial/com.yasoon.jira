@@ -246,10 +246,7 @@ class JiraSettingController {
                 jira.settings.baseUrl = newService.appParams.url;
 
                 yasoon.app.getOAuthUrlAsync('com.yasoon.jira', selectedServiceName, (url) => {
-                    if (yasoon.useOauthLegacyFlow())
-                        yasoon.doSystemOAuthFlow(url);
-                    else
-                        window.open(url);
+                    yasoon.doCloudOAuthFlow(url);
                 },
                     () => {
                         //Setting new currentService also set in jira.handleOauthSuccess() because of automated oAuth popups
