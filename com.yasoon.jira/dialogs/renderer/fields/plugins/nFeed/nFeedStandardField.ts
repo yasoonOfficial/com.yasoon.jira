@@ -34,6 +34,8 @@ interface NFeedConfig {
 class NFeedField extends Select2AjaxField implements IFieldEventHandler {
     dependendValue: NFeedOption;
     ownConfig: NFeedConfig;
+    currentProject: JiraProject;
+    currentIssueType: JiraIssueType;
 
     constructor(id: string, field: JiraMetaField, options: any = {}) {
         let ownConfig: NFeedConfig = {};
@@ -56,6 +58,15 @@ class NFeedField extends Select2AjaxField implements IFieldEventHandler {
             this.dependendValue = null;
             FieldController.registerEvent(EventType.FieldChange, this, ownConfig.dependency.fieldId);
         }
+        FieldController.registerEvent(EventType.FieldChange, this, FieldController.projectFieldId);
+
+        //Init project
+        var projectField = <ProjectField>FieldController.getField(FieldController.projectFieldId);
+        this.currentProject = projectField.getObjectValue();
+
+        //Init IssueType
+        var issueTypeField = <IssueTypeField>FieldController.getField(FieldController.issueTypeFieldId);
+        this.currentIssueType = issueTypeField.getObjectValue();
     }
 
     async getEmptyData(): Promise<Select2Element[]> {
@@ -77,7 +88,10 @@ class NFeedField extends Select2AjaxField implements IFieldEventHandler {
         return jiraAjax('/rest/nfeed/3.0/nFeed/field-new/input/options', yasoon.ajaxMethod.Post, JSON.stringify({
             customFieldId: this.id,
             userInput: searchTerm,
-            fieldContext: {},
+            fieldContext: {
+                issueCreateProjectId: this.currentProject.id,
+                issueCreateIssueTypeId: this.currentIssueType.id
+            },
             formData: formData,
             startIndex: 0,
             view: "EDIT"
@@ -108,9 +122,15 @@ class NFeedField extends Select2AjaxField implements IFieldEventHandler {
     }
 
     handleEvent(type: EventType, newValue: any, source?: string): Promise<any> {
-        console.log('Get Event', type, newValue, source);
-        this.dependendValue = newValue;
-        this.setData([]);
-        return this.getData('');
+        if (type === EventType.FieldChange && source === FieldController.projectFieldId) {
+            this.currentProject = newValue;
+        } else if (type === EventType.FieldChange && source === FieldController.issueTypeFieldId) {
+            this.currentIssueType = newValue;
+        } else {
+            console.log('Get Event', type, newValue, source);
+            this.dependendValue = newValue;
+            this.setData([]);
+            return this.getData('');
+        }
     }
 }
