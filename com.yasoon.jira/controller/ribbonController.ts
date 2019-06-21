@@ -156,9 +156,9 @@ class JiraRibbonController {
 			}]
 		};
 
-		if (hasOffice365App) {
+		/*if (hasOffice365App) {
 			explorerRibbon.items[0].items[0].items.unshift(hideOffice365RibbonMail);
-		}
+		}*/
 
 		ribbonFactory.create(explorerRibbon);
 
@@ -203,9 +203,11 @@ class JiraRibbonController {
 			}]
 		};
 
+		/*
 		if (hasOffice365App) {
 			mailReadRibbon.items[0].items[0].items.unshift(hideOffice365RibbonRead);
 		}
+		*/
 
 		ribbonFactory.create(mailReadRibbon);
 
