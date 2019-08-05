@@ -768,9 +768,21 @@ class NewEditDialog implements IFieldEventHandler {
 
         //NFeed
         FieldController.register('com.valiantys.jira.plugins.SQLFeed:nfeed-standard-customfield-type', NFeedField);
+
         //Create via REST API does not work - unknown data format
         //FieldController.register('com.valiantys.jira.plugins.SQLFeed:com.valiantys.jira.plugins.sqlfeed.user.customfield.type', NFeedField);
 
+
+        //Jira Portfolio
+        FieldController.register('com.atlassian.jpo:jpo-custom-field-baseline-start', DateField);
+        FieldController.register('com.atlassian.jpo:jpo-custom-field-baseline-end', DateField);
+        FieldController.register('com.atlassian.jpo:jpo-custom-field-original-story-points', NumberField);
+        FieldController.register('com.atlassian.teams:rm-teams-custom-field-team', TeamField);
+        //com.atlassian.jpo:jpo-custom-field-parent - Parent Link
+
+
+        //Catworkx Money Field
+        FieldController.register('de.catworkx.jira.plugins.custommoneyfield:money-custom-field', SingleTextField);
     };
 }
 

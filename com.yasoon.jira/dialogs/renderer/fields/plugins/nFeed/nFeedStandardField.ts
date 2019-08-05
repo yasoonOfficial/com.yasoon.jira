@@ -85,7 +85,7 @@ class NFeedField extends Select2AjaxField implements IFieldEventHandler {
             formData[this.ownConfig.dependency.fieldId] = [this.dependendValue.id];
         }
 
-        return jiraAjax('/rest/nfeed/3.0/nFeed/field-new/input/options', yasoon.ajaxMethod.Post, JSON.stringify({
+        return jiraAjax('/rest/nfeed/3.0/nFeed/field/input/options', yasoon.ajaxMethod.Post, JSON.stringify({
             customFieldId: this.id,
             userInput: searchTerm,
             fieldContext: {
