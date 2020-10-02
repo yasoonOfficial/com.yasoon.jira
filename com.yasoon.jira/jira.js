@@ -133,6 +133,62 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 		catch (e) {
 			//?!
 		}
+
+		setTimeout(function () {
+			Promise.resolve($.ajax({
+				url: 'https://api.yasoon.org/v2/legacy-addin/show-upgrade-popup',
+				method: 'get',
+				contentType: 'application/json'
+			}))
+				.then(function (data) {
+					var currentValue = yasoon.setting.getAppParameter('showLegacyUpgradePopup');
+					if (data.check > 0 && data.check != currentValue) {
+						if (jiraIsCloud(jira.settings.baseUrl)) {
+							//Show dialog
+							yasoon.dialog.openWebDialog({
+								url: "https://api.yasoon.org/views/v2-com-addin-upgrade.html?mode=v3available",
+								width: 850,
+								height: 400,
+								resizable: false,
+								title: "Upgrade to Outlook Email for Jira V3"
+							});
+						}
+						else {
+							jiraGet("/rest/com.yasoon.jira.outlook-email/1.0/public/info?os_authType=any")
+								.then(function (result) {
+									var versionInfo = JSON.parse(result);
+									if (!versionInfo || !versionInfo.version || !versionInfo.version[0] === "3")
+										throw new Error();
+
+									//Show dialog
+									yasoon.dialog.openWebDialog({
+										url: "https://api.yasoon.org/views/v2-com-addin-upgrade.html?mode=v3available",
+										width: 850,
+										height: 400,
+										resizable: false,
+										title: "Upgrade to Outlook Email for Jira V3"
+									});
+								})
+								.catch(function (e) {
+									//Show dialog
+									yasoon.dialog.openWebDialog({
+										url: "https://api.yasoon.org/views/v2-com-addin-upgrade.html",
+										width: 850,
+										height: 400,
+										resizable: false,
+										title: "Upgrade to Outlook Email for Jira V3"
+									});
+								})
+								.then(function () {
+									yasoon.setting.setAppParameter('showLegacyUpgradePopup', data.check);
+								});
+						}
+					}
+				})
+				.catch(function (e) {
+
+				});
+		}, 5000);
 	};
 
 	this.registerEvents = function () {
