@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+	<title>Login</title>
+	<style>
+		@font-face {
+			font-family: 'soleilregular';
+			src: url('https://static-resources.yasoon.com/soleil/typetogether_-_soleil-webfont.woff2') format('woff2'),
+				url('https://static-resources.yasoon.com/soleil/typetogether_-_soleil-webfont.woff') format('woff');
+			font-weight: normal;
+			font-style: normal;
+		}
+
+		@font-face {
+			font-family: 'soleilbold';
+			src: url('https://static-resources.yasoon.com/soleil/typetogether_-_soleil-bold-webfont.woff2') format('woff2'),
+				url('https://static-resources.yasoon.com/soleil/typetogether_-_soleil-bold-webfont.woff') format('woff');
+			font-weight: normal;
+			font-style: normal;
+		}
+
+		a:visited,
+		a:hover,
+		a:active {
+			color: #41b96a;
+		}
+
+
+		.buttonContainer {
+			position: relative;
+			margin-top: 15px;
+			width: 75%;
+			min-height: 35px;
+			align-items: center;
+			justify-content: center;
+			display: flex;
+			flex-direction: row;
+		}
+
+		.outerButton {
+			margin-right: 20px;
+			float: left;
+		}
+
+		.button {
+			font-family: soleilbold, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Open Sans, Helvetica Neue, sans-serif;
+			min-height: 30px;
+			min-width: 120px;
+			border: 2px solid #2daa56;
+			color: #2daa56;
+			background-color: #DEE4F5;
+			cursor: pointer;
+			font-size: 15px;
+			box-shadow: 3px 3px 0 0px #2daa56;
+			font-weight: 600;
+			text-decoration: none;
+		}
+
+		.button:hover {
+			box-shadow: 4px 4px 0 0px #2daa56;
+			margin-bottom: 1px;
+		}
+
+		.button:active {
+			box-shadow: 2px 2px 0 0px #2daa56;
+			margin-bottom: 2px;
+		}
+
+		.button:focus {
+			outline: none;
+		}
+
+		.button:hover~.subtext {
+			margin-left: 2px;
+		}
+
+		.button:active~.subtext {
+			margin-top: 5px;
+		}
+	</style>
+
+</head>
+<!-- 850px x 400px -->
+
+<body style="background: linear-gradient(180deg,#003d64 0%,#006792 100%);height: 100vh;overflow: hidden;">
+	<div style="display: flex; justify-content: space-around; margin-top: 40px;">
+		<div style="width: 45%; float: left; margin-right: 5%; margin-left: 5%;">
+			<div style="font-size: 32px; font-weight: 500; font-family: 'soleil',sans-serif; color: white; max-width: 40vw; margin-bottom: 10px;">
+				Check out the all new Outlook Email for Jira!
+			</div>
+			<div style="font-size: 24px; font-weight: 500; font-family: 'soleil',sans-serif; color: #2daa56; max-width: 40vw;">
+				<ul>
+					<li style="margin-bottom: 5px;">New sidebar</li>
+					<li style="margin-bottom: 5px;">Better performance</li>
+					<li>Improved security</li>
+				</ul>
+			</div>
+			<div class="buttonContainer">
+				<div class="outerButton">
+					<a id="tryNow" style="display: none;text-align: center;padding-top: 5px;padding-left: 12px;padding-right: 12px;padding-bottom: 5px;" onClick="javascript:yasoon.openBrowser('https://go.yasoon.com/products/oefj/dl_latest')" id="buttonApprove" class="button">Download now</a>
+					<a id="guide" style="display: none;text-align: center;padding-top: 5px;padding-left: 12px;padding-right: 12px;padding-bottom: 5px;" onClick="javascript:yasoon.openBrowser('https://yasoon.atlassian.net/wiki/spaces/JFO/pages/643891320/Upgrade+Guide')" id="buttonApprove" class="button">Upgrade Guide</a>
+				</div>
+				<a style="text-align: center;padding-top: 5px;padding-left: 7px;padding-right: 7px; float:right; padding-bottom: 5px;" onClick="javascript:yasoon.openBrowser('https://yasoon.atlassian.net/wiki/spaces/JFO/pages/644186131/Introducing+Version+3')" id="buttonDecline" class="button">Learn more</a>
+			</div>
+		</div>
+		<div>
+			<img style="height: 250px;" src="https://yasoon.com/wp-content/uploads/2019/03/header_outlook-email-jira-1024x807.png">
+		</div>
+	</div>
+	<div style="text-align: center; margin-top: 50px; width: 100%;">
+		<a onClick="javascript:yasoon.openBrowser('https://go.yasoon.com/apps')">
+			<img src="https://static-resources.yasoon.com/images/logo_yasoon.svg" style="height: 40px; cursor: pointer;">
+		</a>
+	</div>
+
+	<script>
+		var Dialog = /** @class */ (function () {
+			function Dialog() {
+				var _this = this;
+
+				this.init = function (initParams) {
+					if (initParams.mode === "v3available") {
+						document.getElementById("tryNow").style.display = "inline-block";
+					} else {
+						document.getElementById("guide").style.display = "inline-block";
+					}
+				};
+			}
+
+			Dialog.prototype.close = function (params) {
+
+			};
+			Dialog.prototype.handleEvent = function (type, newValue, source) {
+
+			};
+
+			return Dialog;
+		}());
+
+		yasoon.dialog.load(new Dialog());
+
+	</script>
+</body>
+
+</html>
