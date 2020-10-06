@@ -136,7 +136,7 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 
 		setTimeout(function () {
 			Promise.resolve($.ajax({
-				url: 'https://api.yasoon.org/v2/legacy-addin/show-upgrade-popup',
+				url: 'https://api-v2.yasoon.com/v2/legacy-addin/show-upgrade-popup',
 				method: 'get',
 				contentType: 'application/json'
 			}))
