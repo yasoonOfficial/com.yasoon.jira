@@ -31,7 +31,7 @@ class EmailController implements IFieldEventHandler {
     selectionPlain: string;
 
     senderUser: JiraUser;
-    allTemplates: { [id: string]: YasoonDefaultTemplate[] } = {};
+    allTemplates: { [id: string]: YasoonDefaultTemplate[]; } = {};
     senderTemplates: YasoonDefaultTemplate[] = [];
 
     mailConversationData: YasoonConversationData;
@@ -144,48 +144,6 @@ class EmailController implements IFieldEventHandler {
                 //Set new message class to switch icon
                 if (!this.mail.isSignedOrEncrypted || jira.settings.overwriteEncrypted)
                     this.mail.setMessageClass('IPM.Note.Jira');
-
-                try {
-                    if (yasoon.outlook.isOffice365Account()) {
-                        //Set "new" conversation data
-                        let requestData = {
-                            userId: yasoon.setting.getUserParameter('user.id'),
-                            companyId: yasoon.setting.getProjectSetting('setupCompanyId'),
-                            conversationId: this.mail.conversationId.toLowerCase(),
-                            mailId: this.mail.messageId,
-                            appNamespace: 'com.yasoon.jira',
-                            key: 'issues',
-                            data: conversationData,
-                            references: this.mail.references
-                        };
-
-                        let service = yasoon.app.getOAuthService(jira.settings.currentService);
-                        if (service && service.appParams) {
-                            requestData.data.issues[issue.id]['instanceId'] = service.appParams.jiraDataId;
-                        }
-
-                        return Promise.resolve($.ajax({
-                            url: 'https://emailapi.yasoon.com/conversations',
-                            method: 'put',
-                            contentType: 'application/json',
-                            data: JSON.stringify(requestData),
-                            headers: {
-                                'x-api-version': 2
-                            }
-                        }))
-                            .catch(function (e) {
-                                try {
-                                    yasoon.util.log('Failed to set online conversation data', yasoon.util.severity.error, getStackTrace(e));
-                                    yasoon.util.log(JSON.stringify(requestData), yasoon.util.severity.info);
-                                }
-                                catch (e) {
-
-                                }
-                            });
-                    }
-                }
-                catch (e) {
-                }
 
             } catch (e) {
                 //Not so important
@@ -347,7 +305,7 @@ class EmailController implements IFieldEventHandler {
                         } else if (this.type === 'wholeMail') {
                             this.bodyAsMarkup = newMarkup;
                         }
-                        return newMarkup
+                        return newMarkup;
                     });
             });
     }
@@ -526,7 +484,7 @@ class EmailController implements IFieldEventHandler {
                 }
 
                 this.allTemplates[this.getSenderEmail().toLowerCase()] = this.senderTemplates;
-                let data = JSON.stringify(this.allTemplates)
+                let data = JSON.stringify(this.allTemplates);
                 yasoon.setting.setAppParameter(EmailController.settingCreateTemplates, data);
             } catch (e) {
                 //Saving the template should never interrupt saving...
