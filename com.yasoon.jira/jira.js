@@ -157,6 +157,8 @@ yasoon.app.load("com.yasoon.jira", new function () { //jshint ignore:line
 								closeCallback: function () {
 								}
 							});
+
+							yasoon.setting.setAppParameter('showLegacyUpgradePopup', data.check);
 						}
 						else {
 							jiraGet("/rest/com.yasoon.jira.outlook-email/1.0/public/info?os_authType=none")
